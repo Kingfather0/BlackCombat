@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>🥊 Fight Pick — 격투기 승부예측</title>
+<meta name="description" content="격투기 승부예측 투표 · 자동 집계 · 랭킹">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥊</text></svg>">
+<style>
+:root{
+  --bg:#0d1017; --card:#151a23; --card2:#1b2231; --border:#242d3f;
+  --text:#e9edf5; --muted:#939cb0; --dim:#6b7488;
+  --red:#ff5560; --blue:#5c8dff; --gold:#f5c451; --green:#42c76e;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg); color:var(--text); min-height:100vh;
+  font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR','Segoe UI',sans-serif;
+  line-height:1.55; font-size:15px;
+}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select{font:inherit}
+.wrap{max-width:760px;margin:0 auto;padding:0 14px 80px}
+/* header */
+header{position:sticky;top:0;z-index:50;background:rgba(13,16,23,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.hd{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 14px}
+.logo{font-weight:800;font-size:19px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
+.logo small{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0}
+nav{display:flex;gap:6px}
+nav a{padding:7px 12px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--muted)}
+nav a.on,nav a:hover{background:var(--card2);color:var(--text)}
+/* common */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:14px}
+.sec-title{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:1px;margin:26px 0 2px;display:flex;align-items:center;gap:7px}
+h1.page{font-size:22px;font-weight:800;margin-top:22px;line-height:1.3}
+.sub{color:var(--muted);font-size:13.5px;margin-top:4px}
+.badge{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;vertical-align:2px}
+.badge.live{background:rgba(66,199,110,.14);color:#5fd98a}
+.badge.wait{background:rgba(245,196,81,.13);color:var(--gold)}
+.badge.done{background:rgba(120,130,155,.15);color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:11px 18px;font-weight:700;font-size:14.5px;transition:.15s}
+.btn:hover{border-color:#3a4763}
+.btn.primary{background:linear-gradient(135deg,#e0323e,#a3212b);border-color:transparent;color:#fff;box-shadow:0 4px 16px rgba(224,50,62,.28)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.small{padding:7px 12px;font-size:13px;border-radius:9px}
+.btn.ghost{background:transparent}
+.btn.wide{width:100%;padding:14px;font-size:16px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.field{margin-top:12px}
+.field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:6px}
+.field input,.field select{width:100%;background:#0f131c;border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);outline:none}
+.field input:focus{border-color:#4a5a7d}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.msg{margin-top:12px;padding:11px 13px;border-radius:10px;font-size:13.5px;font-weight:600;display:none}
+.msg.err{display:block;background:rgba(255,85,96,.1);color:#ff8b93;border:1px solid rgba(255,85,96,.25)}
+.msg.ok{display:block;background:rgba(66,199,110,.1);color:#5fd98a;border:1px solid rgba(66,199,110,.25)}
+.empty{color:var(--dim);text-align:center;padding:34px 0;font-size:14px}
+.center{text-align:center}
+hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
+/* home cards */
+.t-card{display:block;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px;transition:.15s}
+.t-card:hover{border-color:#3a4763;transform:translateY(-1px)}
+.t-card .tt{font-size:16.5px;font-weight:800}
+.t-card .meta{display:flex;gap:12px;color:var(--muted);font-size:12.5px;margin-top:7px;flex-wrap:wrap}
+.countdown{color:#5fd98a;font-weight:700}
+/* match voting */
+.match{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:12px}
+.match .no{font-size:11.5px;font-weight:800;color:var(--dim);letter-spacing:1.5px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center}
+.vs-row{display:grid;grid-template-columns:1fr 34px 1fr;align-items:stretch;gap:4px}
+.corner{border-radius:11px;padding:13px 6px;font-weight:700;font-size:14.5px;border:1.5px solid var(--border);background:#10141d;transition:.13s;word-break:keep-all;line-height:1.3}
+.corner.red.sel{background:linear-gradient(145deg,#b3232c,#7e161e);border-color:#ff5560;box-shadow:0 0 0 1px #ff5560,0 4px 14px rgba(255,85,96,.25);color:#fff}
+.corner.blue.sel{background:linear-gradient(145deg,#2456c4,#173a8a);border-color:#5c8dff;box-shadow:0 0 0 1px #5c8dff,0 4px 14px rgba(92,141,255,.25);color:#fff}
+.corner:not(.sel):hover{border-color:#3a4763}
+.corner .cn{display:block;font-size:10px;font-weight:800;letter-spacing:1px;opacity:.55;margin-bottom:2px}
+.vs{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--dim)}
+.corner.win{outline:2px solid var(--gold);outline-offset:-1px}
+.wintag{font-size:10.5px;font-weight:800;color:var(--gold)}
+/* split bar */
+.split{margin-top:11px}
+.split .lbl{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:4px}
+.split .lbl .a{color:#ff8b93}.split .lbl .b{color:#8fb0ff}
+.split .bar{display:flex;height:9px;border-radius:99px;overflow:hidden;background:#0f131c}
+.split .bar i{display:block;height:100%}
+.split .bar .ia{background:linear-gradient(90deg,#e0323e,#ff5560)}
+.split .bar .ib{background:linear-gradient(90deg,#5c8dff,#2b5cd9)}
+/* tables */
+.tbl-scroll{overflow-x:auto;margin-top:12px;border:1px solid var(--border);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}
+th,td{padding:9px 10px;border-bottom:1px solid var(--border);text-align:center}
+th{background:var(--card2);font-size:11.5px;color:var(--muted);letter-spacing:.5px;position:sticky;top:0}
+tr:last-child td{border-bottom:none}
+td.nick,th.nick{text-align:left;position:sticky;left:0;background:var(--card);font-weight:700;max-width:130px;overflow:hidden;text-overflow:ellipsis}
+th.nick{background:var(--card2)}
+.pick-chip{display:inline-block;min-width:44px;padding:2px 7px;border-radius:7px;font-weight:700;font-size:12px}
+.pick-chip.A{background:rgba(255,85,96,.13);color:#ff8b93}
+.pick-chip.B{background:rgba(92,141,255,.13);color:#8fb0ff}
+.pick-chip.hit{outline:1.5px solid rgba(66,199,110,.7)}
+.pick-chip.miss{opacity:.35;text-decoration:line-through}
+.rank-1{color:var(--gold);font-weight:800}
+.medal{font-size:15px}
+/* stats chips */
+.stat-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:10px;margin-top:12px}
+.tile{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.tile .v{font-size:20px;font-weight:800}
+.tile .k{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:2px}
+.note{font-size:12.5px;color:var(--dim);margin-top:10px;line-height:1.6}
+footer{margin-top:60px;padding:20px 0;border-top:1px solid var(--border);text-align:center;color:var(--dim);font-size:12px}
+footer a{color:var(--dim);text-decoration:underline}
+/* admin */
+.admin-t{border:1px solid var(--border);border-radius:12px;padding:13px;margin-top:10px;background:var(--card)}
+.admin-t .head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.res-btn{padding:8px 10px;border-radius:9px;border:1.5px solid var(--border);background:#10141d;font-size:13px;font-weight:700}
+.res-btn.selA{background:#7e161e;border-color:#ff5560;color:#fff}
+.res-btn.selB{background:#173a8a;border-color:#5c8dff;color:#fff}
+.res-btn.selX{background:#3a4150;border-color:#8b94a7;color:#fff}
+.res-row{display:grid;grid-template-columns:1fr 1fr 64px;gap:6px;margin-top:8px}
+.mrow{display:grid;grid-template-columns:24px 1fr 1fr 34px;gap:7px;align-items:center;margin-top:8px}
+.mrow input{background:#0f131c;border:1px solid var(--border);border-radius:9px;padding:9px 11px;color:var(--text);width:100%;outline:none}
+.del-x{color:var(--dim);font-size:17px;text-align:center}
+.del-x:hover{color:#ff8b93}
+/* setup screen */
+.setup{max-width:560px;margin:60px auto;padding:0 16px}
+.setup code{background:#0f131c;border:1px solid var(--border);padding:2px 7px;border-radius:6px;font-size:13px;color:#8fb0ff}
+.setup ol{margin:14px 0 0 20px;display:grid;gap:8px;font-size:14px}
+@media(max-width:480px){
+  .logo small{display:none}
+  th,td{padding:8px 7px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="hd">
+    <a class="logo" href="#/">🥊 FIGHT PICK <small>승부예측</small></a>
+    <nav id="nav">
+      <a href="#/" data-nav="home">홈</a>
+      <a href="#/ranking" data-nav="ranking">시즌 랭킹</a>
+    </nav>
+  </div>
+</header>
+<div class="wrap" id="app"><div class="empty">불러오는 중…</div></div>
+<footer>
+  Fight Pick · 자동 집계 승부예측 &nbsp;|&nbsp; <a href="#/admin">관리자</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* ================================================================
+   ★ 설정 : Supabase 대시보드의 값 2개를 붙여넣으세요 (설치가이드 참고)
+   ================================================================ */
+const SUPABASE_URL      = "https://dbtzakbmyfmqudjiycoj.supabase.co";     // 예: https://abcd1234.supabase.co
+const SUPABASE_ANON_KEY = "sb_publishable_xtTqzRYwBZBUQyeqHhHVcA_CG2e-1fA"; // 예: eyJhbGciOi...
+/* ================================================================ */
+
+/* ---------- 초기화 ---------- */
+const $app = document.getElementById('app');
+let sb = null;            // supabase client
+let timeOffset = 0;       // 서버시간 - 내시간 (ms)
+let pollTimer = null;     // 자동 새로고침 타이머
+
+function isConfigured(){
+  return !SUPABASE_URL.includes('여기에') && !SUPABASE_ANON_KEY.includes('여기에');
+}
+function svrNow(){ return new Date(Date.now() + timeOffset); }
+
+async function boot(){
+  if (window.__TEST_SB) { sb = window.__TEST_SB; }
+  else if (!isConfigured()){ renderSetup(); return; }
+  else { sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+  try{
+    const {data} = await sb.rpc('server_now');
+    if (data) timeOffset = new Date(data).getTime() - Date.now();
+  }catch(e){}
+  route();
+}
+window.addEventListener('hashchange', route);
+
+function renderSetup(){
+  $app.innerHTML = `
+  <div class="setup">
+    <h1 class="page">⚙️ 초기 설정이 필요합니다</h1>
+    <p class="sub" style="margin-top:10px">아직 데이터베이스 연결 정보가 입력되지 않았습니다.<br>함께 받은 <b>설치가이드</b> 문서의 순서대로 진행해 주세요.</p>
+    <div class="card">
+      <ol>
+        <li>supabase.com 에서 무료 프로젝트 생성</li>
+        <li>SQL Editor에 <code>setup.sql</code> 내용 실행</li>
+        <li>이 파일(index.html)을 열어 상단의 <code>SUPABASE_URL</code> 과 <code>SUPABASE_ANON_KEY</code> 값 붙여넣기</li>
+        <li>무료 호스팅(Netlify 등)에 업로드 후 카톡방에 링크 공유</li>
+      </ol>
+    </div>
+  </div>`;
+}
+
+/* ---------- 라우터 ---------- */
+function route(){
+  if (!sb){ if(!isConfigured()){renderSetup();return;} }
+  if (pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+  const h = location.hash || '#/';
+  const seg = h.replace(/^#\//,'').split('/');
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.remove('on'));
+  const mark = k => { const el=document.querySelector(`[data-nav="${k}"]`); if(el) el.classList.add('on'); };
+  window.scrollTo(0,0);
+  if (seg[0]==='' )            { mark('home');    viewHome(); }
+  else if (seg[0]==='t')       { viewTournament(decodeURIComponent(seg[1]||'')); }
+  else if (seg[0]==='ranking') { mark('ranking'); viewRanking(); }
+  else if (seg[0]==='player')  { viewPlayer(decodeURIComponent(seg[1]||'')); }
+  else if (seg[0]==='admin')   { viewAdmin(); }
+  else viewHome();
+}
+
+/* ---------- 공용 유틸 ---------- */
+const esc = s => String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const AVATARS = ['🦁','🐯','🦅','🐺','🐻','🦊','🐲','🦈','🐍','🦂','🐗','🦍','🐘','🦏','🐆','🦉','🐴','🦬','🐊','🦌'];
+function avatar(nick){
+  let h=0; const s=String(nick).toLowerCase().trim();
+  for(let i=0;i<s.length;i++){ h=(h*31 + s.charCodeAt(i))>>>0; }
+  return AVATARS[h % AVATARS.length];
+}
+function fmtDate(d){
+  if(!d) return '';
+  const dt = new Date(d + (String(d).length<=10 ? 'T00:00:00' : ''));
+  return dt.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'short'});
+}
+function fmtDT(d){
+  return new Date(d).toLocaleString('ko-KR',{month:'numeric',day:'numeric',weekday:'short',hour:'2-digit',minute:'2-digit'});
+}
+function countdownText(deadline){
+  const ms = new Date(deadline).getTime() - svrNow().getTime();
+  if (ms<=0) return null;
+  const m = Math.floor(ms/60000), d=Math.floor(m/1440), h=Math.floor((m%1440)/60), mm=m%60;
+  if (d>0) return `${d}일 ${h}시간 남음`;
+  if (h>0) return `${h}시간 ${mm}분 남음`;
+  return `${mm}분 남음`;
+}
+function tState(t){
+  if (new Date(t.deadline).getTime() > svrNow().getTime()) return 'open';
+  return t.finalized ? 'final' : 'wait';
+}
+function stateBadge(t){
+  const s = tState(t);
+  if (s==='open')  return `<span class="badge live">🟢 투표중</span>`;
+  if (s==='wait')  return `<span class="badge wait">⏳ 결과 대기</span>`;
+  return `<span class="badge done">🏁 결과 확정</span>`;
+}
+function loading(){ $app.innerHTML = `<div class="empty">불러오는 중…</div>`; }
+function fail(e){ $app.innerHTML = `<div class="empty">⚠️ 데이터를 불러오지 못했습니다.<br><span style="font-size:12px">${esc(e?.message||e||'')}</span></div>`; }
+
+async function fetchAll(){
+  const [t, p] = await Promise.all([
+    sb.from('tournaments').select('*').order('deadline',{ascending:false}),
+    sb.from('participants').select('tournament_id')
+  ]);
+  if (t.error) throw t.error;
+  const counts = {};
+  (p.data||[]).forEach(r=>counts[r.tournament_id]=(counts[r.tournament_id]||0)+1);
+  return { list: t.data||[], counts };
+}
+async function fetchTournament(id){
+  const [t, m, p] = await Promise.all([
+    sb.from('tournaments').select('*').eq('id',id).single(),
+    sb.from('matches').select('*').eq('tournament_id',id).order('seq'),
+    sb.from('participants').select('id,tournament_id,nickname,picks,created_at,updated_at').eq('tournament_id',id).order('created_at')
+  ]);
+  if (t.error) throw t.error;
+  return { t:t.data, matches:m.data||[], parts:p.data||[] };
+}
+
+/* ---------- 채점 ---------- */
+function scoredMatches(matches){ return matches.filter(m=>m.winner==='A'||m.winner==='B'); }
+function scoreOf(part, matches){
+  const sm = scoredMatches(matches);
+  let hit=0;
+  sm.forEach(m=>{ if(part.picks[m.id]===m.winner) hit++; });
+  return {hit, total:sm.length};
+}
+function rankParts(parts, matches){
+  const rows = parts.map(p=>({ ...p, ...scoreOf(p,matches) }));
+  rows.sort((a,b)=> b.hit-a.hit || new Date(a.updated_at)-new Date(b.updated_at));
+  let last=null, lastRank=0;
+  rows.forEach((r,i)=>{
+    r.rank = (r.hit===last) ? lastRank : i+1;
+    last=r.hit; lastRank=r.rank;
+  });
+  return rows;
+}
+function pickStats(match, parts){
+  let a=0,b=0;
+  parts.forEach(p=>{ const v=p.picks[match.id]; if(v==='A')a++; else if(v==='B')b++; });
+  const tot=a+b;
+  return { a, b, tot, pa: tot? Math.round(a/tot*100):50, pb: tot? 100-Math.round(a/tot*100):50 };
+}
+
+/* ---------- 홈 ---------- */
+async function viewHome(){
+  loading();
+  let d; try{ d = await fetchAll(); }catch(e){ return fail(e); }
+  const open  = d.list.filter(t=>tState(t)==='open').sort((x,y)=>new Date(x.deadline)-new Date(y.deadline));
+  const wait  = d.list.filter(t=>tState(t)==='wait');
+  const done  = d.list.filter(t=>tState(t)==='final');
+  const card = t=>{
+    const cd = countdownText(t.deadline);
+    return `<a class="t-card" href="#/t/${t.id}">
+      <div class="tt">${esc(t.title)} &nbsp;${stateBadge(t)}</div>
+      <div class="meta">
+        ${t.event_date?`<span>📅 ${fmtDate(t.event_date)}</span>`:''}
+        <span>👥 ${d.counts[t.id]||0}명 참여</span>
+        ${cd?`<span class="countdown">⏰ ${cd}</span>`:`<span>🔒 ${fmtDT(t.deadline)} 마감</span>`}
+      </div></a>`;
+  };
+  $app.innerHTML = `
+    ${open.length?`<div class="sec-title">🔥 진행 중인 승부예측</div>${open.map(card).join('')}`:''}
+    ${!open.length&&!wait.length&&!done.length?`<div class="empty">아직 등록된 대회가 없습니다.<br>관리자 페이지에서 첫 대회를 만들어 보세요!</div>`:''}
+    ${!open.length&&(wait.length||done.length)?`<div class="empty" style="padding:22px 0">지금 진행 중인 투표가 없습니다.</div>`:''}
+    ${wait.length?`<div class="sec-title">⏳ 결과 대기</div>${wait.map(card).join('')}`:''}
+    ${done.length?`<div class="sec-title">🏁 지난 대회</div>${done.map(card).join('')}`:''}`;
+}
+
+/* ---------- 대회 페이지 ---------- */
+let voteSel = {};
+async function viewTournament(id, keepSel){
+  if(!keepSel) loading();
+  let d; try{ d = await fetchTournament(id); }catch(e){ return fail(e); }
+  const {t, matches, parts} = d;
+  const st = tState(t);
+  if(!keepSel) voteSel = {};
+  const cd = countdownText(t.deadline);
+
+  let html = `
+    <h1 class="page">${esc(t.title)} ${stateBadge(t)}</h1>
+    <div class="sub">
+      ${t.event_date?`📅 경기일 ${fmtDate(t.event_date)} &nbsp;·&nbsp; `:''}
+      🗳️ ${fmtDT(t.deadline)} 마감
+      ${cd?` &nbsp;·&nbsp; <span class="countdown">⏰ ${cd}</span>`:''}
+      &nbsp;·&nbsp; 👥 ${parts.length}명 참여
+      <button class="btn small ghost" onclick="copyLink()" style="margin-left:4px">🔗 링크 복사</button>
+    </div>`;
+
+  if (st==='open') html += voteFormHTML(t, matches, parts);
+  if (st==='final') html += resultHTML(t, matches, parts);
+  html += `<div id="liveboard">${liveBoardHTML(t, matches, parts, st)}</div>`;
+  $app.innerHTML = html;
+
+  if (st==='open'){
+    // 20초마다 현황판만 자동 갱신 (입력 중인 폼은 건드리지 않음)
+    pollTimer = setInterval(async ()=>{
+      if(location.hash!==`#/t/${id}`) return;
+      try{
+        const fresh = await fetchTournament(id);
+        const box = document.getElementById('liveboard');
+        if(box) box.innerHTML = liveBoardHTML(fresh.t, fresh.matches, fresh.parts, tState(fresh.t));
+      }catch(e){}
+    }, 20000);
+  }
+}
+function copyLink(){
+  navigator.clipboard?.writeText(location.href).then(()=>toastMsg('링크가 복사되었습니다. 카톡방에 붙여넣으세요!'));
+}
+function toastMsg(s){
+  const el=document.createElement('div');
+  el.textContent=s;
+  el.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#242d3f;color:#fff;padding:11px 18px;border-radius:99px;font-size:13.5px;font-weight:600;z-index:99;box-shadow:0 6px 20px rgba(0,0,0,.4)';
+  document.body.appendChild(el); setTimeout(()=>el.remove(),2200);
+}
+
+/* --- 투표 폼 --- */
+function voteFormHTML(t, matches, parts){
+  const rows = matches.map(m=>`
+    <div class="match">
+      <div class="no"><span>${m.seq}경기</span></div>
+      <div class="vs-row">
+        <button class="corner red ${voteSel[m.id]==='A'?'sel':''}" data-mid="${m.id}" data-side="A" onclick="pick(this)">
+          <span class="cn">RED</span>${esc(m.fighter_a)}</button>
+        <div class="vs">VS</div>
+        <button class="corner blue ${voteSel[m.id]==='B'?'sel':''}" data-mid="${m.id}" data-side="B" onclick="pick(this)">
+          <span class="cn">BLUE</span>${esc(m.fighter_b)}</button>
+      </div>
+    </div>`).join('');
+  return `
+    <div class="sec-title">✍️ 승부예측 참여</div>
+    <div class="card" style="padding-top:13px">
+      <div class="row2">
+        <div class="field"><label>닉네임 (중복 불가)</label>
+          <input id="v-nick" maxlength="20" placeholder="예: 헬로우" onchange="prefillPicks('${t.id}')"></div>
+        <div class="field"><label>비밀번호 (숫자 4자리)</label>
+          <input id="v-pin" inputmode="numeric" maxlength="4" placeholder="수정할 때 필요해요" type="password"></div>
+      </div>
+      <div class="note">💡 처음 낸 투표를 <b>마감 전까지 수정</b>하려면 같은 닉네임 + 같은 비밀번호로 다시 제출하면 됩니다.</div>
+    </div>
+    ${rows}
+    <div class="msg" id="v-msg"></div>
+    <button class="btn primary wide" style="margin-top:14px" onclick="submitVote('${t.id}', ${matches.length})">🥊 투표 제출하기</button>`;
+}
+function pick(btn){
+  const mid = btn.dataset.mid, side = btn.dataset.side;
+  voteSel[mid] = side;
+  document.querySelectorAll(`.corner[data-mid="${mid}"]`).forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function prefillPicks(tid){
+  // 기존 참가자면 투표 내용 미리 채워주기 (수정 편의)
+  const nick = document.getElementById('v-nick').value.trim().toLowerCase();
+  if(!nick) return;
+  sb.from('participants').select('nickname,picks').eq('tournament_id',tid).then(({data})=>{
+    const me = (data||[]).find(p=>p.nickname.trim().toLowerCase()===nick);
+    if(me){
+      voteSel = {...me.picks};
+      document.querySelectorAll('.corner[data-mid]').forEach(b=>{
+        b.classList.toggle('sel', voteSel[b.dataset.mid]===b.dataset.side);
+      });
+      toastMsg(`'${me.nickname}'님의 기존 투표를 불러왔어요. 수정 후 비밀번호와 함께 제출하세요.`);
+    }
+  });
+}
+async function submitVote(tid, matchCount){
+  const nick = document.getElementById('v-nick').value.trim();
+  const pin  = document.getElementById('v-pin').value.trim();
+  const msg  = document.getElementById('v-msg');
+  const show = (cls, s)=>{ msg.className='msg '+cls; msg.textContent=s; msg.scrollIntoView({block:'center',behavior:'smooth'}); };
+  if(!nick) return show('err','닉네임을 입력해 주세요.');
+  if(!/^[0-9]{4}$/.test(pin)) return show('err','비밀번호는 숫자 4자리로 입력해 주세요.');
+  if(Object.keys(voteSel).length < matchCount) return show('err','아직 선택하지 않은 경기가 있습니다. 모든 경기의 승자를 선택해 주세요.');
+  const btn = document.querySelector('.btn.primary.wide'); btn.disabled=true;
+  try{
+    const {data, error} = await sb.rpc('submit_picks',{p_tournament:tid,p_nickname:nick,p_pin:pin,p_picks:voteSel});
+    if (error) return show('err', cleanErr(error.message));
+    if (data && data.ok===false) return show('err', data.error);
+    show('ok', data.is_new ? `✅ ${data.nickname}님의 투표가 등록되었습니다!` : `✅ ${data.nickname}님의 투표가 수정되었습니다!`);
+    setTimeout(()=>viewTournament(tid), 900);
+  } finally { btn.disabled=false; }
+}
+function cleanErr(s){ return String(s||'오류가 발생했습니다.').replace(/^.*?:\s*/,'').trim() || '오류가 발생했습니다.'; }
+
+/* --- 결과(확정) --- */
+function resultHTML(t, matches, parts){
+  if(!parts.length) return `<div class="empty">참가자가 없었습니다.</div>`;
+  const ranked = rankParts(parts, matches);
+  const sm = scoredMatches(matches);
+  const top = ranked.filter(r=>r.rank===1);
+  // 통계
+  const stats = matches.map(m=>({m, ...pickStats(m,parts)}));
+  const withRate = stats.filter(s=>s.m.winner==='A'||s.m.winner==='B').map(s=>{
+    const correct = s.m.winner==='A'? s.a : s.b;
+    return {...s, correct, rate: s.tot? correct/s.tot : 0};
+  });
+  let upset=null, allHit=[], allMiss=[];
+  if (withRate.length){
+    upset = withRate.reduce((x,y)=> y.rate<x.rate ? y:x);
+    allHit = withRate.filter(s=>s.rate===1);
+    allMiss = withRate.filter(s=>s.rate===0);
+  }
+  const medal = r => r===1?'🥇':r===2?'🥈':r===3?'🥉':r;
+  return `
+    <div class="card center" style="background:linear-gradient(160deg,#1c2130,#151a23);padding:22px">
+      <div style="font-size:12px;font-weight:800;color:var(--gold);letter-spacing:2px">🏆 WINNER</div>
+      <div style="font-size:24px;font-weight:800;margin-top:6px">
+        ${top.map(r=>`${avatar(r.nickname)} ${esc(r.nickname)}`).join(' · ')}</div>
+      <div class="sub">${sm.length}경기 중 <b style="color:var(--gold)">${top[0].hit}경기 적중</b> ${top.length>1?`(공동 ${top.length}명)`:''}</div>
+    </div>
+    <div class="stat-tiles">
+      <div class="tile"><div class="v">${parts.length}</div><div class="k">참가자</div></div>
+      <div class="tile"><div class="v">${top[0].hit}/${sm.length}</div><div class="k">최고 적중</div></div>
+      ${upset?`<div class="tile"><div class="v">${upset.m.seq}경기</div><div class="k">😱 최대 이변 (${Math.round(upset.rate*100)}%만 적중)</div></div>`:''}
+      ${allHit.length?`<div class="tile"><div class="v">${allHit.map(s=>s.m.seq).join(',')}경기</div><div class="k">🎯 전원 적중</div></div>`:''}
+      ${allMiss.length?`<div class="tile"><div class="v">${allMiss.map(s=>s.m.seq).join(',')}경기</div><div class="k">💀 전원 실패</div></div>`:''}
+    </div>
+    <div class="sec-title">🏅 최종 순위</div>
+    <div class="tbl-scroll"><table>
+      <tr><th style="width:52px">순위</th><th class="nick">닉네임</th><th>적중</th><th>적중률</th></tr>
+      ${ranked.map(r=>`<tr>
+        <td class="${r.rank===1?'rank-1':''}"><span class="medal">${medal(r.rank)}</span></td>
+        <td class="nick"><a href="#/player/${encodeURIComponent(r.nickname)}">${avatar(r.nickname)} ${esc(r.nickname)}</a></td>
+        <td><b>${r.hit}</b> / ${r.total}</td>
+        <td>${r.total?Math.round(r.hit/r.total*100):0}%</td></tr>`).join('')}
+    </table></div>`;
+}
+
+/* --- 경기별 현황 + 참가자 표 --- */
+function liveBoardHTML(t, matches, parts, st){
+  const hasResult = st==='final' || matches.some(m=>m.winner);
+  const bars = matches.map(m=>{
+    const s = pickStats(m, parts);
+    const winA = m.winner==='A', winB = m.winner==='B';
+    return `<div class="match">
+      <div class="no"><span>${m.seq}경기 ${m.winner==='X'?'<span class="badge done">무효/무승부</span>':''}</span>
+        ${hasResult&&(winA||winB)?`<span class="wintag">🏆 ${esc(winA?m.fighter_a:m.fighter_b)} 승</span>`:''}</div>
+      <div class="split">
+        <div class="lbl">
+          <span class="a">${winA?'🏆 ':''}${esc(m.fighter_a)} ${s.pa}%</span>
+          <span class="b">${s.pb}% ${esc(m.fighter_b)}${winB?' 🏆':''}</span>
+        </div>
+        <div class="bar" role="img" aria-label="${esc(m.fighter_a)} ${s.pa}%, ${esc(m.fighter_b)} ${s.pb}%">
+          <i class="ia" style="width:${s.pa}%"></i><i class="ib" style="width:${s.pb}%"></i>
+        </div>
+      </div></div>`;
+  }).join('');
+
+  let table='';
+  if(parts.length){
+    const ranked = st==='final' ? rankParts(parts,matches) : parts.slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+    table = `<div class="tbl-scroll"><table>
+      <tr><th class="nick">닉네임 (${parts.length}명)</th>${matches.map(m=>`<th>${m.seq}</th>`).join('')}${st==='final'?'<th>적중</th>':''}</tr>
+      ${ranked.map(p=>`<tr>
+        <td class="nick"><a href="#/player/${encodeURIComponent(p.nickname)}">${avatar(p.nickname)} ${esc(p.nickname)}</a></td>
+        ${matches.map(m=>{
+          const v = p.picks[m.id];
+          if(!v) return '<td>-</td>';
+          const name = v==='A'? m.fighter_a : m.fighter_b;
+          let extra='';
+          if(m.winner==='A'||m.winner==='B') extra = v===m.winner ? ' hit':' miss';
+          return `<td><span class="pick-chip ${v}${extra}">${esc(String(name).slice(0,5))}</span></td>`;
+        }).join('')}
+        ${st==='final'?`<td><b>${p.hit??scoreOf(p,matches).hit}</b></td>`:''}
+      </tr>`).join('')}
+    </table></div>
+    <div class="note">셀 색상: <span class="pick-chip A">레드코너</span> <span class="pick-chip B">블루코너</span>${hasResult?' · 테두리 = 적중, 흐림 = 실패':''}</div>`;
+  } else {
+    table = `<div class="empty">아직 참가자가 없습니다. 첫 번째로 예측해 보세요! 🥊</div>`;
+  }
+  return `
+    <div class="sec-title">📊 경기별 예측 현황 ${st==='open'?'<span class="badge live">실시간</span>':''}</div>
+    ${parts.length? bars : ''}
+    <div class="sec-title">👥 참가자 예측 ${st==='open'?'(마감 전까지 수정 가능)':''}</div>
+    ${table}`;
+}
+/* ---------- 시즌 랭킹 / 개인 페이지 ---------- */
+async function fetchSeasonData(){
+  const [t, m, p] = await Promise.all([
+    sb.from('tournaments').select('*').eq('finalized',true),
+    sb.from('matches').select('*'),
+    sb.from('participants').select('id,tournament_id,nickname,picks,created_at,updated_at')
+  ]);
+  if(t.error) throw t.error;
+  const finals = t.data||[];
+  const fids = new Set(finals.map(x=>x.id));
+  const matchesBy={}, partsBy={};
+  (m.data||[]).forEach(x=>{ (matchesBy[x.tournament_id]=matchesBy[x.tournament_id]||[]).push(x); });
+  Object.values(matchesBy).forEach(a=>a.sort((x,y)=>x.seq-y.seq));
+  (p.data||[]).forEach(x=>{ if(fids.has(x.tournament_id)) (partsBy[x.tournament_id]=partsBy[x.tournament_id]||[]).push(x); });
+  return {finals: finals.sort((a,b)=>new Date(b.deadline)-new Date(a.deadline)), matchesBy, partsBy};
+}
+function buildSeason(d){
+  // 닉네임(소문자 기준)별 통합 전적
+  const agg = {};
+  d.finals.forEach(t=>{
+    const matches = d.matchesBy[t.id]||[];
+    const parts = d.partsBy[t.id]||[];
+    if(!parts.length) return;
+    const ranked = rankParts(parts, matches);
+    ranked.forEach(r=>{
+      const k = r.nickname.trim().toLowerCase();
+      const a = agg[k] = agg[k]||{nickname:r.nickname, plays:0, wins:0, hit:0, total:0, records:[]};
+      a.plays++; a.hit+=r.hit; a.total+=r.total;
+      if(r.rank===1) a.wins++;
+      a.records.push({t, rank:r.rank, hit:r.hit, total:r.total, entrants:parts.length});
+    });
+  });
+  return Object.values(agg);
+}
+async function viewRanking(){
+  loading();
+  let d; try{ d = await fetchSeasonData(); }catch(e){ return fail(e); }
+  const season = buildSeason(d);
+  if(!season.length){
+    $app.innerHTML = `<h1 class="page">📈 시즌 랭킹</h1><div class="empty">아직 결과가 확정된 대회가 없습니다.<br>대회가 끝나고 결과가 입력되면 여기에 누적 랭킹이 쌓입니다.</div>`;
+    return;
+  }
+  season.sort((a,b)=> b.hit-a.hit || b.wins-a.wins || (b.total?b.hit/b.total:0)-(a.total?a.hit/a.total:0));
+  let last=null,lastRank=0;
+  season.forEach((r,i)=>{ r.rank = (last && r.hit===last.hit && r.wins===last.wins) ? lastRank : i+1; last=r; lastRank=r.rank; });
+  const medal = r => r===1?'🥇':r===2?'🥈':r===3?'🥉':r;
+  $app.innerHTML = `
+    <h1 class="page">📈 시즌 랭킹</h1>
+    <div class="sub">결과가 확정된 대회 ${d.finals.length}개 누적 · 총 적중 수 기준 (동률 시 우승 횟수)</div>
+    <div class="tbl-scroll"><table>
+      <tr><th style="width:52px">순위</th><th class="nick">닉네임</th><th>총 적중</th><th>적중률</th><th>우승</th><th>참여</th></tr>
+      ${season.map(r=>`<tr>
+        <td class="${r.rank===1?'rank-1':''}"><span class="medal">${medal(r.rank)}</span></td>
+        <td class="nick"><a href="#/player/${encodeURIComponent(r.nickname)}">${avatar(r.nickname)} ${esc(r.nickname)}</a></td>
+        <td><b>${r.hit}</b> / ${r.total}</td>
+        <td>${r.total?Math.round(r.hit/r.total*100):0}%</td>
+        <td>${r.wins?'🏆 '+r.wins:'-'}</td>
+        <td>${r.plays}회</td></tr>`).join('')}
+    </table></div>`;
+}
+async function viewPlayer(nick){
+  loading();
+  let d; try{ d = await fetchSeasonData(); }catch(e){ return fail(e); }
+  const me = buildSeason(d).find(a=>a.nickname.trim().toLowerCase()===nick.trim().toLowerCase());
+  if(!me){
+    $app.innerHTML = `<h1 class="page">${avatar(nick)} ${esc(nick)}</h1><div class="empty">아직 확정된 전적이 없습니다.<br>(결과가 입력된 대회부터 전적에 반영됩니다)</div>`;
+    return;
+  }
+  const medal = r => r===1?'🥇 우승':r===2?'🥈 2위':r===3?'🥉 3위':r+'위';
+  $app.innerHTML = `
+    <h1 class="page">${avatar(me.nickname)} ${esc(me.nickname)}</h1>
+    <div class="stat-tiles">
+      <div class="tile"><div class="v">${me.plays}</div><div class="k">참여 대회</div></div>
+      <div class="tile"><div class="v">${me.wins}</div><div class="k">🏆 우승</div></div>
+      <div class="tile"><div class="v">${me.hit}/${me.total}</div><div class="k">총 적중</div></div>
+      <div class="tile"><div class="v">${me.total?Math.round(me.hit/me.total*100):0}%</div><div class="k">평균 적중률</div></div>
+    </div>
+    <div class="sec-title">📜 대회별 기록</div>
+    ${me.records.sort((a,b)=>new Date(b.t.deadline)-new Date(a.t.deadline)).map(r=>`
+      <a class="t-card" href="#/t/${r.t.id}">
+        <div class="tt">${esc(r.t.title)}</div>
+        <div class="meta"><span><b>${medal(r.rank)}</b></span><span>🎯 ${r.hit}/${r.total} 적중</span><span>👥 ${r.entrants}명 중</span></div>
+      </a>`).join('')}`;
+}
+/* ---------- 관리자 ---------- */
+const adminPass = ()=> sessionStorage.getItem('fp_admin')||'';
+let resSel = {}; // 결과 입력 선택 상태 {tid:{mid:'A'|'B'|'X'}}
+
+async function viewAdmin(){
+  if(!adminPass()){
+    $app.innerHTML = `
+      <h1 class="page">🔐 관리자</h1>
+      <div class="card" style="max-width:420px">
+        <div class="field"><label>관리자 비밀번호</label>
+          <input id="a-pass" type="password" onkeydown="if(event.key==='Enter')adminLogin()"></div>
+        <div class="msg" id="a-msg"></div>
+        <button class="btn primary wide" style="margin-top:14px" onclick="adminLogin()">로그인</button>
+      </div>`;
+    return;
+  }
+  loading();
+  let d; try{ d = await fetchAll(); }catch(e){ return fail(e); }
+  const rows = await Promise.all(d.list.map(async t=>{
+    return adminTournamentHTML(t, d.counts[t.id]||0);
+  }));
+  $app.innerHTML = `
+    <h1 class="page">🛠️ 관리자
+      <button class="btn small ghost" onclick="sessionStorage.removeItem('fp_admin');route()" style="color:var(--dim)">로그아웃</button></h1>
+    <div class="sec-title">➕ 새 대회 만들기</div>
+    <div class="card">
+      <div class="field"><label>대회명</label><input id="c-title" placeholder="예: UFC 325 승부예측"></div>
+      <div class="row2">
+        <div class="field"><label>경기 날짜</label><input id="c-date" type="date"></div>
+        <div class="field"><label>투표 마감 시각 (지나면 자동 마감)</label><input id="c-deadline" type="datetime-local"></div>
+      </div>
+      <div class="field"><label>대진 (레드코너 vs 블루코너)</label>
+        <div id="c-matches"></div>
+        <button class="btn small" style="margin-top:10px" onclick="addMatchRow()">+ 경기 추가</button>
+      </div>
+      <div class="msg" id="c-msg"></div>
+      <button class="btn primary wide" style="margin-top:14px" onclick="createTournament()">대회 개설하기</button>
+    </div>
+    <div class="sec-title">📋 대회 관리</div>
+    ${rows.join('') || '<div class="empty">대회가 없습니다.</div>'}
+    <div class="sec-title">⚙️ 관리자 비밀번호 변경</div>
+    <div class="card" style="max-width:420px">
+      <div class="field"><label>새 비밀번호 (4자 이상)</label><input id="p-new" type="password"></div>
+      <button class="btn small" style="margin-top:12px" onclick="changePass()">변경</button>
+    </div>`;
+  addMatchRow(); addMatchRow(); addMatchRow();
+}
+async function adminLogin(){
+  const pass = document.getElementById('a-pass').value;
+  const msg = document.getElementById('a-msg');
+  const {data, error} = await sb.rpc('admin_check',{p_pass:pass});
+  if(error){ msg.className='msg err'; msg.textContent=cleanErr(error.message); return; }
+  if(!data){ msg.className='msg err'; msg.textContent='비밀번호가 틀렸습니다.'; return; }
+  sessionStorage.setItem('fp_admin', pass);
+  route();
+}
+function addMatchRow(a='', b=''){
+  const box = document.getElementById('c-matches');
+  const n = box.children.length+1;
+  const div = document.createElement('div');
+  div.className='mrow';
+  div.innerHTML = `<span style="color:var(--dim);font-size:12px;font-weight:700">${n}</span>
+    <input placeholder="레드코너 선수" value="${esc(a)}">
+    <input placeholder="블루코너 선수" value="${esc(b)}">
+    <button class="del-x" onclick="this.parentElement.remove();renumberRows()">✕</button>`;
+  box.appendChild(div);
+}
+function renumberRows(){
+  document.querySelectorAll('#c-matches .mrow span').forEach((s,i)=>s.textContent=i+1);
+}
+async function createTournament(){
+  const title = document.getElementById('c-title').value.trim();
+  const date  = document.getElementById('c-date').value || null;
+  const dl    = document.getElementById('c-deadline').value;
+  const msg   = document.getElementById('c-msg');
+  const show  = (c,s)=>{ msg.className='msg '+c; msg.textContent=s; };
+  const ms = [...document.querySelectorAll('#c-matches .mrow')].map(r=>{
+    const [a,b] = r.querySelectorAll('input');
+    return {a:a.value.trim(), b:b.value.trim()};
+  }).filter(m=>m.a||m.b);
+  if(!title) return show('err','대회명을 입력해 주세요.');
+  if(!dl) return show('err','투표 마감 시각을 입력해 주세요.');
+  if(!ms.length) return show('err','경기를 1개 이상 입력해 주세요.');
+  if(ms.some(m=>!m.a||!m.b)) return show('err','선수 이름이 비어 있는 경기가 있습니다.');
+  const {data, error} = await sb.rpc('admin_create_tournament',{
+    p_pass:adminPass(), p_title:title, p_event_date:date,
+    p_deadline:new Date(dl).toISOString(), p_matches:ms });
+  if(error) return show('err', cleanErr(error.message));
+  toastMsg('대회가 개설되었습니다!');
+  location.hash = `#/t/${data}`;
+}
+function adminTournamentHTML(t, count){
+  const st = tState(t);
+  return `<div class="admin-t" id="at-${t.id}">
+    <div class="head">
+      <div><b>${esc(t.title)}</b> ${stateBadge(t)}<br>
+        <span style="font-size:12px;color:var(--muted)">마감 ${fmtDT(t.deadline)} · ${count}명 참여</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <a class="btn small" href="#/t/${t.id}">보기</a>
+        <button class="btn small" onclick="openResults('${t.id}')">${st==='final'?'결과 수정':'결과 입력'}</button>
+        <button class="btn small" onclick="editDeadline('${t.id}')">마감 변경</button>
+        <button class="btn small" style="color:#ff8b93" onclick="delTournament('${t.id}',
+          '${esc(t.title).replace(/'/g,"\\'")}')">삭제</button>
+      </div>
+    </div>
+    <div id="res-${t.id}"></div>
+  </div>`;
+}
+async function openResults(tid){
+  const box = document.getElementById('res-'+tid);
+  if(box.innerHTML){ box.innerHTML=''; return; }
+  const {data:matches} = await sb.from('matches').select('*').eq('tournament_id',tid).order('seq');
+  resSel[tid] = {};
+  (matches||[]).forEach(m=>{ if(m.winner) resSel[tid][m.id]=m.winner; });
+  box.innerHTML = `
+    <hr class="sep">
+    <div style="font-size:13px;font-weight:700;color:var(--muted)">실제 승자를 선택하세요 (무 = 무승부/무효, 채점 제외)</div>
+    ${(matches||[]).map(m=>`
+      <div class="res-row" data-mid="${m.id}">
+        <button class="res-btn ${resSel[tid][m.id]==='A'?'selA':''}" onclick="setRes('${tid}','${m.id}','A',this)">${m.seq}. ${esc(m.fighter_a)}</button>
+        <button class="res-btn ${resSel[tid][m.id]==='B'?'selB':''}" onclick="setRes('${tid}','${m.id}','B',this)">${esc(m.fighter_b)}</button>
+        <button class="res-btn ${resSel[tid][m.id]==='X'?'selX':''}" onclick="setRes('${tid}','${m.id}','X',this)">무</button>
+      </div>`).join('')}
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn primary" onclick="saveResults('${tid}')">💾 결과 저장</button>
+      <button class="btn small ghost" style="color:var(--dim)" onclick="clearResults('${tid}')">결과 전체 초기화</button>
+    </div>`;
+}
+function setRes(tid, mid, v, btn){
+  resSel[tid][mid] = v;
+  const row = btn.parentElement;
+  row.querySelectorAll('.res-btn').forEach(b=>b.classList.remove('selA','selB','selX'));
+  btn.classList.add('sel'+v);
+}
+async function saveResults(tid){
+  const {error} = await sb.rpc('admin_set_results',{p_pass:adminPass(), p_tid:tid, p_winners:resSel[tid]||{}});
+  if(error) return toastMsg('⚠️ '+cleanErr(error.message));
+  toastMsg('결과가 저장되었습니다. 순위가 자동 계산됩니다!');
+  route();
+}
+async function clearResults(tid){
+  if(!confirm('이 대회의 모든 경기 결과를 지울까요? (투표는 유지됩니다)')) return;
+  const {error} = await sb.rpc('admin_clear_results',{p_pass:adminPass(), p_tid:tid});
+  if(error) return toastMsg('⚠️ '+cleanErr(error.message));
+  route();
+}
+async function editDeadline(tid){
+  const v = prompt('새 마감 시각을 입력하세요 (예: 2026-08-01 18:00)');
+  if(!v) return;
+  const d = new Date(v.replace(' ','T'));
+  if(isNaN(d)) return toastMsg('⚠️ 시각 형식을 확인해 주세요.');
+  const {error} = await sb.rpc('admin_update_tournament',{
+    p_pass:adminPass(), p_tid:tid, p_title:null, p_event_date:null, p_deadline:d.toISOString()});
+  if(error) return toastMsg('⚠️ '+cleanErr(error.message));
+  toastMsg('마감 시각이 변경되었습니다.');
+  route();
+}
+async function delTournament(tid, title){
+  if(!confirm(`'${title}' 대회를 삭제할까요?\n투표 기록도 함께 삭제되며 되돌릴 수 없습니다.`)) return;
+  const {error} = await sb.rpc('admin_delete_tournament',{p_pass:adminPass(), p_tid:tid});
+  if(error) return toastMsg('⚠️ '+cleanErr(error.message));
+  toastMsg('삭제되었습니다.');
+  route();
+}
+async function changePass(){
+  const nw = document.getElementById('p-new').value;
+  if(nw.length<4) return toastMsg('⚠️ 새 비밀번호는 4자 이상이어야 합니다.');
+  const {error} = await sb.rpc('admin_change_password',{p_old:adminPass(), p_new:nw});
+  if(error) return toastMsg('⚠️ '+cleanErr(error.message));
+  sessionStorage.setItem('fp_admin', nw);
+  toastMsg('관리자 비밀번호가 변경되었습니다.');
+}
+
+boot();
+</script>
+</body>
+</html>
