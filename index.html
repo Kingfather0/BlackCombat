@@ -3,146 +3,162 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>🥊 Fight Pick — 격투기 승부예측</title>
+<title>🔥블랙컴뱃 잡담방🔥 승부예측</title>
 <meta name="description" content="격투기 승부예측 투표 · 자동 집계 · 랭킹">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥊</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦁</text></svg>">
 <style>
 :root{
-  --bg:#0d1017; --card:#151a23; --card2:#1b2231; --border:#242d3f;
-  --text:#e9edf5; --muted:#939cb0; --dim:#6b7488;
-  --red:#ff5560; --blue:#5c8dff; --gold:#f5c451; --green:#42c76e;
+  --bg:#f4f6fa; --card:#ffffff; --card2:#eef2f8; --border:#d8dfe9;
+  --text:#1b2430; --muted:#525d6b; --dim:#818c9b;
+  --key:#2563eb; --key-deep:#1d4ed8; --key-soft:#e8effd;
+  --red:#c62828; --blue:#2563eb; --green:#15803d;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
 body{
   background:var(--bg); color:var(--text); min-height:100vh;
   font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR','Segoe UI',sans-serif;
-  line-height:1.55; font-size:15px;
+  line-height:1.65; font-size:16px;
 }
 a{color:inherit;text-decoration:none}
 button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,select{font:inherit}
 .wrap{max-width:760px;margin:0 auto;padding:0 14px 80px}
 /* header */
-header{position:sticky;top:0;z-index:50;background:rgba(13,16,23,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
-.hd{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 14px}
-.logo{font-weight:800;font-size:19px;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
-.logo small{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:0}
-nav{display:flex;gap:6px}
-nav a{padding:7px 12px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--muted)}
-nav a.on,nav a:hover{background:var(--card2);color:var(--text)}
+header{position:sticky;top:0;z-index:50;background:#fff;border-bottom:3px solid var(--key);box-shadow:0 1px 6px rgba(20,40,80,.07)}
+.hd{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:10px 14px}
+.logo{font-weight:900;font-size:18px;letter-spacing:.2px;display:flex;align-items:center;gap:10px;color:var(--text)}
+.logo img{width:38px;height:38px;border-radius:10px;object-fit:cover;border:1px solid var(--border)}
+.logo small{font-size:11px;color:var(--dim);font-weight:700;letter-spacing:0}
+nav{display:flex;gap:4px}
+nav a{padding:8px 13px;border-radius:9px;font-size:14.5px;font-weight:700;color:var(--muted)}
+nav a.on{background:var(--key);color:#fff}
+nav a:hover:not(.on){background:var(--card2);color:var(--text)}
 /* common */
-.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:14px}
-.sec-title{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:1px;margin:26px 0 2px;display:flex;align-items:center;gap:7px}
-h1.page{font-size:22px;font-weight:800;margin-top:22px;line-height:1.3}
-.sub{color:var(--muted);font-size:13.5px;margin-top:4px}
-.badge{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;vertical-align:2px}
-.badge.live{background:rgba(66,199,110,.14);color:#5fd98a}
-.badge.wait{background:rgba(245,196,81,.13);color:var(--gold)}
-.badge.done{background:rgba(120,130,155,.15);color:var(--muted)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:11px 18px;font-weight:700;font-size:14.5px;transition:.15s}
-.btn:hover{border-color:#3a4763}
-.btn.primary{background:linear-gradient(135deg,#e0323e,#a3212b);border-color:transparent;color:#fff;box-shadow:0 4px 16px rgba(224,50,62,.28)}
-.btn.primary:hover{filter:brightness(1.08)}
-.btn.small{padding:7px 12px;font-size:13px;border-radius:9px}
-.btn.ghost{background:transparent}
-.btn.wide{width:100%;padding:14px;font-size:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:14px;box-shadow:0 1px 4px rgba(20,40,80,.06)}
+.sec-title{font-size:17px;font-weight:800;color:var(--text);margin:32px 0 4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-left:4px solid var(--key);padding-left:10px}
+h1.page{font-size:24px;font-weight:900;margin-top:24px;line-height:1.35}
+.sub{color:var(--muted);font-size:14.5px;margin-top:6px}
+.badge{display:inline-block;font-size:12.5px;font-weight:800;padding:3px 10px;border-radius:99px;vertical-align:2px}
+.badge.live{background:#e0f3e6;color:#116131}
+.badge.wait{background:#fdf0cd;color:#7c5a06}
+.badge.done{background:#e6eaf0;color:#525d6b}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#fff;border:1.5px solid var(--border);border-radius:11px;padding:11px 18px;font-weight:800;font-size:15px;transition:.15s;color:var(--text)}
+.btn:hover{border-color:var(--key);background:#f8faff}
+.btn.primary{background:var(--key);border:1.5px solid var(--key-deep);color:#fff}
+.btn.primary:hover{background:var(--key-deep)}
+.btn.small{padding:7px 12px;font-size:13.5px;border-radius:9px}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn.wide{width:100%;padding:15px;font-size:17px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .field{margin-top:12px}
-.field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:6px}
-.field input,.field select{width:100%;background:#0f131c;border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);outline:none}
-.field input:focus{border-color:#4a5a7d}
+.field label{display:block;font-size:13.5px;font-weight:800;color:var(--muted);margin-bottom:6px}
+.field input,.field select{width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 13px;color:var(--text);outline:none;font-size:16px}
+.field input:focus{border-color:var(--key)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.msg{margin-top:12px;padding:11px 13px;border-radius:10px;font-size:13.5px;font-weight:600;display:none}
-.msg.err{display:block;background:rgba(255,85,96,.1);color:#ff8b93;border:1px solid rgba(255,85,96,.25)}
-.msg.ok{display:block;background:rgba(66,199,110,.1);color:#5fd98a;border:1px solid rgba(66,199,110,.25)}
-.empty{color:var(--dim);text-align:center;padding:34px 0;font-size:14px}
+.msg{margin-top:12px;padding:12px 14px;border-radius:10px;font-size:15px;font-weight:700;display:none}
+.msg.err{display:block;background:#fdecec;color:#a51c1c;border:1px solid #f2bcbc}
+.msg.ok{display:block;background:#e0f3e6;color:#116131;border:1px solid #b3ddc0}
+.empty{color:var(--dim);text-align:center;padding:36px 0;font-size:15px}
 .center{text-align:center}
 hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
 /* home cards */
-.t-card{display:block;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-top:12px;transition:.15s}
-.t-card:hover{border-color:#3a4763;transform:translateY(-1px)}
-.t-card .tt{font-size:16.5px;font-weight:800}
-.t-card .meta{display:flex;gap:12px;color:var(--muted);font-size:12.5px;margin-top:7px;flex-wrap:wrap}
-.countdown{color:#5fd98a;font-weight:700}
+.t-card{display:block;background:var(--card);border:1px solid var(--border);border-left:5px solid var(--key);border-radius:12px;padding:16px;margin-top:12px;transition:.15s;box-shadow:0 1px 4px rgba(20,40,80,.06)}
+.t-card:hover{border-color:var(--key);background:#f8faff}
+.t-card .tt{font-size:17.5px;font-weight:800}
+.t-card .meta{display:flex;gap:14px;color:var(--muted);font-size:14px;margin-top:8px;flex-wrap:wrap}
+.countdown{color:#116131;font-weight:800}
 /* match voting */
-.match{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:12px}
-.match .no{font-size:11.5px;font-weight:800;color:var(--dim);letter-spacing:1.5px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center}
-.vs-row{display:grid;grid-template-columns:1fr 34px 1fr;align-items:stretch;gap:4px}
-.corner{border-radius:11px;padding:13px 6px;font-weight:700;font-size:14.5px;border:1.5px solid var(--border);background:#10141d;transition:.13s;word-break:keep-all;line-height:1.3}
-.corner.red.sel{background:linear-gradient(145deg,#b3232c,#7e161e);border-color:#ff5560;box-shadow:0 0 0 1px #ff5560,0 4px 14px rgba(255,85,96,.25);color:#fff}
-.corner.blue.sel{background:linear-gradient(145deg,#2456c4,#173a8a);border-color:#5c8dff;box-shadow:0 0 0 1px #5c8dff,0 4px 14px rgba(92,141,255,.25);color:#fff}
-.corner:not(.sel):hover{border-color:#3a4763}
-.corner .cn{display:block;font-size:10px;font-weight:800;letter-spacing:1px;opacity:.55;margin-bottom:2px}
-.vs{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--dim)}
-.corner.win{outline:2px solid var(--gold);outline-offset:-1px}
-.wintag{font-size:10.5px;font-weight:800;color:var(--gold)}
+.match{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;margin-top:12px;box-shadow:0 1px 4px rgba(20,40,80,.06)}
+.match .no{font-size:14px;font-weight:900;color:var(--key-deep);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.vs-row{display:grid;grid-template-columns:1fr 36px 1fr;align-items:stretch;gap:5px}
+.corner{border-radius:10px;padding:14px 6px;font-weight:800;font-size:16px;border:1.5px solid var(--border);background:#fff;color:var(--text);transition:.12s;word-break:keep-all;line-height:1.35}
+.corner.red.sel{background:var(--red);border-color:#a51c1c;color:#fff}
+.corner.blue.sel{background:#1e40af;border-color:#172f86;color:#fff}
+.corner:not(.sel):hover{border-color:var(--key)}
+.corner .cn{display:block;font-size:10.5px;font-weight:900;letter-spacing:1px;margin-bottom:2px}
+.corner.red .cn{color:var(--red)}
+.corner.blue .cn{color:#1e40af}
+.corner.sel .cn{color:#fff;opacity:.85}
+.vs{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--dim)}
+.wintag{font-size:13px;font-weight:900;color:var(--key-deep)}
 /* split bar */
 .split{margin-top:11px}
-.split .lbl{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:4px}
-.split .lbl .a{color:#ff8b93}.split .lbl .b{color:#8fb0ff}
-.split .bar{display:flex;height:9px;border-radius:99px;overflow:hidden;background:#0f131c}
+.split .lbl{display:flex;justify-content:space-between;font-size:14px;font-weight:800;margin-bottom:5px}
+.split .lbl .a{color:#a51c1c}.split .lbl .b{color:#1e40af}
+.split .bar{display:flex;height:12px;border-radius:99px;overflow:hidden;background:#e3e8f0}
 .split .bar i{display:block;height:100%}
-.split .bar .ia{background:linear-gradient(90deg,#e0323e,#ff5560)}
-.split .bar .ib{background:linear-gradient(90deg,#5c8dff,#2b5cd9)}
+.split .bar .ia{background:#d64545}
+.split .bar .ib{background:#3b66d6}
 /* tables */
-.tbl-scroll{overflow-x:auto;margin-top:12px;border:1px solid var(--border);border-radius:12px}
-table{border-collapse:collapse;width:100%;font-size:13px;white-space:nowrap}
-th,td{padding:9px 10px;border-bottom:1px solid var(--border);text-align:center}
-th{background:var(--card2);font-size:11.5px;color:var(--muted);letter-spacing:.5px;position:sticky;top:0}
+.tbl-scroll{overflow-x:auto;margin-top:12px;border:1px solid var(--border);border-radius:12px;background:var(--card);box-shadow:0 1px 4px rgba(20,40,80,.06)}
+table{border-collapse:collapse;width:100%;font-size:15px;white-space:nowrap}
+th,td{padding:11px 12px;border-bottom:1px solid #e8ecf2;text-align:center}
+th{background:var(--card2);font-size:13.5px;color:#334052;font-weight:800;position:sticky;top:0}
 tr:last-child td{border-bottom:none}
-td.nick,th.nick{text-align:left;position:sticky;left:0;background:var(--card);font-weight:700;max-width:130px;overflow:hidden;text-overflow:ellipsis}
+td.nick,th.nick{text-align:left;position:sticky;left:0;background:var(--card);font-weight:800;max-width:150px;overflow:hidden;text-overflow:ellipsis}
 th.nick{background:var(--card2)}
-.pick-chip{display:inline-block;min-width:44px;padding:2px 7px;border-radius:7px;font-weight:700;font-size:12px}
-.pick-chip.A{background:rgba(255,85,96,.13);color:#ff8b93}
-.pick-chip.B{background:rgba(92,141,255,.13);color:#8fb0ff}
-.pick-chip.hit{outline:1.5px solid rgba(66,199,110,.7)}
-.pick-chip.miss{opacity:.35;text-decoration:line-through}
-.rank-1{color:var(--gold);font-weight:800}
-.medal{font-size:15px}
+.pick-chip{display:inline-block;min-width:48px;padding:3px 8px;border-radius:7px;font-weight:800;font-size:13.5px}
+.pick-chip.A{background:#fdeaea;color:#a51c1c}
+.pick-chip.B{background:var(--key-soft);color:var(--key-deep)}
+.pick-chip.hit{outline:2px solid #15803d}
+.pick-chip.miss{opacity:.4;text-decoration:line-through}
+.rank-1{font-weight:900}
+/* 순위 칩 */
+.rk{display:inline-block;min-width:44px;padding:3px 9px;border-radius:8px;font-weight:800;font-size:13.5px;background:#eef1f6;color:var(--muted)}
+.rk.r1{background:var(--key);color:#fff}
+.rk.r2{background:var(--key-soft);color:var(--key-deep)}
+.rk.r3{background:#e6eaf0;color:#334052}
+/* 숫자 칩 (표 안 수치 강조) */
+.stat-chip{display:inline-block;min-width:46px;padding:3px 9px;border-radius:8px;font-weight:800;font-size:13.5px;background:#f1f4f8;color:#334052}
+.stat-chip.b{background:var(--key-soft);color:var(--key-deep)}
+.stat-chip.dash{background:transparent;color:#b3bcc7}
 /* stats chips */
-.stat-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:10px;margin-top:12px}
-.tile{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
-.tile .v{font-size:20px;font-weight:800}
-.tile .k{font-size:11.5px;color:var(--muted);font-weight:600;margin-top:2px}
-.note{font-size:12.5px;color:var(--dim);margin-top:10px;line-height:1.6}
-footer{margin-top:60px;padding:20px 0;border-top:1px solid var(--border);text-align:center;color:var(--dim);font-size:12px}
+.stat-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-top:12px}
+.tile{background:var(--card);border:1px solid var(--border);border-top:4px solid var(--key);border-radius:12px;padding:13px;text-align:center;box-shadow:0 1px 4px rgba(20,40,80,.06)}
+.tile .v{font-size:22px;font-weight:900}
+.tile .k{font-size:13px;color:var(--muted);font-weight:700;margin-top:3px}
+.note{font-size:13.5px;color:var(--muted);margin-top:10px;line-height:1.7}
+footer{margin-top:60px;padding:22px 0;border-top:1px solid var(--border);text-align:center;color:var(--dim);font-size:13px}
 footer a{color:var(--dim);text-decoration:underline}
+/* winner hero */
+.hero{background:linear-gradient(170deg,#eef3ff,#ffffff);border:1.5px solid var(--key) !important}
 /* admin */
-.admin-t{border:1px solid var(--border);border-radius:12px;padding:13px;margin-top:10px;background:var(--card)}
+.admin-t{border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:10px;background:var(--card);box-shadow:0 1px 4px rgba(20,40,80,.06)}
 .admin-t .head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-.res-btn{padding:8px 10px;border-radius:9px;border:1.5px solid var(--border);background:#10141d;font-size:13px;font-weight:700}
-.res-btn.selA{background:#7e161e;border-color:#ff5560;color:#fff}
-.res-btn.selB{background:#173a8a;border-color:#5c8dff;color:#fff}
-.res-btn.selX{background:#3a4150;border-color:#8b94a7;color:#fff}
+.res-btn{padding:9px 10px;border-radius:9px;border:1.5px solid var(--border);background:#fff;font-size:14px;font-weight:800;color:var(--text)}
+.res-btn.selA{background:var(--red);border-color:#a51c1c;color:#fff}
+.res-btn.selB{background:#1e40af;border-color:#172f86;color:#fff}
+.res-btn.selX{background:#525d6b;border-color:#3d4650;color:#fff}
 .res-row{display:grid;grid-template-columns:1fr 1fr 64px;gap:6px;margin-top:8px}
 .mrow{display:grid;grid-template-columns:24px 1fr 1fr 34px;gap:7px;align-items:center;margin-top:8px}
-.mrow input{background:#0f131c;border:1px solid var(--border);border-radius:9px;padding:9px 11px;color:var(--text);width:100%;outline:none}
+.mrow input{background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:10px 11px;color:var(--text);width:100%;outline:none}
 .del-x{color:var(--dim);font-size:17px;text-align:center}
-.del-x:hover{color:#ff8b93}
+.del-x:hover{color:#a51c1c}
 /* setup screen */
 .setup{max-width:560px;margin:60px auto;padding:0 16px}
-.setup code{background:#0f131c;border:1px solid var(--border);padding:2px 7px;border-radius:6px;font-size:13px;color:#8fb0ff}
+.setup code{background:var(--card2);border:1px solid var(--border);padding:2px 7px;border-radius:6px;font-size:13px;color:var(--key-deep)}
 .setup ol{margin:14px 0 0 20px;display:grid;gap:8px;font-size:14px}
 @media(max-width:480px){
   .logo small{display:none}
-  th,td{padding:8px 7px}
+  .logo{font-size:16px}
+  th,td{padding:10px 9px}
 }
 </style>
 </head>
 <body>
 <header>
   <div class="hd">
-    <a class="logo" href="#/">🥊 FIGHT PICK <small>승부예측</small></a>
+    <a class="logo" href="#/"><img src="data:image/jpeg;base64,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" alt="블랙컴뱃 잡담방"> 블랙컴뱃 잡담방 <small>승부예측</small></a>
     <nav id="nav">
       <a href="#/" data-nav="home">홈</a>
-      <a href="#/ranking" data-nav="ranking">시즌 랭킹</a>
+      <a href="#/ranking" data-nav="ranking">격잘알 랭킹</a>
     </nav>
   </div>
 </header>
 <div class="wrap" id="app"><div class="empty">불러오는 중…</div></div>
 <footer>
-  Fight Pick · 자동 집계 승부예측 &nbsp;|&nbsp; <a href="#/admin">관리자</a>
+  🔥블랙컴뱃 잡담방🔥 승부예측 · 자동 집계 &nbsp;|&nbsp; <a href="#/admin">관리자</a>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -278,12 +294,18 @@ function scoreOf(part, matches){
 function rankParts(parts, matches){
   const rows = parts.map(p=>({ ...p, ...scoreOf(p,matches) }));
   rows.sort((a,b)=> b.hit-a.hit || new Date(a.updated_at)-new Date(b.updated_at));
-  let last=null, lastRank=0;
-  rows.forEach((r,i)=>{
-    r.rank = (r.hit===last) ? lastRank : i+1;
-    last=r.hit; lastRank=r.rank;
+  // 공동 순위: 같은 적중 수면 같은 순위, 다음 순위는 건너뛰지 않고 바로 이어짐 (1,2,2,3...)
+  let last=null, rank=0;
+  rows.forEach(r=>{
+    if(r.hit!==last){ rank++; last=r.hit; }
+    r.rank = rank;
   });
   return rows;
+}
+// 순위 표시 칩 (공동 여부 자동 표기)
+function rankChips(rows){
+  const cnt={}; rows.forEach(r=>cnt[r.rank]=(cnt[r.rank]||0)+1);
+  return r=>`<span class="rk ${r.rank===1?'r1':r.rank===2?'r2':r.rank===3?'r3':''}">${r.rank}등</span>`;
 }
 function pickStats(match, parts){
   let a=0,b=0;
@@ -293,12 +315,14 @@ function pickStats(match, parts){
 }
 
 /* ---------- 홈 ---------- */
+let homeLimit = 10; // 지난 대회 한 번에 보여줄 개수 (더보기로 확장)
+function moreDone(){ homeLimit += 10; viewHome(); }
 async function viewHome(){
   loading();
   let d; try{ d = await fetchAll(); }catch(e){ return fail(e); }
   const open  = d.list.filter(t=>tState(t)==='open').sort((x,y)=>new Date(x.deadline)-new Date(y.deadline));
-  const wait  = d.list.filter(t=>tState(t)==='wait');
-  const done  = d.list.filter(t=>tState(t)==='final');
+  const wait  = d.list.filter(t=>tState(t)==='wait').sort((x,y)=>new Date(y.deadline)-new Date(x.deadline));
+  const done  = d.list.filter(t=>tState(t)==='final').sort((x,y)=>new Date(y.deadline)-new Date(x.deadline));
   const card = t=>{
     const cd = countdownText(t.deadline);
     return `<a class="t-card" href="#/t/${t.id}">
@@ -314,7 +338,9 @@ async function viewHome(){
     ${!open.length&&!wait.length&&!done.length?`<div class="empty">아직 등록된 대회가 없습니다.<br>관리자 페이지에서 첫 대회를 만들어 보세요!</div>`:''}
     ${!open.length&&(wait.length||done.length)?`<div class="empty" style="padding:22px 0">지금 진행 중인 투표가 없습니다.</div>`:''}
     ${wait.length?`<div class="sec-title">⏳ 결과 대기</div>${wait.map(card).join('')}`:''}
-    ${done.length?`<div class="sec-title">🏁 지난 대회</div>${done.map(card).join('')}`:''}`;
+    ${done.length?`<div class="sec-title">🏁 지난 대회 <span style="color:var(--dim);font-size:13px;font-weight:700">최신순 · 총 ${done.length}개</span></div>
+      ${done.slice(0,homeLimit).map(card).join('')}
+      ${done.length>homeLimit?`<button class="btn wide" style="margin-top:12px" onclick="moreDone()">지난 대회 더보기 (${done.length-homeLimit}개 더 있음)</button>`:''}`:''}`;
 }
 
 /* ---------- 대회 페이지 ---------- */
@@ -450,9 +476,9 @@ function resultHTML(t, matches, parts){
     allHit = withRate.filter(s=>s.rate===1);
     allMiss = withRate.filter(s=>s.rate===0);
   }
-  const medal = r => r===1?'🥇':r===2?'🥈':r===3?'🥉':r;
+  const chip = rankChips(ranked);
   return `
-    <div class="card center" style="background:linear-gradient(160deg,#1c2130,#151a23);padding:22px">
+    <div class="card center hero" style="padding:22px">
       <div style="font-size:12px;font-weight:800;color:var(--gold);letter-spacing:2px">🏆 WINNER</div>
       <div style="font-size:24px;font-weight:800;margin-top:6px">
         ${top.map(r=>`${avatar(r.nickname)} ${esc(r.nickname)}`).join(' · ')}</div>
@@ -469,10 +495,10 @@ function resultHTML(t, matches, parts){
     <div class="tbl-scroll"><table>
       <tr><th style="width:52px">순위</th><th class="nick">닉네임</th><th>적중</th><th>적중률</th></tr>
       ${ranked.map(r=>`<tr>
-        <td class="${r.rank===1?'rank-1':''}"><span class="medal">${medal(r.rank)}</span></td>
+        <td>${chip(r)}</td>
         <td class="nick"><a href="#/player/${encodeURIComponent(r.nickname)}">${avatar(r.nickname)} ${esc(r.nickname)}</a></td>
-        <td><b>${r.hit}</b> / ${r.total}</td>
-        <td>${r.total?Math.round(r.hit/r.total*100):0}%</td></tr>`).join('')}
+        <td><span class="stat-chip">${r.hit} / ${r.total}</span></td>
+        <td><span class="stat-chip b">${r.total?Math.round(r.hit/r.total*100):0}%</span></td></tr>`).join('')}
     </table></div>`;
 }
 
@@ -563,26 +589,48 @@ async function viewRanking(){
   let d; try{ d = await fetchSeasonData(); }catch(e){ return fail(e); }
   const season = buildSeason(d);
   if(!season.length){
-    $app.innerHTML = `<h1 class="page">📈 시즌 랭킹</h1><div class="empty">아직 결과가 확정된 대회가 없습니다.<br>대회가 끝나고 결과가 입력되면 여기에 누적 랭킹이 쌓입니다.</div>`;
+    $app.innerHTML = `<h1 class="page">투표 격잘알 랭킹</h1><div class="empty">아직 결과가 확정된 대회가 없습니다.<br>대회가 끝나고 결과가 입력되면 여기에 누적 랭킹이 쌓입니다.</div>`;
     return;
   }
   season.sort((a,b)=> b.hit-a.hit || b.wins-a.wins || (b.total?b.hit/b.total:0)-(a.total?a.hit/a.total:0));
-  let last=null,lastRank=0;
-  season.forEach((r,i)=>{ r.rank = (last && r.hit===last.hit && r.wins===last.wins) ? lastRank : i+1; last=r; lastRank=r.rank; });
-  const medal = r => r===1?'🥇':r===2?'🥈':r===3?'🥉':r;
+  // 공동 순위 (1,2,2,3... 방식)
+  let last=null, rank=0;
+  season.forEach(r=>{ if(!last || r.hit!==last.hit || r.wins!==last.wins){ rank++; last=r; } r.rank=rank; });
+  const chip = rankChips(season);
+  // 대회별 결과 요약 (최신순)
+  const perT = d.finals.map(t=>{
+    const matches = d.matchesBy[t.id]||[];
+    const parts = d.partsBy[t.id]||[];
+    if(!parts.length) return null;
+    const ranked = rankParts(parts, matches);
+    const top = ranked.filter(r=>r.rank===1);
+    return {t, top, entrants:parts.length, total:scoredMatches(matches).length};
+  }).filter(Boolean);
   $app.innerHTML = `
-    <h1 class="page">📈 시즌 랭킹</h1>
+    <h1 class="page">투표 격잘알 랭킹</h1>
     <div class="sub">결과가 확정된 대회 ${d.finals.length}개 누적 · 총 적중 수 기준 (동률 시 우승 횟수)</div>
+    <div class="sec-title">누적 랭킹</div>
     <div class="tbl-scroll"><table>
       <tr><th style="width:52px">순위</th><th class="nick">닉네임</th><th>총 적중</th><th>적중률</th><th>우승</th><th>참여</th></tr>
       ${season.map(r=>`<tr>
-        <td class="${r.rank===1?'rank-1':''}"><span class="medal">${medal(r.rank)}</span></td>
+        <td>${chip(r)}</td>
         <td class="nick"><a href="#/player/${encodeURIComponent(r.nickname)}">${avatar(r.nickname)} ${esc(r.nickname)}</a></td>
-        <td><b>${r.hit}</b> / ${r.total}</td>
-        <td>${r.total?Math.round(r.hit/r.total*100):0}%</td>
-        <td>${r.wins?'🏆 '+r.wins:'-'}</td>
-        <td>${r.plays}회</td></tr>`).join('')}
-    </table></div>`;
+        <td><span class="stat-chip">${r.hit} / ${r.total}</span></td>
+        <td><span class="stat-chip b">${r.total?Math.round(r.hit/r.total*100):0}%</span></td>
+        <td>${r.wins?`<span class="stat-chip">${r.wins}회</span>`:'<span class="stat-chip dash">-</span>'}</td>
+        <td><span class="stat-chip">${r.plays}회</span></td></tr>`).join('')}
+    </table></div>
+    <div class="note">닉네임을 누르면 그 사람의 대회별 상세 전적을 볼 수 있습니다.</div>
+    <div class="sec-title">대회별 투표 결과</div>
+    ${perT.map(x=>`
+      <a class="t-card" href="#/t/${x.t.id}">
+        <div class="tt">${esc(x.t.title)}</div>
+        <div class="meta">
+          <span><b>우승</b> ${x.top.map(r=>`${avatar(r.nickname)} ${esc(r.nickname)}`).join(' · ')} (${x.top[0].hit}/${x.total} 적중)</span>
+          <span>👥 ${x.entrants}명 참여</span>
+          ${x.t.event_date?`<span>📅 ${fmtDate(x.t.event_date)}</span>`:''}
+        </div>
+      </a>`).join('') || '<div class="empty">아직 없습니다.</div>'}`;
 }
 async function viewPlayer(nick){
   loading();
@@ -592,7 +640,7 @@ async function viewPlayer(nick){
     $app.innerHTML = `<h1 class="page">${avatar(nick)} ${esc(nick)}</h1><div class="empty">아직 확정된 전적이 없습니다.<br>(결과가 입력된 대회부터 전적에 반영됩니다)</div>`;
     return;
   }
-  const medal = r => r===1?'🥇 우승':r===2?'🥈 2위':r===3?'🥉 3위':r+'위';
+  const rlabel = r => r===1?'1등 (우승)':r+'등';
   $app.innerHTML = `
     <h1 class="page">${avatar(me.nickname)} ${esc(me.nickname)}</h1>
     <div class="stat-tiles">
@@ -605,7 +653,7 @@ async function viewPlayer(nick){
     ${me.records.sort((a,b)=>new Date(b.t.deadline)-new Date(a.t.deadline)).map(r=>`
       <a class="t-card" href="#/t/${r.t.id}">
         <div class="tt">${esc(r.t.title)}</div>
-        <div class="meta"><span><b>${medal(r.rank)}</b></span><span>🎯 ${r.hit}/${r.total} 적중</span><span>👥 ${r.entrants}명 중</span></div>
+        <div class="meta"><span><b>${rlabel(r.rank)}</b></span><span>🎯 ${r.hit}/${r.total} 적중</span><span>👥 ${r.entrants}명 중</span></div>
       </a>`).join('')}`;
 }
 /* ---------- 관리자 ---------- */
