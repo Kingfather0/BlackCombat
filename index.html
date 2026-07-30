@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>🔥블랙컴뱃 잡담방🔥 승부예측</title>
+<meta property="og:title" content="🔥블랙컴뱃 잡담방🔥 승부예측">
+<meta property="og:description" content="블랙컴뱃 승부예측 투표 · 자동 집계 · 격잘알 랭킹">
+<meta property="og:image" content="https://kingfather0.github.io/BlackCombat/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://kingfather0.github.io/BlackCombat/">
 <meta name="description" content="격투기 승부예측 투표 · 자동 집계 · 랭킹">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦁</text></svg>">
 <style>
@@ -40,7 +47,8 @@ nav a:hover:not(.on){background:var(--card2);color:var(--text)}
 h1.page{font-size:24px;font-weight:900;margin-top:24px;line-height:1.35}
 .sub{color:var(--muted);font-size:14.5px;margin-top:6px}
 .badge{display:inline-block;font-size:12.5px;font-weight:800;padding:3px 10px;border-radius:99px;vertical-align:2px}
-.badge.live{background:#e0f3e6;color:#116131}
+.badge.live{background:var(--key-soft);color:var(--key-deep)}
+.badge.rt{background:#e0f3e6;color:#116131}
 .badge.wait{background:#fdf0cd;color:#7c5a06}
 .badge.done{background:#fdecec;color:#a51c1c}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#fff;border:1.5px solid var(--border);border-radius:11px;padding:11px 18px;font-weight:800;font-size:15px;transition:.15s;color:var(--text)}
@@ -67,25 +75,26 @@ hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
 .t-card:hover{border-color:var(--key);background:#f8faff}
 .t-card .tt{font-size:17.5px;font-weight:800}
 .t-card .meta{display:flex;gap:14px;color:var(--muted);font-size:14px;margin-top:8px;flex-wrap:wrap}
-.countdown{color:#116131;font-weight:800}
+.countdown{color:var(--key-deep);font-weight:800}
+.countdown.urgent{color:#c62828}
 /* match voting */
 .match{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;margin-top:12px;box-shadow:0 1px 4px rgba(20,40,80,.06)}
-.match .no{font-size:14px;font-weight:900;color:var(--key-deep);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.match .no{font-size:14px;font-weight:900;color:var(--text);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
 .vs-row{display:grid;grid-template-columns:1fr 36px 1fr;align-items:stretch;gap:5px}
 .corner{border-radius:10px;padding:14px 6px;font-weight:800;font-size:16px;border:1.5px solid var(--border);background:#fff;color:var(--text);transition:.12s;word-break:keep-all;line-height:1.35}
 .corner.red.sel{background:var(--red);border-color:#a51c1c;color:#fff}
-.corner.blue.sel{background:#1e40af;border-color:#172f86;color:#fff}
+.corner.blue.sel{background:#2563eb;border-color:#1d43a8;color:#fff}
 .corner:not(.sel):hover{border-color:var(--key)}
 .corner .cn{display:block;font-size:10.5px;font-weight:900;letter-spacing:1px;margin-bottom:2px}
 .corner.red .cn{color:var(--red)}
-.corner.blue .cn{color:#1e40af}
+.corner.blue .cn{color:#2563eb}
 .corner.sel .cn{color:#fff;opacity:.85}
 .vs{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--dim)}
-.wintag{font-size:13px;font-weight:900;color:var(--key-deep)}
+.wintag{font-size:13px;font-weight:900;color:var(--text)}
 /* split bar */
 .split{margin-top:11px}
 .split .lbl{display:flex;justify-content:space-between;font-size:14px;font-weight:800;margin-bottom:5px}
-.split .lbl .a{color:#a51c1c}.split .lbl .b{color:#1e40af}
+.split .lbl .a{color:#a51c1c}.split .lbl .b{color:#1d43a8}
 .split .bar{display:flex;height:12px;border-radius:99px;overflow:hidden;background:#e3e8f0}
 .split .bar i{display:block;height:100%}
 .split .bar .ia{background:#d64545}
@@ -100,8 +109,8 @@ td.nick,th.nick{text-align:left;position:sticky;left:0;background:var(--card);fo
 th.nick{background:var(--card2)}
 .pick-chip{display:inline-block;min-width:48px;padding:3px 8px;border-radius:7px;font-weight:800;font-size:13.5px}
 .pick-chip.A{background:#fdeaea;color:#a51c1c}
-.pick-chip.B{background:var(--key-soft);color:var(--key-deep)}
-.pick-chip.hit{outline:2px solid #15803d}
+.pick-chip.B{background:#e3ebfb;color:#1c47a8}
+.pick-chip.hit{background:var(--key);color:#fff}
 .pick-chip.miss{opacity:.4;text-decoration:line-through}
 .rank-1{font-weight:900}
 /* 순위 칩 */
@@ -128,7 +137,7 @@ footer a{color:var(--dim);text-decoration:underline}
 .admin-t .head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .res-btn{padding:9px 10px;border-radius:9px;border:1.5px solid var(--border);background:#fff;font-size:14px;font-weight:800;color:var(--text)}
 .res-btn.selA{background:var(--red);border-color:#a51c1c;color:#fff}
-.res-btn.selB{background:#1e40af;border-color:#172f86;color:#fff}
+.res-btn.selB{background:#2563eb;border-color:#1d43a8;color:#fff}
 .res-btn.selX{background:#525d6b;border-color:#3d4650;color:#fff}
 .res-row{display:grid;grid-template-columns:1fr 1fr 64px;gap:6px;margin-top:8px}
 .mrow{display:grid;grid-template-columns:24px 1fr 1fr 34px;gap:7px;align-items:center;margin-top:8px}
@@ -139,6 +148,73 @@ footer a{color:var(--dim);text-decoration:underline}
 .setup{max-width:560px;margin:60px auto;padding:0 16px}
 .setup code{background:var(--card2);border:1px solid var(--border);padding:2px 7px;border-radius:6px;font-size:13px;color:var(--key-deep)}
 .setup ol{margin:14px 0 0 20px;display:grid;gap:8px;font-size:14px}
+.match{padding:11px 13px;margin-top:8px}
+.corner{padding:10px 6px;font-size:15px}
+.fmeta{display:block;font-size:11px;font-weight:700;margin-top:3px;opacity:.9}
+.votebar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:2px solid var(--key);z-index:60;box-shadow:0 -4px 16px rgba(20,40,80,.12)}
+.votebar .in{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px}
+.votebar .cnt{font-weight:800;font-size:15px}
+.votebar .cnt b{color:var(--key-deep);font-size:17px}
+body.has-votebar .wrap{padding-bottom:160px}
+.hero2{background:linear-gradient(170deg,#f1f5f9,#ffffff);border:1.5px solid #94a3b8 !important}
+.fpick{padding:6px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-weight:700;background:#fff}
+.fpick:hover{border-color:var(--key);background:#f8faff}
+#fp-div{width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:15px}
+/* 선수 랭킹 그리드 */
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:12px;margin-top:14px}
+.fdiv{background:#fff;border:1px solid var(--border);border-radius:12px;padding:11px 12px;box-shadow:0 1px 4px rgba(20,40,80,.06)}
+.fdiv-t{font-weight:900;color:var(--key-deep);font-size:14.5px;border-bottom:2px solid var(--key);padding-bottom:6px;margin-bottom:6px}
+.frow{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #f0f2f6;font-size:13px}
+.frow:last-child{border-bottom:none}
+.frk{min-width:24px;text-align:center;font-weight:800;color:var(--muted);font-size:11.5px;background:#eef1f6;border-radius:6px;padding:1px 0;flex-shrink:0}
+.frk.c{background:var(--key);color:#fff}
+.fnm{font-size:13px;flex:1;font-weight:800;line-height:1.25;word-break:keep-all}
+.frec{color:var(--dim);font-size:11.5px;font-weight:700;flex-shrink:0}
+.flag{vertical-align:-2px;border-radius:2px;flex-shrink:0}
+/* 1·2등 포디움 */
+.prow{display:flex;align-items:center;gap:11px;padding:12px 6px;background:transparent}
+.prow.p2{border-top:1px solid #eef1f6}
+.prow.p1 .pmedal{background:linear-gradient(180deg,#ffd95e,#f0b929);color:#4a3400;box-shadow:0 1px 4px rgba(190,150,40,.35)}
+.prow.p2 .pmedal{background:linear-gradient(180deg,#dbe8fb,#bcd4f3);color:#2c4a7c;box-shadow:0 1px 3px rgba(80,110,160,.28)}
+.pmedal{font-weight:900;font-size:13.5px;flex-shrink:0;border-radius:99px;padding:5px 12px}
+.pnames{font-weight:900;font-size:17.5px;flex:1;min-width:0;word-break:keep-all;color:var(--text)}
+.pscore{font-weight:800;font-size:13px;flex-shrink:0;color:var(--muted)}
+/* 참가자 예측 카드 */
+.pcard{background:#fff;border:1px solid var(--border);border-radius:11px;margin-top:8px;overflow:hidden;box-shadow:0 1px 3px rgba(20,40,80,.05)}
+.pcard-h{width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;font-weight:800;font-size:15px;text-align:left}
+.pcard-h:hover{background:#f8faff}
+.pname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.arr{color:var(--dim);font-size:12px;font-weight:700;flex-shrink:0}
+.pcard-b{padding:2px 14px 12px;border-top:1px solid #eef1f6}
+.pchips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.pchip{display:inline-flex;flex-direction:column;align-items:center;gap:2px}
+.pchip i{font-style:normal;font-size:10.5px;color:var(--dim);font-weight:700}
+/* 닉네임/비밀번호 카드 압축 */
+.vform{padding:11px 14px 12px}
+.vform .field{margin-top:0}
+.vform .field label{font-size:11.5px;margin-bottom:4px}
+.vform .field input{padding:9px 11px;font-size:15px}
+.vform .note{margin-top:8px;font-size:12px;line-height:1.5}
+/* 투표 카드 압축 그리드 */
+.vote-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-top:12px}
+@media(min-width:600px){.vote-grid{grid-template-columns:1fr 1fr}}
+.vote-grid .match{margin-top:0;padding:10px 12px}
+.vote-grid .match .no{font-size:12px;margin-bottom:5px;color:var(--muted)}
+.vote-grid .corner{padding:9px 4px;font-size:14px}
+.vote-grid .fmeta{font-size:10px;margin-top:2px}
+.vote-grid .split{margin-top:6px}
+.vote-grid .split .lbl{font-size:12px;margin-bottom:3px;font-weight:800}
+.vote-grid .split .bar{height:8px}
+/* 참가자 예측 현황 버튼 (입체) */
+.btn-parts{background:var(--key);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-weight:800;font-size:13.5px;box-shadow:0 2px 6px rgba(37,99,235,.28);transition:.15s;cursor:pointer;letter-spacing:.2px}
+.btn-parts:hover{background:var(--key-deep);box-shadow:0 4px 10px rgba(37,99,235,.35)}
+.btn-parts:active{transform:translateY(1px);box-shadow:0 1px 3px rgba(37,99,235,.3)}
+/* 참가자 예측 팝업 */
+.modal-ov{position:fixed;inset:0;background:rgba(15,20,35,.55);z-index:100;display:flex;align-items:flex-start;justify-content:center}
+.modal{background:var(--bg);width:100%;max-width:760px;max-height:82vh;border-radius:0 0 16px 16px;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(10,20,40,.3)}
+.modal-h{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);font-size:16px;flex-shrink:0}
+.modal-x{font-size:18px;color:var(--muted);padding:4px 10px}
+.modal-b{overflow-y:auto;padding:0 14px 24px}
 @media(max-width:480px){
   .logo small{display:none}
   .logo{font-size:16px}
@@ -152,10 +228,12 @@ footer a{color:var(--dim);text-decoration:underline}
     <a class="logo" href="https://open.kakao.com/o/guJ1LAuh" target="_blank" rel="noopener"><img src="data:image/jpeg;base64,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" alt="블랙컴뱃 잡담방"> 블랙컴뱃 잡담방 <small>승부예측</small></a>
     <nav id="nav">
       <a href="#/" data-nav="home">홈</a>
-      <a href="#/ranking" data-nav="ranking">격잘알 랭킹</a>
+      <a href="#/fighters" data-nav="fighters">랭킹</a>
+      <a href="#/ranking" data-nav="ranking">격잘알</a>
     </nav>
   </div>
 </header>
+<datalist id="fighters-dl"></datalist>
 <div class="wrap" id="app"><div class="empty">불러오는 중…</div></div>
 <footer>
   🔥블랙컴뱃 잡담방🔥 승부예측 · 자동 집계 &nbsp;|&nbsp; <a href="#/admin">관리자</a>
@@ -184,7 +262,13 @@ function svrNow(){ return new Date(Date.now() + timeOffset); }
 async function boot(){
   if (window.__TEST_SB) { sb = window.__TEST_SB; }
   else if (!isConfigured()){ renderSetup(); return; }
-  else { sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); }
+  else {
+    if (typeof supabase === 'undefined'){
+      $app.innerHTML = '<div class="empty">네트워크 문제로 페이지를 불러오지 못했습니다.<br>잠시 후 새로고침(F5) 해주세요.</div>';
+      return;
+    }
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
   try{
     const {data} = await sb.rpc('server_now');
     if (data) timeOffset = new Date(data).getTime() - Date.now();
@@ -217,9 +301,11 @@ function route(){
   const seg = h.replace(/^#\//,'').split('/');
   document.querySelectorAll('#nav a').forEach(a=>a.classList.remove('on'));
   const mark = k => { const el=document.querySelector(`[data-nav="${k}"]`); if(el) el.classList.add('on'); };
+  document.body.classList.remove('has-votebar');
   window.scrollTo(0,0);
   if (seg[0]==='' )            { mark('home');    viewHome(); }
   else if (seg[0]==='t')       { viewTournament(decodeURIComponent(seg[1]||'')); }
+  else if (seg[0]==='fighters'){ mark('fighters'); viewFighters(); }
   else if (seg[0]==='ranking') { mark('ranking'); viewRanking(); }
   else if (seg[0]==='player')  { viewPlayer(decodeURIComponent(seg[1]||'')); }
   else if (seg[0]==='admin')   { viewAdmin(); }
@@ -244,13 +330,19 @@ function countdownText(deadline){
   if (h>0) return `${h}시간 ${mm}분 남음`;
   return `${mm}분 남음`;
 }
+function cdHTML(deadline){
+  const cd = countdownText(deadline);
+  if(!cd) return '';
+  const urgent = new Date(deadline).getTime() - svrNow().getTime() < 3600000; // 1시간 미만
+  return `<span class="countdown${urgent?' urgent':''}">⏰ ${cd}</span>`;
+}
 function tState(t){
   if (new Date(t.deadline).getTime() > svrNow().getTime()) return 'open';
   return t.finalized ? 'final' : 'wait';
 }
 function stateBadge(t){
   const s = tState(t);
-  if (s==='open')  return `<span class="badge live">🟢 투표중</span>`;
+  if (s==='open')  return `<span class="badge live">🔵 투표중</span>`;
   if (s==='wait')  return `<span class="badge wait">⏳ 결과 대기</span>`;
   return `<span class="badge done">🏁 결과 확정</span>`;
 }
@@ -324,7 +416,7 @@ async function viewHome(){
       <div class="meta">
         ${t.event_date?`<span>📅 ${fmtDate(t.event_date)}</span>`:''}
         <span>👥 ${d.counts[t.id]||0}명 참여</span>
-        ${cd?`<span class="countdown">⏰ ${cd}</span>`:`<span>🔒 ${fmtDT(t.deadline)} 마감</span>`}
+        ${cd?cdHTML(t.deadline):`<span>🔒 ${fmtDT(t.deadline)} 마감</span>`}
       </div></a>`;
   };
   $app.innerHTML = `
@@ -337,6 +429,126 @@ async function viewHome(){
       ${done.length>homeLimit?`<button class="btn wide" style="margin-top:12px" onclick="moreDone()">지난 대회 더보기 (${done.length-homeLimit}개 더 있음)</button>`:''}`:''}`;
 }
 
+
+/* ── 블랙컴뱃 공식 선수 랭킹 (blackcombat-official.com 기준) ──
+   형식: [순위('C'=챔피언), 닉네임, 본명, 승, 패, 무, 국기]
+   국기 코드(kr,jp,br...)가 틀리면 여기서 직접 수정하면 됩니다. */
+const FIGHTERS = [
+ {div:'플라이급', list:[
+  ['C','우마왕','우성훈',13,4,0,'kr'],[1,'탱크','코마키네 타카히로',19,6,0,'jp'],[2,'인디언킹','Gabriel Rodrigues',7,1,0,'br'],
+  [3,'보로클','Bayanduuren',5,2,0,'mn'],[4,'윤방관','윤호영',7,6,1,'kr'],[5,'크로커다일','Elias Da Cruz',18,4,1,'br'],
+  [6,'김관장','김성재',9,10,1,'kr'],[7,'바이퍼','김성웅',8,9,0,'kr'],[8,'앤쵸비','박태호',9,7,0,'kr'],
+  [9,'아마존 키드','Thomas Assis',12,4,0,'br'],[10,'투견','정원희',10,9,0,'kr'],[11,'부기맨','Rangel dos Santos',12,6,1,'br'],
+  [12,'스나이퍼','Isiah Torres',9,4,1,'us'],[13,'스탠 바키','Bagylan Zhakansha',7,2,0,'kz'],[14,'미스터 초크','이민주',5,5,0,'kr'],
+  [15,'캡틴 히어로','이영웅',4,1,0,'kr'],[16,'핏불','Tiago Xavier',17,12,0,'br'],[17,'닌자','Yamasaki Sora',7,2,0,'jp'],
+  [18,'메탈 리','핫토리 슈토',2,1,0,'jp'],[19,'매드독','김민우',2,2,0,'kr'],[20,'조커','정도한',2,9,0,'kr'],
+  [21,'도깨비발','이선하',2,3,0,'kr'],[22,'백구','Erkhembayar',2,1,0,'mn']]},
+ {div:'벤텀급', list:[
+  ['C','투신','김재웅',16,8,0,'kr'],[1,'펜리르','Daniiar Toichubek',12,0,0,'kg'],[2,'무사','타케나카 다이치',17,4,1,'jp'],
+  [3,'빡세','이진세',7,5,0,'kr'],[4,'백사자','Aydemir Kazbekov',14,2,0,'ru'],[5,'언더독','박성준',7,6,1,'kr'],
+  [6,'불도저','정경열',5,3,0,'kr'],[7,'골든보이','Matheus Correia',12,0,0,'br'],[8,'쿠르드 이글','Ruslan Amuyev',11,0,0,'ru'],
+  [9,'보오르추','Bat-Itgelt',5,1,0,'mn'],[10,'빅마우스','김동규',10,8,0,'kr'],[11,'피카츄','Mukai Rukiya',6,2,0,'jp'],
+  [12,'아이언 홀스','Felipe Gheno',11,5,0,'br'],[13,'구아라','Marcelo Guarilha',25,11,1,'br'],[14,'스컬','Ruslan Sariyev',17,5,0,'kz'],
+  [15,'잉카','Miguel Meza',8,1,0,'pe'],[16,'홀리 비스트','김대환',15,12,1,'kr'],[17,'찐홍이','홍종태',6,6,0,'kr'],
+  [18,'LG','Lake Gee',9,0,0,'us'],[19,'해적왕','이강남',4,3,0,'kr'],[20,'티그로','신창현',4,1,0,'kr'],
+  [21,'몽크','Maicon Bruno',5,7,0,'br'],[22,'엘로우 몽키','임정민',5,5,0,'kr'],[23,'도미네이터','비탈리 미로뉴크',9,4,0,'ua'],
+  [24,'프리즌','최은빈',3,1,0,'kr'],[25,'리바이','김유찬',2,1,0,'kr'],[26,'스패로우','Paula Cunha',3,6,0,'br'],
+  [27,'카우보이','Diogenes Neto',0,2,0,'br'],[28,'체크메이트','이환현',2,4,0,'kr'],[29,'매드카우','이성원',1,3,0,'kr']]},
+ {div:'페더급', list:[
+  ['C','시라소니','방성혁',8,0,0,'kr'],[1,'아레스','김태균',12,3,0,'kr'],[2,'싸이코','Victor Hugo',26,8,0,'br'],
+  [3,'울프킹','Adilet Nurmatov',14,3,0,'kg'],[4,'락스톤','Lucas Bento',9,6,0,'br'],[5,'코리안 모아이','김민우',12,2,0,'kr'],
+  [6,'데드샷','Ortsa Gudaev',15,4,0,'ru'],[7,'불곰','Ismail Kelemetov',11,1,0,'ru'],[8,'붉은매','지혁민',7,1,0,'kr'],
+  [9,'젤메','Sodnomdorj',9,3,0,'mn'],[10,'손오찬','손유찬',3,5,0,'kr'],[11,'TRG','Felipe Pereira',10,2,0,'br'],
+  [12,'모카','Leonardo Diniz',16,4,0,'br'],[13,'야인','이도겸',11,9,0,'kr'],[14,'광남','신승민',14,8,0,'kr'],
+  [15,'불주먹','방재혁',16,10,0,'kr'],[16,'머큐리','Flavio Santos',14,11,0,'br'],[17,'릴슈타','임재윤',3,2,0,'kr'],
+  [18,'The Man','Daniel McElhaney',9,3,0,'us'],[19,'빡상','박상현',9,7,1,'kr'],[20,'코리안 불도저','남의철',21,10,1,'kr'],
+  [21,'토르','Toma Mitsuhiro',15,12,2,'jp'],[22,'타우르스','박병혁',4,3,0,'kr'],[23,'아이언 힙','미야히라 슈타로',4,5,0,'jp'],
+  [24,'피니셔','황준호',5,3,0,'kr'],[25,'사이보그','허선행',5,5,1,'kr'],[26,'히트맨','정용수',5,3,1,'kr'],
+  [27,'레버넌트','이민혁',9,7,0,'kr'],[28,'프론트맨','문병일',0,6,0,'kr']]},
+ {div:'라이트급', list:[
+  ['C','캡틴 코리아','정한국',14,11,2,'kr'],[1,'수부타이','난딘에르덴',19,11,0,'mn'],[2,'다게르','Ali Gadzhiev',5,0,0,'ru'],
+  [3,'직쏘','문기범',14,9,0,'kr'],[4,'영보스','박어진',10,2,1,'kr'],[5,'사쿠라','황도윤',3,6,0,'kr'],
+  [6,'헌터','박종헌',7,6,0,'kr'],[7,'곰주먹','김정균',4,4,0,'kr'],[8,'영타이거','이영훈',8,5,1,'kr'],
+  [9,'그루트','정용완',5,2,0,'kr'],[10,'Lion King','Chuka Willis',17,7,0,'us'],[11,'글래디에이터','Bruno Itamar',5,0,0,'br'],
+  [12,'워리어','정영제',6,5,0,'kr'],[13,'그리즐리','Yamamoto Takuya',11,3,1,'jp'],[14,'파라오','Youssef Barakat',9,2,0,'eg'],
+  [15,'몬스터','오수환',8,2,1,'kr'],[16,'빅프린스','Deberson Batista',14,6,2,'br'],[17,'칠라운','Gantumur',4,1,0,'mn'],
+  [18,'슬로스','장근영',3,5,0,'kr'],[19,'맨티스','윤다원',5,9,1,'kr'],[20,'더 마스터','전현우',2,2,0,'kr'],
+  [21,'마카최프','최지수',3,3,1,'kr'],[22,'레오파파','이성은',2,0,0,'kr'],[23,'킹스터','김성윤',3,2,0,'kr'],
+  [24,'스톤골렘','손민',5,3,0,'kr'],[25,'코만도','Azizbek Norov',7,4,0,'uz'],[26,'위버맨쉬','이환성',2,6,0,'kr'],
+  [27,'블레스드','김상윤',0,1,0,'kr']]},
+ {div:'웰터급', list:[
+  ['C','공석','',0,0,0,''],[1,'헌츠맨','Sultan Omarov',9,0,0,'ru'],[2,'레오파드','Luan Santiago',24,8,0,'br'],
+  [3,'킹콩','오일학',5,4,0,'kr'],[4,'동백','진태호',13,9,0,'kr'],[5,'사무라이','Patrick Kelvin',10,2,0,'br'],
+  [6,'코리안 갱스터','박원식',16,9,1,'kr'],[7,'바이킹','Lucas Marques',19,6,0,'br'],[8,'엄지장군','여동주',5,1,0,'kr'],
+  [9,'젠틀맨','Fabricio Azevedo',12,4,0,'br'],[10,'블랙맘바','김율',9,9,0,'kr'],[11,'너드','Sander Silva',4,0,0,'br'],
+  [12,'쿠빌라이','뷰렌저릭',16,20,0,'mn'],[13,'블랙리스트','박찬솔',5,2,0,'kr'],[14,'박조교','박지환',3,1,0,'kr'],
+  [15,'방탄','김민석',6,4,0,'kr'],[16,'갓균','김연균',3,3,0,'kr'],[17,'니카','Gilberto Macedo',3,2,0,'br'],
+  [18,'스톤골렘','손민',5,3,0,'kr'],[19,'오니','Tanaka Yu',6,6,0,'jp'],[20,'로꼬','Otacilio Oliveira',7,9,0,'br'],
+  [21,'그레네이드','이설호',4,9,0,'kr'],[22,'청드래곤','이청수',1,1,0,'kr']]},
+ {div:'미들급', list:[
+  ['C','킹콩','오일학',5,4,0,'kr'],[1,'타노스','Eduardo Garvon',17,6,1,'br'],[2,'모모','Sato Ryutaro',10,2,0,'jp'],
+  [3,'플라밍고','박정민',9,2,0,'kr'],[4,'예티','Lucas Paredes',5,2,1,'br'],[5,'엄지장군','여동주',5,1,0,'kr'],
+  [6,'선봉장','최순태',4,2,0,'kr'],[7,'피닉스','Marcos Vinicius',6,2,1,'br'],[8,'알라딘','Khusan Urakov',6,2,0,'uz'],
+  [9,'캡틴 하남','최재현',5,6,0,'kr'],[10,'디멘터',"Dylan O'Sullivan",6,3,0,'us'],[11,'세비지','홍희원',3,1,0,'kr'],
+  [12,'팩맨','전호철',3,4,0,'kr'],[13,'퉁순이','박성운',0,1,0,'kr'],[14,'제베','Gantulga',0,2,0,'mn']]},
+ {div:'헤비급', list:[
+  ['C','공석','',0,0,0,''],[1,'빅가이','양해준',16,6,0,'kr'],[2,'맘모스','김명환',11,4,0,'kr'],
+  [3,'짱돌','차정환',14,5,3,'kr'],[4,'보스베이비','Richard Jacobi',10,3,1,'us'],[5,'잭팟',"O'Shay Jordan",5,3,0,'us'],
+  [6,'슬라임','정민훈',3,3,0,'kr'],[7,'세비지','홍희원',3,1,0,'kr'],[8,'무칼리','Unenkhuu',2,0,0,'mn'],
+  [9,'히로시마','Oban Takaaki',11,10,1,'jp'],[10,'나이트','정세윤',5,5,0,'kr'],[11,'스콜피온','알리조다',4,2,0,'tj'],
+  [12,'마우이','김석민',0,5,0,'kr'],[13,'아수라','김동환',0,1,0,'kr'],[14,'흑곰','김도훈',0,1,0,'kr']]},
+ {div:'언더그라운드', list:[
+  ['C','Godfather','검정',3,0,0,'kr'],[1,'코리안 갱스터','박원식',16,9,1,'kr'],[2,'조커','정도한',2,9,0,'kr'],
+  [3,'KOKO','소재호',1,1,0,'kr'],[4,'The Lion','오반',0,1,0,'kr'],[5,'사신','김남신',0,1,0,'kr'],
+  [6,'뚝배기사범','호철',0,2,0,'kr']]},
+ {div:'여성부', list:[
+  ['C','공석','',0,0,0,''],[1,'짱구','전수민',2,1,0,'kr'],[2,'고스트','홍예린',5,6,0,'kr'],
+  [3,'바비','히라타 아야네',4,3,0,'jp'],[4,'Libby','조은비',1,7,0,'kr']]},
+];
+const flagImg = c => `<img class="flag" src="https://flagcdn.com/24x18/${c}.png" alt="${String(c).toUpperCase()}" width="18" height="14" loading="lazy">`;
+// 닉네임 → 선수 정보 (대진 표시용)
+const FIGHTER_MAP = {};
+FIGHTERS.forEach(d=>d.list.forEach(f=>{
+  if(f[1]==='공석') return;
+  const k = f[1].trim().toLowerCase();
+  if(!FIGHTER_MAP[k]) FIGHTER_MAP[k] = {rank:f[0], nick:f[1], real:f[2], w:f[3], l:f[4], dr:f[5], flag:f[6], div:d.div};
+}));
+function fmeta(name){
+  const f = FIGHTER_MAP[String(name).trim().toLowerCase()];
+  if(!f) return '';
+  return `<span class="fmeta">${flagImg(f.flag)} ${f.rank==='C'?'챔피언':'랭킹 '+f.rank+'위'} · ${f.w}승 ${f.l}패${f.dr?' '+f.dr+'무':''}</span>`;
+}
+/* ── 선수 랭킹 페이지 ── */
+const frow = f => f[1]==='공석'
+  ? `<div class="frow"><span class="frk c">C</span><span class="fnm" style="color:var(--dim)">공석</span></div>`
+  : `<div class="frow" title="${esc(f[2])} · ${f[3]}승 ${f[4]}패${f[5]?' '+f[5]+'무':''}">
+  <span class="frk ${f[0]==='C'?'c':''}">${f[0]==='C'?'C':f[0]}</span>
+  ${flagImg(f[6])}<b class="fnm">${esc(f[1])}</b>
+  <span class="frec">${f[3]}-${f[4]}${f[5]?'-'+f[5]:''}</span>
+</div>`;
+function toggleMore(di, btn){
+  const el = document.getElementById('fmore-'+di);
+  const opened = el.style.display !== 'none';
+  el.style.display = opened ? 'none' : 'block';
+  btn.textContent = opened ? '더보기' : '접기';
+}
+function viewFighters(){
+  $app.innerHTML = `
+    <h1 class="page">블랙컴뱃 선수 랭킹</h1>
+    <div class="sub">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 이름에 마우스를 올리면 본명이 보입니다</div>
+    <div class="fgrid">
+      ${FIGHTERS.map((d,di)=>{
+        const vis = d.list.slice(0,11), more = d.list.slice(11);
+        return `<div class="fdiv">
+          <div class="fdiv-t">${d.div}</div>
+          ${vis.map(frow).join('')}
+          ${more.length?`<div id="fmore-${di}" style="display:none">${more.map(frow).join('')}</div>
+          <button class="btn small" style="width:100%;margin-top:6px" onclick="toggleMore(${di},this)">더보기</button>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+`;
+}
 /* ---------- 대회 페이지 ---------- */
 let voteSel = {};
 async function viewTournament(id, keepSel){
@@ -352,7 +564,7 @@ async function viewTournament(id, keepSel){
     <div class="sub">
       ${t.event_date?`📅 경기일 ${fmtDate(t.event_date)} &nbsp;·&nbsp; `:''}
       🗳️ ${fmtDT(t.deadline)} 마감
-      ${cd?` &nbsp;·&nbsp; <span class="countdown">⏰ ${cd}</span>`:''}
+      ${cd?` &nbsp;·&nbsp; ${cdHTML(t.deadline)}`:''}
       &nbsp;·&nbsp; 👥 ${parts.length}명 참여
       <button class="btn small ghost" onclick="copyLink()" style="margin-left:4px">🔗 링크 복사</button>
     </div>`;
@@ -362,14 +574,29 @@ async function viewTournament(id, keepSel){
   html += `<div id="liveboard">${liveBoardHTML(t, matches, parts, st)}</div>`;
   $app.innerHTML = html;
 
+  document.body.classList.toggle('has-votebar', st==='open');
   if (st==='open'){
     // 20초마다 현황판만 자동 갱신 (입력 중인 폼은 건드리지 않음)
     pollTimer = setInterval(async ()=>{
       if(location.hash!==`#/t/${id}`) return;
       try{
         const fresh = await fetchTournament(id);
+        updateSplits(fresh.matches, fresh.parts);
+        const pf = document.querySelector('#pf-area .pf-in');
+        const pfVal = pf ? pf.value : '', pfFocus = pf && document.activeElement === pf;
+        const openNicks = [...document.querySelectorAll('#pf-area .pcard')]
+          .filter(c=>c.querySelector('.pcard-b').style.display!=='none').map(c=>c.dataset.nick);
         const box = document.getElementById('liveboard');
         if(box) box.innerHTML = liveBoardHTML(fresh.t, fresh.matches, fresh.parts, tState(fresh.t));
+        const pf2 = document.querySelector('#pf-area .pf-in');
+        if(pf2){ pf2.value = pfVal; if(pfFocus) pf2.focus(); }
+        document.querySelectorAll('#pf-area .pcard').forEach(c=>{
+          if(openNicks.includes(c.dataset.nick)){
+            c.querySelector('.pcard-b').style.display='block';
+            c.querySelector('.arr').textContent='▴ 접기';
+          }
+        });
+        applyPartFilter();
       }catch(e){}
     }, 20000);
   }
@@ -384,6 +611,41 @@ function toastMsg(s){
   document.body.appendChild(el); setTimeout(()=>el.remove(),2200);
 }
 
+/* --- 경기별 게이지 (공용) --- */
+function splitInner(m, parts, showWin, compact){
+  const s = pickStats(m, parts);
+  const winA = m.winner==='A', winB = m.winner==='B';
+  return `
+    <div class="lbl">
+      ${compact
+        ? `<span class="a">${s.pa}%</span><span class="b">${s.pb}%</span>`
+        : `<span class="a">${showWin&&winA?'🏆 ':''}${esc(m.fighter_a)} ${s.pa}%</span>
+           <span class="b">${s.pb}% ${esc(m.fighter_b)}${showWin&&winB?' 🏆':''}</span>`}
+    </div>
+    <div class="bar" role="img" aria-label="${esc(m.fighter_a)} ${s.pa}%, ${esc(m.fighter_b)} ${s.pb}%"><i class="ia" style="width:${s.pa}%"></i><i class="ib" style="width:${s.pb}%"></i></div>`;
+}
+function applyPartFilter(inp){
+  const scope = inp ? inp.closest('.pf-scope') : document.getElementById('pf-area');
+  if(!scope) return;
+  const q = (scope.querySelector('.pf-in')?.value||'').trim().toLowerCase();
+  const cards = [...scope.querySelectorAll('.pcard')];
+  cards.forEach(c=>{ c.style.display = !q || c.dataset.nick.includes(q) ? '' : 'none'; });
+  const vis = cards.filter(c=>c.style.display!=='none');
+  if(q && vis.length===1){
+    const b = vis[0].querySelector('.pcard-b');
+    if(b.style.display==='none') togglePicks(vis[0].querySelector('.pcard-h'));
+  }
+}
+function jumpParts(){
+  document.getElementById('pf-sec')?.scrollIntoView({behavior:'smooth'});
+}
+function updateSplits(matches, parts){
+  matches.forEach(m=>{
+    const el = document.getElementById('split-'+m.id);
+    if(el) el.innerHTML = splitInner(m, parts, false, true);
+  });
+}
+
 /* --- 투표 폼 --- */
 function voteFormHTML(t, matches, parts){
   const rows = matches.map(m=>`
@@ -391,32 +653,39 @@ function voteFormHTML(t, matches, parts){
       <div class="no"><span>${m.seq}경기</span></div>
       <div class="vs-row">
         <button class="corner red ${voteSel[m.id]==='A'?'sel':''}" data-mid="${m.id}" data-side="A" onclick="pick(this)">
-          <span class="cn">RED</span>${esc(m.fighter_a)}</button>
+          ${esc(m.fighter_a)}${fmeta(m.fighter_a)}</button>
         <div class="vs">VS</div>
         <button class="corner blue ${voteSel[m.id]==='B'?'sel':''}" data-mid="${m.id}" data-side="B" onclick="pick(this)">
-          <span class="cn">BLUE</span>${esc(m.fighter_b)}</button>
+          ${esc(m.fighter_b)}${fmeta(m.fighter_b)}</button>
       </div>
+      <div class="split" id="split-${m.id}">${splitInner(m, parts, false, true)}</div>
     </div>`).join('');
   return `
-    <div class="sec-title">✍️ 승부예측 참여</div>
-    <div class="card" style="padding-top:13px">
+    <div class="sec-title" style="justify-content:space-between">승부 예측 · 실시간 현황
+      <button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button></div>
+    <div class="card vform">
       <div class="row2">
         <div class="field"><label>닉네임 (중복 불가)</label>
-          <input id="v-nick" maxlength="20" placeholder="예: 헬로우" onchange="prefillPicks('${t.id}')"></div>
+          <input id="v-nick" maxlength="20" placeholder="예: 블랙컴뱃" onchange="prefillPicks('${t.id}')"></div>
         <div class="field"><label>비밀번호 (숫자 4자리)</label>
-          <input id="v-pin" inputmode="numeric" maxlength="4" placeholder="수정할 때 필요해요" type="password"></div>
+          <input id="v-pin" inputmode="numeric" maxlength="4" placeholder="수정할 때 필요" type="password"></div>
       </div>
-      <div class="note">💡 처음 낸 투표를 <b>마감 전까지 수정</b>하려면 같은 닉네임 + 같은 비밀번호로 다시 제출하면 됩니다.</div>
+      <div class="note">💡 같은 닉네임 + 비밀번호로 다시 제출하면 마감 전까지 수정됩니다.</div>
     </div>
-    ${rows}
+    <div class="vote-grid">${rows}</div>
     <div class="msg" id="v-msg"></div>
-    <button class="btn primary wide" style="margin-top:14px" onclick="submitVote('${t.id}', ${matches.length})">🥊 투표 제출하기</button>`;
+    <div class="votebar"><div class="in">
+      <span class="cnt"><b id="vb-count">${Object.keys(voteSel).length}</b> / ${matches.length} 선택</span>
+      <button class="btn primary" id="vb-submit" onclick="submitVote('${t.id}', ${matches.length})">투표 제출하기</button>
+    </div></div>`;
 }
 function pick(btn){
   const mid = btn.dataset.mid, side = btn.dataset.side;
   voteSel[mid] = side;
   document.querySelectorAll(`.corner[data-mid="${mid}"]`).forEach(b=>b.classList.remove('sel'));
   btn.classList.add('sel');
+  const c = document.getElementById('vb-count');
+  if(c) c.textContent = Object.keys(voteSel).length;
 }
 function prefillPicks(tid){
   // 기존 참가자면 투표 내용 미리 채워주기 (수정 편의)
@@ -440,8 +709,8 @@ async function submitVote(tid, matchCount){
   const show = (cls, s)=>{ msg.className='msg '+cls; msg.textContent=s; msg.scrollIntoView({block:'center',behavior:'smooth'}); };
   if(!nick) return show('err','닉네임을 입력해 주세요.');
   if(!/^[0-9]{4}$/.test(pin)) return show('err','비밀번호는 숫자 4자리로 입력해 주세요.');
-  if(Object.keys(voteSel).length < matchCount) return show('err','아직 선택하지 않은 경기가 있습니다. 모든 경기의 승자를 선택해 주세요.');
-  const btn = document.querySelector('.btn.primary.wide'); btn.disabled=true;
+  if(Object.keys(voteSel).length < matchCount) return show('err', `모든 경기에 투표해야 제출할 수 있습니다. 현재 ${matchCount}경기 중 ${Object.keys(voteSel).length}경기만 선택하셨어요.`);
+  const btn = document.getElementById('vb-submit'); btn.disabled=true;
   try{
     const {data, error} = await sb.rpc('submit_picks',{p_tournament:tid,p_nickname:nick,p_pin:pin,p_picks:voteSel});
     if (error) return show('err', cleanErr(error.message));
@@ -457,35 +726,37 @@ function resultHTML(t, matches, parts){
   if(!parts.length) return `<div class="empty">참가자가 없었습니다.</div>`;
   const ranked = rankParts(parts, matches);
   const sm = scoredMatches(matches);
-  const top = ranked.filter(r=>r.rank===1);
-  // 통계
-  const stats = matches.map(m=>({m, ...pickStats(m,parts)}));
-  const withRate = stats.filter(s=>s.m.winner==='A'||s.m.winner==='B').map(s=>{
-    const correct = s.m.winner==='A'? s.a : s.b;
-    return {...s, correct, rate: s.tot? correct/s.tot : 0};
-  });
-  let upset=null, allHit=[], allMiss=[];
-  if (withRate.length){
-    upset = withRate.reduce((x,y)=> y.rate<x.rate ? y:x);
-    allHit = withRate.filter(s=>s.rate===1);
-    allMiss = withRate.filter(s=>s.rate===0);
-  }
+  const first = ranked.filter(r=>r.rank===1);
+  const second = ranked.filter(r=>r.rank===2);
   const chip = rankChips(ranked);
+  // 선물 수령 기한: 경기일(없으면 마감일) 다음날
+  const baseD = t.event_date ? new Date(t.event_date+'T00:00:00') : new Date(t.deadline);
+  const nextD = new Date(baseD.getTime()+86400000);
+  const nextStr = nextD.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'});
+  const GIFT = 'https://open.kakao.com/o/su9HLAuh';
   return `
-    <div class="card center hero" style="padding:22px">
-      <div style="font-size:12px;font-weight:800;color:var(--gold);letter-spacing:2px">🏆 WINNER</div>
-      <div style="font-size:24px;font-weight:800;margin-top:6px">
-        ${top.map(r=>`${esc(r.nickname)}`).join(' · ')}</div>
-      <div class="sub">${sm.length}경기 중 <b style="color:var(--gold)">${top[0].hit}경기 적중</b> ${top.length>1?`(공동 ${top.length}명)`:''}</div>
+    <div class="card hero" style="padding:10px">
+      <div class="prow p1">
+        <span class="pmedal">🥇 1등</span>
+        <span class="pnames">${first.map(r=>esc(r.nickname)).join(' · ')}</span>
+        <span class="pscore">${first[0].hit}/${sm.length} 적중${first.length>1?` · 공동 ${first.length}명`:''}</span>
+      </div>
+      ${second.length?`<div class="prow p2">
+        <span class="pmedal">🥈 2등</span>
+        <span class="pnames">${second.map(r=>esc(r.nickname)).join(' · ')}</span>
+        <span class="pscore">${second[0].hit}/${sm.length} 적중${second.length>1?` · 공동 ${second.length}명`:''}</span>
+      </div>`:''}
     </div>
-    <div class="stat-tiles">
-      <div class="tile"><div class="v">${parts.length}</div><div class="k">참가자</div></div>
-      <div class="tile"><div class="v">${top[0].hit}/${sm.length}</div><div class="k">최고 적중</div></div>
-      ${upset?`<div class="tile"><div class="v">${upset.m.seq}경기</div><div class="k">😱 최대 이변 (${Math.round(upset.rate*100)}%만 적중)</div></div>`:''}
-      ${allHit.length?`<div class="tile"><div class="v">${allHit.map(s=>s.m.seq).join(',')}경기</div><div class="k">🎯 전원 적중</div></div>`:''}
-      ${allMiss.length?`<div class="tile"><div class="v">${allMiss.map(s=>s.m.seq).join(',')}경기</div><div class="k">💀 전원 실패</div></div>`:''}
+    <div class="card" style="border:1.5px solid #e6c34d;background:#fffaf0">
+      <b>🎁당첨 선물 수령 안내</b>
+      <div class="note" style="color:#57503a">
+        1등·2등 당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>
+        <span style="color:#c62828;font-weight:800">기한 내 연락이 없으면 당첨 선물은 지급되지 않습니다.</span>
+      </div>
+      <a class="btn primary small" style="margin-top:10px" href="${GIFT}" target="_blank" rel="noopener">킹빠더 1:1 오픈톡 바로가기</a>
     </div>
-    <div class="sec-title">최종 순위</div>
+    <div class="sec-title" style="justify-content:space-between">최종 순위
+      <button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button></div>
     <div class="tbl-scroll"><table>
       <tr><th style="width:52px">순위</th><th class="nick">닉네임</th><th>적중</th><th>적중률</th></tr>
       ${ranked.map(r=>`<tr>
@@ -499,50 +770,71 @@ function resultHTML(t, matches, parts){
 /* --- 경기별 현황 + 참가자 표 --- */
 function liveBoardHTML(t, matches, parts, st){
   const hasResult = st==='final' || matches.some(m=>m.winner);
-  const bars = matches.map(m=>{
-    const s = pickStats(m, parts);
+  const bars = st==='open' ? '' : matches.map(m=>{
     const winA = m.winner==='A', winB = m.winner==='B';
     return `<div class="match">
       <div class="no"><span>${m.seq}경기 ${m.winner==='X'?'<span class="badge done">무효/무승부</span>':''}</span>
         ${hasResult&&(winA||winB)?`<span class="wintag">🏆 ${esc(winA?m.fighter_a:m.fighter_b)} 승</span>`:''}</div>
-      <div class="split">
-        <div class="lbl">
-          <span class="a">${winA?'🏆 ':''}${esc(m.fighter_a)} ${s.pa}%</span>
-          <span class="b">${s.pb}% ${esc(m.fighter_b)}${winB?' 🏆':''}</span>
-        </div>
-        <div class="bar" role="img" aria-label="${esc(m.fighter_a)} ${s.pa}%, ${esc(m.fighter_b)} ${s.pb}%">
-          <i class="ia" style="width:${s.pa}%"></i><i class="ib" style="width:${s.pb}%"></i>
-        </div>
-      </div></div>`;
+      <div class="split">${splitInner(m, parts, hasResult)}</div></div>`;
   }).join('');
 
-  let table='';
-  if(parts.length){
-    const ranked = st==='final' ? rankParts(parts,matches) : parts.slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
-    table = `<div class="tbl-scroll"><table>
-      <tr><th class="nick">닉네임 (${parts.length}명)</th>${matches.map(m=>`<th>${m.seq}</th>`).join('')}${st==='final'?'<th>적중</th>':''}</tr>
-      ${ranked.map(p=>`<tr>
-        <td class="nick"><a href="#/player/${encodeURIComponent(p.nickname)}">${esc(p.nickname)}</a></td>
-        ${matches.map(m=>{
-          const v = p.picks[m.id];
-          if(!v) return '<td>-</td>';
-          const name = v==='A'? m.fighter_a : m.fighter_b;
-          let extra='';
-          if(m.winner==='A'||m.winner==='B') extra = v===m.winner ? ' hit':' miss';
-          return `<td><span class="pick-chip ${v}${extra}">${esc(String(name).slice(0,5))}</span></td>`;
-        }).join('')}
-        ${st==='final'?`<td><b>${p.hit??scoreOf(p,matches).hit}</b></td>`:''}
-      </tr>`).join('')}
-    </table></div>
-    <div class="note">셀 색상: <span class="pick-chip A">레드코너</span> <span class="pick-chip B">블루코너</span>${hasResult?' · 테두리 = 적중, 흐림 = 실패':''}</div>`;
-  } else {
-    table = `<div class="empty">아직 참가자가 없습니다. 첫 번째로 예측해 보세요! 🥊</div>`;
-  }
   return `
-    <div class="sec-title">경기별 예측 현황 ${st==='open'?'<span class="badge live">실시간</span>':''}</div>
-    ${parts.length? bars : ''}
-    <div class="sec-title">참가자 예측 ${st==='open'?'(마감 전까지 수정 가능)':''}</div>
-    ${table}`;
+    ${st!=='open' && parts.length ? `<div class="sec-title">경기 결과</div><div class="vote-grid">${bars}</div>` : ''}
+    <div class="sec-title" id="pf-sec">참가자 예측 현황 ${st==='open'?'<span class="badge rt">실시간 · 마감 전까지 수정 가능</span>':''}</div>
+    <div class="pf-scope" id="pf-area">${partsAreaHTML(matches, parts, st)}</div>`;
+}
+/* 참가자 예측: 가로 스크롤 없는 카드형 */
+function partsAreaHTML(matches, parts, st){
+  if(!parts.length) return `<div class="empty">아직 참가자가 없습니다. 첫 번째로 예측해 보세요!</div>`;
+  const hasResult = matches.some(m=>m.winner);
+  const ranked = st==='final' ? rankParts(parts,matches) : parts.slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  return `
+    <div class="card" style="padding:10px 12px;display:flex;gap:8px;align-items:center">
+      <input class="pf-in" placeholder="내 닉네임 검색" oninput="applyPartFilter(this)" style="flex:1;background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);outline:none;font-size:15px">
+      <span style="color:var(--dim);font-size:13px;font-weight:700;flex-shrink:0">${parts.length}명 참여</span>
+    </div>
+    ${ranked.map(p=>{
+      const hit = st==='final' ? (p.hit??scoreOf(p,matches).hit) : null;
+      const chips = matches.map(m=>{
+        const v = p.picks[m.id];
+        if(!v) return '';
+        const name = v==='A'? m.fighter_a : m.fighter_b;
+        let cls = v;
+        if(m.winner==='A'||m.winner==='B') cls += v===m.winner ? ' hit':' miss';
+        return `<span class="pchip"><i>${m.seq}경기</i><span class="pick-chip ${cls}">${esc(name)}</span></span>`;
+      }).join('');
+      return `<div class="pcard" data-nick="${esc(p.nickname.trim().toLowerCase())}">
+        <button class="pcard-h" onclick="togglePicks(this)">
+          <span class="pname">${esc(p.nickname)}</span>
+          <span style="display:flex;gap:10px;align-items:center;flex-shrink:0">
+            ${hit!==null?`<span class="stat-chip b">적중 ${hit}</span>`:''}
+            <span class="arr">▾ 펼치기</span>
+          </span>
+        </button>
+        <div class="pcard-b" style="display:none">
+          <div class="pchips">${chips}</div>
+          <a class="btn small ghost" style="color:var(--dim);margin-top:8px" href="#/player/${encodeURIComponent(p.nickname)}">이 참가자 전적 보기 →</a>
+        </div>
+      </div>`;
+    }).join('')}
+    ${hasResult?'<div class="note"><span class="pick-chip hit" style="min-width:0">파란색</span> = 적중 · 흐리게 = 실패</div>':''}`;
+}
+function togglePicks(btn){
+  const b = btn.parentElement.querySelector('.pcard-b');
+  const open = b.style.display !== 'none';
+  b.style.display = open ? 'none' : 'block';
+  btn.querySelector('.arr').textContent = open ? '▾ 펼치기' : '▴ 접기';
+}
+function openPartsModal(){
+  const src = document.getElementById('pf-area');
+  if(!src) return;
+  const ov = document.createElement('div');
+  ov.className = 'modal-ov';
+  ov.innerHTML = `<div class="modal">
+    <div class="modal-h"><b>참가자 예측 현황</b><button class="modal-x" onclick="this.closest('.modal-ov').remove()">✕</button></div>
+    <div class="modal-b pf-scope">${src.innerHTML}</div></div>`;
+  ov.onclick = e => { if(e.target===ov) ov.remove(); };
+  document.body.appendChild(ov);
 }
 /* ---------- 시즌 랭킹 / 개인 페이지 ---------- */
 async function fetchSeasonData(){
@@ -586,45 +878,34 @@ async function viewRanking(){
     $app.innerHTML = `<h1 class="page">투표 격잘알 랭킹</h1><div class="empty">아직 결과가 확정된 대회가 없습니다.<br>대회가 끝나고 결과가 입력되면 여기에 누적 랭킹이 쌓입니다.</div>`;
     return;
   }
-  season.sort((a,b)=> b.hit-a.hit || b.wins-a.wins || (b.total?b.hit/b.total:0)-(a.total?a.hit/a.total:0));
-  // 공동 순위 (1,2,2,3... 방식)
+  // 격잘알 = 우승(1등) 횟수 우선, 동률이면 총 적중 수
+  season.sort((a,b)=> b.wins-a.wins || b.hit-a.hit || (b.total?b.hit/b.total:0)-(a.total?a.hit/a.total:0));
   let last=null, rank=0;
-  season.forEach(r=>{ if(!last || r.hit!==last.hit || r.wins!==last.wins){ rank++; last=r; } r.rank=rank; });
+  season.forEach(r=>{ if(!last || r.wins!==last.wins || r.hit!==last.hit){ rank++; last=r; } r.rank=rank; });
   const chip = rankChips(season);
-  // 대회별 결과 요약 (최신순)
-  const perT = d.finals.map(t=>{
-    const matches = d.matchesBy[t.id]||[];
-    const parts = d.partsBy[t.id]||[];
-    if(!parts.length) return null;
-    const ranked = rankParts(parts, matches);
-    const top = ranked.filter(r=>r.rank===1);
-    return {t, top, entrants:parts.length, total:scoredMatches(matches).length};
-  }).filter(Boolean);
   $app.innerHTML = `
     <h1 class="page">투표 격잘알 랭킹</h1>
-    <div class="sub">결과가 확정된 대회 ${d.finals.length}개 누적 · 총 적중 수 기준 (동률 시 우승 횟수)</div>
+    <div class="sub">결과가 확정된 대회 ${d.finals.length}개 누적 · <b>우승 횟수 기준</b> (동률 시 총 적중 수)</div>
+    <div class="card" style="display:flex;gap:8px;padding:12px;align-items:center">
+      <input id="rk-search" placeholder="닉네임 검색 (내 전적 보기)" style="flex:1;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);outline:none;font-size:15px" onkeydown="if(event.key==='Enter')searchNick()">
+      <button class="btn primary small" onclick="searchNick()">검색</button>
+    </div>
     <div class="sec-title">누적 랭킹</div>
     <div class="tbl-scroll"><table>
-      <tr><th style="width:52px">순위</th><th class="nick">닉네임</th><th>총 적중</th><th>적중률</th><th>우승</th><th>참여</th></tr>
+      <tr><th style="width:52px">순위</th><th class="nick">닉네임</th><th>우승</th><th>총 적중</th><th>적중률</th><th>참여</th></tr>
       ${season.map(r=>`<tr>
         <td>${chip(r)}</td>
         <td class="nick"><a href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a></td>
+        <td>${r.wins?`<span class="stat-chip b">${r.wins}회</span>`:'<span class="stat-chip dash">-</span>'}</td>
         <td><span class="stat-chip">${r.hit} / ${r.total}</span></td>
-        <td><span class="stat-chip b">${r.total?Math.round(r.hit/r.total*100):0}%</span></td>
-        <td>${r.wins?`<span class="stat-chip">${r.wins}회</span>`:'<span class="stat-chip dash">-</span>'}</td>
+        <td><span class="stat-chip">${r.total?Math.round(r.hit/r.total*100):0}%</span></td>
         <td><span class="stat-chip">${r.plays}회</span></td></tr>`).join('')}
     </table></div>
-    <div class="note">닉네임을 누르면 그 사람의 대회별 상세 전적을 볼 수 있습니다.</div>
-    <div class="sec-title">대회별 투표 결과</div>
-    ${perT.map(x=>`
-      <a class="t-card" href="#/t/${x.t.id}">
-        <div class="tt">${esc(x.t.title)}</div>
-        <div class="meta">
-          <span><b>우승</b> ${x.top.map(r=>`${esc(r.nickname)}`).join(' · ')} (${x.top[0].hit}/${x.total} 적중)</span>
-          <span>👥 ${x.entrants}명 참여</span>
-          ${x.t.event_date?`<span>📅 ${fmtDate(x.t.event_date)}</span>`:''}
-        </div>
-      </a>`).join('') || '<div class="empty">아직 없습니다.</div>'}`;
+    <div class="note">닉네임을 누르면 그 사람의 대회별 상세 전적을 볼 수 있습니다.</div>`;
+}
+function searchNick(){
+  const v = document.getElementById('rk-search').value.trim();
+  if(v) location.hash = '#/player/' + encodeURIComponent(v);
 }
 async function viewPlayer(nick){
   loading();
@@ -676,12 +957,16 @@ async function viewAdmin(){
       <button class="btn small ghost" onclick="sessionStorage.removeItem('fp_admin');route()" style="color:var(--dim)">로그아웃</button></h1>
     <div class="sec-title">➕ 새 대회 만들기</div>
     <div class="card">
-      <div class="field"><label>대회명</label><input id="c-title" placeholder="예: UFC 325 승부예측"></div>
+      <div class="field"><label>대회명</label><input id="c-title" placeholder="예: 블랙컴뱃 넘버링"></div>
       <div class="row2">
         <div class="field"><label>경기 날짜</label><input id="c-date" type="date"></div>
         <div class="field"><label>투표 마감 시각 (지나면 자동 마감)</label><input id="c-deadline" type="datetime-local"></div>
       </div>
-      <div class="field"><label>대진 (레드코너 vs 블루코너)</label>
+      <div class="field"><label>랭킹 선수 빠른 입력 (누르면 아래 빈 칸에 자동 입력)</label>
+        <select id="fp-div" onchange="renderFighterPick()" style="margin-bottom:4px"></select>
+        <div id="fp-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+      </div>
+      <div class="field"><label>대진</label>
         <div id="c-matches"></div>
         <button class="btn small" style="margin-top:10px" onclick="addMatchRow()">+ 경기 추가</button>
       </div>
@@ -695,7 +980,24 @@ async function viewAdmin(){
       <div class="field"><label>새 비밀번호 (4자 이상)</label><input id="p-new" type="password"></div>
       <button class="btn small" style="margin-top:12px" onclick="changePass()">변경</button>
     </div>`;
-  addMatchRow(); addMatchRow(); addMatchRow();
+  for(let i=0;i<15;i++) addMatchRow();
+  initFighterPick();
+}
+function initFighterPick(){
+  const sel = document.getElementById('fp-div');
+  sel.innerHTML = FIGHTERS.map((d,i)=>`<option value="${i}">${d.div}</option>`).join('');
+  renderFighterPick();
+}
+function renderFighterPick(){
+  const i = +document.getElementById('fp-div').value || 0;
+  document.getElementById('fp-list').innerHTML = FIGHTERS[i].list.filter(f=>f[1]!=='공석').map(f=>
+    `<button class="fpick" onclick="fillFighter('${f[1].replace(/'/g,"\\'")}')">${flagImg(f[6])} ${esc(f[1])}</button>`).join('');
+}
+function fillFighter(name){
+  const inputs = [...document.querySelectorAll('#c-matches .mrow input')];
+  const empty = inputs.find(x=>!x.value.trim());
+  if(!empty){ toastMsg('빈 칸이 없습니다. 경기를 추가해 주세요.'); return; }
+  empty.value = name;
 }
 async function adminLogin(){
   const pass = document.getElementById('a-pass').value;
@@ -712,8 +1014,8 @@ function addMatchRow(a='', b=''){
   const div = document.createElement('div');
   div.className='mrow';
   div.innerHTML = `<span style="color:var(--dim);font-size:12px;font-weight:700">${n}</span>
-    <input placeholder="레드코너 선수" value="${esc(a)}">
-    <input placeholder="블루코너 선수" value="${esc(b)}">
+    <input placeholder="선수 1" value="${esc(a)}" list="fighters-dl">
+    <input placeholder="선수 2" value="${esc(b)}" list="fighters-dl">
     <button class="del-x" onclick="this.parentElement.remove();renumberRows()">✕</button>`;
   box.appendChild(div);
 }
@@ -750,13 +1052,35 @@ function adminTournamentHTML(t, count){
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <a class="btn small" href="#/t/${t.id}">보기</a>
         <button class="btn small" onclick="openResults('${t.id}')">${st==='final'?'결과 수정':'결과 입력'}</button>
+        <button class="btn small" onclick="openMembers('${t.id}')">참가자 관리</button>
         <button class="btn small" onclick="editDeadline('${t.id}')">마감 변경</button>
         <button class="btn small" style="color:#ff8b93" onclick="delTournament('${t.id}',
           '${esc(t.title).replace(/'/g,"\\'")}')">삭제</button>
       </div>
     </div>
     <div id="res-${t.id}"></div>
+    <div id="mem-${t.id}"></div>
   </div>`;
+}
+async function openMembers(tid){
+  const box = document.getElementById('mem-'+tid);
+  if(box.innerHTML){ box.innerHTML=''; return; }
+  const {data} = await sb.from('participants').select('id,nickname,created_at').eq('tournament_id',tid).order('created_at');
+  box.innerHTML = `
+    <hr class="sep">
+    <div style="font-size:13px;font-weight:700;color:var(--muted)">참가자 ${(data||[]).length}명 · 삭제하면 해당 닉네임의 투표가 완전히 제거됩니다 (부적절 닉네임/도배 정리용)</div>
+    ${(data||[]).map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 2px;border-bottom:1px solid #eef1f6">
+      <b>${esc(p.nickname)}</b>
+      <button class="btn small" style="color:#c62828" onclick="delMember('${tid}','${p.id}')">강제 삭제</button>
+    </div>`).join('') || '<div class="empty" style="padding:14px 0">참가자가 없습니다.</div>'}`;
+}
+async function delMember(tid, pid){
+  if(!confirm('이 참가자의 투표를 완전히 삭제할까요? 되돌릴 수 없습니다.')) return;
+  const {error} = await sb.rpc('admin_delete_participant',{p_pass:adminPass(), p_pid:pid});
+  if(error) return toastMsg('⚠️ '+cleanErr(error.message));
+  toastMsg('참가자가 삭제되었습니다.');
+  const box = document.getElementById('mem-'+tid);
+  box.innerHTML=''; openMembers(tid);
 }
 async function openResults(tid){
   const box = document.getElementById('res-'+tid);
@@ -823,6 +1147,8 @@ async function changePass(){
   toastMsg('관리자 비밀번호가 변경되었습니다.');
 }
 
+document.getElementById('fighters-dl').innerHTML =
+  Object.values(FIGHTER_MAP).map(f=>`<option value="${f.nick}">`).join('');
 boot();
 </script>
 </body>
