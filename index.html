@@ -535,7 +535,7 @@ function toggleMore(di, btn){
 function viewFighters(){
   $app.innerHTML = `
     <h1 class="page">블랙컴뱃 선수 랭킹</h1>
-    <div class="sub">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 이름에 마우스를 올리면 본명이 보입니다</div>
+    <div class="sub">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a></div>
     <div class="fgrid">
       ${FIGHTERS.map((d,di)=>{
         const vis = d.list.slice(0,11), more = d.list.slice(11);
@@ -563,7 +563,7 @@ async function viewTournament(id, keepSel){
     <h1 class="page">${esc(t.title)} ${stateBadge(t)}</h1>
     <div class="sub">
       ${t.event_date?`📅 경기일 ${fmtDate(t.event_date)} &nbsp;·&nbsp; `:''}
-      🗳️ ${fmtDT(t.deadline)} 마감
+      🚫 ${fmtDT(t.deadline)} 마감
       ${cd?` &nbsp;·&nbsp; ${cdHTML(t.deadline)}`:''}
       &nbsp;·&nbsp; 👥 ${parts.length}명 참여
       <button class="btn small ghost" onclick="copyLink()" style="margin-left:4px">🔗 링크 복사</button>
@@ -885,7 +885,7 @@ async function viewRanking(){
   const chip = rankChips(season);
   $app.innerHTML = `
     <h1 class="page">투표 격잘알 랭킹</h1>
-    <div class="sub">결과가 확정된 대회 ${d.finals.length}개 누적 · <b>우승 횟수 기준</b> (동률 시 총 적중 수)</div>
+    <div class="sub">누적 대회 ${d.finals.length}개 · <b>우승 횟수 기준</b> (동률 시 총 적중 수)</div>
     <div class="card" style="display:flex;gap:8px;padding:12px;align-items:center">
       <input id="rk-search" placeholder="닉네임 검색 (내 전적 보기)" style="flex:1;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);outline:none;font-size:15px" onkeydown="if(event.key==='Enter')searchNick()">
       <button class="btn primary small" onclick="searchNick()">검색</button>
