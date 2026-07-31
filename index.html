@@ -6,7 +6,7 @@
 <title>🔥블랙컴뱃 잡담방🔥 승부예측</title>
 <meta property="og:title" content="🔥블랙컴뱃 잡담방🔥 승부예측">
 <meta property="og:description" content="블랙컴뱃 승부예측 투표 · 자동 집계 · 격잘알 랭킹">
-<meta property="og:image" content="https://kingfather0.github.io/BlackCombat/og.jpg">
+<meta property="og:image" content="https://kingfather0.github.io/BlackCombat/og.jpg?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:type" content="website">
@@ -56,6 +56,7 @@ h1.page{font-size:24px;font-weight:900;margin-top:24px;line-height:1.35}
 .btn.primary{background:var(--key);border:1.5px solid var(--key-deep);color:#fff}
 .btn.primary:hover{background:var(--key-deep)}
 .btn.small{padding:7px 12px;font-size:13.5px;border-radius:9px}
+.btn.xs{padding:4px 9px;font-size:12px;border-radius:8px}
 .btn.ghost{background:transparent;border-color:transparent}
 .btn.wide{width:100%;padding:15px;font-size:17px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
@@ -72,11 +73,10 @@ h1.page{font-size:24px;font-weight:900;margin-top:24px;line-height:1.35}
 hr.sep{border:none;border-top:1px solid var(--border);margin:16px 0}
 /* home cards */
 .t-card{display:block;background:var(--card);border:1px solid var(--border);border-left:5px solid var(--key);border-radius:12px;padding:16px;margin-top:12px;transition:.15s;box-shadow:0 1px 4px rgba(20,40,80,.06)}
-.t-card:hover{border-color:var(--key);background:#f8faff}
+.t-card:hover{filter:brightness(.985)}
 .t-card .tt{font-size:17.5px;font-weight:800}
 .t-card .meta{display:flex;gap:14px;color:var(--muted);font-size:14px;margin-top:8px;flex-wrap:wrap}
-.countdown{color:var(--key-deep);font-weight:800}
-.countdown.urgent{color:#c62828}
+.countdown{color:#c62828;font-weight:800}
 /* match voting */
 .match{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:15px;margin-top:12px;box-shadow:0 1px 4px rgba(20,40,80,.06)}
 .match .no{font-size:14px;font-weight:900;color:var(--text);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
@@ -113,17 +113,20 @@ th.nick{background:var(--card2)}
 .pick-chip.hit{background:var(--key);color:#fff}
 .pick-chip.miss{opacity:.4;text-decoration:line-through}
 .rank-1{font-weight:900}
+/* 닉네임 링크 (누르면 전적 페이지) */
+.plink{color:var(--text);text-decoration:none;font-weight:800}
+.plink::after{content:'전적';margin-left:5px;font-size:10.5px;font-weight:800;color:var(--key-deep);background:var(--key-soft);padding:1.5px 7px;border-radius:99px;vertical-align:2px}
+.plink:hover::after{background:var(--key);color:#fff}
 /* 순위 칩 */
 .rk{display:inline-block;min-width:44px;padding:3px 9px;border-radius:8px;font-weight:800;font-size:13.5px;background:#eef1f6;color:var(--muted)}
-.rk.r1{background:var(--key);color:#fff}
-.rk.r2{background:var(--key-soft);color:var(--key-deep)}
+.medal-e{font-size:21px;line-height:1}
 .rk.r3{background:#e6eaf0;color:#334052}
 /* 숫자 칩 (표 안 수치 강조) */
 .stat-chip{display:inline-block;min-width:46px;padding:3px 9px;border-radius:8px;font-weight:800;font-size:13.5px;background:#f1f4f8;color:#334052}
 .stat-chip.b{background:var(--key-soft);color:var(--key-deep)}
 .stat-chip.dash{background:transparent;color:#b3bcc7}
 /* stats chips */
-.stat-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-top:12px}
+.stat-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
 .tile{background:var(--card);border:1px solid var(--border);border-top:4px solid var(--key);border-radius:12px;padding:13px;text-align:center;box-shadow:0 1px 4px rgba(20,40,80,.06)}
 .tile .v{font-size:22px;font-weight:900}
 .tile .k{font-size:13px;color:var(--muted);font-weight:700;margin-top:3px}
@@ -172,12 +175,13 @@ body.has-votebar .wrap{padding-bottom:160px}
 .frec{color:var(--dim);font-size:11.5px;font-weight:700;flex-shrink:0}
 .flag{vertical-align:-2px;border-radius:2px;flex-shrink:0}
 /* 1·2등 포디움 */
-.prow{display:flex;align-items:center;gap:11px;padding:12px 6px;background:transparent}
+.prow{display:flex;align-items:center;gap:13px;padding:12px 8px;background:transparent}
 .prow.p2{border-top:1px solid #eef1f6}
-.prow.p1 .pmedal{background:linear-gradient(180deg,#ffd95e,#f0b929);color:#4a3400;box-shadow:0 1px 4px rgba(190,150,40,.35)}
-.prow.p2 .pmedal{background:linear-gradient(180deg,#dbe8fb,#bcd4f3);color:#2c4a7c;box-shadow:0 1px 3px rgba(80,110,160,.28)}
-.pmedal{font-weight:900;font-size:13.5px;flex-shrink:0;border-radius:99px;padding:5px 12px}
-.pnames{font-weight:900;font-size:17.5px;flex:1;min-width:0;word-break:keep-all;color:var(--text)}
+.pmd{font-size:32px;line-height:1;flex-shrink:0}
+.plab{display:block;font-size:10.5px;font-weight:900;letter-spacing:2px}
+.prow.p1 .plab{color:#b08a1e}
+.prow.p2 .plab{color:#64788f}
+.pnames{display:block;font-weight:900;font-size:17.5px;min-width:0;word-break:keep-all;color:var(--text)}
 .pscore{font-weight:800;font-size:13px;flex-shrink:0;color:var(--muted)}
 /* 참가자 예측 카드 */
 .pcard{background:#fff;border:1px solid var(--border);border-radius:11px;margin-top:8px;overflow:hidden;box-shadow:0 1px 3px rgba(20,40,80,.05)}
@@ -205,17 +209,46 @@ body.has-votebar .wrap{padding-bottom:160px}
 .vote-grid .split{margin-top:6px}
 .vote-grid .split .lbl{font-size:12px;margin-bottom:3px;font-weight:800}
 .vote-grid .split .bar{height:8px}
+/* 칭호 배지 */
+.ubadge{display:inline-block;font-size:10.5px;font-weight:800;background:#f4f0e2;color:#7a5c10;border:1px solid #e6d9b0;border-radius:99px;padding:1.5px 8px;vertical-align:1px;white-space:nowrap;cursor:help}
+.ubadge.lose{background:#fdecec;color:#a51c1c;border-color:#f0c4c4}
+/* 규칙 안내 */
+.rule{padding:10px 0;border-bottom:1px dashed #eef1f6;font-size:14px;line-height:1.65}
+.rule:last-child{border-bottom:none}
+/* 선물 관련 */
+.gift-name{display:inline-block;background:#fff;border:1.5px solid #dcbf6a;border-radius:8px;padding:2px 10px;font-weight:800;color:#26200f;margin:2px 3px 2px 0;font-size:14px}
+.gift-banner{border:1.5px solid #e6c34d !important;background:#fffaf0 !important}
 /* 참가자 예측 현황 버튼 (입체) */
 .btn-parts{background:var(--key);color:#fff;border:none;border-radius:10px;padding:9px 16px;font-weight:800;font-size:13.5px;box-shadow:0 2px 6px rgba(37,99,235,.28);transition:.15s;cursor:pointer;letter-spacing:.2px}
 .btn-parts:hover{background:var(--key-deep);box-shadow:0 4px 10px rgba(37,99,235,.35)}
 .btn-parts:active{transform:translateY(1px);box-shadow:0 1px 3px rgba(37,99,235,.3)}
+/* 경기별 투표자 팝업 */
+.mv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.mv-col{background:#fff;border:1px solid var(--border);border-radius:11px;padding:11px}
+.mv-h{font-weight:900;font-size:14.5px;padding-bottom:7px;border-bottom:1.5px solid #eef1f6;margin-bottom:6px;word-break:keep-all}
+.mv-h.a{color:#a51c1c}.mv-h.b{color:#1d43a8}
+.mv-h span{color:var(--dim);font-weight:700;font-size:12px}
+.mv-names{display:flex;flex-wrap:wrap;gap:5px}
+.mv-n{display:inline-block;padding:3px 9px;background:#f2f5f9;border-radius:7px;font-weight:700;font-size:13px}
 /* 참가자 예측 팝업 */
 .modal-ov{position:fixed;inset:0;background:rgba(15,20,35,.55);z-index:100;display:flex;align-items:flex-start;justify-content:center}
 .modal{background:var(--bg);width:100%;max-width:760px;max-height:82vh;border-radius:0 0 16px 16px;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(10,20,40,.3)}
 .modal-h{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);font-size:16px;flex-shrink:0}
 .modal-x{font-size:18px;color:var(--muted);padding:4px 10px}
 .modal-b{overflow-y:auto;padding:0 14px 24px}
+/* 부드러운 전환 */
+@keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+@keyframes ovIn{from{opacity:0}to{opacity:1}}
+@keyframes modalIn{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:none}}
+#app > *{animation:fadeUp .26s ease both}
+.modal-ov{animation:ovIn .16s ease}
+.modal{animation:modalIn .22s ease}
+.votebar{animation:fadeUp .3s ease}
+@media(prefers-reduced-motion:reduce){#app > *,.modal-ov,.modal,.votebar{animation:none}}
 @media(max-width:480px){
+  .tile{padding:11px 5px}
+  .tile .v{font-size:16px}
+  .tile .k{font-size:11px}
   .logo small{display:none}
   .logo{font-size:16px}
   th,td{padding:10px 9px}
@@ -273,6 +306,26 @@ async function boot(){
     const {data} = await sb.rpc('server_now');
     if (data) timeOffset = new Date(data).getTime() - Date.now();
   }catch(e){}
+  // 선수 랭킹: 자동 갱신 파일(fighters.json)과 수동 갱신(DB) 중 더 최신 데이터 사용
+  let cand = [];
+  try{
+    const r = await fetch('fighters.json?ts=' + Date.now(), {cache:'no-store'});
+    if(r.ok){
+      const j = await r.json();
+      if(j && Array.isArray(j.divisions) && j.divisions.length >= 5) cand.push({d:j.divisions, t:j.updated_at});
+    }
+  }catch(e){}
+  try{
+    const {data} = await sb.from('site_data').select('value,updated_at').eq('key','fighters').single();
+    if(data && data.value && Array.isArray(data.value.divisions) && data.value.divisions.length >= 5)
+      cand.push({d:data.value.divisions, t:data.updated_at});
+  }catch(e){}
+  if(cand.length){
+    cand.sort((a,b)=>new Date(b.t||0)-new Date(a.t||0));
+    FIGHTERS = cand[0].d;
+    fightersUpdatedAt = cand[0].t;
+    buildFighterMap();
+  }
   route();
 }
 window.addEventListener('hashchange', route);
@@ -391,7 +444,11 @@ function rankParts(parts, matches){
 // 순위 표시 칩 (공동 여부 자동 표기)
 function rankChips(rows){
   const cnt={}; rows.forEach(r=>cnt[r.rank]=(cnt[r.rank]||0)+1);
-  return r=>`<span class="rk ${r.rank===1?'r1':r.rank===2?'r2':r.rank===3?'r3':''}">${r.rank}등</span>`;
+  return r=>{
+    if(r.rank===1) return '<span class="medal-e">🥇</span>';
+    if(r.rank===2) return '<span class="medal-e">🥈</span>';
+    return `<span class="rk ${r.rank===3?'r3':''}">${r.rank}등</span>`;
+  };
 }
 function pickStats(match, parts){
   let a=0,b=0;
@@ -411,7 +468,7 @@ async function viewHome(){
   const done  = d.list.filter(t=>tState(t)==='final').sort((x,y)=>new Date(y.deadline)-new Date(x.deadline));
   const card = t=>{
     const cd = countdownText(t.deadline);
-    return `<a class="t-card" href="#/t/${t.id}">
+    return `<a class="t-card ${tState(t)}" href="#/t/${t.id}">
       <div class="tt">${esc(t.title)} &nbsp;${stateBadge(t)}</div>
       <div class="meta">
         ${t.event_date?`<span>📅 ${fmtDate(t.event_date)}</span>`:''}
@@ -433,7 +490,7 @@ async function viewHome(){
 /* ── 블랙컴뱃 공식 선수 랭킹 (blackcombat-official.com 기준) ──
    형식: [순위('C'=챔피언), 닉네임, 본명, 승, 패, 무, 국기]
    국기 코드(kr,jp,br...)가 틀리면 여기서 직접 수정하면 됩니다. */
-const FIGHTERS = [
+let FIGHTERS = [
  {div:'플라이급', list:[
   ['C','우마왕','우성훈',13,4,0,'kr'],[1,'탱크','코마키네 타카히로',19,6,0,'jp'],[2,'인디언킹','Gabriel Rodrigues',7,1,0,'br'],
   [3,'보로클','Bayanduuren',5,2,0,'mn'],[4,'윤방관','윤호영',7,6,1,'kr'],[5,'크로커다일','Elias Da Cruz',18,4,1,'br'],
@@ -507,21 +564,154 @@ const FIGHTERS = [
 ];
 const flagImg = c => `<img class="flag" src="https://flagcdn.com/24x18/${c}.png" alt="${String(c).toUpperCase()}" width="18" height="14" loading="lazy">`;
 // 닉네임 → 선수 정보 (대진 표시용)
-const FIGHTER_MAP = {};
-FIGHTERS.forEach(d=>d.list.forEach(f=>{
-  if(f[1]==='공석') return;
-  const k = f[1].trim().toLowerCase();
-  if(!FIGHTER_MAP[k]) FIGHTER_MAP[k] = {rank:f[0], nick:f[1], real:f[2], w:f[3], l:f[4], dr:f[5], flag:f[6], div:d.div};
-}));
+let FIGHTER_MAP = {};
+let fightersUpdatedAt = null;
+function buildFighterMap(){
+  FIGHTER_MAP = {};
+  FIGHTERS.forEach(d=>d.list.forEach(f=>{
+    if(f[1]==='공석') return;
+    const k = String(f[1]).trim().toLowerCase();
+    if(!FIGHTER_MAP[k]) FIGHTER_MAP[k] = {rank:f[0], nick:f[1], real:f[2], w:f[3], l:f[4], dr:f[5], flag:f[6], div:d.div};
+  }));
+  const dl = document.getElementById('fighters-dl');
+  if(dl) dl.innerHTML = Object.values(FIGHTER_MAP).map(f=>`<option value="${f.nick}">`).join('');
+}
+buildFighterMap();
 function fmeta(name){
   const f = FIGHTER_MAP[String(name).trim().toLowerCase()];
   if(!f) return '';
   return `<span class="fmeta">${flagImg(f.flag)} ${f.rank==='C'?'챔피언':'랭킹 '+f.rank+'위'} · ${f.w}승 ${f.l}패${f.dr?' '+f.dr+'무':''}</span>`;
 }
+/* ── 선수 랭킹 자동 갱신 (관리자) ── */
+async function refreshFighters(btn){
+  btn.disabled = true; btn.textContent = '갱신 중...';
+  try{
+    const target = 'https://www.blackcombat-official.com/ranking.php?type=fighter';
+    const proxies = [
+      'https://api.allorigins.win/raw?url=' + encodeURIComponent(target),
+      'https://corsproxy.io/?url=' + encodeURIComponent(target)
+    ];
+    let raw = null;
+    for(const p of proxies){
+      try{
+        const r = await fetch(p, {cache:'no-store'});
+        if(r.ok){ const t = await r.text(); if(t && t.length > 5000){ raw = t; break; } }
+      }catch(e){}
+    }
+    if(!raw) throw new Error('공식 사이트에 접속하지 못했습니다.');
+    const parsed = parseFighterHTML(raw);
+    const total = parsed.reduce((n,d)=>n+d.list.filter(f=>f[1]!=='공석').length, 0);
+    if(parsed.length < 5 || total < 40) throw new Error('페이지 구조가 바뀌어 자동 분석에 실패했습니다.');
+    const {error} = await sb.rpc('admin_save_data',{p_pass:adminPass(), p_key:'fighters', p_value:{divisions:parsed}});
+    if(error){
+      if(/function|not find/i.test(error.message||'')) throw new Error('랭킹갱신_패치.sql을 먼저 실행해 주세요.');
+      throw new Error(cleanErr(error.message));
+    }
+    FIGHTERS = parsed; fightersUpdatedAt = new Date().toISOString();
+    buildFighterMap(); seasonCache = null;
+    toastMsg(`✅ 선수 랭킹이 갱신되었습니다. (${parsed.length}개 체급 · ${total}명)`);
+    viewFighters();
+  }catch(e){
+    toastMsg('⚠️ ' + (e.message||'갱신에 실패했습니다.') + ' 실패가 반복되면 클로드에게 수동 갱신을 요청하세요.');
+    btn.disabled = false; btn.textContent = '🔄 랭킹 갱신';
+  }
+}
+function parseFighterHTML(raw){
+  const doc = new DOMParser().parseFromString(raw, 'text/html');
+  doc.querySelectorAll('script,style,noscript').forEach(e=>e.remove());
+  // 마크업 구조와 무관하게 텍스트 노드 단위로 수집
+  const lines = [];
+  const walker = doc.createTreeWalker(doc.body || doc, NodeFilter.SHOW_TEXT);
+  while(walker.nextNode()){
+    const v = walker.currentNode.nodeValue.trim();
+    if(v) lines.push(v);
+  }
+  const DIVS = ['플라이급','벤텀급','페더급','라이트급','웰터급','미들급','헤비급','언더그라운드','여성부'];
+  const recRe = /^(\d{1,3})\s*\/\s*(\d{1,3})\s*\/\s*(\d{1,3})$/;
+  const flagOf = n => (FIGHTER_MAP[String(n).trim().toLowerCase()]||{}).flag || 'kr';
+  const out = [];
+  let cur = null, pend = [], pendRank = null;
+  for(const ln of lines){
+    const dHit = DIVS.find(d => ln === d || (ln.startsWith(d) && ln.length <= d.length + 12));
+    if(dHit){
+      cur = {div:dHit, list:[]}; out.push(cur);
+      pend = []; pendRank = null; continue;
+    }
+    if(!cur) continue;
+    if(/^CHAMPION$/i.test(ln)) continue;
+    if(/^\d{1,2}$/.test(ln)){ pendRank = parseInt(ln,10); pend = []; continue; }
+    const m = ln.match(recRe);
+    if(m){
+      if(pend.length){
+        const nick = pend[0], real = pend[1] || '';
+        const rank = pendRank != null ? pendRank : 'C';
+        cur.list.push([rank, nick, real, +m[1], +m[2], +m[3], flagOf(nick)]);
+      }
+      pend = []; pendRank = null; continue;
+    }
+    if(ln.length <= 30 && !/RANKING|MEDIA|CHAMPION|인스타|instagram|http|블랙컴뱃|BLACK ?COMBAT/i.test(ln)){
+      pend.push(ln);
+      if(pend.length > 2) pend = pend.slice(-2);
+    }
+  }
+  // 정리: 체급별 정렬(챔피언 먼저) + 챔피언 없으면 공석 표기
+  out.forEach(d=>{
+    d.list.sort((a,b)=>{
+      const ra = a[0]==='C' ? 0 : a[0], rb = b[0]==='C' ? 0 : b[0];
+      return ra - rb;
+    });
+    if(d.list.length && d.list[0][0] !== 'C') d.list.unshift(['C','공석','',0,0,0,'']);
+  });
+  return out.filter(d=>d.list.filter(f=>f[1]!=='공석').length >= 2);
+}
+
+/* ── 선수별 커뮤니티 승부예측 기록 ── */
+let seasonCache = null;
+async function openFighterStats(nick){
+  if(!seasonCache){
+    try{ seasonCache = await fetchSeasonData(); }catch(e){ return toastMsg('⚠️ 데이터를 불러오지 못했습니다.'); }
+  }
+  const d = seasonCache, rows = [];
+  let totVotes = 0, corrVotes = 0;
+  d.finals.forEach(t=>{
+    (d.matchesBy[t.id]||[]).forEach(m=>{
+      const side = m.fighter_a.trim()===nick ? 'A' : (m.fighter_b.trim()===nick ? 'B' : null);
+      if(!side || !(m.winner==='A'||m.winner==='B')) return;
+      const parts = d.partsBy[t.id]||[];
+      const s = pickStats(m, parts);
+      const corr = m.winner==='A' ? s.a : s.b;
+      totVotes += s.tot; corrVotes += corr;
+      rows.push({ tid:t.id, title:t.title, opp: side==='A'?m.fighter_b:m.fighter_a,
+                  won: m.winner===side, pct: side==='A'?s.pa:s.pb, tot:s.tot });
+    });
+  });
+  if(!rows.length) return toastMsg(`'${nick}' 선수의 승부예측 기록이 아직 없습니다.`);
+  const rate = totVotes ? Math.round(corrVotes/totVotes*100) : 0;
+  const ov = document.createElement('div');
+  ov.className = 'modal-ov';
+  ov.innerHTML = `<div class="modal">
+    <div class="modal-h"><span><b>${esc(nick)}</b> <span style="color:var(--dim);font-size:13px;font-weight:600">우리 방 승부예측 기록</span></span>
+      <button class="modal-x" onclick="this.closest('.modal-ov').remove()">✕</button></div>
+    <div class="modal-b">
+      <div class="stat-tiles" style="grid-template-columns:repeat(2,1fr)">
+        <div class="tile"><div class="v">${rows.length}경기</div><div class="k">예측 대상 경기</div></div>
+        <div class="tile"><div class="v">${rate}%</div><div class="k">우리 방 적중률</div></div>
+      </div>
+      ${rows.map(r=>`<div class="pcard" style="padding:11px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-weight:800;font-size:14px">vs ${esc(r.opp)} ${r.won?'<span class="badge" style="background:#e0f3e6;color:#116131;font-size:11px">승</span>':'<span class="badge" style="background:#fdecec;color:#a51c1c;font-size:11px">패</span>'}</span>
+          <span style="color:var(--muted);font-size:13px;font-weight:700">우리 방 픽 ${r.pct}%</span>
+        </div>
+        <div style="font-size:12px;margin-top:2px"><a href="#/t/${r.tid}" onclick="this.closest('.modal-ov').remove()" style="color:var(--dim);font-weight:700">${esc(r.title)}</a></div>
+      </div>`).join('')}
+    </div></div>`;
+  ov.onclick = e => { if(e.target===ov) ov.remove(); };
+  document.body.appendChild(ov);
+}
 /* ── 선수 랭킹 페이지 ── */
 const frow = f => f[1]==='공석'
   ? `<div class="frow"><span class="frk c">C</span><span class="fnm" style="color:var(--dim)">공석</span></div>`
-  : `<div class="frow" title="${esc(f[2])} · ${f[3]}승 ${f[4]}패${f[5]?' '+f[5]+'무':''}">
+  : `<div class="frow" style="cursor:pointer" onclick="openFighterStats('${f[1].replace(/'/g,"\\'")}')" title="${esc(f[2])} · ${f[3]}승 ${f[4]}패${f[5]?' '+f[5]+'무':''} · 누르면 우리 방 승부예측 기록이 보입니다">
   <span class="frk ${f[0]==='C'?'c':''}">${f[0]==='C'?'C':f[0]}</span>
   ${flagImg(f[6])}<b class="fnm">${esc(f[1])}</b>
   <span class="frec">${f[3]}-${f[4]}${f[5]?'-'+f[5]:''}</span>
@@ -534,8 +724,14 @@ function toggleMore(di, btn){
 }
 function viewFighters(){
   $app.innerHTML = `
-    <h1 class="page">블랙컴뱃 선수 랭킹</h1>
-    <div class="sub">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a></div>
+    <h1 class="page" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <span>블랙컴뱃 선수 랭킹</span>
+      <span style="display:inline-flex;gap:8px;align-items:center">
+        ${fightersUpdatedAt?`<span style="font-size:12.5px;color:var(--muted);font-weight:700">🔄 ${fmtDT(fightersUpdatedAt)} 갱신</span>`:''}
+        ${adminPass()?`<button class="btn small" onclick="refreshFighters(this)">수동 갱신</button>`:''}
+      </span>
+    </h1>
+    <div class="sub">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 매일 새벽 5시 자동 갱신</div>
     <div class="fgrid">
       ${FIGHTERS.map((d,di)=>{
         const vis = d.list.slice(0,11), more = d.list.slice(11);
@@ -551,26 +747,45 @@ function viewFighters(){
 }
 /* ---------- 대회 페이지 ---------- */
 let voteSel = {};
+let curState = null;
+let curMatches = [], curParts = [], curT = null;
 async function viewTournament(id, keepSel){
   if(!keepSel) loading();
   let d; try{ d = await fetchTournament(id); }catch(e){ return fail(e); }
   const {t, matches, parts} = d;
   const st = tState(t);
+  curState = st; curMatches = matches; curParts = parts; curT = t;
   if(!keepSel) voteSel = {};
   const cd = countdownText(t.deadline);
 
   let html = `
-    <h1 class="page">${esc(t.title)} ${stateBadge(t)}</h1>
+    <h1 class="page" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <span>${esc(t.title)} ${stateBadge(t)}</span>
+      <span style="display:inline-flex;gap:2px">
+        <button class="btn small ghost" style="color:var(--muted);font-weight:700" onclick="copyLink()">🔗 링크복사</button>
+        <button class="btn small ghost" style="color:var(--muted);font-weight:700" onclick="makeShareImage()">📸 캡쳐 및 공유</button>
+      </span>
+    </h1>
     <div class="sub">
       ${t.event_date?`📅 경기일 ${fmtDate(t.event_date)} &nbsp;·&nbsp; `:''}
       🚫 ${fmtDT(t.deadline)} 마감
       ${cd?` &nbsp;·&nbsp; ${cdHTML(t.deadline)}`:''}
       &nbsp;·&nbsp; 👥 ${parts.length}명 참여
-      <button class="btn small ghost" onclick="copyLink()" style="margin-left:4px">🔗 링크 복사</button>
     </div>`;
 
+  if ((st==='open'||st==='wait') && (t.gift1_desc || t.gift2_desc)) html += `
+    <div class="card gift-banner" style="margin-top:16px">
+      <b>🎁 당첨 선물</b>
+      <div class="note" style="margin-top:3px;color:#57503a">
+        ${t.gift1_desc?`<b>1등</b> <span class="gift-name">${esc(t.gift1_desc)}</span> <b style="font-size:12.5px">최대 ${t.gift1_max??2}명</b>`:''}
+        ${t.gift1_desc&&t.gift2_desc?' &nbsp; ':''}
+        ${t.gift2_desc?`<b>2등</b> <span class="gift-name">${esc(t.gift2_desc)}</span> <b style="font-size:12.5px">최대 ${t.gift2_max??5}명</b>`:''}
+        <br><span style="font-size:12px">공동 순위 인원이 정원을 초과하면 랜덤 추첨으로 지급됩니다.</span>
+      </div>
+    </div>`;
+  if (st!=='final') html += rulesHTML();
   if (st==='open') html += voteFormHTML(t, matches, parts);
-  if (st==='final') html += resultHTML(t, matches, parts);
+  if (st==='final') html += resultHTML(t, matches, parts) + rulesHTML();
   html += `<div id="liveboard">${liveBoardHTML(t, matches, parts, st)}</div>`;
   $app.innerHTML = html;
 
@@ -581,6 +796,7 @@ async function viewTournament(id, keepSel){
       if(location.hash!==`#/t/${id}`) return;
       try{
         const fresh = await fetchTournament(id);
+        curMatches = fresh.matches; curParts = fresh.parts;
         updateSplits(fresh.matches, fresh.parts);
         const pf = document.querySelector('#pf-area .pf-in');
         const pfVal = pf ? pf.value : '', pfFocus = pf && document.activeElement === pf;
@@ -601,14 +817,93 @@ async function viewTournament(id, keepSel){
     }, 20000);
   }
 }
+async function makeShareImage(){
+  const t = curT; if(!t) return;
+  toastMsg('📸 이미지를 만드는 중...');
+  try{
+    if(!window.html2canvas){
+      await new Promise((res,rej)=>{
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        s.onload = res; s.onerror = rej; document.head.appendChild(s);
+      });
+    }
+    const canvas = await html2canvas(document.getElementById('app'), {backgroundColor:'#f4f6fa', scale:2, useCORS:true, logging:false});
+    canvas.toBlob(b=>{
+      const fname = t.title.replace(/\s+/g,'_') + '.png';
+      const file = new File([b], fname, {type:'image/png'});
+      // 1) 기본: 저장
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b); a.download = fname; a.click();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 8000);
+      // 2) 공유 가능 기기면 공유 버튼 제공
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        showShareBar(file, t.title);
+      } else {
+        toastMsg('📸 이미지가 저장되었습니다. 카톡방에 공유해 보세요!');
+      }
+    });
+  }catch(e){ toastMsg('⚠️ 이미지 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.'); }
+}
+function showShareBar(file, title){
+  document.querySelectorAll('.sharebar').forEach(e=>e.remove());
+  const el = document.createElement('div');
+  el.className = 'sharebar';
+  el.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#242d3f;color:#fff;padding:10px 14px;border-radius:14px;font-size:13.5px;font-weight:700;z-index:120;box-shadow:0 6px 20px rgba(0,0,0,.4);display:flex;gap:10px;align-items:center';
+  el.innerHTML = `📸 저장 완료!
+    <button style="background:var(--key);color:#fff;border-radius:9px;padding:7px 13px;font-weight:800;font-size:13px" id="sb-share">카톡 등으로 공유</button>
+    <button style="color:#aab;font-size:15px;padding:2px 6px" onclick="this.parentElement.remove()">✕</button>`;
+  document.body.appendChild(el);
+  el.querySelector('#sb-share').onclick = async ()=>{
+    try{ await navigator.share({files:[file], title}); }catch(e){}
+    el.remove();
+  };
+  setTimeout(()=>el.remove(), 15000);
+}
 function copyLink(){
   navigator.clipboard?.writeText(location.href).then(()=>toastMsg('링크가 복사되었습니다. 카톡방에 붙여넣으세요!'));
+}
+function flashEl(el){
+  if(!el) return;
+  el.style.transition = 'background .3s';
+  el.style.background = 'var(--key-soft)';
+  const clear = ()=>{ el.style.background = ''; };
+  const inputs = el.querySelectorAll('input,select,textarea');
+  if(inputs.length || /^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)){
+    inputs.forEach(i=>i.addEventListener('input', clear, {once:true}));
+    if(/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) el.addEventListener('input', clear, {once:true});
+  } else {
+    setTimeout(clear, 2200); // 입력칸이 없는 표시용 요소는 잠깐만
+  }
 }
 function toastMsg(s){
   const el=document.createElement('div');
   el.textContent=s;
-  el.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#242d3f;color:#fff;padding:11px 18px;border-radius:99px;font-size:13.5px;font-weight:600;z-index:99;box-shadow:0 6px 20px rgba(0,0,0,.4)';
+  el.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#242d3f;color:#fff;padding:11px 18px;border-radius:99px;font-size:13.5px;font-weight:600;z-index:99;box-shadow:0 6px 20px rgba(0,0,0,.4);animation:fadeUp .25s ease';
   document.body.appendChild(el); setTimeout(()=>el.remove(),2200);
+}
+
+/* --- 투표 규칙 안내 (접이식) --- */
+function rulesHTML(){
+  return `
+  <div class="card" style="padding:0;overflow:hidden">
+    <button style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 15px;font-weight:800;font-size:14.5px;text-align:left" onclick="toggleRules(this)">
+      📋 투표 규칙 · 유의사항
+      <span class="arr">▾ 펼치기</span>
+    </button>
+    <div class="rules-b" style="display:none;padding:0 15px 12px;border-top:1px solid #eef1f6">
+      <div class="rule"><b>당첨 기준</b> — 1·2등은 승부 예측 <b>적중 수가 높은 순</b>으로 선정됩니다. 공동 인원이 지급 정원을 초과하면 그 안에서 <b>랜덤 추첨</b>합니다.</div>
+      <div class="rule"><b>계체 실패 경기</b> — 계체 실패 선수가 승리하면 실제 결과는 무효(NC)라도, 승부 예측에서는 <b>그 선수의 승리로 처리</b>합니다.<br>
+        <span style="color:var(--dim);font-size:12.5px">예) 붉은매(통과) vs 티알지(실패) → 티알지가 이기면 티알지 승 처리</span></div>
+      <div class="rule"><b>닉네임 일치</b> — 투표 닉네임이 <b>잡담방 닉네임과 다르면</b> 선물 당첨에서 제외됩니다.</div>
+    </div>
+  </div>`;
+}
+function toggleRules(btn){
+  const b = btn.parentElement.querySelector('.rules-b');
+  const open = b.style.display !== 'none';
+  b.style.display = open ? 'none' : 'block';
+  btn.querySelector('.arr').textContent = open ? '▾ 펼치기' : '▴ 접기';
 }
 
 /* --- 경기별 게이지 (공용) --- */
@@ -618,9 +913,9 @@ function splitInner(m, parts, showWin, compact){
   return `
     <div class="lbl">
       ${compact
-        ? `<span class="a">${s.pa}%</span><span class="b">${s.pb}%</span>`
-        : `<span class="a">${showWin&&winA?'🏆 ':''}${esc(m.fighter_a)} ${s.pa}%</span>
-           <span class="b">${s.pb}% ${esc(m.fighter_b)}${showWin&&winB?' 🏆':''}</span>`}
+        ? `<span class="a">${s.a}명 (${s.pa}%)</span><span class="b">${s.b}명 (${s.pb}%)</span>`
+        : `<span class="a">${showWin&&winA?'🏆 ':''}${esc(m.fighter_a)} ${s.a}명 (${s.pa}%)</span>
+           <span class="b">${s.b}명 (${s.pb}%) ${esc(m.fighter_b)}${showWin&&winB?' 🏆':''}</span>`}
     </div>
     <div class="bar" role="img" aria-label="${esc(m.fighter_a)} ${s.pa}%, ${esc(m.fighter_b)} ${s.pb}%"><i class="ia" style="width:${s.pa}%"></i><i class="ib" style="width:${s.pb}%"></i></div>`;
 }
@@ -658,7 +953,7 @@ function voteFormHTML(t, matches, parts){
         <button class="corner blue ${voteSel[m.id]==='B'?'sel':''}" data-mid="${m.id}" data-side="B" onclick="pick(this)">
           ${esc(m.fighter_b)}${fmeta(m.fighter_b)}</button>
       </div>
-      <div class="split" id="split-${m.id}">${splitInner(m, parts, false, true)}</div>
+      <div class="split" id="split-${m.id}" onclick="openMatchVoters('${m.id}')" style="cursor:pointer" title="누가 투표했는지 보기">${splitInner(m, parts, false, true)}</div>
     </div>`).join('');
   return `
     <div class="sec-title" style="justify-content:space-between">승부 예측 · 실시간 현황
@@ -666,11 +961,12 @@ function voteFormHTML(t, matches, parts){
     <div class="card vform">
       <div class="row2">
         <div class="field"><label>닉네임 (중복 불가)</label>
-          <input id="v-nick" maxlength="20" placeholder="예: 블랙컴뱃" onchange="prefillPicks('${t.id}')"></div>
+          <input id="v-nick" maxlength="20" placeholder="잡담방 닉네임 입력" onchange="prefillPicks('${t.id}')"></div>
         <div class="field"><label>비밀번호 (숫자 4자리)</label>
           <input id="v-pin" inputmode="numeric" maxlength="4" placeholder="수정할 때 필요" type="password"></div>
       </div>
-      <div class="note">💡 같은 닉네임 + 비밀번호로 다시 제출하면 마감 전까지 수정됩니다.</div>
+      <div class="note">💡 같은 닉네임 + 비밀번호로 다시 제출하면 마감 전까지 수정됩니다. · 게이지를 누르면 <b>투표자 목록</b>이 보입니다.
+        · <button style="color:var(--key-deep);font-weight:800;font-size:12.5px;text-decoration:underline;text-underline-offset:2px" onclick="openRenameModal('${t.id}')">닉네임 변경</button></div>
     </div>
     <div class="vote-grid">${rows}</div>
     <div class="msg" id="v-msg"></div>
@@ -681,9 +977,15 @@ function voteFormHTML(t, matches, parts){
 }
 function pick(btn){
   const mid = btn.dataset.mid, side = btn.dataset.side;
-  voteSel[mid] = side;
-  document.querySelectorAll(`.corner[data-mid="${mid}"]`).forEach(b=>b.classList.remove('sel'));
-  btn.classList.add('sel');
+  if(voteSel[mid] === side){
+    // 같은 버튼 재클릭 → 선택 해제
+    delete voteSel[mid];
+    btn.classList.remove('sel');
+  } else {
+    voteSel[mid] = side;
+    document.querySelectorAll(`.corner[data-mid="${mid}"]`).forEach(b=>b.classList.remove('sel'));
+    btn.classList.add('sel');
+  }
   const c = document.getElementById('vb-count');
   if(c) c.textContent = Object.keys(voteSel).length;
 }
@@ -694,7 +996,8 @@ function prefillPicks(tid){
   sb.from('participants').select('nickname,picks').eq('tournament_id',tid).then(({data})=>{
     const me = (data||[]).find(p=>p.nickname.trim().toLowerCase()===nick);
     if(me){
-      voteSel = {...me.picks};
+      voteSel = {};
+      curMatches.forEach(m=>{ if(me.picks[m.id]) voteSel[m.id] = me.picks[m.id]; });
       document.querySelectorAll('.corner[data-mid]').forEach(b=>{
         b.classList.toggle('sel', voteSel[b.dataset.mid]===b.dataset.side);
       });
@@ -735,25 +1038,50 @@ function resultHTML(t, matches, parts){
   const nextStr = nextD.toLocaleDateString('ko-KR',{month:'long',day:'numeric',weekday:'long'});
   const GIFT = 'https://open.kakao.com/o/su9HLAuh';
   return `
-    <div class="card hero" style="padding:10px">
-      <div class="prow p1">
-        <span class="pmedal">🥇 1등</span>
-        <span class="pnames">${first.map(r=>esc(r.nickname)).join(' · ')}</span>
-        <span class="pscore">${first[0].hit}/${sm.length} 적중${first.length>1?` · 공동 ${first.length}명`:''}</span>
-      </div>
-      ${second.length?`<div class="prow p2">
-        <span class="pmedal">🥈 2등</span>
-        <span class="pnames">${second.map(r=>esc(r.nickname)).join(' · ')}</span>
-        <span class="pscore">${second[0].hit}/${sm.length} 적중${second.length>1?` · 공동 ${second.length}명`:''}</span>
-      </div>`:''}
-    </div>
     <div class="card" style="border:1.5px solid #e6c34d;background:#fffaf0">
-      <b>🎁당첨 선물 수령 안내</b>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <b>🎁당첨 선물 수령 안내</b>
+        ${t.gift_winners
+          ? `<span style="display:inline-flex;gap:6px;align-items:center">
+              <span class="badge" style="background:#e0f3e6;color:#116131">✅ 선물 추첨 완료</span>
+              <button class="btn xs" style="background:#fdecec;border-color:#f0c4c4;color:#a51c1c" onclick="cancelGifts('${t.id}')">추첨 취소</button>
+            </span>`
+          : `<span style="display:inline-flex;gap:6px;align-items:center">
+              <span class="badge" style="background:var(--key-soft);color:var(--key-deep)">🕐 선물 추첨 전</span>
+              <button class="btn primary xs" onclick="drawGiftsFromResult('${t.id}')">🎲 선물 추첨</button>
+            </span>`}
+      </div>
       <div class="note" style="color:#57503a">
-        1등·2등 당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>
+        ${t.gift_winners ? `
+          <b>1등 당첨${t.gift1_desc?` (${esc(t.gift1_desc)})`:''}</b> :
+          ${(t.gift_winners.first||[]).map(n=>`<span class="gift-name">${esc(n)}</span>`).join('')||'-'}
+          ${first.length>(t.gift_winners.first||[]).length?`<span style="color:#8a6a12">← 공동 ${first.length}명 중 랜덤 추첨</span>`:''}<br>
+          <b>2등 당첨${t.gift2_desc?` (${esc(t.gift2_desc)})`:''}</b> :
+          ${(t.gift_winners.second||[]).map(n=>`<span class="gift-name">${esc(n)}</span>`).join('')||'-'}
+          ${second.length>(t.gift_winners.second||[]).length?`<span style="color:#8a6a12">← 공동 ${second.length}명 중 랜덤 추첨</span>`:''}<br>
+          위 당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>`
+        : `1등·2등 당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>`}
         <span style="color:#c62828;font-weight:800">기한 내 연락이 없으면 당첨 선물은 지급되지 않습니다.</span>
       </div>
       <a class="btn primary small" style="margin-top:10px" href="${GIFT}" target="_blank" rel="noopener">킹빠더 1:1 오픈톡 바로가기</a>
+    </div>
+    <div class="card hero" style="padding:10px">
+      <div class="prow p1">
+        <span class="pmd">🥇</span>
+        <span style="flex:1;min-width:0">
+          <span class="plab">1등 · WINNER</span>
+          <span class="pnames">${first.map(r=>`<a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a>`).join(' · ')}</span>
+        </span>
+        <span class="pscore">${first[0].hit}/${sm.length} 적중${first.length>1?` · 공동 ${first.length}명`:''}</span>
+      </div>
+      ${second.length?`<div class="prow p2">
+        <span class="pmd">🥈</span>
+        <span style="flex:1;min-width:0">
+          <span class="plab">2등</span>
+          <span class="pnames">${second.map(r=>`<a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a>`).join(' · ')}</span>
+        </span>
+        <span class="pscore">${second[0].hit}/${sm.length} 적중${second.length>1?` · 공동 ${second.length}명`:''}</span>
+      </div>`:''}
     </div>
     <div class="sec-title" style="justify-content:space-between">최종 순위
       <button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button></div>
@@ -761,7 +1089,7 @@ function resultHTML(t, matches, parts){
       <tr><th style="width:52px">순위</th><th class="nick">닉네임</th><th>적중</th><th>적중률</th></tr>
       ${ranked.map(r=>`<tr>
         <td>${chip(r)}</td>
-        <td class="nick"><a href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a></td>
+        <td class="nick"><a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a></td>
         <td><span class="stat-chip">${r.hit} / ${r.total}</span></td>
         <td><span class="stat-chip b">${r.total?Math.round(r.hit/r.total*100):0}%</span></td></tr>`).join('')}
     </table></div>`;
@@ -770,18 +1098,41 @@ function resultHTML(t, matches, parts){
 /* --- 경기별 현황 + 참가자 표 --- */
 function liveBoardHTML(t, matches, parts, st){
   const hasResult = st==='final' || matches.some(m=>m.winner);
+  // 이변 계산: 적중률이 가장 낮은 경기
+  const rateOf = m => {
+    if(!(m.winner==='A'||m.winner==='B')) return null;
+    const s = pickStats(m, parts);
+    return s.tot ? (m.winner==='A'? s.a : s.b) / s.tot : null;
+  };
+  let upsetId = null, minRate = 1.01;
+  if(parts.length) matches.forEach(m=>{ const r = rateOf(m); if(r!==null && r < minRate){ minRate = r; upsetId = m.id; } });
   const bars = st==='open' ? '' : matches.map(m=>{
     const winA = m.winner==='A', winB = m.winner==='B';
+    const r = rateOf(m);
+    let tag = '';
+    if(r!==null){
+      if(m.id===upsetId && r<0.5) tag = `<span class="badge" style="background:#fdecec;color:#a51c1c;font-size:11px">😱 최대 이변 · ${Math.round(r*100)}%만 적중</span>`;
+      else if(r===1) tag = '<span class="badge" style="background:#e0f3e6;color:#116131;font-size:11px">🎯 전원 적중</span>';
+      else if(r===0) tag = '<span class="badge" style="background:#e6eaf0;color:#525d6b;font-size:11px">💀 전원 실패</span>';
+    }
+    let hitters = '';
+    if(m.id===upsetId && r!==null && r>0 && r<0.35){
+      const names = parts.filter(p=>p.picks[m.id]===m.winner).map(p=>p.nickname);
+      if(names.length<=10) hitters = `<div class="note" style="margin-top:6px;font-size:12.5px">이변 적중 ${names.length}명: <b>${names.map(esc).join(', ')}</b></div>`;
+    }
     return `<div class="match">
-      <div class="no"><span>${m.seq}경기 ${m.winner==='X'?'<span class="badge done">무효/무승부</span>':''}</span>
+      <div class="no"><span>${m.seq}경기 ${m.winner==='X'?'<span class="badge done">무효/무승부</span>':''} ${tag}</span>
         ${hasResult&&(winA||winB)?`<span class="wintag">🏆 ${esc(winA?m.fighter_a:m.fighter_b)} 승</span>`:''}</div>
-      <div class="split">${splitInner(m, parts, hasResult)}</div></div>`;
+      <div class="split" onclick="openMatchVoters('${m.id}')" style="cursor:pointer" title="누가 투표했는지 보기">${splitInner(m, parts, hasResult)}</div>${hitters}</div>`;
   }).join('');
 
   return `
-    ${st!=='open' && parts.length ? `<div class="sec-title">경기 결과</div><div class="vote-grid">${bars}</div>` : ''}
-    <div class="sec-title" id="pf-sec">참가자 예측 현황 ${st==='open'?'<span class="badge rt">실시간 · 마감 전까지 수정 가능</span>':''}</div>
-    <div class="pf-scope" id="pf-area">${partsAreaHTML(matches, parts, st)}</div>`;
+    ${st!=='open' && parts.length ? `<div class="sec-title" style="justify-content:space-between">
+      <span style="display:inline-flex;align-items:baseline;gap:10px;flex-wrap:wrap">경기 결과
+        <span style="font-size:12.5px;color:var(--dim);font-weight:600">게이지를 누르면 <b>투표자 목록</b>이 보입니다</span></span>
+      ${st==='wait'?'<button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button>':''}</div>
+      <div class="vote-grid">${bars}</div>` : ''}
+    <div style="display:none"><div class="pf-scope" id="pf-area">${partsAreaHTML(matches, parts, st)}</div></div>`;
 }
 /* 참가자 예측: 가로 스크롤 없는 카드형 */
 function partsAreaHTML(matches, parts, st){
@@ -825,13 +1176,69 @@ function togglePicks(btn){
   b.style.display = open ? 'none' : 'block';
   btn.querySelector('.arr').textContent = open ? '▾ 펼치기' : '▴ 접기';
 }
+function openMatchVoters(mid){
+  const m = curMatches.find(x=>x.id===mid);
+  if(!m || !curParts.length) return;
+  const av = curParts.filter(p=>p.picks[m.id]==='A').map(p=>p.nickname);
+  const bv = curParts.filter(p=>p.picks[m.id]==='B').map(p=>p.nickname);
+  const col = (name, cls, voters) => `
+    <div class="mv-col">
+      <div class="mv-h ${cls}">${esc(name)} <span>${voters.length}명</span></div>
+      <div class="mv-names">${voters.map(n=>`<span class="mv-n">${esc(n)}</span>`).join('') || '<span style="color:var(--dim);font-size:13px">아직 없음</span>'}</div>
+    </div>`;
+  const ov = document.createElement('div');
+  ov.className = 'modal-ov';
+  ov.innerHTML = `<div class="modal">
+    <div class="modal-h"><span><b>${m.seq}경기 투표자</b> <span style="color:var(--dim);font-size:13px;font-weight:600">${esc(m.fighter_a)} vs ${esc(m.fighter_b)}</span></span>
+      <button class="modal-x" onclick="this.closest('.modal-ov').remove()">✕</button></div>
+    <div class="modal-b"><div class="mv-grid">${col(m.fighter_a,'a',av)}${col(m.fighter_b,'b',bv)}</div></div></div>`;
+  ov.onclick = e => { if(e.target===ov) ov.remove(); };
+  document.body.appendChild(ov);
+}
+function openRenameModal(tid){
+  const ov = document.createElement('div');
+  ov.className = 'modal-ov';
+  ov.innerHTML = `<div class="modal">
+    <div class="modal-h"><b>닉네임 · 비밀번호 변경</b><button class="modal-x" onclick="this.closest('.modal-ov').remove()">✕</button></div>
+    <div class="modal-b">
+      <div class="field"><label>현재 닉네임</label><input id="rn-old" maxlength="20"></div>
+      <div class="field"><label>현재 비밀번호 (숫자 4자리)</label><input id="rn-pin" type="password" inputmode="numeric" maxlength="4"></div>
+      <div class="field"><label>새 닉네임</label><input id="rn-new" maxlength="20" placeholder="미입력 시 기존 닉네임 유지"></div>
+      <div class="field"><label>새 비밀번호 (숫자 4자리)</label><input id="rn-npin" type="password" inputmode="numeric" maxlength="4" placeholder="미입력 시 기존 비밀번호 유지"></div>
+      <div class="note">이번 대회에 제출한 내 투표에 적용됩니다. (마감 전까지만 가능)</div>
+      <div class="msg" id="rn-msg"></div>
+      <button class="btn primary wide" style="margin-top:12px" onclick="doRename('${tid}')">변경하기</button>
+    </div></div>`;
+  ov.onclick = e => { if(e.target===ov) ov.remove(); };
+  document.body.appendChild(ov);
+}
+async function doRename(tid){
+  const o = document.getElementById('rn-old').value.trim();
+  const p = document.getElementById('rn-pin').value.trim();
+  const n = document.getElementById('rn-new').value.trim();
+  const np = document.getElementById('rn-npin').value.trim();
+  const msg = document.getElementById('rn-msg');
+  const show = s => { msg.className='msg err'; msg.textContent=s; };
+  if(!o || !p) return show('현재 닉네임과 현재 비밀번호를 입력해 주세요.');
+  if(!n && !np) return show('새 닉네임 또는 새 비밀번호 중 하나는 입력해 주세요.');
+  if(np && !/^[0-9]{4}$/.test(np)) return show('새 비밀번호는 숫자 4자리여야 합니다.');
+  const {data, error} = await sb.rpc('rename_nickname',{p_tournament:tid, p_old:o, p_pin:p, p_new:(n || o), p_new_pin:np||null});
+  if(error){
+    if(/function|not find/i.test(error.message||'')) return show('참가자관리_패치.sql을 먼저 실행해 주세요. (관리자에게 문의)');
+    return show(cleanErr(error.message));
+  }
+  if(data && data.ok===false) return show(data.error);
+  document.querySelectorAll('.modal-ov').forEach(e=>e.remove());
+  toastMsg('✅ 변경되었습니다!');
+  viewTournament(tid);
+}
 function openPartsModal(){
   const src = document.getElementById('pf-area');
   if(!src) return;
   const ov = document.createElement('div');
   ov.className = 'modal-ov';
   ov.innerHTML = `<div class="modal">
-    <div class="modal-h"><b>참가자 예측 현황</b><button class="modal-x" onclick="this.closest('.modal-ov').remove()">✕</button></div>
+    <div class="modal-h"><span><b>참가자 예측 현황</b>${curState==='open'?' <span class="badge rt" style="font-size:11.5px">실시간 · 마감 전까지 수정 가능</span>':''}</span><button class="modal-x" onclick="this.closest('.modal-ov').remove()">✕</button></div>
     <div class="modal-b pf-scope">${src.innerHTML}</div></div>`;
   ov.onclick = e => { if(e.target===ov) ov.remove(); };
   document.body.appendChild(ov);
@@ -851,6 +1258,43 @@ async function fetchSeasonData(){
   Object.values(matchesBy).forEach(a=>a.sort((x,y)=>x.seq-y.seq));
   (p.data||[]).forEach(x=>{ if(fids.has(x.tournament_id)) (partsBy[x.tournament_id]=partsBy[x.tournament_id]||[]).push(x); });
   return {finals: finals.sort((a,b)=>new Date(b.deadline)-new Date(a.deadline)), matchesBy, partsBy};
+}
+const WIN_TITLES  = [[5,'👑 예측의 신'],[4,'🤖 적중 머신'],[3,'😎 격잘알'],[2,'🔥 예측 좀 치네']];
+const LOSE_TITLES = [[4,'☠️ 반대로만 찍어'],[3,'👎 역배 장인'],[2,'🥵 감다뒤'],[1,'💩 꼴등']];
+// 대회 시간순으로 연속 우승/연속 꼴등 최고 기록 계산 (대회를 건너뛰면 연속 끊김)
+function computeStreaks(d){
+  const asc = d.finals.slice().sort((a,b)=>new Date(a.deadline)-new Date(b.deadline));
+  const cur = {}, best = {};
+  asc.forEach(t=>{
+    const parts = d.partsBy[t.id]||[];
+    if(!parts.length) return;
+    const ranked = rankParts(parts, d.matchesBy[t.id]||[]);
+    const maxRank = Math.max(...ranked.map(r=>r.rank));
+    const winners = new Set(ranked.filter(r=>r.rank===1).map(r=>r.nickname.trim().toLowerCase()));
+    const losers  = new Set(maxRank>1 ? ranked.filter(r=>r.rank===maxRank).map(r=>r.nickname.trim().toLowerCase()) : []);
+    const nicks   = ranked.map(r=>r.nickname.trim().toLowerCase());
+    nicks.forEach(n=>{
+      const c = cur[n] = cur[n]||{w:0,l:0};
+      c.w = winners.has(n) ? c.w+1 : 0;
+      c.l = losers.has(n)  ? c.l+1 : 0;
+      const b = best[n] = best[n]||{w:0,l:0};
+      b.w = Math.max(b.w, c.w); b.l = Math.max(b.l, c.l);
+    });
+    Object.keys(cur).forEach(n=>{ if(!nicks.includes(n)){ cur[n].w=0; cur[n].l=0; } });
+  });
+  return best;
+}
+function badgesFor(a, streaks){
+  const s = streaks[a.nickname.trim().toLowerCase()] || {w:0,l:0};
+  const b = [];
+  const w = WIN_TITLES.find(x=>s.w>=x[0]);
+  if(w) b.push([w[1], `연속 ${s.w}회 우승`, 'w']);
+  const l = LOSE_TITLES.find(x=>s.l>=x[0]);
+  if(l) b.push([l[1], s.l>1?`연속 ${s.l}회 꼴등`:'꼴등 1회', 'l']);
+  return b;
+}
+function badgeChip(b, big){
+  return `<span class="ubadge${b[2]==='l'?' lose':''}" ${big?'style="font-size:12.5px;padding:4px 10px"':''} title="${b[1]}" onclick="event.preventDefault();event.stopPropagation();toastMsg('${b[0]} — ${b[1]}')">${b[0]}</span>`;
 }
 function buildSeason(d){
   // 닉네임(소문자 기준)별 통합 전적
@@ -875,7 +1319,7 @@ async function viewRanking(){
   let d; try{ d = await fetchSeasonData(); }catch(e){ return fail(e); }
   const season = buildSeason(d);
   if(!season.length){
-    $app.innerHTML = `<h1 class="page">투표 격잘알 랭킹</h1><div class="empty">아직 결과가 확정된 대회가 없습니다.<br>대회가 끝나고 결과가 입력되면 여기에 누적 랭킹이 쌓입니다.</div>`;
+    $app.innerHTML = `<h1 class="page">격잘알 랭킹</h1><div class="empty">아직 결과가 확정된 대회가 없습니다.<br>대회가 끝나고 결과가 입력되면 여기에 누적 랭킹이 쌓입니다.</div>`;
     return;
   }
   // 격잘알 = 우승(1등) 횟수 우선, 동률이면 총 적중 수
@@ -883,19 +1327,36 @@ async function viewRanking(){
   let last=null, rank=0;
   season.forEach(r=>{ if(!last || r.wins!==last.wins || r.hit!==last.hit){ rank++; last=r; } r.rank=rank; });
   const chip = rankChips(season);
+  const streaks = computeStreaks(d);
   $app.innerHTML = `
-    <h1 class="page">투표 격잘알 랭킹</h1>
+    <h1 class="page">격잘알 랭킹</h1>
     <div class="sub">누적 대회 ${d.finals.length}개 · <b>우승 횟수 기준</b> (동률 시 총 적중 수)</div>
     <div class="card" style="display:flex;gap:8px;padding:12px;align-items:center">
       <input id="rk-search" placeholder="닉네임 검색 (내 전적 보기)" style="flex:1;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);outline:none;font-size:15px" onkeydown="if(event.key==='Enter')searchNick()">
       <button class="btn primary small" onclick="searchNick()">검색</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <button style="width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px 15px;font-weight:800;font-size:14.5px;text-align:left" onclick="toggleRules(this)">
+        🏅 칭호 안내 <span class="arr">▾ 펼치기</span>
+      </button>
+      <div class="rules-b" style="display:none;padding:0 15px 12px;border-top:1px solid #eef1f6">
+        <div class="rule">🔥 <b>예측 좀 치네</b> — 연속 2회 우승</div>
+        <div class="rule">😎 <b>격잘알</b> — 연속 3회 우승</div>
+        <div class="rule">🤖 <b>적중 머신</b> — 연속 4회 우승</div>
+        <div class="rule">👑 <b>예측의 신</b> — 연속 5회 우승</div>
+        <div class="rule">💩 <b>꼴등</b> — 꼴등 1회</div>
+        <div class="rule">🥵 <b>감다뒤</b> — 연속 2회 꼴등</div>
+        <div class="rule">👎 <b>역배 장인</b> — 연속 3회 꼴등</div>
+        <div class="rule">☠️ <b>반대로만 찍어</b> — 연속 4회 꼴등</div>
+        <div class="note">칭호는 역대 최고 연속 기록 기준이며, 대회를 건너뛰면 연속이 끊깁니다. 우승·꼴등 칭호는 각각 최고 단계 하나만 표시됩니다.</div>
+      </div>
     </div>
     <div class="sec-title">누적 랭킹</div>
     <div class="tbl-scroll"><table>
       <tr><th style="width:52px">순위</th><th class="nick">닉네임</th><th>우승</th><th>총 적중</th><th>적중률</th><th>참여</th></tr>
       ${season.map(r=>`<tr>
         <td>${chip(r)}</td>
-        <td class="nick"><a href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a></td>
+        <td class="nick"><a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a>${badgesFor(r, streaks).map(b=>' '+badgeChip(b)).join('')}</td>
         <td>${r.wins?`<span class="stat-chip b">${r.wins}회</span>`:'<span class="stat-chip dash">-</span>'}</td>
         <td><span class="stat-chip">${r.hit} / ${r.total}</span></td>
         <td><span class="stat-chip">${r.total?Math.round(r.hit/r.total*100):0}%</span></td>
@@ -915,16 +1376,18 @@ async function viewPlayer(nick){
     $app.innerHTML = `<h1 class="page">${esc(nick)}</h1><div class="empty">아직 확정된 전적이 없습니다.<br>(결과가 입력된 대회부터 전적에 반영됩니다)</div>`;
     return;
   }
-  const rlabel = r => r===1?'1등 (우승)':r+'등';
+  const rlabel = r => r===1?'<span class="medal-e">🥇</span>':r===2?'<span class="medal-e">🥈</span>':r+'등';
+  const myBadges = badgesFor(me, computeStreaks(d));
   $app.innerHTML = `
     <h1 class="page">${esc(me.nickname)}</h1>
+    ${myBadges.length?`<div style="margin-top:6px">${myBadges.map(b=>badgeChip(b, true)).join(' ')}</div>`:''}
     <div class="stat-tiles">
       <div class="tile"><div class="v">${me.plays}</div><div class="k">참여 대회</div></div>
       <div class="tile"><div class="v">${me.wins}</div><div class="k">🏆 우승</div></div>
       <div class="tile"><div class="v">${me.hit}/${me.total}</div><div class="k">총 적중</div></div>
       <div class="tile"><div class="v">${me.total?Math.round(me.hit/me.total*100):0}%</div><div class="k">평균 적중률</div></div>
     </div>
-    <div class="sec-title">📜 대회별 기록</div>
+    <div class="sec-title">대회별 기록</div>
     ${me.records.sort((a,b)=>new Date(b.t.deadline)-new Date(a.t.deadline)).map(r=>`
       <a class="t-card" href="#/t/${r.t.id}">
         <div class="tt">${esc(r.t.title)}</div>
@@ -952,15 +1415,48 @@ async function viewAdmin(){
   const rows = await Promise.all(d.list.map(async t=>{
     return adminTournamentHTML(t, d.counts[t.id]||0);
   }));
+  // 참여 통계 (대회별 인원 + 신규 참여자)
+  let statsHTML = '';
+  try{
+    const {data:allP} = await sb.from('participants').select('tournament_id,nickname');
+    const byT = {};
+    (allP||[]).forEach(p=>{ (byT[p.tournament_id]=byT[p.tournament_id]||[]).push(p.nickname); });
+    const asc = d.list.slice().sort((a,b)=>new Date(a.deadline)-new Date(b.deadline));
+    const seen = new Set(); const stats = [];
+    asc.forEach(t=>{
+      const names = byT[t.id]||[];
+      const newN = names.filter(n=>!seen.has(n.trim().toLowerCase())).length;
+      names.forEach(n=>seen.add(n.trim().toLowerCase()));
+      stats.push({t, n:names.length, newN});
+    });
+    const recent = stats.slice(-12).reverse();
+    const maxN = Math.max(1, ...recent.map(s=>s.n));
+    statsHTML = `<div class="sec-title">참여 통계</div>
+      <div class="card">${recent.map(s=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:5px 0">
+          <a href="#/t/${s.t.id}" style="width:38%;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${esc(s.t.title)}</a>
+          <span style="flex:1;background:#eef1f6;border-radius:99px;height:14px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round(s.n/maxN*100)}%;background:var(--key);border-radius:99px"></span></span>
+          <span style="font-size:12.5px;font-weight:800;white-space:nowrap">${s.n}명 <span style="color:var(--green);font-weight:700">+${s.newN}</span></span>
+        </div>`).join('') || '<div class="empty">데이터가 없습니다.</div>'}
+      <div class="note" style="margin-top:8px">막대 = 참여 인원 · <span style="color:var(--green)">+N</span> = 처음 참여한 닉네임 수 (최근 12개 대회)</div></div>`;
+  }catch(e){}
   $app.innerHTML = `
     <h1 class="page">🛠️ 관리자
       <button class="btn small ghost" onclick="sessionStorage.removeItem('fp_admin');route()" style="color:var(--dim)">로그아웃</button></h1>
-    <div class="sec-title">➕ 새 대회 만들기</div>
-    <div class="card">
+    <button class="btn wide" style="margin-top:26px" id="create-toggle" onclick="toggleCreate(this)">➕ 새 대회 만들기</button>
+    <div class="card" id="create-box" style="display:none">
       <div class="field"><label>대회명</label><input id="c-title" placeholder="예: 블랙컴뱃 넘버링"></div>
       <div class="row2">
-        <div class="field"><label>경기 날짜</label><input id="c-date" type="date"></div>
-        <div class="field"><label>투표 마감 시각 (지나면 자동 마감)</label><input id="c-deadline" type="datetime-local"></div>
+        <div class="field"><label>경기 날짜</label><input id="c-date" type="datetime-local"></div>
+        <div class="field"><label>투표 마감 시각 (자동 마감)</label><input id="c-deadline" type="datetime-local"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>1등 선물 (선택)</label><input id="c-g1" placeholder="예: 스타벅스 아메리카노"></div>
+        <div class="field"><label>1등 최대 인원</label><input id="c-g1n" type="number" value="2" min="0" max="99"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>2등 선물 (선택)</label><input id="c-g2" placeholder="예: 메가커피"></div>
+        <div class="field"><label>2등 최대 인원</label><input id="c-g2n" type="number" value="5" min="0" max="99"></div>
       </div>
       <div class="field"><label>랭킹 선수 빠른 입력 (누르면 아래 빈 칸에 자동 입력)</label>
         <select id="fp-div" onchange="renderFighterPick()" style="margin-bottom:4px"></select>
@@ -975,6 +1471,7 @@ async function viewAdmin(){
     </div>
     <div class="sec-title">📋 대회 관리</div>
     ${rows.join('') || '<div class="empty">대회가 없습니다.</div>'}
+    ${statsHTML}
     <div class="sec-title">⚙️ 관리자 비밀번호 변경</div>
     <div class="card" style="max-width:420px">
       <div class="field"><label>새 비밀번호 (4자 이상)</label><input id="p-new" type="password"></div>
@@ -998,6 +1495,12 @@ function fillFighter(name){
   const empty = inputs.find(x=>!x.value.trim());
   if(!empty){ toastMsg('빈 칸이 없습니다. 경기를 추가해 주세요.'); return; }
   empty.value = name;
+}
+function toggleCreate(btn){
+  const box = document.getElementById('create-box');
+  const open = box.style.display !== 'none';
+  box.style.display = open ? 'none' : 'block';
+  btn.textContent = open ? '➕ 새 대회 만들기' : '➖ 새 대회 만들기 접기';
 }
 async function adminLogin(){
   const pass = document.getElementById('a-pass').value;
@@ -1024,7 +1527,8 @@ function renumberRows(){
 }
 async function createTournament(){
   const title = document.getElementById('c-title').value.trim();
-  const date  = document.getElementById('c-date').value || null;
+  const dateRaw = document.getElementById('c-date').value;
+  const date  = dateRaw ? dateRaw.slice(0,10) : null;
   const dl    = document.getElementById('c-deadline').value;
   const msg   = document.getElementById('c-msg');
   const show  = (c,s)=>{ msg.className='msg '+c; msg.textContent=s; };
@@ -1038,7 +1542,11 @@ async function createTournament(){
   if(ms.some(m=>!m.a||!m.b)) return show('err','선수 이름이 비어 있는 경기가 있습니다.');
   const {data, error} = await sb.rpc('admin_create_tournament',{
     p_pass:adminPass(), p_title:title, p_event_date:date,
-    p_deadline:new Date(dl).toISOString(), p_matches:ms });
+    p_deadline:new Date(dl).toISOString(), p_matches:ms,
+    p_g1desc:document.getElementById('c-g1').value.trim()||null,
+    p_g1max:parseInt(document.getElementById('c-g1n').value||'2',10),
+    p_g2desc:document.getElementById('c-g2').value.trim()||null,
+    p_g2max:parseInt(document.getElementById('c-g2n').value||'5',10) });
   if(error) return show('err', cleanErr(error.message));
   toastMsg('대회가 개설되었습니다!');
   location.hash = `#/t/${data}`;
@@ -1047,20 +1555,146 @@ function adminTournamentHTML(t, count){
   const st = tState(t);
   return `<div class="admin-t" id="at-${t.id}">
     <div class="head">
-      <div><b>${esc(t.title)}</b> ${stateBadge(t)}<br>
-        <span style="font-size:12px;color:var(--muted)">마감 ${fmtDT(t.deadline)} · ${count}명 참여</span></div>
+      <div><b id="tt-${t.id}" onclick="editTitle('${t.id}')" style="cursor:pointer" title="클릭해서 대회명 수정">${esc(t.title)} ✏️</b> ${stateBadge(t)}<br>
+        <span style="font-size:12px;color:var(--muted)" id="dls-${t.id}">마감 ${fmtDT(t.deadline)} · ${count}명 참여</span></div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <a class="btn small" href="#/t/${t.id}">보기</a>
+        <button class="btn small" onclick="cloneTournament('${t.id}')">복제</button>
         <button class="btn small" onclick="openResults('${t.id}')">${st==='final'?'결과 수정':'결과 입력'}</button>
+        <button class="btn small" onclick="openGift('${t.id}')">선물 변경</button>
+        <button class="btn small" onclick="editDeadline('${t.id}')">일정 변경</button>
+        <button class="btn small" onclick="openMatchEdit('${t.id}')">대진 수정</button>
         <button class="btn small" onclick="openMembers('${t.id}')">참가자 관리</button>
-        <button class="btn small" onclick="editDeadline('${t.id}')">마감 변경</button>
         <button class="btn small" style="color:#ff8b93" onclick="delTournament('${t.id}',
           '${esc(t.title).replace(/'/g,"\\'")}')">삭제</button>
       </div>
     </div>
+    <div id="dl-${t.id}"></div>
+    <div id="gift-${t.id}"></div>
     <div id="res-${t.id}"></div>
+    <div id="mx-${t.id}"></div>
     <div id="mem-${t.id}"></div>
   </div>`;
+}
+async function drawGiftsFromResult(tid){
+  if(!adminPass()) return toastMsg('⚠️ 선물 추첨은 관리자만 실행할 수 있습니다.');
+  if(!confirm('선물 당첨자를 랜덤 추첨할까요?\n추첨 결과는 저장되어 바뀌지 않습니다.')) return;
+
+  const d = await fetchTournament(tid);
+  if(!d.t.finalized) return toastMsg('⚠️ 먼저 경기 결과를 모두 입력해 주세요.');
+  const ranked = rankParts(d.parts, d.matches);
+  const first  = ranked.filter(r=>r.rank===1).map(r=>r.nickname);
+  const second = ranked.filter(r=>r.rank===2).map(r=>r.nickname);
+  const {error} = await sb.rpc('admin_draw_gifts',{p_pass:adminPass(), p_tid:tid, p_first:first, p_second:second});
+  if(error) return toastMsg('⚠️ '+cleanErr(error.message));
+  toastMsg('🎲 추첨이 완료되었습니다!');
+  viewTournament(tid);
+}
+async function cancelGifts(tid){
+  if(!adminPass()) return toastMsg('⚠️ 추첨 취소는 관리자만 실행할 수 있습니다.');
+  if(!confirm('선물 추첨을 취소할까요?\n당첨자 표시가 사라지고, [선물 추첨하기]로 다시 추첨할 수 있습니다.')) return;
+  const {error} = await sb.rpc('admin_clear_gifts',{p_pass:adminPass(), p_tid:tid});
+  if(error) return toastMsg('⚠️ '+cleanErr(error.message));
+  toastMsg('추첨이 취소되었습니다.');
+  viewTournament(tid);
+}
+async function openGift(tid){
+  const box = document.getElementById('gift-'+tid);
+  if(box.innerHTML){ box.innerHTML=''; return; }
+  const {data:t, error} = await sb.from('tournaments').select('*').eq('id',tid).single();
+  if(error) return toastMsg('⚠️ '+cleanErr(error.message));
+  box.innerHTML = `
+    <hr class="sep">
+    <div style="font-size:13px;font-weight:700;color:var(--muted)">등수별 선물 지급 최대 인원 · 공동 인원이 초과되면 그 안에서 랜덤 추첨됩니다</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;font-size:14px;font-weight:700">
+      1등 <input id="g1d-${tid}" value="${esc(t.gift1_desc||'')}" placeholder="선물 내용" style="width:150px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:7px 9px">
+      최대 <input type="number" id="g1-${tid}" value="${t.gift1_max??2}" min="0" max="99" style="width:60px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:7px 8px;text-align:center">명
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap;font-size:14px;font-weight:700">
+      2등 <input id="g2d-${tid}" value="${esc(t.gift2_desc||'')}" placeholder="선물 내용" style="width:150px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:7px 9px">
+      최대 <input type="number" id="g2-${tid}" value="${t.gift2_max??5}" min="0" max="99" style="width:60px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:7px 8px;text-align:center">명
+      <button class="btn small" onclick="saveGiftRules('${tid}')">저장</button>
+    </div>
+    <div id="gift-res-${tid}" class="note">${t.gift_winners ? renderGiftWinners(t.gift_winners) : '추첨은 결과 확정 후, 대회 결과 페이지의 [선물 추첨하기] 버튼(관리자 로그인 시에만 표시)으로 진행합니다.'}</div>`;
+}
+function renderGiftWinners(gw){
+  return `🎁 <b>현재 당첨자</b> — 1등: ${(gw.first||[]).map(esc).join(', ')||'-'} / 2등: ${(gw.second||[]).map(esc).join(', ')||'-'}
+  <br>결과 페이지의 당첨 안내에 자동으로 표시됩니다.`;
+}
+async function saveGiftRules(tid, silent){
+  const g1 = parseInt(document.getElementById('g1-'+tid).value||'0',10);
+  const g2 = parseInt(document.getElementById('g2-'+tid).value||'0',10);
+  const {error} = await sb.rpc('admin_set_gift_rules',{p_pass:adminPass(), p_tid:tid, p_g1:g1, p_g2:g2,
+    p_g1desc:document.getElementById('g1d-'+tid).value.trim()||null,
+    p_g2desc:document.getElementById('g2d-'+tid).value.trim()||null});
+  if(error){ toastMsg('⚠️ '+cleanErr(error.message)); return false; }
+  if(!silent){ toastMsg('저장되었습니다.'); flashEl(document.getElementById('gift-'+tid)); }
+  return true;
+}
+async function openMatchEdit(tid){
+  const box = document.getElementById('mx-'+tid);
+  if(box.innerHTML){ box.innerHTML=''; return; }
+  const {data:ms} = await sb.from('matches').select('*').eq('tournament_id',tid).order('seq');
+  box.innerHTML = `<hr class="sep">
+    <div style="font-size:13px;font-weight:700;color:var(--muted)">선수 이름을 수정한 뒤 맨 아래 [전체 저장]을 누르세요 · ✕는 경기 삭제 · 맨 아래에서 경기 추가 (투표 데이터는 유지됩니다)</div>
+    ${(ms||[]).map(m=>`<div class="mrow" data-mid="${m.id}" style="grid-template-columns:24px 1fr 1fr 30px">
+      <span style="color:var(--dim);font-size:12px;font-weight:700">${m.seq}</span>
+      <input id="ma-${m.id}" value="${esc(m.fighter_a)}" data-orig="${esc(m.fighter_a)}" list="fighters-dl">
+      <input id="mb-${m.id}" value="${esc(m.fighter_b)}" data-orig="${esc(m.fighter_b)}" list="fighters-dl">
+      <button class="del-x" onclick="delMatch('${m.id}','${tid}')">✕</button>
+    </div>`).join('')}
+    <div class="mrow" style="grid-template-columns:24px 1fr 1fr 82px;margin-top:12px">
+      <span style="color:var(--dim);font-size:14px;font-weight:800">+</span>
+      <input id="na-${tid}" placeholder="선수 1" list="fighters-dl">
+      <input id="nb-${tid}" placeholder="선수 2" list="fighters-dl">
+      <button class="btn xs" onclick="addMatch('${tid}')">경기 추가</button>
+    </div>
+    <button class="btn primary" style="width:100%;margin-top:12px" onclick="saveAllMatches('${tid}')">수정한 대진 전체 저장</button>`;
+}
+async function saveAllMatches(tid){
+  const box = document.getElementById('mx-'+tid);
+  const rows = [...box.querySelectorAll('.mrow[data-mid]')];
+  const changed = rows.filter(r=>{
+    const [a,b] = r.querySelectorAll('input');
+    return a.value.trim() !== a.dataset.orig || b.value.trim() !== b.dataset.orig;
+  });
+  if(!changed.length) return toastMsg('변경된 내용이 없습니다.');
+  let ok = 0;
+  for(const r of changed){
+    const [a,b] = r.querySelectorAll('input');
+    if(!a.value.trim() || !b.value.trim()){ toastMsg('⚠️ 선수 이름이 비어 있는 경기가 있습니다.'); return; }
+    const {error} = await sb.rpc('admin_update_match',{p_pass:adminPass(), p_mid:r.dataset.mid, p_a:a.value.trim(), p_b:b.value.trim()});
+    if(error) return matchErr(error);
+    a.dataset.orig = a.value.trim(); b.dataset.orig = b.value.trim();
+    flashEl(r); ok++;
+  }
+  toastMsg(`✅ ${ok}개 경기가 저장되었습니다.`);
+}
+function matchEditRefresh(tid){
+  const box = document.getElementById('mx-'+tid);
+  box.innerHTML=''; openMatchEdit(tid);
+}
+function matchErr(error){
+  const m = cleanErr(error.message);
+  if(/function|찾을 수 없|not find/i.test(error.message||''))
+    return toastMsg('⚠️ 대진관리_패치.sql을 Supabase에서 먼저 실행해 주세요.');
+  toastMsg('⚠️ '+m);
+}
+async function addMatch(tid){
+  const a = document.getElementById('na-'+tid).value.trim();
+  const b = document.getElementById('nb-'+tid).value.trim();
+  if(!a || !b) return toastMsg('⚠️ 선수 이름을 입력해 주세요.');
+  const {error} = await sb.rpc('admin_add_match',{p_pass:adminPass(), p_tid:tid, p_a:a, p_b:b});
+  if(error) return matchErr(error);
+  toastMsg('경기가 추가되었습니다.');
+  matchEditRefresh(tid);
+}
+async function delMatch(mid, tid){
+  if(!confirm('이 경기를 삭제할까요? 해당 경기에 대한 투표 선택도 채점에서 제외됩니다.')) return;
+  const {error} = await sb.rpc('admin_delete_match',{p_pass:adminPass(), p_mid:mid});
+  if(error) return matchErr(error);
+  toastMsg('경기가 삭제되었습니다. 번호가 자동 정렬됩니다.');
+  matchEditRefresh(tid);
 }
 async function openMembers(tid){
   const box = document.getElementById('mem-'+tid);
@@ -1069,10 +1703,56 @@ async function openMembers(tid){
   box.innerHTML = `
     <hr class="sep">
     <div style="font-size:13px;font-weight:700;color:var(--muted)">참가자 ${(data||[]).length}명 · 삭제하면 해당 닉네임의 투표가 완전히 제거됩니다 (부적절 닉네임/도배 정리용)</div>
-    ${(data||[]).map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 2px;border-bottom:1px solid #eef1f6">
-      <b>${esc(p.nickname)}</b>
-      <button class="btn small" style="color:#c62828" onclick="delMember('${tid}','${p.id}')">강제 삭제</button>
+    ${(data||[]).map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid #eef1f6;flex-wrap:wrap" id="mrow-${p.id}">
+      <b id="mn-${p.id}">${esc(p.nickname)}</b>
+      <span style="display:inline-flex;gap:5px">
+        <button class="btn xs" onclick="editMemberName('${p.id}')">이름 변경</button>
+        <button class="btn xs" onclick="resetPin('${p.id}')">비번 초기화</button>
+        <button class="btn xs" style="color:#c62828" onclick="delMember('${tid}','${p.id}')">강제 삭제</button>
+      </span>
     </div>`).join('') || '<div class="empty" style="padding:14px 0">참가자가 없습니다.</div>'}`;
+}
+function editMemberName(pid){
+  const el = document.getElementById('mn-'+pid);
+  if(!el || el.dataset.e) return;
+  el.dataset.e = '1';
+  const cur = el.textContent.trim();
+  el.dataset.orig = cur;
+  el.innerHTML = `<input id="mni-${pid}" value="${esc(cur)}" maxlength="20"
+      style="background:#fff;border:1.5px solid var(--key);border-radius:8px;padding:5px 8px;font-size:13.5px;font-weight:700;width:130px"
+      onkeydown="if(event.key==='Enter')saveMemberName('${pid}'); if(event.key==='Escape')cancelMemberName('${pid}')">
+    <button class="btn xs primary" onclick="saveMemberName('${pid}')">저장</button>
+    <button class="btn xs" onclick="cancelMemberName('${pid}')">취소</button>`;
+}
+function cancelMemberName(pid){
+  const el = document.getElementById('mn-'+pid);
+  if(!el) return;
+  el.textContent = el.dataset.orig||'';
+  delete el.dataset.e;
+}
+async function saveMemberName(pid){
+  const v = document.getElementById('mni-'+pid).value.trim();
+  if(!v) return toastMsg('⚠️ 닉네임을 입력해 주세요.');
+  const {error} = await sb.rpc('admin_rename_participant',{p_pass:adminPass(), p_pid:pid, p_new:v});
+  if(error){
+    if(/function|not find/i.test(error.message||'')) return toastMsg('⚠️ 참가자관리_패치.sql을 먼저 실행해 주세요.');
+    return toastMsg('⚠️ '+cleanErr(error.message));
+  }
+  const el = document.getElementById('mn-'+pid);
+  delete el.dataset.e;
+  el.textContent = v;
+  toastMsg('닉네임이 변경되었습니다.');
+  flashEl(document.getElementById('mrow-'+pid));
+}
+async function resetPin(pid){
+  if(!confirm('이 참가자의 비밀번호를 0000으로 초기화할까요?\n(유저에게 0000으로 로그인 후 수정하라고 안내하세요)')) return;
+  const {error} = await sb.rpc('admin_reset_pin',{p_pass:adminPass(), p_pid:pid});
+  if(error){
+    if(/function|not find/i.test(error.message||'')) return toastMsg('⚠️ 참가자관리_패치.sql을 먼저 실행해 주세요.');
+    return toastMsg('⚠️ '+cleanErr(error.message));
+  }
+  toastMsg('비밀번호가 0000으로 초기화되었습니다.');
+  flashEl(document.getElementById('mrow-'+pid));
 }
 async function delMember(tid, pid){
   if(!confirm('이 참가자의 투표를 완전히 삭제할까요? 되돌릴 수 없습니다.')) return;
@@ -1093,7 +1773,7 @@ async function openResults(tid){
     <div style="font-size:13px;font-weight:700;color:var(--muted)">실제 승자를 선택하세요 (무 = 무승부/무효, 채점 제외)</div>
     ${(matches||[]).map(m=>`
       <div class="res-row" data-mid="${m.id}">
-        <button class="res-btn ${resSel[tid][m.id]==='A'?'selA':''}" onclick="setRes('${tid}','${m.id}','A',this)">${m.seq}. ${esc(m.fighter_a)}</button>
+        <button class="res-btn ${resSel[tid][m.id]==='A'?'selA':''}" onclick="setRes('${tid}','${m.id}','A',this)">${esc(m.fighter_a)}</button>
         <button class="res-btn ${resSel[tid][m.id]==='B'?'selB':''}" onclick="setRes('${tid}','${m.id}','B',this)">${esc(m.fighter_b)}</button>
         <button class="res-btn ${resSel[tid][m.id]==='X'?'selX':''}" onclick="setRes('${tid}','${m.id}','X',this)">무</button>
       </div>`).join('')}
@@ -1103,10 +1783,14 @@ async function openResults(tid){
     </div>`;
 }
 function setRes(tid, mid, v, btn){
-  resSel[tid][mid] = v;
   const row = btn.parentElement;
   row.querySelectorAll('.res-btn').forEach(b=>b.classList.remove('selA','selB','selX'));
-  btn.classList.add('sel'+v);
+  if(resSel[tid][mid] === v){
+    delete resSel[tid][mid]; // 재클릭 → 선택 해제
+  } else {
+    resSel[tid][mid] = v;
+    btn.classList.add('sel'+v);
+  }
 }
 async function saveResults(tid){
   const {error} = await sb.rpc('admin_set_results',{p_pass:adminPass(), p_tid:tid, p_winners:resSel[tid]||{}});
@@ -1120,16 +1804,75 @@ async function clearResults(tid){
   if(error) return toastMsg('⚠️ '+cleanErr(error.message));
   route();
 }
-async function editDeadline(tid){
-  const v = prompt('새 마감 시각을 입력하세요 (예: 2026-08-01 18:00)');
-  if(!v) return;
-  const d = new Date(v.replace(' ','T'));
-  if(isNaN(d)) return toastMsg('⚠️ 시각 형식을 확인해 주세요.');
+async function cloneTournament(tid){
+  const d = await fetchTournament(tid);
+  const box = document.getElementById('create-box');
+  if(box.style.display==='none') toggleCreate(document.getElementById('create-toggle'));
+  document.getElementById('c-title').value = d.t.title;
+  document.getElementById('c-g1').value = d.t.gift1_desc||'';
+  document.getElementById('c-g1n').value = d.t.gift1_max??2;
+  document.getElementById('c-g2').value = d.t.gift2_desc||'';
+  document.getElementById('c-g2n').value = d.t.gift2_max??5;
+  const cm = document.getElementById('c-matches'); cm.innerHTML = '';
+  d.matches.forEach(m=>addMatchRow(m.fighter_a, m.fighter_b));
+  window.scrollTo({top:0, behavior:'smooth'});
+  toastMsg('대진·선물이 복사되었습니다. 날짜와 마감 시각만 설정하세요!');
+}
+function editTitle(tid){
+  const el = document.getElementById('tt-'+tid);
+  if(!el || el.dataset.editing) return;
+  el.dataset.editing = '1';
+  const cur = el.textContent.replace(' ✏️','').trim();
+  el.dataset.orig = cur;
+  el.innerHTML = `<input id="tin-${tid}" value="${esc(cur)}" maxlength="60"
+      style="background:#fff;border:1.5px solid var(--key);border-radius:8px;padding:6px 9px;font-size:14px;font-weight:700;width:200px"
+      onclick="event.stopPropagation()"
+      onkeydown="if(event.key==='Enter')saveTitle('${tid}'); if(event.key==='Escape')cancelTitle('${tid}')">
+    <button class="btn xs primary" onclick="event.stopPropagation();saveTitle('${tid}')">저장</button>
+    <button class="btn xs" onclick="event.stopPropagation();cancelTitle('${tid}')">취소</button>`;
+}
+function cancelTitle(tid){
+  const el = document.getElementById('tt-'+tid);
+  if(!el) return;
+  el.innerHTML = esc(el.dataset.orig||'') + ' ✏️';
+  delete el.dataset.editing;
+}
+async function saveTitle(tid){
+  const v = document.getElementById('tin-'+tid).value.trim();
+  if(!v) return toastMsg('⚠️ 대회명을 입력해 주세요.');
   const {error} = await sb.rpc('admin_update_tournament',{
-    p_pass:adminPass(), p_tid:tid, p_title:null, p_event_date:null, p_deadline:d.toISOString()});
+    p_pass:adminPass(), p_tid:tid, p_title:v, p_event_date:null, p_deadline:null});
   if(error) return toastMsg('⚠️ '+cleanErr(error.message));
-  toastMsg('마감 시각이 변경되었습니다.');
+  toastMsg('대회명이 수정되었습니다.');
   route();
+  setTimeout(()=>flashEl(document.getElementById('tt-'+tid)), 900);
+}
+async function editDeadline(tid){
+  const box = document.getElementById('dl-'+tid);
+  if(box.innerHTML){ box.innerHTML=''; return; }
+  const {data:t, error} = await sb.from('tournaments').select('*').eq('id',tid).single();
+  if(error) return toastMsg('⚠️ '+cleanErr(error.message));
+  const d = new Date(t.deadline), pad = n=>String(n).padStart(2,'0');
+  const dlVal = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  box.innerHTML = `<hr class="sep">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:13px;font-weight:700;color:var(--muted)">경기 시작일</span>
+      <input type="datetime-local" id="evi-${tid}" value="${t.event_date? t.event_date+'T00:00' : ''}" style="background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:9px 11px;font-size:15px;color:var(--text)">
+      <span style="font-size:13px;font-weight:700;color:var(--muted)">투표 마감</span>
+      <input type="datetime-local" id="dli-${tid}" value="${dlVal}" style="background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:9px 11px;font-size:15px;color:var(--text)">
+      <button class="btn primary small" onclick="saveDeadline('${tid}')">저장</button>
+    </div>`;
+}
+async function saveDeadline(tid){
+  const v = document.getElementById('dli-'+tid).value;
+  const ev = document.getElementById('evi-'+tid).value;
+  if(!v) return toastMsg('⚠️ 마감 시각을 선택해 주세요.');
+  const {error} = await sb.rpc('admin_update_tournament',{
+    p_pass:adminPass(), p_tid:tid, p_title:null, p_event_date: ev? ev.slice(0,10) : null, p_deadline:new Date(v).toISOString()});
+  if(error) return toastMsg('⚠️ '+cleanErr(error.message));
+  toastMsg('일정이 변경되었습니다.');
+  route();
+  setTimeout(()=>flashEl(document.getElementById('dls-'+tid)), 900);
 }
 async function delTournament(tid, title){
   if(!confirm(`'${title}' 대회를 삭제할까요?\n투표 기록도 함께 삭제되며 되돌릴 수 없습니다.`)) return;
@@ -1147,8 +1890,6 @@ async function changePass(){
   toastMsg('관리자 비밀번호가 변경되었습니다.');
 }
 
-document.getElementById('fighters-dl').innerHTML =
-  Object.values(FIGHTER_MAP).map(f=>`<option value="${f.nick}">`).join('');
 boot();
 </script>
 </body>
