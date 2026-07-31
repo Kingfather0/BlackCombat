@@ -1,0 +1,31 @@
+name: 선수 랭킹 자동 갱신
+
+on:
+  schedule:
+    - cron: '0 20 * * *'   # 매일 UTC 20:00 = 한국시간 새벽 5시
+  workflow_dispatch: {}     # GitHub에서 수동 실행 버튼도 제공
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 랭킹 수집
+        run: node scripts/update-rankings.js
+      - name: 변경 시 커밋
+        run: |
+          if git diff --quiet fighters.json; then
+            echo "변경 없음 - 커밋 생략"
+          else
+            git config user.name "ranking-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add fighters.json
+            git commit -m "선수 랭킹 자동 갱신 ($(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M'))"
+            git push
+          fi
