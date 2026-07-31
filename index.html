@@ -773,7 +773,7 @@ async function viewTournament(id, keepSel){
       🚫 ${fmtDT(t.deadline)} 마감
       ${cd?` &nbsp;·&nbsp; ${cdHTML(t.deadline)}`:''}
       &nbsp;·&nbsp; 👥 ${parts.length}명 참여
-      &nbsp;·&nbsp; <button class="btn small ghost" style="padding:2px 4px;font-weight:600;color:var(--muted)" onclick="copyLink()">🔗 링크복사</button>
+      &nbsp;·&nbsp; <button style="color:var(--muted);font-size:inherit;font-weight:inherit;font-family:inherit;padding:0;vertical-align:baseline" onclick="copyLink()">🔗 링크복사</button>
     </div>`;
 
   if ((st==='open'||st==='wait') && (t.gift1_desc || t.gift2_desc)) html += `
