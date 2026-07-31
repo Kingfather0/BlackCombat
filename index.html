@@ -615,7 +615,7 @@ async function refreshFighters(btn){
     viewFighters();
   }catch(e){
     toastMsg('⚠️ ' + (e.message||'갱신에 실패했습니다.') + ' 실패가 반복되면 클로드에게 수동 갱신을 요청하세요.');
-    btn.disabled = false; btn.textContent = '🔄 랭킹 갱신';
+    btn.disabled = false; btn.textContent = '🔄 수동 갱신';
   }
 }
 function parseFighterHTML(raw){
@@ -735,8 +735,8 @@ function viewFighters(){
     <h1 class="page" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
       <span>블랙컴뱃 선수 랭킹</span>
       <span style="display:inline-flex;gap:8px;align-items:center">
-        ${fightersUpdatedAt?`<span style="font-size:12.5px;color:var(--muted);font-weight:700">🔄 ${fmtDT(fightersUpdatedAt)} 갱신</span>`:''}
-        ${adminPass()?`<button class="btn small" onclick="refreshFighters(this)">수동 갱신</button>`:''}
+        ${fightersUpdatedAt?`<span style="font-size:12px;font-weight:800;background:#e0f3e6;color:#116131;padding:4px 11px;border-radius:99px">🔄 ${fmtDT(fightersUpdatedAt)} 갱신</span>`:''}
+        ${adminPass()?`<button class="btn primary small" onclick="refreshFighters(this)">🔄 수동 갱신</button>`:''}
       </span>
     </h1>
     <div class="sub">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 매일 새벽 5시 자동 갱신</div>
@@ -767,18 +767,13 @@ async function viewTournament(id, keepSel){
   const cd = countdownText(t.deadline);
 
   let html = `
-    <h1 class="page" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-      <span>${esc(t.title)} ${stateBadge(t)}</span>
-      <span style="display:inline-flex;gap:2px">
-        <button class="btn small ghost" style="color:var(--muted);font-weight:700" onclick="copyLink()">🔗 링크복사</button>
-        <button class="btn small ghost" style="color:var(--muted);font-weight:700" onclick="makeShareImage()">📸 캡쳐 및 공유</button>
-      </span>
-    </h1>
+    <h1 class="page">${esc(t.title)} ${stateBadge(t)}</h1>
     <div class="sub">
       ${t.event_date?`📅 경기일 ${fmtDate(t.event_date)} &nbsp;·&nbsp; `:''}
       🚫 ${fmtDT(t.deadline)} 마감
       ${cd?` &nbsp;·&nbsp; ${cdHTML(t.deadline)}`:''}
       &nbsp;·&nbsp; 👥 ${parts.length}명 참여
+      &nbsp;·&nbsp; <button class="btn small ghost" style="padding:2px 4px;font-weight:600;color:var(--muted)" onclick="copyLink()">🔗 링크복사</button>
     </div>`;
 
   if ((st==='open'||st==='wait') && (t.gift1_desc || t.gift2_desc)) html += `
@@ -1135,10 +1130,9 @@ function liveBoardHTML(t, matches, parts, st){
   }).join('');
 
   return `
-    ${st!=='open' && parts.length ? `<div class="sec-title" style="justify-content:space-between">
-      <span style="display:inline-flex;align-items:baseline;gap:10px;flex-wrap:wrap">경기 결과
-        <span style="font-size:12.5px;color:var(--dim);font-weight:600">게이지를 누르면 <b>투표자 목록</b>이 보입니다</span></span>
+    ${st!=='open' && parts.length ? `<div class="sec-title" style="justify-content:space-between">경기 결과
       ${st==='wait'?'<button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button>':''}</div>
+      <div class="note" style="margin-top:4px">게이지를 누르면 <b>투표자 목록</b>이 보입니다.</div>
       <div class="vote-grid">${bars}</div>` : ''}
     <div style="display:none"><div class="pf-scope" id="pf-area">${partsAreaHTML(matches, parts, st)}</div></div>`;
 }
@@ -1361,16 +1355,12 @@ async function viewRanking(){
     </div>
     <div class="sec-title">누적 랭킹</div>
     <div class="tbl-scroll"><table>
-      <tr><th style="width:52px">순위</th><th class="nick">닉네임</th><th>우승</th><th>총 적중</th><th>적중률</th><th>참여</th></tr>
+      <tr><th style="width:64px">순위</th><th class="nick">닉네임 · 칭호</th></tr>
       ${season.map(r=>`<tr>
         <td>${chip(r)}</td>
-        <td class="nick"><a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a>${badgesFor(r, streaks).map(b=>' '+badgeChip(b)).join('')}</td>
-        <td>${r.wins?`<span class="stat-chip b">${r.wins}회</span>`:'<span class="stat-chip dash">-</span>'}</td>
-        <td><span class="stat-chip">${r.hit} / ${r.total}</span></td>
-        <td><span class="stat-chip">${r.total?Math.round(r.hit/r.total*100):0}%</span></td>
-        <td><span class="stat-chip">${r.plays}회</span></td></tr>`).join('')}
+        <td class="nick" style="max-width:none;white-space:normal;line-height:1.9"><a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a>${badgesFor(r, streaks).map(b=>' '+badgeChip(b)).join('')}</td></tr>`).join('')}
     </table></div>
-    <div class="note">닉네임을 누르면 그 사람의 대회별 상세 전적을 볼 수 있습니다.</div>`;
+    <div class="note">닉네임을 누르면 우승·적중률 등 상세 전적을 볼 수 있습니다.</div>`;
 }
 function searchNick(){
   const v = document.getElementById('rk-search').value.trim();
@@ -1450,7 +1440,7 @@ async function viewAdmin(){
   }catch(e){}
   $app.innerHTML = `
     <h1 class="page">🛠️ 관리자
-      <button class="btn small ghost" onclick="sessionStorage.removeItem('fp_admin');route()" style="color:var(--dim)">로그아웃</button></h1>
+      <button class="btn small ghost" onclick="sessionStorage.removeItem('fp_admin');route()" style="color:#c62828">로그아웃</button></h1>
     <button class="btn wide" style="margin-top:26px" id="create-toggle" onclick="toggleCreate(this)">➕ 새 대회 만들기</button>
     <div class="card" id="create-box" style="display:none">
       <div class="field"><label>대회명</label><input id="c-title" placeholder="예: 블랙컴뱃 넘버링"></div>
