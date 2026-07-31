@@ -325,6 +325,8 @@ async function boot(){
     FIGHTERS = cand[0].d;
     fightersUpdatedAt = cand[0].t;
     buildFighterMap();
+const BASE_FLAGS = {};
+Object.entries(FIGHTER_MAP).forEach(([k,f])=>{ if(f.flag && f.flag!=='kr') BASE_FLAGS[k]=f.flag; });
   }
   route();
 }
@@ -628,17 +630,23 @@ function parseFighterHTML(raw){
   }
   const DIVS = ['플라이급','벤텀급','페더급','라이트급','웰터급','미들급','헤비급','언더그라운드','여성부'];
   const recRe = /^(\d{1,3})\s*\/\s*(\d{1,3})\s*\/\s*(\d{1,3})$/;
-  const flagOf = n => (FIGHTER_MAP[String(n).trim().toLowerCase()]||{}).flag || 'kr';
+  const flagOf = n => {
+    const k = String(n).trim().toLowerCase();
+    const cur = (FIGHTER_MAP[k]||{}).flag;
+    return (cur && cur !== 'kr') ? cur : (BASE_FLAGS[k] || cur || 'kr');
+  };
   const out = [];
   let cur = null, pend = [], pendRank = null;
   for(const ln of lines){
     const dHit = DIVS.find(d => ln === d || (ln.startsWith(d) && ln.length <= d.length + 12));
     if(dHit){
+      if(out.some(o=>o.div===dHit)){ cur = null; continue; }
       cur = {div:dHit, list:[]}; out.push(cur);
       pend = []; pendRank = null; continue;
     }
     if(!cur) continue;
     if(/^CHAMPION$/i.test(ln)) continue;
+    if(/^(HOT|NEW|UP|DOWN|LIVE|[▲▼]\s*\d*)$/i.test(ln)) continue;
     if(/^\d{1,2}$/.test(ln)){ pendRank = parseInt(ln,10); pend = []; continue; }
     const m = ln.match(recRe);
     if(m){
