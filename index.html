@@ -568,12 +568,16 @@ const flagImg = c => `<img class="flag" src="https://flagcdn.com/24x18/${c}.png"
 // 닉네임 → 선수 정보 (대진 표시용)
 let FIGHTER_MAP = {};
 let fightersUpdatedAt = null;
+let FIGHTER_NORM = {};
+function normName(s){ return String(s).toLowerCase().replace(/\s+/g,''); }
 function buildFighterMap(){
   FIGHTER_MAP = {};
+  FIGHTER_NORM = {};
   FIGHTERS.forEach(d=>d.list.forEach(f=>{
     if(f[1]==='공석') return;
     const k = String(f[1]).trim().toLowerCase();
     if(!FIGHTER_MAP[k]) FIGHTER_MAP[k] = {rank:f[0], nick:f[1], real:f[2], w:f[3], l:f[4], dr:f[5], flag:f[6], div:d.div};
+    FIGHTER_NORM[normName(f[1])] = f[1];
   }));
   const dl = document.getElementById('fighters-dl');
   if(dl) dl.innerHTML = Object.values(FIGHTER_MAP).map(f=>`<option value="${f.nick}">`).join('');
@@ -1478,6 +1482,63 @@ async function viewAdmin(){
   for(let i=0;i<15;i++) addMatchRow();
   initFighterPick();
 }
+// ── 대진 선수 이름 검증·보정·추천 ──
+function levDist(a, b){
+  if(Math.abs(a.length-b.length) > 3) return 99;
+  const m = Array.from({length:a.length+1}, (_,i)=>[i, ...Array(b.length).fill(0)]);
+  for(let j=1;j<=b.length;j++) m[0][j]=j;
+  for(let i=1;i<=a.length;i++) for(let j=1;j<=b.length;j++)
+    m[i][j] = Math.min(m[i-1][j]+1, m[i][j-1]+1, m[i-1][j-1] + (a[i-1]===b[j-1]?0:1));
+  return m[a.length][b.length];
+}
+function suggestFighters(v){
+  const n = normName(v);
+  if(!n) return [];
+  return Object.values(FIGHTER_MAP).map(f=>{
+    const fn = normName(f.nick);
+    let s;
+    if(fn === n) s = 0;
+    else if(fn.includes(n) || n.includes(fn)) s = 1 + Math.abs(fn.length - n.length)*0.1;
+    else s = 2 + levDist(fn, n);
+    return {nick:f.nick, s};
+  }).filter(x=>x.s <= 4).sort((a,b)=>a.s-b.s).slice(0,4).map(x=>x.nick);
+}
+function removeSug(el){ if(el._sug){ el._sug.remove(); el._sug = null; } }
+function fixFighterInput(el){
+  const v = el.value.trim();
+  removeSug(el);
+  if(!v){ el.style.borderColor=''; return; }
+  const canon = FIGHTER_NORM[normName(v)];
+  if(canon){
+    if(el.value !== canon){ el.value = canon; flashEl(el); }
+    el.style.borderColor = '';
+    return;
+  }
+  el.style.borderColor = '#c62828';
+  const sug = suggestFighters(v);
+  const bar = document.createElement('div');
+  bar.className = 'sugbar';
+  bar.style.cssText = 'grid-column:1/-1;display:flex;gap:5px;flex-wrap:wrap;align-items:center;padding:2px 0 4px';
+  bar.innerHTML = `<span style="font-size:11.5px;font-weight:700;color:#c62828">랭킹에 없는 이름입니다.${sug.length?' 혹시:':''}</span>`;
+  sug.forEach(nick=>{
+    const b = document.createElement('button');
+    b.className = 'fpick';
+    b.textContent = nick;
+    b.onclick = e => { e.preventDefault(); el.value = nick; el.style.borderColor=''; removeSug(el); flashEl(el); };
+    bar.appendChild(b);
+  });
+  const row = el.closest('.mrow');
+  if(row){ row.after(bar); el._sug = bar; }
+}
+function validateFighterNames(names){
+  // [이름...] → {ok, fixed:[정식명...], bad:[...]}
+  const fixed = [], bad = [];
+  names.forEach(n=>{
+    const c = FIGHTER_NORM[normName(n)];
+    if(c) fixed.push(c); else { fixed.push(n); bad.push(n); }
+  });
+  return {ok: bad.length===0, fixed, bad};
+}
 function initFighterPick(){
   const sel = document.getElementById('fp-div');
   sel.innerHTML = FIGHTERS.map((d,i)=>`<option value="${i}">${d.div}</option>`).join('');
@@ -1515,8 +1576,8 @@ function addMatchRow(a='', b=''){
   const div = document.createElement('div');
   div.className='mrow';
   div.innerHTML = `<span style="color:var(--dim);font-size:12px;font-weight:700">${n}</span>
-    <input placeholder="선수 1" value="${esc(a)}" list="fighters-dl">
-    <input placeholder="선수 2" value="${esc(b)}" list="fighters-dl">
+    <input placeholder="선수 1" value="${esc(a)}" list="fighters-dl" onblur="fixFighterInput(this)">
+    <input placeholder="선수 2" value="${esc(b)}" list="fighters-dl" onblur="fixFighterInput(this)">
     <button class="del-x" onclick="this.parentElement.remove();renumberRows()">✕</button>`;
   box.appendChild(div);
 }
@@ -1538,6 +1599,9 @@ async function createTournament(){
   if(!dl) return show('err','투표 마감 시각을 입력해 주세요.');
   if(!ms.length) return show('err','경기를 1개 이상 입력해 주세요.');
   if(ms.some(m=>!m.a||!m.b)) return show('err','선수 이름이 비어 있는 경기가 있습니다.');
+  const vChk = validateFighterNames(ms.flatMap(m=>[m.a,m.b]));
+  if(!vChk.ok) return show('err', `랭킹에 없는 선수: ${[...new Set(vChk.bad)].join(', ')} — 빨간 입력칸의 추천 이름을 확인해 주세요.`);
+  ms.forEach(m=>{ m.a = FIGHTER_NORM[normName(m.a)]; m.b = FIGHTER_NORM[normName(m.b)]; });
   const {data, error} = await sb.rpc('admin_create_tournament',{
     p_pass:adminPass(), p_title:title, p_event_date:date,
     p_deadline:new Date(dl).toISOString(), p_matches:ms,
@@ -1637,14 +1701,14 @@ async function openMatchEdit(tid){
     <div style="font-size:13px;font-weight:700;color:var(--muted)">선수 이름을 수정한 뒤 맨 아래 [전체 저장]을 누르세요 · ✕는 경기 삭제 · 맨 아래에서 경기 추가 (투표 데이터는 유지됩니다)</div>
     ${(ms||[]).map(m=>`<div class="mrow" data-mid="${m.id}" style="grid-template-columns:24px 1fr 1fr 30px">
       <span style="color:var(--dim);font-size:12px;font-weight:700">${m.seq}</span>
-      <input id="ma-${m.id}" value="${esc(m.fighter_a)}" data-orig="${esc(m.fighter_a)}" list="fighters-dl">
-      <input id="mb-${m.id}" value="${esc(m.fighter_b)}" data-orig="${esc(m.fighter_b)}" list="fighters-dl">
+      <input id="ma-${m.id}" value="${esc(m.fighter_a)}" data-orig="${esc(m.fighter_a)}" list="fighters-dl" onblur="fixFighterInput(this)">
+      <input id="mb-${m.id}" value="${esc(m.fighter_b)}" data-orig="${esc(m.fighter_b)}" list="fighters-dl" onblur="fixFighterInput(this)">
       <button class="del-x" onclick="delMatch('${m.id}','${tid}')">✕</button>
     </div>`).join('')}
     <div class="mrow" style="grid-template-columns:24px 1fr 1fr 82px;margin-top:12px">
       <span style="color:var(--dim);font-size:14px;font-weight:800">+</span>
-      <input id="na-${tid}" placeholder="선수 1" list="fighters-dl">
-      <input id="nb-${tid}" placeholder="선수 2" list="fighters-dl">
+      <input id="na-${tid}" placeholder="선수 1" list="fighters-dl" onblur="fixFighterInput(this)">
+      <input id="nb-${tid}" placeholder="선수 2" list="fighters-dl" onblur="fixFighterInput(this)">
       <button class="btn xs" onclick="addMatch('${tid}')">경기 추가</button>
     </div>
     <button class="btn primary" style="width:100%;margin-top:12px" onclick="saveAllMatches('${tid}')">수정한 대진 전체 저장</button>`;
@@ -1661,6 +1725,9 @@ async function saveAllMatches(tid){
   for(const r of changed){
     const [a,b] = r.querySelectorAll('input');
     if(!a.value.trim() || !b.value.trim()){ toastMsg('⚠️ 선수 이름이 비어 있는 경기가 있습니다.'); return; }
+    const ck = validateFighterNames([a.value.trim(), b.value.trim()]);
+    if(!ck.ok){ toastMsg(`⚠️ 랭킹에 없는 선수: ${ck.bad.join(', ')}`); return; }
+    a.value = ck.fixed[0]; b.value = ck.fixed[1];
     const {error} = await sb.rpc('admin_update_match',{p_pass:adminPass(), p_mid:r.dataset.mid, p_a:a.value.trim(), p_b:b.value.trim()});
     if(error) return matchErr(error);
     a.dataset.orig = a.value.trim(); b.dataset.orig = b.value.trim();
@@ -1682,7 +1749,9 @@ async function addMatch(tid){
   const a = document.getElementById('na-'+tid).value.trim();
   const b = document.getElementById('nb-'+tid).value.trim();
   if(!a || !b) return toastMsg('⚠️ 선수 이름을 입력해 주세요.');
-  const {error} = await sb.rpc('admin_add_match',{p_pass:adminPass(), p_tid:tid, p_a:a, p_b:b});
+  const ck = validateFighterNames([a, b]);
+  if(!ck.ok) return toastMsg(`⚠️ 랭킹에 없는 선수: ${ck.bad.join(', ')}`);
+  const {error} = await sb.rpc('admin_add_match',{p_pass:adminPass(), p_tid:tid, p_a:ck.fixed[0], p_b:ck.fixed[1]});
   if(error) return matchErr(error);
   toastMsg('경기가 추가되었습니다.');
   matchEditRefresh(tid);
