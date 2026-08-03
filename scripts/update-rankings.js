@@ -24,26 +24,30 @@ function htmlToLines(html){
 function parse(lines, flagOf){
   const recRe = /^(\d{1,3})\s*\/\s*(\d{1,3})\s*\/\s*(\d{1,3})$/;
   const out = [];
-  let cur = null, pend = [], pendRank = null;
+  let cur = null, pend = [], pendRank = null, pendBadge = '', pendMove = 0;
   for(const ln of lines){
     const dHit = DIVS.find(d => ln === d || (ln.startsWith(d) && ln.length <= d.length + 12));
     if(dHit){
       if(out.some(o=>o.div===dHit)){ cur = null; continue; }  // 중복 섹션(미디어랭킹 등) 무시
-      cur = {div:dHit, list:[]}; out.push(cur); pend=[]; pendRank=null; continue;
+      cur = {div:dHit, list:[]}; out.push(cur); pend=[]; pendRank=null; pendBadge=''; pendMove=0; continue;
     }
     if(!cur) continue;
     if(/^CHAMPION$/i.test(ln)) continue;
+    if(/^(HOT|NEW)$/i.test(ln)){ pendBadge = ln.toUpperCase(); continue; }
+    const mvm = ln.match(/^([▲▼])\s*(\d+)$/);
+    if(mvm){ pendMove = (mvm[1]==='▲' ? 1 : -1) * parseInt(mvm[2],10); continue; }
+    if(/^(UP|DOWN|LIVE)$/i.test(ln)) continue;
     if(/^\d{1,2}$/.test(ln)){ pendRank = parseInt(ln,10); pend=[]; continue; }
     const m = ln.match(recRe);
     if(m){
       if(pend.length){
         const nick = pend[0], real = pend[1] || '';
         const rank = pendRank != null ? pendRank : 'C';
-        cur.list.push([rank, nick, real, +m[1], +m[2], +m[3], flagOf(nick)]);
+        cur.list.push([rank, nick, real, +m[1], +m[2], +m[3], flagOf(nick), pendBadge, pendMove]);
       }
-      pend=[]; pendRank=null; continue;
+      pend=[]; pendRank=null; pendBadge=''; pendMove=0; continue;
     }
-    if(BADGES.test(ln)) continue;  // HOT/NEW 등 배지는 건너뜀
+    if(BADGES.test(ln)) continue;  // 기타 배지는 건너뜀
     if(ln.length <= 30 && !/RANKING|MEDIA|CHAMPION|인스타|instagram|http|블랙컴뱃|BLACK ?COMBAT/i.test(ln)){
       pend.push(ln);
       if(pend.length > 2) pend = pend.slice(-2);
