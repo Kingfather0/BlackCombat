@@ -248,6 +248,12 @@ a.mv-n:hover{background:var(--key-soft);color:var(--key-deep)}
   background:var(--key);color:#fff;font-weight:800;font-size:13px;padding:9px 15px;border-radius:999px;
   box-shadow:0 4px 14px rgba(37,99,235,.35);font-family:inherit;display:flex;align-items:center;gap:5px;transition:background .15s}
 #pwaInstall:hover{background:var(--key-deep)}
+#pwaGo{position:fixed;inset:0;background:rgba(10,14,22,.72);z-index:200;display:flex;align-items:center;justify-content:center}
+#pwaGo .pwago-box{background:#fff;border-radius:16px;padding:26px 30px;display:flex;flex-direction:column;align-items:center;gap:10px;max-width:300px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+#pwaGo img{width:72px;height:72px;border-radius:16px}
+#pwaGo b{font-size:16px}
+#pwaGo span{font-size:13px;color:var(--muted)}
+#pwaGo button{margin-top:6px;border:none;cursor:pointer;background:var(--key);color:#fff;font-weight:800;font-size:14.5px;padding:11px 22px;border-radius:10px;font-family:inherit}
 .modal-ov{position:fixed;inset:0;background:rgba(15,20,35,.55);z-index:100;display:flex;align-items:flex-start;justify-content:center}
 .modal{background:var(--bg);width:100%;max-width:760px;max-height:82vh;border-radius:0 0 16px 16px;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(10,20,40,.3)}
 .modal-h{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);font-size:16px;flex-shrink:0}
@@ -355,6 +361,13 @@ const __isStandalone = (window.matchMedia && window.matchMedia('(display-mode: s
 const __isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 const __isKakao = /KAKAOTALK/i.test(navigator.userAgent);
 const __isSafariMac = /Macintosh/.test(navigator.userAgent) && /Safari\//.test(navigator.userAgent) && !/Chrome|Chromium|Edg\//.test(navigator.userAgent);
+let __wantInstall = false;
+try{
+  if(new URLSearchParams(location.search).has('install')){
+    __wantInstall = true;
+    history.replaceState(null, '', location.pathname + location.hash);
+  }
+}catch(e){}
 function showPwaBtn(){
   if(__isStandalone || window.__TEST_SB) return;
   if(document.getElementById('pwaInstall')) return;
@@ -373,7 +386,8 @@ async function pwaInstallClick(){
   }
   if(__isKakao){
     // 카카오톡 인앱 브라우저 → 외부 브라우저로 자동 이동 (설치는 외부 브라우저에서만 가능)
-    const url = location.href.split('#')[0];
+    let url = location.href.split('#')[0];
+    url += (url.includes('?') ? '&' : '?') + 'install=1';
     if(/android/i.test(navigator.userAgent)){
       location.href = 'intent://' + url.replace(/^https?:\/\//,'') + '#Intent;scheme=https;package=com.android.chrome;end';
     }else{
@@ -397,7 +411,42 @@ window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   __pwaPrompt = e;
   showPwaBtn();
+  if(__wantInstall){
+    __wantInstall = false;
+    autoInstall();
+  }
 });
+async function autoInstall(){
+  try{
+    await __pwaPrompt.prompt();  // 제스처 없이 허용되면 즉시 설치창
+    try{ await __pwaPrompt.userChoice; }catch(e){}
+    __pwaPrompt = null;
+  }catch(e){
+    installOverlay();            // 브라우저가 탭을 요구하면 대형 설치 화면 표시
+  }
+}
+function installOverlay(){
+  if(document.getElementById('pwaGo')) return;
+  const ov = document.createElement('div');
+  ov.id = 'pwaGo';
+  ov.innerHTML = `<div class="pwago-box">
+    <img src="icon-192.png" alt="">
+    <b>블랙컴뱃 승부예측</b>
+    <span>아래 버튼을 누르면 설치 창이 열립니다</span>
+    <button>📱 설치하기</button>
+  </div>`;
+  const go = async () => {
+    ov.remove();
+    if(!__pwaPrompt) return;
+    try{
+      __pwaPrompt.prompt();
+      try{ await __pwaPrompt.userChoice; }catch(e){}
+      __pwaPrompt = null;
+    }catch(e){}
+  };
+  ov.onclick = go;
+  document.body.append(ov);
+}
 window.addEventListener('appinstalled', () => {
   __pwaPrompt = null;
   const b = document.getElementById('pwaInstall');
@@ -405,6 +454,10 @@ window.addEventListener('appinstalled', () => {
   toastMsg('앱이 설치되었습니다! 🎉');
 });
 if(!__isStandalone && (__isKakao || __isIOS || __isSafariMac)) showPwaBtn();
+if(__wantInstall && !__isStandalone && (__isIOS || __isSafariMac) && !window.__TEST_SB){
+  __wantInstall = false;
+  setTimeout(pwaInstallClick, 400);
+}
 // 그 외(크롬·엣지·삼성인터넷)는 beforeinstallprompt = "설치 가능(미설치)" 신호가 올 때만 버튼 표시
 if('serviceWorker' in navigator && location.protocol === 'https:'){
   window.addEventListener('load', () => {
