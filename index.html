@@ -1259,9 +1259,17 @@ function gmBindMute(){
       e.stopPropagation();
       const area = document.getElementById('gArea');
       try{
-        if(document.fullscreenElement){ await document.exitFullscreen(); }
-        else if(area.requestFullscreen){ await area.requestFullscreen(); }
-        else if(area.webkitRequestFullscreen){ area.webkitRequestFullscreen(); }
+        if(document.fullscreenElement){
+          try{ screen.orientation.unlock(); }catch(e2){}
+          await document.exitFullscreen();
+        }else{
+          if(area.requestFullscreen) await area.requestFullscreen();
+          else if(area.webkitRequestFullscreen) area.webkitRequestFullscreen();
+          // 전체화면에서는 회전 허용 (앱이 세로 고정이어도 가로 플레이 가능)
+          try{ await screen.orientation.lock('any'); }catch(e2){
+            try{ screen.orientation.unlock(); }catch(e3){}
+          }
+        }
       }catch(err){}
       setTimeout(gmCanvasInit, 150);
       setTimeout(gmCanvasInit, 500);
@@ -1282,10 +1290,21 @@ function gmCanvasInit(){
   const cv = document.getElementById('gCanvas'), a = document.getElementById('gArea');
   if(!cv || !a) return;
   const r = a.getBoundingClientRect();
+  if(r.width < 10 || r.height < 10) return;
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   cv.width = Math.round(r.width*dpr); cv.height = Math.round(r.height*dpr);
+  cv.style.width = r.width + 'px'; cv.style.height = r.height + 'px';
   G.ctx = cv.getContext('2d'); G.w = r.width; G.h = r.height;
   G.ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function gmCanvasHeal(){
+  // 매 프레임 크기 검증: 모바일에서 확대/어긋남 발생 시 즉시 복구
+  const cv = document.getElementById('gCanvas'), a = document.getElementById('gArea');
+  if(!cv || !a) return;
+  const r = a.getBoundingClientRect();
+  if(r.width < 10) return;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  if(Math.abs(cv.width - r.width*dpr) > 2 || Math.abs(cv.height - r.height*dpr) > 2) gmCanvasInit();
 }
 function gmPop(txt, cls, x, y){
   const c = document.getElementById('gPops'); if(!c) return;
@@ -1947,6 +1966,7 @@ function gmLoop(){
     const now = performance.now();
     const dt = Math.min(50, now - G.lastT) / 1000;
     G.lastT = now;
+    gmCanvasHeal();
     if(G.mode === 'play' && G.state === 'aim'){
       G.p += G.dir * G.speed * dt * 2;
       if(G.p > 1){ G.p = 2 - G.p; G.dir = -1; }
@@ -2289,6 +2309,7 @@ function runLoop(){
     const now = performance.now();
     const dt = Math.min(40, now - G.lastT) / 1000;
     G.lastT = now;
+    gmCanvasHeal();
     const w = G.w, h = G.h;
     const floorY = h*.78;
     const S = Math.min(w,h)/420;
@@ -2657,6 +2678,7 @@ function jumpLoop(){
     const now = performance.now();
     const dt = Math.min(40, now - G.lastT) / 1000;
     G.lastT = now;
+    gmCanvasHeal();
     try{
       if(J.mode === 'play' && !J.dead){
         const w = G.w, h = G.h;
