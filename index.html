@@ -18,7 +18,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="블랙컴뱃">
+<meta name="apple-mobile-web-app-title" content="승부예측">
 <style>
 :root{
   --bg:#f4f6fa; --card:#ffffff; --card2:#eef2f8; --border:#d8dfe9;
@@ -353,6 +353,8 @@ window.addEventListener('hashchange', route);
 let __pwaPrompt = null;
 const __isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
 const __isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const __isKakao = /KAKAOTALK/i.test(navigator.userAgent);
+const __isSafariMac = /Macintosh/.test(navigator.userAgent) && /Safari\//.test(navigator.userAgent) && !/Chrome|Chromium|Edg\//.test(navigator.userAgent);
 function showPwaBtn(){
   if(__isStandalone || window.__TEST_SB) return;
   if(document.getElementById('pwaInstall')) return;
@@ -369,7 +371,7 @@ async function pwaInstallClick(){
     __pwaPrompt = null;
     return;
   }
-  if(/KAKAOTALK/i.test(navigator.userAgent)){
+  if(__isKakao){
     // 카카오톡 인앱 브라우저 → 외부 브라우저로 자동 이동 (설치는 외부 브라우저에서만 가능)
     const url = location.href.split('#')[0];
     if(/android/i.test(navigator.userAgent)){
@@ -386,7 +388,7 @@ async function pwaInstallClick(){
     <div class="modal-b" style="font-size:14px;line-height:1.9">
       ${__isIOS
         ? `<b>iPhone · iPad (Safari)</b><br>1. 하단 <b>공유 버튼</b> <span style="border:1.5px solid var(--muted);border-radius:5px;padding:0 5px;font-size:12px">↑</span> 탭<br>2. <b>홈 화면에 추가</b> 선택<br>3. 오른쪽 위 <b>추가</b> 탭<br><span style="color:var(--dim);font-size:12.5px">※ 카카오톡 안에서 열었다면 오른쪽 아래 메뉴에서 <b>다른 브라우저(Safari)로 열기</b> 후 진행해 주세요.</span>`
-        : `<b>Android (Chrome)</b><br>1. 오른쪽 위 <b>⋮ 메뉴</b> 탭<br>2. <b>홈 화면에 추가</b> 또는 <b>앱 설치</b> 선택<br><br><b>PC (Chrome · Edge)</b><br>주소창 오른쪽 <b>설치 아이콘</b>을 클릭하세요.<br><span style="color:var(--dim);font-size:12.5px">※ 카카오톡 안에서 열었다면 <b>다른 브라우저로 열기</b> 후 진행해 주세요.</span>`}
+        : `<b>Android (Chrome)</b><br>1. 오른쪽 위 <b>⋮ 메뉴</b> 탭<br>2. <b>홈 화면에 추가</b> 또는 <b>앱 설치</b> 선택<br><br><b>PC (Chrome · Edge)</b><br>주소창 오른쪽 <b>설치 아이콘</b>을 클릭하세요.<br><span style="color:var(--dim);font-size:12.5px">※ 카카오톡 안에서 열었다면 <b>다른 브라우저로 열기</b> 후 진행해 주세요.<br>※ 앱을 방금 삭제했다면 다시 설치 가능해지기까지 <b>1~2분</b> 정도 걸릴 수 있어요. 잠시 후 새로고침해 주세요.</span>`}
     </div></div>`;
   ov.onclick = e => { if(e.target===ov) history.back(); };
   pushModal(ov);
@@ -402,7 +404,8 @@ window.addEventListener('appinstalled', () => {
   if(b) b.remove();
   toastMsg('앱이 설치되었습니다! 🎉');
 });
-if(!__isStandalone) showPwaBtn();
+if(!__isStandalone && (__isKakao || __isIOS || __isSafariMac)) showPwaBtn();
+// 그 외(크롬·엣지·삼성인터넷)는 beforeinstallprompt = "설치 가능(미설치)" 신호가 올 때만 버튼 표시
 if('serviceWorker' in navigator && location.protocol === 'https:'){
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(()=>{});
