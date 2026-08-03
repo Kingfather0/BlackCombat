@@ -1059,7 +1059,9 @@ window.addEventListener('popstate', ()=>{
   if(ov) ov.remove();
 });
 function toastMsg(s){
+  document.querySelectorAll('.fp-toast').forEach(t=>t.remove());
   const el=document.createElement('div');
+  el.className='fp-toast';
   el.textContent=s;
   el.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#242d3f;color:#fff;padding:11px 18px;border-radius:99px;font-size:13.5px;font-weight:600;z-index:99;box-shadow:0 6px 20px rgba(0,0,0,.4);animation:fadeUp .25s ease';
   document.body.appendChild(el); setTimeout(()=>el.remove(),2200);
