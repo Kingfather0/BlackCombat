@@ -173,6 +173,12 @@ body.has-votebar .wrap{padding-bottom:160px}
 .frk.c{background:var(--key);color:#fff}
 .fnm{font-size:13px;flex:1;font-weight:800;line-height:1.25;word-break:keep-all}
 .frec{color:var(--dim);font-size:11.5px;font-weight:700;flex-shrink:0}
+.fbadge{font-size:9px;font-weight:900;border-radius:5px;padding:1px 4px;vertical-align:1px}
+.fbadge.hot{background:#fdecec;color:#c62828}
+.fbadge.new{background:#e8effd;color:#1d4ed8}
+.fmove{font-size:10px;font-weight:900}
+.fmove.up{color:#15803d}
+.fmove.down{color:#c62828}
 .flag{vertical-align:-2px;border-radius:2px;flex-shrink:0}
 /* 1·2등 포디움 */
 .prow{display:flex;align-items:center;gap:13px;padding:12px 8px;background:transparent}
@@ -229,7 +235,8 @@ body.has-votebar .wrap{padding-bottom:160px}
 .mv-h.a{color:#a51c1c}.mv-h.b{color:#1d43a8}
 .mv-h span{color:var(--dim);font-weight:700;font-size:12px}
 .mv-names{display:flex;flex-wrap:wrap;gap:5px}
-.mv-n{display:inline-block;padding:3px 9px;background:#f2f5f9;border-radius:7px;font-weight:700;font-size:13px}
+.mv-n{display:inline-block;padding:3px 9px;background:#f2f5f9;border-radius:7px;font-weight:700;font-size:13px;color:var(--text)}
+a.mv-n:hover{background:var(--key-soft);color:var(--key-deep)}
 /* 참가자 예측 팝업 */
 .modal-ov{position:fixed;inset:0;background:rgba(15,20,35,.55);z-index:100;display:flex;align-items:flex-start;justify-content:center}
 .modal{background:var(--bg);width:100%;max-width:760px;max-height:82vh;border-radius:0 0 16px 16px;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(10,20,40,.3)}
@@ -640,26 +647,29 @@ function parseFighterHTML(raw){
     return (cur && cur !== 'kr') ? cur : (BASE_FLAGS[k] || cur || 'kr');
   };
   const out = [];
-  let cur = null, pend = [], pendRank = null;
+  let cur = null, pend = [], pendRank = null, pendBadge = '', pendMove = 0;
   for(const ln of lines){
     const dHit = DIVS.find(d => ln === d || (ln.startsWith(d) && ln.length <= d.length + 12));
     if(dHit){
       if(out.some(o=>o.div===dHit)){ cur = null; continue; }
       cur = {div:dHit, list:[]}; out.push(cur);
-      pend = []; pendRank = null; continue;
+      pend = []; pendRank = null; pendBadge = ''; pendMove = 0; continue;
     }
     if(!cur) continue;
     if(/^CHAMPION$/i.test(ln)) continue;
-    if(/^(HOT|NEW|UP|DOWN|LIVE|[▲▼]\s*\d*)$/i.test(ln)) continue;
+    if(/^(HOT|NEW)$/i.test(ln)){ pendBadge = ln.toUpperCase(); continue; }
+    const mvm = ln.match(/^([▲▼])\s*(\d+)$/);
+    if(mvm){ pendMove = (mvm[1]==='▲' ? 1 : -1) * parseInt(mvm[2],10); continue; }
+    if(/^(UP|DOWN|LIVE)$/i.test(ln)) continue;
     if(/^\d{1,2}$/.test(ln)){ pendRank = parseInt(ln,10); pend = []; continue; }
     const m = ln.match(recRe);
     if(m){
       if(pend.length){
         const nick = pend[0], real = pend[1] || '';
         const rank = pendRank != null ? pendRank : 'C';
-        cur.list.push([rank, nick, real, +m[1], +m[2], +m[3], flagOf(nick)]);
+        cur.list.push([rank, nick, real, +m[1], +m[2], +m[3], flagOf(nick), pendBadge, pendMove]);
       }
-      pend = []; pendRank = null; continue;
+      pend = []; pendRank = null; pendBadge = ''; pendMove = 0; continue;
     }
     if(ln.length <= 30 && !/RANKING|MEDIA|CHAMPION|인스타|instagram|http|블랙컴뱃|BLACK ?COMBAT/i.test(ln)){
       pend.push(ln);
@@ -703,7 +713,7 @@ async function openFighterStats(nick){
   ov.className = 'modal-ov';
   ov.innerHTML = `<div class="modal">
     <div class="modal-h"><span><b>${esc(nick)}</b> <span style="color:var(--dim);font-size:13px;font-weight:600">우리 방 승부예측 기록</span></span>
-      <button class="modal-x" onclick="this.closest('.modal-ov').remove()">✕</button></div>
+      <button class="modal-x" onclick="history.back()">✕</button></div>
     <div class="modal-b">
       <div class="stat-tiles" style="grid-template-columns:repeat(2,1fr)">
         <div class="tile"><div class="v">${rows.length}경기</div><div class="k">예측 대상 경기</div></div>
@@ -720,15 +730,15 @@ async function openFighterStats(nick){
         <div style="font-size:12px;margin-top:2px"><a href="#/t/${r.tid}" onclick="this.closest('.modal-ov').remove()" style="color:var(--dim);font-weight:700">${esc(r.title)}</a></div>
       </div>`;}).join('')}
     </div></div>`;
-  ov.onclick = e => { if(e.target===ov) ov.remove(); };
-  document.body.appendChild(ov);
+  ov.onclick = e => { if(e.target===ov) history.back(); };
+  pushModal(ov);
 }
 /* ── 선수 랭킹 페이지 ── */
 const frow = f => f[1]==='공석'
   ? `<div class="frow"><span class="frk c">C</span><span class="fnm" style="color:var(--dim)">공석</span></div>`
   : `<div class="frow" style="cursor:pointer" onclick="openFighterStats('${f[1].replace(/'/g,"\\'")}')" title="${esc(f[2])} · ${f[3]}승 ${f[4]}패${f[5]?' '+f[5]+'무':''} · 누르면 우리 방 승부예측 기록이 보입니다">
   <span class="frk ${f[0]==='C'?'c':''}">${f[0]==='C'?'C':f[0]}</span>
-  ${flagImg(f[6])}<b class="fnm">${esc(f[1])}</b>
+  ${flagImg(f[6])}<b class="fnm">${esc(f[1])}${f[7]?` <span class="fbadge ${f[7]==='HOT'?'hot':'new'}">${f[7]==='HOT'?'🔥HOT':'NEW'}</span>`:''}${f[8]?` <span class="fmove ${f[8]>0?'up':'down'}">${f[8]>0?'▲'+f[8]:'▼'+(-f[8])}</span>`:''}</b>
   <span class="frec">${f[3]}-${f[4]}${f[5]?'-'+f[5]:''}</span>
 </div>`;
 function toggleMore(di, btn){
@@ -886,6 +896,14 @@ function flashEl(el){
     setTimeout(clear, 2200); // 입력칸이 없는 표시용 요소는 잠깐만
   }
 }
+function pushModal(ov){
+  document.body.append(ov);
+  history.pushState({fpModal:1}, '');
+}
+window.addEventListener('popstate', ()=>{
+  const ov = document.querySelector('.modal-ov');
+  if(ov) ov.remove();
+});
 function toastMsg(s){
   const el=document.createElement('div');
   el.textContent=s;
@@ -1071,10 +1089,10 @@ function resultHTML(t, matches, parts){
         ${t.gift_winners ? `
           <b>1등 당첨${t.gift1_desc?` (${esc(t.gift1_desc)})`:''}</b> :
           ${(t.gift_winners.first||[]).map(n=>`<span class="gift-name">${esc(n)}</span>`).join('')||'-'}
-          ${first.length>(t.gift_winners.first||[]).length?`<span style="color:#8a6a12">← 공동 ${first.length}명 중 랜덤 추첨</span>`:''}<br>
+          ${first.length>(t.gift_winners.first||[]).length?`<span style="color:#8a6a12">← 공동 ${first.length}명 중 ${(t.gift_winners.first||[]).length}명 랜덤 추첨</span>`:''}<br>
           <b>2등 당첨${t.gift2_desc?` (${esc(t.gift2_desc)})`:''}</b> :
           ${(t.gift_winners.second||[]).map(n=>`<span class="gift-name">${esc(n)}</span>`).join('')||'-'}
-          ${second.length>(t.gift_winners.second||[]).length?`<span style="color:#8a6a12">← 공동 ${second.length}명 중 랜덤 추첨</span>`:''}<br>
+          ${second.length>(t.gift_winners.second||[]).length?`<span style="color:#8a6a12">← 공동 ${second.length}명 중 ${(t.gift_winners.second||[]).length}명 랜덤 추첨</span>`:''}<br>
           위 당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>`
         : `1등·2등 당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>`}
         <span style="color:#c62828;font-weight:800">기한 내 연락이 없으면 당첨 선물은 지급되지 않습니다.</span>
@@ -1199,22 +1217,22 @@ function openMatchVoters(mid){
   const col = (name, cls, voters) => `
     <div class="mv-col">
       <div class="mv-h ${cls}">${esc(name)} <span>${voters.length}명</span></div>
-      <div class="mv-names">${voters.map(n=>`<span class="mv-n">${esc(n)}</span>`).join('') || '<span style="color:var(--dim);font-size:13px">아직 없음</span>'}</div>
+      <div class="mv-names">${voters.map(n=>`<a class="mv-n" href="#/player/${encodeURIComponent(n)}" onclick="document.querySelectorAll('.modal-ov').forEach(e=>e.remove())" title="전적 보기">${esc(n)}</a>`).join('') || '<span style="color:var(--dim);font-size:13px">아직 없음</span>'}</div>
     </div>`;
   const ov = document.createElement('div');
   ov.className = 'modal-ov';
   ov.innerHTML = `<div class="modal">
     <div class="modal-h"><span><b>${m.seq}경기 투표자</b> <span style="color:var(--dim);font-size:13px;font-weight:600">${esc(m.fighter_a)} vs ${esc(m.fighter_b)}</span></span>
-      <button class="modal-x" onclick="this.closest('.modal-ov').remove()">✕</button></div>
+      <button class="modal-x" onclick="history.back()">✕</button></div>
     <div class="modal-b"><div class="mv-grid">${col(m.fighter_a,'a',av)}${col(m.fighter_b,'b',bv)}</div></div></div>`;
-  ov.onclick = e => { if(e.target===ov) ov.remove(); };
-  document.body.appendChild(ov);
+  ov.onclick = e => { if(e.target===ov) history.back(); };
+  pushModal(ov);
 }
 function openRenameModal(tid){
   const ov = document.createElement('div');
   ov.className = 'modal-ov';
   ov.innerHTML = `<div class="modal">
-    <div class="modal-h"><b>닉네임 · 비밀번호 변경</b><button class="modal-x" onclick="this.closest('.modal-ov').remove()">✕</button></div>
+    <div class="modal-h"><b>닉네임 · 비밀번호 변경</b><button class="modal-x" onclick="history.back()">✕</button></div>
     <div class="modal-b">
       <div class="field"><label>현재 닉네임</label><input id="rn-old" maxlength="20"></div>
       <div class="field"><label>현재 비밀번호 (숫자 4자리)</label><input id="rn-pin" type="password" inputmode="numeric" maxlength="4"></div>
@@ -1224,8 +1242,8 @@ function openRenameModal(tid){
       <div class="msg" id="rn-msg"></div>
       <button class="btn primary wide" style="margin-top:12px" onclick="doRename('${tid}')">변경하기</button>
     </div></div>`;
-  ov.onclick = e => { if(e.target===ov) ov.remove(); };
-  document.body.appendChild(ov);
+  ov.onclick = e => { if(e.target===ov) history.back(); };
+  pushModal(ov);
 }
 async function doRename(tid){
   const o = document.getElementById('rn-old').value.trim();
@@ -1253,10 +1271,10 @@ function openPartsModal(){
   const ov = document.createElement('div');
   ov.className = 'modal-ov';
   ov.innerHTML = `<div class="modal">
-    <div class="modal-h"><span><b>참가자 예측 현황</b>${curState==='open'?' <span class="badge rt" style="font-size:11.5px">실시간 · 마감 전까지 수정 가능</span>':''}</span><button class="modal-x" onclick="this.closest('.modal-ov').remove()">✕</button></div>
+    <div class="modal-h"><span><b>참가자 예측 현황</b>${curState==='open'?' <span class="badge rt" style="font-size:11.5px">실시간 · 마감 전까지 수정 가능</span>':''}</span><button class="modal-x" onclick="history.back()">✕</button></div>
     <div class="modal-b pf-scope">${src.innerHTML}</div></div>`;
-  ov.onclick = e => { if(e.target===ov) ov.remove(); };
-  document.body.appendChild(ov);
+  ov.onclick = e => { if(e.target===ov) history.back(); };
+  pushModal(ov);
 }
 /* ---------- 시즌 랭킹 / 개인 페이지 ---------- */
 async function fetchSeasonData(){
