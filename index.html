@@ -183,8 +183,8 @@ body.has-votebar .wrap{padding-bottom:160px}
 .fbadge.hot{background:#fdecec;color:#c62828}
 .fbadge.new{background:#e8effd;color:#1d4ed8}
 .fmove{font-size:10px;font-weight:900}
-.fmove.up{color:#15803d}
-.fmove.down{color:#c62828}
+.fmove.up{color:#c62828}
+.fmove.down{color:#2563eb}
 .flag{vertical-align:-2px;border-radius:2px;flex-shrink:0}
 /* 1·2등 포디움 */
 .prow{display:flex;align-items:center;gap:13px;padding:12px 8px;background:transparent}
@@ -367,6 +367,16 @@ async function pwaInstallClick(){
     __pwaPrompt.prompt();
     try{ await __pwaPrompt.userChoice; }catch(e){}
     __pwaPrompt = null;
+    return;
+  }
+  if(/KAKAOTALK/i.test(navigator.userAgent)){
+    // 카카오톡 인앱 브라우저 → 외부 브라우저로 자동 이동 (설치는 외부 브라우저에서만 가능)
+    const url = location.href.split('#')[0];
+    if(/android/i.test(navigator.userAgent)){
+      location.href = 'intent://' + url.replace(/^https?:\/\//,'') + '#Intent;scheme=https;package=com.android.chrome;end';
+    }else{
+      location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(url);
+    }
     return;
   }
   const ov = document.createElement('div');
