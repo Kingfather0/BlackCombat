@@ -377,11 +377,40 @@ function showPwaBtn(){
   b.onclick = pwaInstallClick;
   document.body.append(b);
 }
+async function doPrompt(){
+  if(!__pwaPrompt) return;
+  const p = __pwaPrompt;
+  try{
+    p.prompt();
+    const ch = await p.userChoice.catch(()=>null);
+    __pwaPrompt = null;
+    if(ch && ch.outcome === 'accepted') installPending();
+  }catch(e){}
+}
+function installPending(){
+  toastMsg('설치를 시작했어요! 홈 화면에 아이콘이 생길 때까지 몇 초~1분 정도 걸릴 수 있어요 ⏳');
+  clearTimeout(window.__pwaTimer);
+  window.__pwaTimer = setTimeout(installStuckModal, 90000);
+}
+function installStuckModal(){
+  const ov = document.createElement('div');
+  ov.className = 'modal-ov';
+  ov.innerHTML = `<div class="modal" style="max-width:360px">
+    <div class="modal-h"><b>⏳ 설치가 늦어지나요?</b><button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-b" style="font-size:14px;line-height:1.9">
+      안드로이드가 앱을 만드는 중이에요. 기기·통신 상태에 따라 <b>몇 분</b>까지 걸리기도 합니다.<br><br>
+      계속 <b>설치 중...</b>에 멈춰 있다면:<br>
+      1. 크롬을 <b>완전히 종료</b>했다가 다시 열기<br>
+      2. 5분쯤 뒤에 다시 설치 시도<br>
+      3. 그래도 안 되면 <b>휴대폰 재부팅</b> 후 시도<br>
+      <span style="color:var(--dim);font-size:12.5px">※ 앱을 삭제한 직후에는 시스템 반영에 시간이 걸려 설치가 유독 오래 걸릴 수 있어요.</span>
+    </div></div>`;
+  ov.onclick = e => { if(e.target===ov) history.back(); };
+  pushModal(ov);
+}
 async function pwaInstallClick(){
   if(__pwaPrompt){
-    __pwaPrompt.prompt();
-    try{ await __pwaPrompt.userChoice; }catch(e){}
-    __pwaPrompt = null;
+    await doPrompt();
     return;
   }
   if(__isKakao){
@@ -417,12 +446,15 @@ window.addEventListener('beforeinstallprompt', e => {
   }
 });
 async function autoInstall(){
+  if(!__pwaPrompt) return;
+  const p = __pwaPrompt;
   try{
-    await __pwaPrompt.prompt();  // 제스처 없이 허용되면 즉시 설치창
-    try{ await __pwaPrompt.userChoice; }catch(e){}
+    await p.prompt();  // 제스처 없이 허용되면 즉시 설치창
+    const ch = await p.userChoice.catch(()=>null);
     __pwaPrompt = null;
+    if(ch && ch.outcome === 'accepted') installPending();
   }catch(e){
-    installOverlay();            // 브라우저가 탭을 요구하면 대형 설치 화면 표시
+    installOverlay();  // 브라우저가 탭을 요구하면 대형 설치 화면 표시
   }
 }
 function installOverlay(){
@@ -437,17 +469,13 @@ function installOverlay(){
   </div>`;
   const go = async () => {
     ov.remove();
-    if(!__pwaPrompt) return;
-    try{
-      __pwaPrompt.prompt();
-      try{ await __pwaPrompt.userChoice; }catch(e){}
-      __pwaPrompt = null;
-    }catch(e){}
+    await doPrompt();
   };
   ov.onclick = go;
   document.body.append(ov);
 }
 window.addEventListener('appinstalled', () => {
+  clearTimeout(window.__pwaTimer);
   __pwaPrompt = null;
   const b = document.getElementById('pwaInstall');
   if(b) b.remove();
