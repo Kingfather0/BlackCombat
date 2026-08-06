@@ -1821,11 +1821,11 @@ function toastMsg(s){
    danger:true(기본값)면 확인 버튼이 빨간색(위험한 동작), false면 금색(일반 확인)으로 표시된다.
    onConfirm은 사용자가 확인 버튼을 눌렀을 때만 실행되고, 취소/배경 클릭/뒤로가기 시에는 아무 것도 하지 않는다 */
 function bbShowConfirmModal(opts){
-  const { title = '확인', body = '', confirmText = '확인', cancelText = '취소', danger = true, onConfirm } = opts || {};
+  const { title = '확인', body = '', confirmText = '확인', cancelText = '취소', danger = true, icon, onConfirm } = opts || {};
   const ov = document.createElement('div');
   ov.className = 'modal-ov bb-confirm-ov';
   ov.innerHTML = `<div class="bb-confirm">
-    <div class="bb-confirm-ic">${danger ? '⚠️' : '❓'}</div>
+    <div class="bb-confirm-ic">${icon || (danger ? '⚠️' : '❓')}</div>
     <div class="bb-confirm-t">${esc(title)}</div>
     <div class="bb-confirm-b">${esc(body)}</div>
     <div class="bb-confirm-actions">
@@ -4744,6 +4744,7 @@ function bbShowBotSparConfirm(){
     confirmText: '진행하기',
     cancelText: '취소',
     danger: false,
+    icon: '🥊',
     onConfirm: bbQueueBotSpar
   });
 }
