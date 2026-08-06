@@ -50,10 +50,10 @@ nav{display:flex;gap:4px}
 nav a{padding:8px 13px;border-radius:9px;font-size:14.5px;font-weight:700;color:var(--muted);white-space:nowrap}
 nav a.on{background:var(--key);color:#fff}
 nav a:hover:not(.on){background:var(--card2);color:var(--text)}
-.visitor-bar{max-width:760px;margin:0 auto;padding:0 14px 8px;display:flex;justify-content:flex-end;position:relative}
+.visitor-bar{max-width:760px;margin:0 auto;padding:0 14px 8px;display:flex;justify-content:flex-start;position:relative}
 .visitor-badge{background:#e0f3e6;color:#116131;border:none;border-radius:99px;padding:3px 11px;font-size:11.5px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:3px;line-height:1.6}
 .visitor-badge:active{background:#c8ecd3}
-.visitor-pop{position:absolute;top:26px;right:14px;background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(20,40,80,.16);width:200px;max-height:260px;overflow-y:auto;z-index:55}
+.visitor-pop{position:absolute;top:26px;left:14px;background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(20,40,80,.16);width:200px;max-height:260px;overflow-y:auto;z-index:55}
 .visitor-pop-h{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;font-size:12.5px;font-weight:800;color:var(--muted);border-bottom:1px solid #f0f2f6;position:sticky;top:0;background:#fff}
 .visitor-pop-x{font-size:14px;color:var(--dim);padding:2px 4px;line-height:1}
 .visitor-pop-body{padding:6px 4px}
@@ -344,6 +344,13 @@ h1.page{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .gmenu-nick-edit:active{background:#eef4ff}
 .gmn-pinlink{background:none;border:none;color:#8a94a6;font-size:12.5px;font-weight:700;text-decoration:underline;cursor:pointer;margin-top:10px;padding:4px}
 .gmn-pinlink:active{color:var(--key-deep)}
+.home-login-bar{display:flex;justify-content:flex-start;align-items:center;margin-bottom:14px}
+.home-login-id{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#ffffff,#eef4ff);border:2px solid #cfe0f5;border-radius:99px;padding:6px 8px 6px 14px;font-size:13.5px;font-weight:800;color:var(--text)}
+.gmn-suggest{position:relative;width:100%}
+.gmn-suggest-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 22px rgba(20,40,80,.18);max-height:220px;overflow-y:auto;z-index:20}
+.gmn-suggest-row{padding:9px 14px;font-size:13.5px;font-weight:700;color:var(--text);cursor:pointer;text-align:left}
+.gmn-suggest-row:active{background:var(--key-soft)}
+.gmn-suggest-empty{padding:9px 14px;font-size:12.5px;color:var(--dim);text-align:center}
 .grank-row{display:flex;align-items:center;gap:10px;padding:7px 6px;border-bottom:1px solid #f0f2f6;font-size:14px;border-radius:9px}
 .grank-row:last-child{border-bottom:none}
 .grank-row.me{background:var(--key-soft)}
@@ -1009,7 +1016,7 @@ img.bb-fin-ic{width:1em;height:1em;object-fit:contain;vertical-align:-0.15em;bor
     </nav>
   </div>
   <div class="visitor-bar" id="visitorBar">
-    <button type="button" id="visitorBadge" class="visitor-badge" onclick="toggleVisitorList(event)">🟢 접속자 <b id="visitorCount">-</b>명</button>
+    <button type="button" id="visitorBadge" class="visitor-badge" onclick="toggleVisitorList(event)">🟢 현재 접속자 <b id="visitorCount">-</b>명</button>
     <div id="visitorListPop" class="visitor-pop" style="display:none">
       <div class="visitor-pop-h">현재 접속자<button type="button" class="visitor-pop-x" onclick="toggleVisitorList(event)">✕</button></div>
       <div id="visitorListBody" class="visitor-pop-body"></div>
@@ -1442,7 +1449,11 @@ async function viewHome(){
         ${cd?cdHTML(t.deadline):`<span>🔒 ${fmtDT(t.deadline)} 마감</span>`}
       </div></a>`;
   };
+  const loginBar = gmMyNick
+    ? `<div class="home-login-bar"><span class="home-login-id">👤 <b>${esc(gmMyNick)}</b> <button class="gmenu-nick-edit" id="homeNickEdit" type="button" title="다른 닉네임으로 변경">⚙️</button></span></div>`
+    : `<div class="home-login-bar"><button class="btn primary" id="homeNickRegister" type="button">🦁 닉네임 등록</button></div>`;
   $app.innerHTML = `
+    ${loginBar}
     ${open.length?`<div class="sec-title">🔥 진행 중인 승부예측</div>${open.map(card).join('')}`:''}
     ${!open.length&&!wait.length&&!done.length?`<div class="empty">아직 등록된 대회가 없습니다.<br>관리자 페이지에서 첫 대회를 만들어 보세요!</div>`:''}
     ${!open.length&&(wait.length||done.length)?`<div class="empty" style="padding:22px 0">지금 진행 중인 투표가 없습니다.</div>`:''}
@@ -1450,6 +1461,10 @@ async function viewHome(){
     ${done.length?`<div class="sec-title">🏁 지난 대회 <span style="color:var(--dim);font-size:13px;font-weight:700">최신순 · 총 ${done.length}개</span></div>
       ${done.slice(0,homeLimit).map(card).join('')}
       ${done.length>homeLimit?`<button class="btn wide" style="margin-top:12px" onclick="moreDone()">지난 대회 더보기 (${done.length-homeLimit}개 더 있음)</button>`:''}`:''}`;
+  const nickEdit = document.getElementById('homeNickEdit');
+  if(nickEdit){ nickEdit.onpointerdown = e=>e.stopPropagation(); nickEdit.onclick = e => { e.stopPropagation(); gmShowNickChangeModal(); }; }
+  const nickReg = document.getElementById('homeNickRegister');
+  if(nickReg){ nickReg.onclick = () => gmShowNickChangeModal(); }
 }
 
 
@@ -1737,7 +1752,15 @@ async function viewTournament(id, keepSel){
   const {t, matches, parts} = d;
   const st = tState(t);
   curState = st; curMatches = matches; curParts = parts; curT = t;
-  if(!keepSel) voteSel = {};
+  if(!keepSel){
+    voteSel = {};
+    // 이미 로그인돼 있으면(홈에서 등록한 통합 계정) 이 대회에 이미 제출한 투표가 있는지
+    // 찾아서 자동으로 불러와 준다 — 예전처럼 닉네임을 직접 입력해서 불러올 필요가 없다.
+    if(gmMyNick){
+      const mine = parts.find(p=>p.nickname.trim().toLowerCase()===gmMyNick.trim().toLowerCase());
+      if(mine) matches.forEach(m=>{ if(mine.picks[m.id]) voteSel[m.id] = mine.picks[m.id]; });
+    }
+  }
   const cd = countdownText(t.deadline);
 
   let html = `
@@ -1766,7 +1789,7 @@ async function viewTournament(id, keepSel){
   html += `<div id="liveboard">${liveBoardHTML(t, matches, parts, st)}</div>`;
   $app.innerHTML = html;
 
-  document.body.classList.toggle('has-votebar', st==='open');
+  document.body.classList.toggle('has-votebar', st==='open' && !!gmMyNick);
   if (st==='open'){
     // 20초마다 현황판만 자동 갱신 (입력 중인 폼은 건드리지 않음)
     pollTimer = setInterval(async ()=>{
@@ -1945,6 +1968,19 @@ try{ gmMuted = localStorage.getItem('gm_mute') === '1'; }catch(e){}
 let gmMyPin = '';
 try{ gmMyNick = localStorage.getItem('gm_nick') || ''; }catch(e){}
 try{ gmMyPin = localStorage.getItem('gm_pin') || ''; }catch(e){}
+/* 잡담방 닉네임 화이트리스트(오픈톡방에 있는 유저만 신규 등록 가능) — 자동완성용으로
+   한 번 불러와서 캐시해 둔다. 실패해도(패치 미적용 등) 조용히 빈 목록으로 처리해서
+   자동완성만 안 뜰 뿐 로그인/등록 자체는 막지 않는다. */
+let __allowedNicknamesCache = null;
+async function fetchAllowedNicknames(){
+  if(__allowedNicknamesCache) return __allowedNicknamesCache;
+  try{
+    const {data, error} = await sb.from('allowed_nicknames').select('nickname').order('nickname');
+    if(error) throw error;
+    __allowedNicknamesCache = (data||[]).map(r=>r.nickname);
+  }catch(e){ __allowedNicknamesCache = []; }
+  return __allowedNicknamesCache;
+}
 function gmClear(){ gmTimers.forEach(clearTimeout); gmTimers = []; if(G.raf){ cancelAnimationFrame(G.raf); G.raf = 0; } if(gmCurGame === 'battle' && typeof gmBattleLeave === 'function') gmBattleLeave(); }
 function gmDelay(fn, ms){ gmTimers.push(setTimeout(fn, ms)); }
 function gmFast(){ return !!window.__TEST_SB; }
@@ -2217,47 +2253,12 @@ function gmShellHTML(wk, title, sub, desc, startLabel, hint, rule){
   <div class="card" id="gHall" style="display:none;margin-top:10px"></div>`;
 }
 
-/* --- 선수 등록 (게임 시작 전 필수) --- */
+/* --- 선수 등록 확인 (게임 시작 전 필수) — 등록은 이제 홈 화면에서만 하므로, 여기서는
+   이미 로그인돼 있는지만 확인하고, 아니면 홈으로 안내한다. */
 function gmStartGate(startFn){
   if(gmMyNick && gmMyPin) return startFn();
-  gmShowLogin(startFn);
-}
-function gmShowLogin(startFn){
-  const t = document.getElementById('gTitle');
-  if(!t) return;
-  t.style.display = '';
-  t.innerHTML = `
-    <div class="glogin" id="gLogin">
-      <div class="gl-t">🦁 선수 등록</div>
-      <div class="gl-d">잡담방 닉네임으로 등록해야 게임을 할 수 있어요.<br>게임이 끝나면 <b>기록이 자동 등록</b>됩니다!</div>
-      <input id="gl-nick" maxlength="20" placeholder="잡담방 닉네임" value="${esc(gmMyNick)}">
-      <input id="gl-pin" inputmode="numeric" maxlength="4" placeholder="비밀번호 (숫자 4자리)" type="password">
-      <div class="msg" id="gl-msg"></div>
-      <button class="g-start" id="glGo">등록하고 시작!</button>
-      <div class="gt-hint">같은 닉네임은 처음 등록한 비밀번호로 계속 사용됩니다 (게임 3종 공용)</div>
-    </div>`;
-  const box = document.getElementById('gLogin');
-  box.onpointerdown = e => e.stopPropagation();
-  const msg = document.getElementById('gl-msg');
-  const put = s => { msg.className = 'msg err'; msg.textContent = s; };
-  document.getElementById('glGo').onclick = async e => {
-    e.stopPropagation();
-    const nick = (document.getElementById('gl-nick').value||'').trim();
-    const pin = (document.getElementById('gl-pin').value||'').trim();
-    if(!nick) return put('닉네임을 입력해 주세요.');
-    if(!/^[0-9]{4}$/.test(pin)) return put('비밀번호는 숫자 4자리입니다.');
-    const {data, error} = await sb.rpc('game_login', {p_nickname:nick, p_pin:pin});
-    if(error){
-      if(/function|not find/i.test(error.message||'')) return put('미니게임_패치4.sql을 먼저 실행해 주세요. (관리자에게 문의)');
-      return put(cleanErr(error.message));
-    }
-    if(!data || data.ok === false) return put((data && data.msg) || '등록에 실패했습니다.');
-    gmMyNick = data.nickname || nick;
-    gmMyPin = pin;
-    try{ localStorage.setItem('gm_nick', gmMyNick); localStorage.setItem('gm_pin', gmMyPin); }catch(err){}
-    presenceRetrack();
-    startFn();
-  };
+  toastMsg('먼저 홈 화면에서 닉네임을 등록해 주세요.');
+  location.hash = '#/';
 }
 function gmLogout(){
   gmMyPin = '';
@@ -2279,22 +2280,52 @@ function gmShowNickChangeModal(){
   pushModal(ov);
   gmRenderLoginChangeView(ov);
 }
-function gmRenderLoginChangeView(ov){
-  ov.querySelector('#gmnTitle').textContent = '👤 로그인 변경';
+async function gmRenderLoginChangeView(ov){
+  const isRegister = !gmMyNick;
+  ov.querySelector('#gmnTitle').textContent = isRegister ? '🦁 닉네임 등록' : '👤 로그인 변경';
   const body = ov.querySelector('#gmnBody');
   body.innerHTML = `
     <div class="glogin" style="padding:0">
-      <input id="gmn-nick" maxlength="20" placeholder="잡담방 닉네임" value="">
+      <div class="gmn-suggest" style="width:100%">
+        <input id="gmn-nick" maxlength="20" placeholder="잡담방 닉네임 검색" value="" autocomplete="off">
+        <div id="gmn-suggest-list" class="gmn-suggest-list" style="display:none"></div>
+      </div>
       <input id="gmn-pin" inputmode="numeric" maxlength="4" placeholder="비밀번호 (숫자 4자리)" type="password">
       <div class="msg" id="gmn-msg"></div>
-      <button class="btn primary wide" style="margin-top:14px" id="gmnGo">로그인</button>
-      <div class="gl-d" style="color:#8a94a6;text-shadow:none;font-weight:600;margin-top:12px">변경할 잡담방 닉네임과 비밀번호를 입력해 주세요.<br>등록된 적 없는 닉네임이면 새로 등록됩니다.</div>
+      <button class="btn primary wide" style="margin-top:14px" id="gmnGo">${isRegister ? '등록' : '로그인'}</button>
+      <div class="gl-d" style="color:#8a94a6;text-shadow:none;font-weight:600;margin-top:12px">오픈톡방 닉네임을 입력하면 목록이 뜹니다. 본인 닉네임을 클릭한 후<br>비밀번호를 입력해 주세요. 처음이면 새로 등록됩니다.</div>
       ${gmMyNick ? `<button type="button" class="gmn-pinlink" id="gmnPinLink">비밀번호만 변경하기</button>` : ''}
     </div>`;
   const msg = body.querySelector('#gmn-msg');
   const put = s => { msg.className = 'msg err'; msg.textContent = s; };
   const box = body.querySelector('.glogin');
   box.onpointerdown = e => e.stopPropagation();
+  const nickInput = body.querySelector('#gmn-nick');
+  const suggestList = body.querySelector('#gmn-suggest-list');
+  const closeSuggest = () => { suggestList.style.display = 'none'; suggestList.innerHTML = ''; };
+  const allowed = await fetchAllowedNicknames();
+  nickInput.oninput = () => {
+    const q = nickInput.value.trim().toLowerCase();
+    if(!q) return closeSuggest();
+    const hits = allowed.filter(n => n.toLowerCase().includes(q)).slice(0, 8);
+    if(!hits.length){
+      suggestList.innerHTML = '<div class="gmn-suggest-empty">일치하는 닉네임이 없습니다</div>';
+      suggestList.style.display = '';
+      return;
+    }
+    suggestList.innerHTML = hits.map(n => `<div class="gmn-suggest-row" data-n="${esc(n)}">${esc(n)}</div>`).join('');
+    suggestList.style.display = '';
+  };
+  suggestList.onpointerdown = e => e.stopPropagation();
+  suggestList.onclick = e => {
+    const row = e.target.closest('.gmn-suggest-row');
+    if(!row || !row.dataset.n) return;
+    nickInput.value = row.dataset.n;
+    closeSuggest();
+    body.querySelector('#gmn-pin').focus();
+  };
+  nickInput.onpointerdown = e => e.stopPropagation();
+  nickInput.onblur = () => setTimeout(closeSuggest, 150);
   const goBtn = body.querySelector('#gmnGo');
   goBtn.onpointerdown = e => e.stopPropagation();
   goBtn.onclick = async e => {
@@ -2314,7 +2345,7 @@ function gmRenderLoginChangeView(ov){
     try{ localStorage.setItem('gm_nick', gmMyNick); localStorage.setItem('gm_pin', gmMyPin); }catch(err){}
     presenceRetrack();
     history.back();
-    toastMsg(`👤 ${gmMyNick} 님으로 변경되었습니다!`);
+    toastMsg(isRegister ? `🦁 ${gmMyNick} 님으로 등록되었습니다!` : `👤 ${gmMyNick} 님으로 변경되었습니다!`);
     route();
   };
   const pinLink = body.querySelector('#gmnPinLink');
@@ -2402,12 +2433,10 @@ function viewGameMenu(){
   </a>
   <div class="gmenu-foot">
     <span>⏱ 주간 랭킹 리셋까지 <b style="color:#e0332a">${gmResetLeft()}</b></span>
-    <span>${gmMyNick ? `👤 <b>${esc(gmMyNick)}</b> <button class="gmenu-nick-edit" id="gMenuNickEdit" type="button" title="다른 닉네임으로 변경">⚙️</button>` : '시작 시 선수 등록 필요'}</span>
+    <span>${gmMyNick ? `👤 <b>${esc(gmMyNick)}</b>` : '홈 화면에서 닉네임 등록 필요'}</span>
   </div>`;
   gmApplyPoses();
   loadMenuTops(wk);
-  const nickEdit = document.getElementById('gMenuNickEdit');
-  if(nickEdit){ nickEdit.onpointerdown = e=>e.stopPropagation(); nickEdit.onclick = e => { e.stopPropagation(); gmShowNickChangeModal(); }; }
 }
 async function loadMenuTops(wk){
   const set = (id, txt) => { const el = document.getElementById(id); if(el) el.innerHTML = txt; };
@@ -6708,25 +6737,21 @@ function voteFormHTML(t, matches, parts){
       </div>
       <div class="split" id="split-${m.id}" onclick="openMatchVoters('${m.id}')" style="cursor:pointer" title="누가 투표했는지 보기">${splitInner(m, parts, false, true)}</div>
     </div>`).join('');
+  const identityBlock = gmMyNick
+    ? `<div class="home-login-id" style="margin:0">👤 <b>${esc(gmMyNick)}</b> 님으로 투표합니다</div>
+       <div class="note" style="margin-top:8px">💡 마감 전까지 다시 제출하면 수정됩니다. · 게이지를 누르면 <b>투표자 목록</b>이 보입니다.</div>`
+    : `<div class="empty" style="padding:10px 0">투표하려면 먼저 닉네임을 등록해 주세요.</div>
+       <button class="btn primary wide" style="margin-top:8px" onclick="location.hash='#/'">🦁 홈에서 닉네임 등록하기</button>`;
   return `
     <div class="sec-title" style="justify-content:space-between">승부 예측 · 실시간 현황
       <button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button></div>
-    <div class="card vform">
-      <div class="row2">
-        <div class="field"><label>닉네임 (중복 불가)</label>
-          <input id="v-nick" maxlength="20" placeholder="잡담방 닉네임 입력" onchange="prefillPicks('${t.id}')"></div>
-        <div class="field"><label>비밀번호 (숫자 4자리)</label>
-          <input id="v-pin" inputmode="numeric" maxlength="4" placeholder="수정할 때 필요" type="password"></div>
-      </div>
-      <div class="note">💡 같은 닉네임 + 비밀번호로 다시 제출하면 마감 전까지 수정됩니다. · 게이지를 누르면 <b>투표자 목록</b>이 보입니다.
-        · <button style="color:var(--key-deep);font-weight:800;font-size:12.5px;text-decoration:underline;text-underline-offset:2px" onclick="openRenameModal('${t.id}')">닉네임 변경</button></div>
-    </div>
+    <div class="card vform">${identityBlock}</div>
     <div class="vote-grid">${rows}</div>
     <div class="msg" id="v-msg"></div>
-    <div class="votebar"><div class="in">
+    ${gmMyNick ? `<div class="votebar"><div class="in">
       <span class="cnt"><b id="vb-count">${Object.keys(voteSel).length}</b> / ${matches.length} 선택</span>
       <button class="btn primary" id="vb-submit" onclick="submitVote('${t.id}', ${matches.length})">투표 제출하기</button>
-    </div></div>`;
+    </div></div>` : ''}`;
 }
 function pick(btn){
   const mid = btn.dataset.mid, side = btn.dataset.side;
@@ -6742,33 +6767,14 @@ function pick(btn){
   const c = document.getElementById('vb-count');
   if(c) c.textContent = Object.keys(voteSel).length;
 }
-function prefillPicks(tid){
-  // 기존 참가자면 투표 내용 미리 채워주기 (수정 편의)
-  const nick = document.getElementById('v-nick').value.trim().toLowerCase();
-  if(!nick) return;
-  sb.from('participants').select('nickname,picks').eq('tournament_id',tid).then(({data})=>{
-    const me = (data||[]).find(p=>p.nickname.trim().toLowerCase()===nick);
-    if(me){
-      voteSel = {};
-      curMatches.forEach(m=>{ if(me.picks[m.id]) voteSel[m.id] = me.picks[m.id]; });
-      document.querySelectorAll('.corner[data-mid]').forEach(b=>{
-        b.classList.toggle('sel', voteSel[b.dataset.mid]===b.dataset.side);
-      });
-      toastMsg(`'${me.nickname}'님의 기존 투표를 불러왔어요. 수정 후 비밀번호와 함께 제출하세요.`);
-    }
-  });
-}
 async function submitVote(tid, matchCount){
-  const nick = document.getElementById('v-nick').value.trim();
-  const pin  = document.getElementById('v-pin').value.trim();
   const msg  = document.getElementById('v-msg');
   const show = (cls, s)=>{ msg.className='msg '+cls; msg.textContent=s; msg.scrollIntoView({block:'center',behavior:'smooth'}); };
-  if(!nick) return show('err','닉네임을 입력해 주세요.');
-  if(!/^[0-9]{4}$/.test(pin)) return show('err','비밀번호는 숫자 4자리로 입력해 주세요.');
+  if(!gmMyNick || !gmMyPin){ toastMsg('먼저 홈 화면에서 닉네임을 등록해 주세요.'); location.hash = '#/'; return; }
   if(Object.keys(voteSel).length < matchCount) return show('err', `모든 경기에 투표해야 제출할 수 있습니다. 현재 ${matchCount}경기 중 ${Object.keys(voteSel).length}경기만 선택하셨어요.`);
   const btn = document.getElementById('vb-submit'); btn.disabled=true;
   try{
-    const {data, error} = await sb.rpc('submit_picks',{p_tournament:tid,p_nickname:nick,p_pin:pin,p_picks:voteSel});
+    const {data, error} = await sb.rpc('submit_picks',{p_tournament:tid,p_nickname:gmMyNick,p_pin:gmMyPin,p_picks:voteSel});
     if (error) return show('err', cleanErr(error.message));
     if (data && data.ok===false) return show('err', data.error);
     show('ok', data.is_new ? `✅ ${data.nickname}님의 투표가 등록되었습니다!` : `✅ ${data.nickname}님의 투표가 수정되었습니다!`);
@@ -6947,43 +6953,8 @@ function openMatchVoters(mid){
   ov.onclick = e => { if(e.target===ov) history.back(); };
   pushModal(ov);
 }
-function openRenameModal(tid){
-  const ov = document.createElement('div');
-  ov.className = 'modal-ov';
-  ov.innerHTML = `<div class="modal">
-    <div class="modal-h"><b>닉네임 · 비밀번호 변경</b><button class="modal-x" onclick="history.back()">✕</button></div>
-    <div class="modal-b">
-      <div class="field"><label>현재 닉네임</label><input id="rn-old" maxlength="20"></div>
-      <div class="field"><label>현재 비밀번호 (숫자 4자리)</label><input id="rn-pin" type="password" inputmode="numeric" maxlength="4"></div>
-      <div class="field"><label>새 닉네임</label><input id="rn-new" maxlength="20" placeholder="미입력 시 기존 닉네임 유지"></div>
-      <div class="field"><label>새 비밀번호 (숫자 4자리)</label><input id="rn-npin" type="password" inputmode="numeric" maxlength="4" placeholder="미입력 시 기존 비밀번호 유지"></div>
-      <div class="note">이번 대회에 제출한 내 투표에 적용됩니다. (마감 전까지만 가능)</div>
-      <div class="msg" id="rn-msg"></div>
-      <button class="btn primary wide" style="margin-top:12px" onclick="doRename('${tid}')">변경하기</button>
-    </div></div>`;
-  ov.onclick = e => { if(e.target===ov) history.back(); };
-  pushModal(ov);
-}
-async function doRename(tid){
-  const o = document.getElementById('rn-old').value.trim();
-  const p = document.getElementById('rn-pin').value.trim();
-  const n = document.getElementById('rn-new').value.trim();
-  const np = document.getElementById('rn-npin').value.trim();
-  const msg = document.getElementById('rn-msg');
-  const show = s => { msg.className='msg err'; msg.textContent=s; };
-  if(!o || !p) return show('현재 닉네임과 현재 비밀번호를 입력해 주세요.');
-  if(!n && !np) return show('새 닉네임 또는 새 비밀번호 중 하나는 입력해 주세요.');
-  if(np && !/^[0-9]{4}$/.test(np)) return show('새 비밀번호는 숫자 4자리여야 합니다.');
-  const {data, error} = await sb.rpc('rename_nickname',{p_tournament:tid, p_old:o, p_pin:p, p_new:(n || o), p_new_pin:np||null});
-  if(error){
-    if(/function|not find/i.test(error.message||'')) return show('참가자관리_패치.sql을 먼저 실행해 주세요. (관리자에게 문의)');
-    return show(cleanErr(error.message));
-  }
-  if(data && data.ok===false) return show(data.error);
-  document.querySelectorAll('.modal-ov').forEach(e=>e.remove());
-  toastMsg('✅ 변경되었습니다!');
-  viewTournament(tid);
-}
+/* openRenameModal/doRename(대회별 개별 닉네임·비번 변경)은 통합 로그인 도입으로
+   더 이상 쓰이지 않는다 — 닉네임/비밀번호 변경은 이제 홈 화면 ⚙️에서 한 곳으로 통일된다. */
 function openPartsModal(){
   const src = document.getElementById('pf-area');
   if(!src) return;
@@ -7229,6 +7200,17 @@ async function viewAdmin(){
       </div>
       <div id="gu-list"></div>
     </div>
+    <div class="sec-title">닉네임 화이트리스트 관리 <span style="color:var(--dim);font-size:12px;font-weight:700">오픈톡방 유저만 신규 등록 가능</span></div>
+    <div class="card" style="max-width:420px">
+      <div class="field"><label>화이트리스트 검색</label><input id="wl-search" placeholder="닉네임 입력" oninput="renderWhitelist()"></div>
+      <div class="row2" style="margin-top:12px">
+        <div class="field"><label>새 닉네임 추가</label><input id="wl-add" maxlength="20" placeholder="추가할 닉네임" onkeydown="if(event.key==='Enter')addWhitelistNick()"></div>
+      </div>
+      <button class="btn small primary" id="wl-add-btn" style="margin-top:8px" onclick="addWhitelistNick()">추가</button>
+      <div class="msg" id="wl-msg"></div>
+      <div style="font-size:12px;color:var(--muted);font-weight:700;margin-top:12px" id="wl-count">불러오는 중…</div>
+      <div id="wl-list" style="max-height:340px;overflow-y:auto;margin-top:6px"></div>
+    </div>
     <div class="sec-title">⚙️ 관리자 비밀번호 변경</div>
     <div class="card" style="max-width:420px">
       <div class="field"><label>새 비밀번호 (4자 이상)</label><input id="p-new" type="password"></div>
@@ -7236,6 +7218,90 @@ async function viewAdmin(){
     </div>`;
   for(let i=0;i<15;i++) addMatchRow();
   initFighterPick();
+  loadWhitelist();
+}
+/* --- 닉네임 화이트리스트 관리(관리자) --- */
+let __whitelistCache = [];
+async function loadWhitelist(){
+  const {data, error} = await sb.from('allowed_nicknames').select('nickname').order('nickname');
+  if(error){
+    const el = document.getElementById('wl-count');
+    if(el) el.textContent = /function|not find/i.test(error.message||'') ? '⚠️ 잡담방_닉네임_화이트리스트_패치.sql을 먼저 실행해 주세요.' : '⚠️ ' + cleanErr(error.message);
+    return;
+  }
+  __whitelistCache = (data||[]).map(r=>r.nickname);
+  __allowedNicknamesCache = __whitelistCache; // 홈 자동완성 캐시도 최신 상태로 갱신
+  renderWhitelist();
+}
+function renderWhitelist(){
+  const list = document.getElementById('wl-list');
+  const countEl = document.getElementById('wl-count');
+  if(!list || !countEl) return;
+  const q = (document.getElementById('wl-search')?.value||'').trim().toLowerCase();
+  const filtered = q ? __whitelistCache.filter(n=>n.toLowerCase().includes(q)) : __whitelistCache;
+  countEl.textContent = `총 ${__whitelistCache.length}명${q?` · 검색결과 ${filtered.length}명`:''}`;
+  list.innerHTML = filtered.map((n,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #eef1f6" id="wlrow-${i}">
+      <span id="wlname-${i}">${esc(n)}</span>
+      <span style="display:inline-flex;gap:5px;flex-wrap:wrap">
+        <button class="btn xs" data-idx="${i}" data-nick="${esc(n)}" onclick="editWhitelistNick(this)">수정</button>
+        <button class="btn xs" style="color:#c62828" data-nick="${esc(n)}" onclick="deleteWhitelistNick(this)">삭제</button>
+      </span>
+    </div>`).join('') || '<div class="empty" style="padding:10px 0">일치하는 닉네임이 없습니다.</div>';
+}
+async function addWhitelistNick(){
+  const inp = document.getElementById('wl-add');
+  const nick = (inp.value||'').trim();
+  const msg = document.getElementById('wl-msg');
+  const put = s => { msg.className='msg err'; msg.textContent=s; };
+  if(!nick) return put('추가할 닉네임을 입력해 주세요.');
+  const {data, error} = await sb.rpc('admin_add_allowed_nickname', {p_pass:adminPass(), p_nickname:nick});
+  if(error){
+    if(/function|not find/i.test(error.message||'')) return put('잡담방_닉네임_화이트리스트_패치.sql을 먼저 실행해 주세요.');
+    return put(cleanErr(error.message));
+  }
+  if(!data || data.ok === false) return put((data && data.msg) || '추가에 실패했습니다.');
+  msg.className=''; msg.textContent='';
+  inp.value = '';
+  toastMsg(`'${data.nickname}' 닉네임이 추가되었습니다.`);
+  loadWhitelist();
+}
+function editWhitelistNick(btn){
+  const idx = btn.dataset.idx;
+  const el = document.getElementById('wlname-'+idx);
+  if(!el || el.dataset.e) return;
+  el.dataset.e = '1';
+  const cur = btn.dataset.nick;
+  el.innerHTML = `<input id="wlinput-${idx}" value="${esc(cur)}" maxlength="20"
+      style="background:#fff;border:1.5px solid var(--key);border-radius:8px;padding:5px 8px;font-size:13.5px;font-weight:700;width:130px"
+      onkeydown="if(event.key==='Enter')saveWhitelistNick('${idx}','${esc(cur)}'); if(event.key==='Escape')renderWhitelist()">
+    <button class="btn xs primary" onclick="saveWhitelistNick('${idx}','${esc(cur)}')">저장</button>
+    <button class="btn xs" onclick="renderWhitelist()">취소</button>`;
+}
+async function saveWhitelistNick(idx, oldNick){
+  const inp = document.getElementById('wlinput-'+idx);
+  const newNick = (inp.value||'').trim();
+  if(!newNick) return toastMsg('⚠️ 닉네임을 입력해 주세요.');
+  const {data, error} = await sb.rpc('admin_rename_allowed_nickname', {p_pass:adminPass(), p_old_nickname:oldNick, p_new_nickname:newNick});
+  if(error){
+    if(/function|not find/i.test(error.message||'')) return toastMsg('⚠️ 잡담방_닉네임_화이트리스트_패치.sql을 먼저 실행해 주세요.');
+    return toastMsg('⚠️ ' + cleanErr(error.message));
+  }
+  if(!data || data.ok === false) return toastMsg('⚠️ ' + ((data && data.msg) || '수정에 실패했습니다.'));
+  toastMsg(`'${oldNick}' → '${data.nickname}'(으)로 수정되었습니다.`);
+  loadWhitelist();
+}
+async function deleteWhitelistNick(btn){
+  const nick = btn.dataset.nick;
+  if(!confirm(`'${nick}'을(를) 화이트리스트에서 삭제할까요?\n이미 가입된 계정에는 영향이 없고, 앞으로 이 닉네임으로 신규 등록만 막힙니다.`)) return;
+  const {data, error} = await sb.rpc('admin_delete_allowed_nickname', {p_pass:adminPass(), p_nickname:nick});
+  if(error){
+    if(/function|not find/i.test(error.message||'')) return toastMsg('⚠️ 잡담방_닉네임_화이트리스트_패치.sql을 먼저 실행해 주세요.');
+    return toastMsg('⚠️ ' + cleanErr(error.message));
+  }
+  if(!data || data.ok === false) return toastMsg('⚠️ ' + ((data && data.msg) || '삭제에 실패했습니다.'));
+  toastMsg(`'${nick}' 닉네임이 삭제되었습니다.`);
+  loadWhitelist();
 }
 // ── 대진 선수 이름 검증·보정·추천 ──
 function levDist(a, b){
