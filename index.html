@@ -4497,10 +4497,10 @@ function bbFighterGridHtml(selectedNick){
    기술적으로 불가능하다. 대신 모바일에서 지원되는 OS 공유 시트(navigator.share)를 띄워 카카오톡을
    바로 골라 몇 번의 탭만으로 보낼 수 있게 하고, 그마저 지원하지 않는 환경(주로 PC 브라우저)에서는
    기존 공유 기능(copyLink)과 동일하게 클립보드에 복사해 붙여넣기만 하면 되도록 돕는다.
-   공유되는 링크는 게임 화면 자체가 아니라 블랙컴뱃 잡담방 오픈채팅 참여 링크다 — 게임을 하려면
-   먼저 이 방에 들어와 있어야 하므로, 방 밖의 누군가에게 보내도 실제로 쓸모가 있으려면 이 링크여야 한다. */
+   공유되는 링크는 잡담방 오픈채팅 참여 링크가 아니라 블랙 배틀 매칭 화면으로 바로 들어오는 링크다 —
+   받은 사람이 누르자마자 곧장 매칭 화면으로 이동할 수 있게 하기 위함이다. */
 const BB_PROMOTE_TEXT = '블랙 배틀 한판 하실분?!🤗';
-const BB_PROMOTE_URL = 'https://open.kakao.com/o/guJ1LAuh';
+const BB_PROMOTE_URL = location.origin + location.pathname + '#/game/battle';
 function bbPromoteInChat(){
   const text = BB_PROMOTE_TEXT, url = BB_PROMOTE_URL;
   // 안드로이드에서 다운로드한 index.html을 다운로드 앱(Downloads)으로 직접 열면 주소가
@@ -5242,12 +5242,14 @@ async function bbShowHistoryOverlay(nickname){
     const list = Array.isArray(data) ? data : [];
     const reasonTxt = r => r==='finish' ? '피니쉬(KO)' : r==='decision' ? '판정' : r==='forfeit' ? '기권' : r==='aborted' ? '무효' : r==='draw' ? '무승부' : (r||'');
     const fighterNick = art => (BB_FIGHTERS.find(f=>f.art===art)||{}).nick || art;
+    // 실제 계정 닉네임끼리 붙었다는 걸 바로 알 수 있게 닉네임을 앞세우되, 그날 어떤 선수로 싸웠는지도
+    // 함께 보이도록 닉네임 옆 괄호 안에 선수(캐릭터) 이름을 덧붙인다 (예: "킹빠더(투신) vs 마이쮸(시라소니)")
     listEl.innerHTML = list.length ? list.map(h => {
       const cls = h.result==='win' ? 'win' : h.result==='lose' ? 'lose' : 'draw';
       const resTxt = h.result==='win' ? '승' : h.result==='lose' ? '패' : '무';
       return `<div class="bb-hist-row ${cls}">
         <span class="bb-hist-res ${cls}">${resTxt}</span>
-        <span class="bb-hist-vs">${esc(fighterNick(h.myFighter))} vs ${esc(fighterNick(h.oppFighter))} <b>${esc(h.opponentNickname)}</b></span>
+        <span class="bb-hist-vs">${esc(nickname)}(${esc(fighterNick(h.myFighter))}) vs ${esc(h.opponentNickname)}(${esc(fighterNick(h.oppFighter))})</span>
         <span class="bb-hist-hp">HP ${Math.max(0,h.myHp)}-${Math.max(0,h.oppHp)} · ${esc(reasonTxt(h.reason))}</span>
       </div>`;
     }).join('') : `<div class="empty">아직 완료된 대결이 없습니다.</div>`;
