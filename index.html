@@ -2343,7 +2343,7 @@ async function gmRenderLoginChangeView(ov){
       <div class="msg" id="gmn-msg"></div>
       <button class="btn primary wide" style="margin-top:14px" id="gmnGo">${isRegister ? '등록' : '로그인'}</button>
       <div class="gl-d" style="color:${isRegister?'var(--red)':'#8a94a6'};text-shadow:none;font-weight:600;margin-top:12px">${isRegister ? '잡담방 닉네임을 입력하면 목록이 나옵니다.<br>본인 닉네임을 선택한 후 비밀번호를 입력해 주세요.<br>본인 닉네임이 없거나, 이미 사용 중인 경우 킹빠더에게 문의하세요.' : '오픈톡방 닉네임을 입력하면 목록이 나옵니다.<br>본인 닉네임을 선택한 후 비밀번호를 입력해 주세요.<br>아직 등록 전인 경우 닉네임 등록을 먼저 진행해 주세요.'}</div>
-      ${gmMyNick ? `<button type="button" class="gmn-pinlink" id="gmnPinLink">비밀번호만 변경하기</button>` : ''}
+      ${gmMyNick ? `<button type="button" class="gmn-pinlink" id="gmnPinLink">비밀번호 변경하기</button>` : ''}
     </div>`;
   const msg = body.querySelector('#gmn-msg');
   const put = s => { msg.className = 'msg err'; msg.textContent = s; };
@@ -2422,7 +2422,7 @@ function gmRenderPinChangeView(ov){
       <div class="msg" id="gpc-msg"></div>
       <button class="btn primary wide" style="margin-top:14px" id="gpcGo">비밀번호 변경</button>
       <div class="gl-d" style="color:#8a94a6;text-shadow:none;font-weight:600;margin-top:12px">닉네임 <b style="color:var(--key-deep)">${esc(gmMyNick)}</b> 계정의 비밀번호를 변경합니다.</div>
-      <button type="button" class="gmn-pinlink" id="gmnBackLink">← 로그인 변경으로 돌아가기</button>
+      <button type="button" class="gmn-pinlink" id="gmnBackLink">로그인 변경으로 돌아가기</button>
     </div>`;
   const msg = body.querySelector('#gpc-msg');
   const put = s => { msg.className = 'msg err'; msg.textContent = s; };
@@ -5016,7 +5016,7 @@ function bbRenderPick(){
     ${step==='opp' ? `<button class="bg-forfeit" id="bbPickBack" style="display:block;margin:8px auto 0">← 내 선수 다시 선택</button>` : ''}
   </div>
   ${step==='me' ? `
-  <div class="sec-title">🏆 블랙 배틀 순위표</div>
+  <div class="sec-title">🏆 누적 랭킹</div>
   <div class="card" id="bbLeaderboardBody"><div class="empty">불러오는 중…</div></div>` : ''}`;
   gmApplyPoses();
   a.querySelectorAll('.bb-fcard').forEach(btn => {
@@ -6921,7 +6921,7 @@ function partsAreaHTML(matches, parts, st){
   const ranked = st==='final' ? rankParts(parts,matches) : parts.slice().sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
   return `
     <div class="card" style="padding:10px 12px;display:flex;gap:8px;align-items:center">
-      <input class="pf-in" placeholder="내 닉네임 검색" oninput="applyPartFilter(this)" style="flex:1;background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);outline:none;font-size:15px">
+      <input class="pf-in" placeholder="닉네임 검색" oninput="applyPartFilter(this)" style="flex:1;background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);outline:none;font-size:15px">
       <span style="color:var(--dim);font-size:13px;font-weight:700;flex-shrink:0">${parts.length}명 참여</span>
     </div>
     ${ranked.map(p=>{
@@ -7077,7 +7077,7 @@ async function viewRanking(){
     <h1 class="page">격잘알 랭킹</h1>
     <div class="sub">누적 대회 ${d.finals.length}개 · <b>우승 횟수 기준</b> (동률 시 총 적중 수)</div>
     <div class="card" style="display:flex;gap:8px;padding:12px;align-items:center">
-      <input id="rk-search" placeholder="닉네임 검색 (내 전적 보기)" style="flex:1;min-width:0;box-sizing:border-box;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);outline:none;font-size:15px" oninput="filterRankTable()" onkeydown="if(event.key==='Enter')searchNick()">
+      <input id="rk-search" placeholder="닉네임 검색 (전적 보기)" style="flex:1;min-width:0;box-sizing:border-box;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);outline:none;font-size:15px" oninput="filterRankTable()" onkeydown="if(event.key==='Enter')searchNick()">
       <button class="btn primary small" style="white-space:nowrap;flex-shrink:0" onclick="searchNick()">검색</button>
     </div>
     <div class="card" style="padding:0;overflow:hidden">
