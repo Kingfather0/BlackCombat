@@ -1,7 +1,7 @@
 {
-  "name": "블랙컴뱃 잡담방 승부예측",
-  "short_name": "승부예측",
-  "description": "블랙컴뱃 승부예측 투표 · 자동 집계 · 격잘알 랭킹",
+  "name": "블컴 잡담방",
+  "short_name": "블컴 잡담방",
+  "description": "블랙컴뱃 승부예측 · 랭킹 · 게임",
   "start_url": "./index.html",
   "id": "./index.html",
   "scope": "./",
