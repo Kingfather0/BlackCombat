@@ -464,6 +464,12 @@ body.gm-pf-lock{overflow:hidden;position:fixed;width:100%}
 .bb-topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
 .bb-rules-btn{background:rgba(10,10,16,.5);backdrop-filter:blur(3px);border:1px solid rgba(255,255,255,.14);color:#f1f4fb;font-size:11.5px;font-weight:700;border-radius:99px;padding:6px 14px;cursor:pointer;text-shadow:0 1px 3px rgba(0,0,0,.55);white-space:nowrap}
 .bb-rules-btn:active{transform:translateY(1px)}
+/* 상성표 버튼: 화면 최상단 "👊 블랙 배틀" 타이틀 바(밝은 배경)에 "게임 선택" 버튼과 나란히 둔다.
+   예전엔 어두운 배틀 아레나 안, 혹은 화면 맨 아래에 상성표 카드 전체를 길게 펼쳐놨는데, 내용이 길어
+   화면(특히 좁은 화면)에서 잘려 보이는 문제가 있었다. 버튼+팝업 방식으로 바꿔서 스크롤되는 모달 안에서
+   항상 온전히 보이게 한다 */
+.bb-rules-btn-top{font-size:12.5px;font-weight:800;color:var(--key-deep);background:#eef4ff;border:1.5px solid #cfe0f5;border-radius:99px;padding:6px 14px;cursor:pointer;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif}
+.bb-rules-btn-top:active{transform:translateY(1px)}
 .bb-topbtns{display:flex;flex-direction:row;gap:8px;flex:0 0 auto}
 .bb-topbtn{background:rgba(10,10,16,.55);backdrop-filter:blur(3px);border:1px solid rgba(255,255,255,.18);color:#f1f4fb;border-radius:99px;width:30px;height:30px;font-size:13px;line-height:1;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.35);text-shadow:0 1px 3px rgba(0,0,0,.55);flex:0 0 auto}
 .bb-topbtn:active{transform:translateY(1px)}
@@ -890,6 +896,28 @@ img.bb-fin-ic{width:1em;height:1em;object-fit:contain;vertical-align:-0.15em;bor
 /* --- 선수 선택 화면 상단: 내 닉네임 + PvP 배틀카드(승/패/무) 한 줄 표시, "매칭" 버튼은
    다른 미니게임들과 동일하게 설명(gt-desc) 바로 아래 큰 파란 버튼으로 배치한다 --- */
 .bb-mystatus{font-family:'Jua','Pretendard Variable',Pretendard,sans-serif;font-size:11.5px;color:#e2f0ff;font-weight:700;text-shadow:0 1px 3px rgba(20,50,100,.5)}
+/* --- "매칭" 버튼 아래 보조 버튼 두 개: 매칭 인원이 없을 때 쓸 수 있는 대안(잡담방 홍보 / Bot 스파링) --- */
+.bb-botspar-note{font-size:10.5px;color:#c8d4ee;margin-top:6px;text-shadow:0 1px 3px rgba(0,0,0,.4);max-width:280px;margin-left:auto;margin-right:auto}
+/* --- 대결 화면에서 Bot 스파링 중임을 계속 알려주는 배지 (PvP의 🌐 실시간 매칭 표시와 대칭되는 자리) --- */
+.bb-botspar-badge{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);color:#ffe9b8;font-size:10.5px;font-weight:800;padding:3px 10px;border-radius:99px;margin-bottom:6px}
+/* --- 블랙 배틀 순위표(랭킹) + 닉네임별 대결 이력 모달 --- */
+.bb-lb-list{display:flex;flex-direction:column;gap:6px}
+.bb-lb-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:9px 12px;cursor:pointer;font-family:inherit}
+.bb-lb-row:active{transform:scale(.98)}
+.bb-lb-rank{flex-shrink:0;width:22px;text-align:center;font-weight:900;color:var(--dim);font-size:13px}
+.bb-lb-nick{flex-shrink:0;font-weight:800;font-size:13.5px;color:var(--text)}
+.bb-lb-stat{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
+.bb-lb-rate{color:var(--dim)}
+.bb-lb-back{display:block;margin-bottom:10px}
+.bb-hist-t{font-weight:800;font-size:14px;margin-bottom:10px}
+.bb-hist-list{display:flex;flex-direction:column;gap:6px}
+.bb-hist-row{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:8px 12px;font-size:12px;color:var(--muted)}
+.bb-hist-res{flex-shrink:0;width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:#fff}
+.bb-hist-res.win{background:#2563eb}
+.bb-hist-res.lose{background:#c0273d}
+.bb-hist-res.draw{background:#8a8a8a}
+.bb-hist-vs{flex:1;color:var(--text);font-weight:700}
+.bb-hist-hp{flex-shrink:0;white-space:nowrap;font-size:11px}
 .bb-hud-status-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
 .bb-hud-status.opp{text-align:right}
 
@@ -903,6 +931,12 @@ img.bb-fin-ic{width:1em;height:1em;object-fit:contain;vertical-align:-0.15em;bor
 .bb-queue-cancel{background:#ffe3e3;border:2px solid #ffb3b3;color:#c0273d;font-size:12.5px;font-weight:800;padding:9px 22px;border-radius:99px;cursor:pointer}
 .bb-queue-cancel:active{transform:scale(.96)}
 .bb-queue-msg{font-size:11px;font-weight:700;color:#c0273d;margin-top:10px;min-height:14px}
+/* 매칭 대기 중 상대가 안 잡힐 때 쓸 수 있는 대안(잡담방 홍보/Bot 스파링) — 입장 전 화면이 아니라
+   실제로 기다리는 이 화면에 둬야 "지금 매칭이 안 되고 있다"는 맥락에서 바로 쓸 수 있다 */
+.bb-queue-alt{display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.bb-queue-alt-btn{background:#eef4ff;border:1.5px solid #cfe0f5;color:var(--key-deep);font-family:'Jua','Pretendard Variable',Pretendard,sans-serif;font-size:12.5px;font-weight:800;padding:8px 16px;border-radius:99px;cursor:pointer}
+.bb-queue-alt-btn:active{transform:scale(.96)}
+.bb-queue-alt-note{font-size:10.5px;color:var(--dim);margin-top:8px;max-width:280px;margin-left:auto;margin-right:auto}
 
 /* --- KO 필살기 풀스크린 시네마틱 --- */
 
@@ -919,6 +953,7 @@ img.bb-fin-ic{width:1em;height:1em;object-fit:contain;vertical-align:-0.15em;bor
 .bb-confirm-ic{font-size:30px;line-height:1;margin-bottom:8px}
 .bb-confirm-t{font-size:16px;font-weight:800;color:#fff;margin-bottom:6px}
 .bb-confirm-b{font-size:12.5px;color:#a8b2c8;line-height:1.5;margin-bottom:18px}
+.bb-promote-preview{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:10px 12px;font-size:12px;color:#dfe4f0;line-height:1.55;margin-bottom:16px;text-align:left;word-break:break-all;user-select:text;-webkit-user-select:text}
 .bb-confirm-actions{display:flex;gap:8px}
 .bb-confirm-btn{flex:1;padding:11px 0;border-radius:12px;border:none;font-size:13.5px;font-weight:800;cursor:pointer;transition:transform .1s;font-family:inherit}
 .bb-confirm-btn:active{transform:scale(.96)}
@@ -1768,6 +1803,8 @@ window.addEventListener('popstate', ()=>{
   if(bbLeaveGuardArmed){
     bbLeaveGuardArmed = false; // 더미 엔트리가 소모됨
     if(typeof BB !== 'undefined' && (BB.phase === 'fight' || BB.phase === 'pvp_fight')){
+      // Bot과의 스파링은 전적에 전혀 영향이 없으므로, 되묻지 않고 바로 나가게 해준다
+      if(BB.isBotSpar){ location.hash = '#/game'; return; }
       bbShowLeaveConfirm(() => { location.hash = '#/game'; });
     }
   }
@@ -4265,7 +4302,8 @@ const BB = { phase:'idle', mode:'cpu', me:null, opp:null, hp:null, round:0, log:
   winsMe:0, winsOpp:0, lastMe:null, prevMe:null, lastOpp:null, busy:false, pickStep:'me',
   streakMe:0, streakOpp:0, gaugeMe:0, gaugeOpp:0,
   gaugeMeCharge:0, gaugeOppCharge:0, // 필살기를 아껴 쓴(다 찼는데 계속 승리한) 단계 — 실제 발동 시 대미지 보너스로 환산된다
-  meExtraFatigue:false, oppExtraFatigue:false, cornerMe:'white', cornerOpp:'black' };
+  meExtraFatigue:false, oppExtraFatigue:false, cornerMe:'white', cornerOpp:'black',
+  isBotSpar:false }; // 매칭 인원이 없을 때를 위한 "Bot과 스파링" 연습 대결인지 — 전적(순위표)에는 반영되지 않는다
 /* 필살기 아껴 쓰기 보너스: 원시 단계값(raw, 대미지 계산용, 상한 없음)과 시각 연출용 단계값
    (visualLevel, BB_FINISHER_CHARGE_MAX로 상한)을 함께 반환한다 */
 function bbFinisherChargeInfo(charge){
@@ -4282,7 +4320,7 @@ function bbPvpStopTimers(){
   if(BBP.pollTimer){ clearInterval(BBP.pollTimer); BBP.pollTimer = null; }
   if(BBP.tickTimer){ clearInterval(BBP.tickTimer); BBP.tickTimer = null; }
 }
-function bbRoundLabel(){ return (BB.mode==='pvp' ? '🌐 ' : '') + `ROUND ${BB.round} / ${BB_TOTAL_ROUNDS}`; }
+function bbRoundLabel(){ return (BB.mode==='pvp' ? '🌐 ' : BB.isBotSpar ? '🤖 ' : '') + `ROUND ${BB.round} / ${BB_TOTAL_ROUNDS}`; }
 function bbCycleHtml(variant){
   const hero = variant === 'hero';
   const icon = variant === 'icon';
@@ -4378,46 +4416,69 @@ function gmBattleLeave(){
 }
 
 // 뒤로가기/화면 이동은 위 gmBattleLeave()(gmClear → route()에서 매번 호출됨)가 이미 대기열 취소/기권
-// 처리를 해준다. 하지만 탭을 완전히 닫거나 앱을 강제 종료하는 경우 일반 JS 실행이 보장되지 않으므로,
-// 브라우저가 그나마 지원해주는 pagehide 시점에 keepalive fetch로 "최선의 노력" 요청을 한 번 더 보낸다.
-// (navigator.sendBeacon은 Supabase에 필요한 apikey/Authorization 헤더를 실어보낼 수 없어 사용 불가)
-window.addEventListener('pagehide', () => {
+// 처리를 해준다. 문제는 예전 코드가 여기서 더 나아가 "pagehide 시점에 즉시" 대기열 취소/기권을
+// 한 번 더 밀어넣었다는 점이다 — pagehide는 탭을 진짜로 닫을 때만 발생하는 게 아니라, 모바일
+// (특히 iOS Safari, 카카오톡 인앱 브라우저 등)에서는 앱을 잠깐 백그라운드로 보내거나 화면을 잠그기만
+// 해도 발생할 수 있다. 그래서 "대결 중에 잠깐 다른 앱을 봤다가 돌아오면 이미 기권 처리되어 방에서
+// 쫓겨나 있는" 버그가 있었다. 이제는 화면이 실제로 숨겨진 시점(visibilitychange → hidden)부터
+// 유예 시간을 두고, 그 안에 다시 화면으로 돌아오면(visible) 아무 일도 없었던 것처럼 타이머만
+// 취소한다 — 유예 시간이 다 지나도록 돌아오지 않을 때만 "정말 자리를 비운 것"으로 보고 정리한다.
+// (짧게 놓친 라운드 한두 개는 어차피 서버의 라운드 마감시간 처리가 "그 라운드만" 자동 패배로 관대하게
+// 넘어가 주므로, 유예 시간 동안은 아무 불이익이 없다)
+const BB_HIDE_GRACE_MS = 30000;
+let bbHideGraceTimer = null;
+let bbAbsenceForfeited = false; // 자리를 비운 사이 기권 처리가 실제로 일어났는지 — 화면에 돌아왔을 때만 알려준다
+function bbCleanupAfterAbsence(){
+  // 유예 시간이 다 지나도록 화면으로 돌아오지 않은, 즉 탭이 여전히 살아있는(그냥 숨겨져 있을 뿐인)
+  // 상태에서 실행되는 게 보통이므로, 페이지가 지금 당장 사라질 수도 있는 pagehide 시점과 달리
+  // keepalive fetch 같은 특별한 안전장치 없이 평범한 sb.rpc 호출로 충분하다.
   try{
-    if(BBP.queueId && gmMyNick && gmMyPin){
-      fetch(`${SUPABASE_URL}/rest/v1/rpc/bb_pvp_cancel_queue`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
-        body: JSON.stringify({ p_nickname: gmMyNick, p_pin: gmMyPin, p_queue_id: BBP.queueId }),
-        keepalive: true
-      }).catch(()=>{});
+    if(BBP.queueId && sb && gmMyNick && gmMyPin){
+      sb.rpc('bb_pvp_cancel_queue', {p_nickname:gmMyNick, p_pin:gmMyPin, p_queue_id:BBP.queueId}).catch(()=>{});
     }
-    if(BB.phase === 'pvp_fight' && BBP.matchId && gmMyNick && gmMyPin){
-      fetch(`${SUPABASE_URL}/rest/v1/rpc/bb_pvp_forfeit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
-        body: JSON.stringify({ p_nickname: gmMyNick, p_pin: gmMyPin, p_match_id: BBP.matchId }),
-        keepalive: true
-      }).catch(()=>{});
+    if(BB.phase === 'pvp_fight' && BBP.matchId && sb && gmMyNick && gmMyPin){
+      sb.rpc('bb_pvp_forfeit', {p_nickname:gmMyNick, p_pin:gmMyPin, p_match_id:BBP.matchId}).catch(()=>{});
+      bbAbsenceForfeited = true; // 화면이 숨겨진 채로 토스트를 띄워봐야 못 보므로, 돌아왔을 때 알려준다
     }
   }catch(e){}
+}
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'hidden'){
+    if(bbHideGraceTimer) clearTimeout(bbHideGraceTimer);
+    // 테스트에서만 유예 시간을 짧게 바꿔치기할 수 있게 window.__BB_HIDE_GRACE_MS_OVERRIDE로 우회를 열어둔다
+    const graceMs = window.__BB_HIDE_GRACE_MS_OVERRIDE != null ? window.__BB_HIDE_GRACE_MS_OVERRIDE : BB_HIDE_GRACE_MS;
+    bbHideGraceTimer = setTimeout(() => { bbHideGraceTimer = null; bbCleanupAfterAbsence(); }, graceMs);
+  }else{
+    if(bbHideGraceTimer){ clearTimeout(bbHideGraceTimer); bbHideGraceTimer = null; }
+    if(bbAbsenceForfeited){ bbAbsenceForfeited = false; toastMsg('자리를 오래 비워서 진행 중인 대결에서 패배(기권)로 처리되었습니다'); }
+  }
 });
 
 async function viewGameBattle(){
   gmToken++; gmClear(); gmCurGame = 'battle';
   // 이전에 골랐던 선수를 자동으로 미리 선택해두지 않는다 — 매번 직접 골라야 매칭 버튼을 누를 수 있다
-  BB.phase = 'pick'; BB.mode = 'cpu'; BB.pickStep = 'me'; BB.me = null; BB.opp = null; BB.busy = false;
+  BB.phase = 'pick'; BB.mode = 'cpu'; BB.pickStep = 'me'; BB.me = null; BB.opp = null; BB.busy = false; BB.isBotSpar = false;
   $app.innerHTML = `
-  <h1 class="page">👊 블랙 배틀 <a class="gback" href="#/game" id="bbGameSelectBack">🎮 게임 선택</a></h1>
+  <h1 class="page">👊 블랙 배틀 <button class="bb-rules-btn-top" id="bbRulesBtnPick" type="button">📖 상성표 보기</button><a class="gback" href="#/game" id="bbGameSelectBack">🎮 게임 선택</a></h1>
   <div id="bbArea"></div>`;
   // 대결 도중(fight/pvp_fight) "게임 선택"을 누르면 바로 나가지 않고 먼저 확인 팝업을 띄운다.
+  // 단, Bot과의 스파링은 전적에 전혀 영향이 없으므로 되묻지 않고 바로 나가게 해준다.
   const backLink = document.getElementById('bbGameSelectBack');
   if(backLink){
     backLink.addEventListener('click', e => {
-      if(BB.phase === 'fight' || BB.phase === 'pvp_fight'){
+      if((BB.phase === 'fight' || BB.phase === 'pvp_fight') && !BB.isBotSpar){
         e.preventDefault();
         bbShowLeaveConfirm(() => { location.hash = '#/game'; });
       }
     });
+  }
+  // 상성표 버튼은 화면 최상단(타이틀 바)에 고정으로 하나만 두고, 픽/매칭 화면은 물론 전투 중에도
+  // 같은 버튼으로 동일한 모달을 연다 (전투 화면 안에도 별도의 📖 상성표 보기 버튼이 있는 것은
+  // 전체화면 모드에서는 이 타이틀 바가 보이지 않기 때문 — 그 경우를 위한 보조 버튼이다)
+  const rulesBtnTop = document.getElementById('bbRulesBtnPick');
+  if(rulesBtnTop){
+    rulesBtnTop.onpointerdown = e => e.stopPropagation();
+    rulesBtnTop.onclick = e => { e.stopPropagation(); bbOpenMatchupModal(); };
   }
   bbRenderPick();
 }
@@ -4429,6 +4490,79 @@ function bbFighterGridHtml(selectedNick){
       <div class="bb-fcard-nm">${esc(f.nick)}</div>
       <div class="bb-fcard-div">${esc(f.div)} · 특기 ${bbMoveIcHtml(f.specialty)}${esc(f.specialty)}</div>
     </button>`).join('')}</div>`;
+}
+/* --- 매칭해 줄 사람이 없을 때, 잡담방에 홍보해서 상대를 구할 수 있게 돕는 버튼.
+   카카오톡을 포함한 어떤 메신저도 웹페이지가 사용자 확인 없이 특정 대화방에 조용히 메시지를
+   대신 보내는 것은 허용하지 않는다(스팸 방지를 위한 플랫폼 자체의 제약) — 그래서 "완전 자동 발송"은
+   기술적으로 불가능하다. 대신 모바일에서 지원되는 OS 공유 시트(navigator.share)를 띄워 카카오톡을
+   바로 골라 몇 번의 탭만으로 보낼 수 있게 하고, 그마저 지원하지 않는 환경(주로 PC 브라우저)에서는
+   기존 공유 기능(copyLink)과 동일하게 클립보드에 복사해 붙여넣기만 하면 되도록 돕는다.
+   공유되는 링크는 게임 화면 자체가 아니라 블랙컴뱃 잡담방 오픈채팅 참여 링크다 — 게임을 하려면
+   먼저 이 방에 들어와 있어야 하므로, 방 밖의 누군가에게 보내도 실제로 쓸모가 있으려면 이 링크여야 한다. */
+const BB_PROMOTE_TEXT = '블랙 배틀 한판 하실분?!🤗';
+const BB_PROMOTE_URL = 'https://open.kakao.com/o/guJ1LAuh';
+function bbPromoteInChat(){
+  const text = BB_PROMOTE_TEXT, url = BB_PROMOTE_URL;
+  // 안드로이드에서 다운로드한 index.html을 다운로드 앱(Downloads)으로 직접 열면 주소가
+  // content://...가 되는데, 이렇게 origin이 없는 상태에서 navigator.share()를 호출하면 일부
+  // 기기(특히 안드로이드 크롬)에서 응답 없이 렌더러 자체가 죽어버리는 것이 실제로 확인됐다.
+  // 그래서 content:// 등 비정상적인 스킴에서는 시도 자체를 막는다 — 실제 배포 주소
+  // (https://…github.io/...)나 로컬 file://에서 여는 경우는 해당하지 않는다.
+  // 반환값은 어떤 방법으로 처리됐는지를 나타낸다('share'/'clipboard'/'manual') — 호출한 쪽(확인
+  // 팝업)에서 'manual'이면 팝업을 바로 닫지 않고 문구를 계속 보여준 채로 직접 복사하게 해준다
+  // 테스트에서는 실제로 content:// 주소로 열 수 없으므로, 프로토콜을 흉내낼 수 있게 오버라이드 지점을 둔다
+  const protocol = window.__BB_PROMOTE_PROTOCOL_OVERRIDE || location.protocol;
+  const unsafeOrigin = /^(content|blob|about|data):$/.test(protocol);
+  try{
+    if(!unsafeOrigin && typeof navigator.share === 'function'){
+      navigator.share({ text, url }).catch(()=>{});
+      return 'share';
+    }
+    if(!unsafeOrigin && navigator.clipboard && typeof navigator.clipboard.writeText === 'function'){
+      navigator.clipboard.writeText(`${text}\n${url}`)
+        .then(()=>toastMsg('홍보 문구가 복사되었습니다. 카톡방에 붙여넣어 주세요!'))
+        .catch(()=>toastMsg('아래 문구를 직접 선택해 복사한 뒤 카톡방에 붙여넣어 주세요!'));
+      return 'clipboard';
+    }
+  }catch(e){}
+  // 공유 시트도 클립보드도 쓸 수 없는 환경(혹은 위 두 방법이 모두 실패한 경우) — 문구를 계속 화면에
+  // 띄워둔 채로 직접 길게 눌러 선택해서 복사하도록 안내한다
+  toastMsg('아래 문구를 직접 선택해 복사한 뒤 카톡방에 붙여넣어 주세요!');
+  return 'manual';
+}
+/* "잡담방 홍보" 버튼을 누르면 바로 공유 시트/클립보드로 보내지 않고, 실제로 전달될 문구를
+   미리 보여준 뒤 보낼지 취소할지 확인받는다 */
+function bbShowPromoteConfirm(){
+  const ov = document.createElement('div');
+  ov.className = 'modal-ov bb-confirm-ov';
+  ov.innerHTML = `<div class="bb-confirm">
+    <div class="bb-confirm-ic">📢</div>
+    <div class="bb-confirm-t">잡담방에 홍보할까요?</div>
+    <div class="bb-confirm-b">아래 메시지가 그대로 전달돼요.</div>
+    <div class="bb-promote-preview">${esc(BB_PROMOTE_TEXT)}<br>${esc(BB_PROMOTE_URL)}</div>
+    <div class="bb-confirm-actions">
+      <button type="button" class="bb-confirm-btn cancel">취소</button>
+      <button type="button" class="bb-confirm-btn ok">보내기</button>
+    </div>
+  </div>`;
+  ov.onclick = e => { if(e.target===ov) history.back(); };
+  const [cancelBtn, okBtn] = ov.querySelectorAll('.bb-confirm-btn');
+  cancelBtn.onpointerdown = e=>e.stopPropagation();
+  cancelBtn.onclick = e => { e.stopPropagation(); history.back(); };
+  okBtn.onpointerdown = e=>e.stopPropagation();
+  okBtn.onclick = e => {
+    e.stopPropagation();
+    const method = bbPromoteInChat();
+    if(method === 'manual'){
+      // 공유 시트도 클립보드도 쓸 수 없는 환경 — 팝업을 바로 닫지 않고, 문구를 계속 보여준 채로
+      // 직접 선택해서 복사할 수 있게 "보내기" 버튼을 숨기고 "닫기"만 남긴다
+      okBtn.style.display = 'none';
+      cancelBtn.textContent = '닫기';
+      return;
+    }
+    history.back();
+  };
+  pushModal(ov);
 }
 function bbRenderPick(){
   const a = bbArea(); if(!a) return;
@@ -4453,7 +4587,9 @@ function bbRenderPick(){
     ${step==='opp' ? `<button class="g-start g-en" id="bbPickNext" ${cur ? '' : 'disabled'}>⚔️ 전투 시작</button>` : ''}
     ${step==='opp' ? `<button class="bg-forfeit" id="bbPickBack" style="display:block;margin:8px auto 0">← 내 선수 다시 선택</button>` : ''}
   </div>
-  ${bbRulesCard()}`;
+  ${step==='me' ? `
+  <div class="sec-title">🏆 블랙 배틀 순위표</div>
+  <div class="card" id="bbLeaderboardBody"><div class="empty">불러오는 중…</div></div>` : ''}`;
   gmApplyPoses();
   a.querySelectorAll('.bb-fcard').forEach(btn => {
     btn.onpointerdown = e => e.stopPropagation();
@@ -4471,7 +4607,7 @@ function bbRenderPick(){
   const next = document.getElementById('bbPickNext');
   if(next){
     next.onpointerdown = e => e.stopPropagation();
-    next.onclick = e => { e.stopPropagation(); if(!BB.opp) return; gmStartGate(bbStartFight); };
+    next.onclick = e => { e.stopPropagation(); if(!BB.opp) return; BB.isBotSpar = false; gmStartGate(bbStartFight); };
   }
   const matchBtn = document.getElementById('bbMatchBtn');
   if(matchBtn){
@@ -4479,12 +4615,14 @@ function bbRenderPick(){
     matchBtn.onclick = e => {
       e.stopPropagation();
       if(!BB.me){ toastMsg('먼저 내 선수를 선택해주세요!'); return; }
+      BB.isBotSpar = false;
       gmStartGate(bbPvpEnterQueue);
     };
   }
   const back = document.getElementById('bbPickBack');
   if(back){ back.onpointerdown = e=>e.stopPropagation(); back.onclick = e => { e.stopPropagation(); BB.pickStep = 'me'; bbRenderPick(); }; }
   if(step === 'me' && gmMyNick) bbLoadMyRecordTag();
+  if(step === 'me') bbLoadLeaderboard();
 }
 /* "N승 N패 N무" 형태의 짧은 전적 텍스트 — 선수 선택 화면과 대전 화면에서 공통으로 사용 */
 function bbRecordShortText(data){
@@ -4581,11 +4719,48 @@ function bbRenderPvpQueue(){
       <div class="bb-queue-timer" id="bbQueueTimer">00:00</div>
       <button class="bb-queue-cancel" id="bbQueueCancelBtn">매칭 취소</button>
       <div class="bb-queue-msg" id="bbQueueMsg"></div>
+      <div class="bb-queue-alt">
+        <button class="bb-queue-alt-btn" id="bbPromoteBtn" type="button">📢 잡담방 홍보</button>
+        <button class="bb-queue-alt-btn" id="bbBotSparBtn" type="button">🤖 Bot과 스파링</button>
+      </div>
+      <div class="bb-queue-alt-note">🤖 Bot과의 스파링은 <b>연습 대결</b>이에요 · 승패는 순위표 전적에 반영되지 않아요 · 시작하면 매칭 대기는 취소돼요</div>
     </div>
   </div>`;
   const cancel = document.getElementById('bbQueueCancelBtn');
   if(cancel){ cancel.onpointerdown = e=>e.stopPropagation(); cancel.onclick = e => { e.stopPropagation(); bbPvpCancelQueue(); }; }
+  const promoteBtn = document.getElementById('bbPromoteBtn');
+  if(promoteBtn){ promoteBtn.onpointerdown = e=>e.stopPropagation(); promoteBtn.onclick = e => { e.stopPropagation(); bbShowPromoteConfirm(); }; }
+  const botSparBtn = document.getElementById('bbBotSparBtn');
+  if(botSparBtn){ botSparBtn.onpointerdown = e=>e.stopPropagation(); botSparBtn.onclick = e => { e.stopPropagation(); bbShowBotSparConfirm(); }; }
   bbPvpTickQueueTimer();
+}
+/* "Bot과 스파링" 버튼을 누르면 바로 대결로 들어가지 않고, 전적에 영향이 없는 연습 대결이라는 점과
+   지금 기다리던 실시간 매칭이 취소된다는 점을 다시 한번 확인시키는 팝업을 먼저 띄운다 */
+function bbShowBotSparConfirm(){
+  if(!BB.me) return;
+  bbShowConfirmModal({
+    title: '🤖 Bot과 스파링하시겠습니까?',
+    body: '연습 대결이라 승패는 순위표 전적에 반영되지 않아요. 진행하면 지금 기다리던 실시간 매칭은 취소돼요.',
+    confirmText: '진행하기',
+    cancelText: '취소',
+    danger: false,
+    onConfirm: bbQueueBotSpar
+  });
+}
+/* 매칭을 기다리는 도중 "Bot과 스파링"을 누르면, 지금 하고 있던 실시간 매칭 대기는 취소하고
+   (같은 대기열에 계속 남아있으면 안 되므로) 곧바로 연습 대결로 넘어간다 */
+async function bbQueueBotSpar(){
+  if(!BB.me) return;
+  const qid = BBP.queueId;
+  bbPvpStopTimers();
+  BBP.queueId = null;
+  if(qid && sb){ try{ await sb.rpc('bb_pvp_cancel_queue', {p_nickname:gmMyNick, p_pin:gmMyPin, p_queue_id:qid}); }catch(e){} }
+  if(BB.phase !== 'pvp_queue') return; // 취소 처리 중 사용자가 이미 다른 화면으로 이동함
+  // 매칭 상대는 필요 없다 — 내가 고른 선수를 제외한 나머지 중에서 Bot의 선수를 무작위로 정한다
+  const pool = BB_FIGHTERS.filter(f => f.nick !== BB.me.nick);
+  BB.opp = pool[Math.floor(Math.random() * pool.length)];
+  BB.isBotSpar = true;
+  gmStartGate(bbStartFight);
 }
 function bbPvpTickQueueTimer(){
   const el = document.getElementById('bbQueueTimer'); if(!el || !BBP.queueStartedAt) return;
@@ -4970,7 +5145,7 @@ function bbRulesCard(){
   const fatDownPct = Math.round((1 - BB_FATIGUE_DOWN) * 100);
   const fatUpPct = Math.round((BB_FATIGUE_UP - 1) * 100);
   return `<div class="card bg-rules">
-    <div class="bg-rules-t">📖 기술표 &amp; 상성 (HP ${BB_MAX_HP} · 총 ${BB_TOTAL_ROUNDS}회 공방)</div>
+    <div class="bg-rules-t">📖 기술표 &amp; 상성 (HP ${BB_MAX_HP} · 총 ${BB_TOTAL_ROUNDS}라운드)</div>
     <div class="bg-rules-g">
       ${BB_MOVES.map(m=>`<div class="bg-r-row"><span class="ic">${m.ic}</span><b>${m.k}</b><span class="dd">${m.d}</span></div>`).join('')}
     </div>
@@ -4979,7 +5154,7 @@ function bbRulesCard(){
       <div class="bg-rb-row"><span class="ic">👊🤼</span><span class="bg-rb-txt">타격·태클로 이기면 상대에게 <b>대미지</b> (선수 특기에 따라 다름)</span></div>
       <div class="bg-rb-row"><span class="ic">🛡️</span><span class="bg-rb-txt">방어로 이기면 대미지 대신 상대 <b>필살기 게이지</b> 감소</span></div>
       <div class="bg-rb-row"><span class="ic">🤝</span><span class="bg-rb-txt">같은 기술이 겹치면 <b>무효</b>(대미지 없음)</span></div>
-      <div class="bg-rb-row"><span class="ic">🏁</span><span class="bg-rb-txt">총 ${BB_TOTAL_ROUNDS}회 공방 후 <b>체력이 더 많이 남은 쪽</b>이 승리 (동률이면 무승부)</span></div>
+      <div class="bg-rb-row"><span class="ic">🏁</span><span class="bg-rb-txt">총 ${BB_TOTAL_ROUNDS}라운드 후 <b>체력이 더 많이 남은 쪽</b>이 승리 (동률이면 무승부)</span></div>
       <div class="bg-rb-row"><span class="ic">${bbMoveIcHtml('필살기')}</span><span class="bg-rb-txt">상대 체력을 <b>0</b>으로 만들면 화려한 <b>피니쉬</b>로 즉시 종료</span></div>
     </div>
     <div class="bg-rules-sub">특수 시스템</div>
@@ -5016,6 +5191,69 @@ function bbOpenMatchupModal(){
     <div class="modal-b">${bbRulesCard()}</div></div>`;
   ov.onclick = e => { if(e.target===ov) history.back(); };
   pushModal(ov);
+}
+
+/* --- 순위표(전적 랭킹). 다른 미니게임들의 "이번 주 랭킹"과 동일하게 화면 하단에 항상
+   펼쳐서 보여주는 방식(버튼+모달이 아님)이며, bb_pvp_get_leaderboard에서 PIN 없이 조회
+   가능한 공개 데이터를 사용한다. 닉네임을 누르면 대결 상세 이력(bb_pvp_get_history)을
+   기존 게임들의 "닉네임 클릭 → 히스토리" 패턴(gmShowHist)과 동일하게 작은 팝업으로 띄운다 --- */
+async function bbLoadLeaderboard(){
+  const body = document.getElementById('bbLeaderboardBody'); if(!body || !sb) return;
+  body.innerHTML = `<div class="empty">불러오는 중…</div>`;
+  try{
+    const {data, error} = await sb.rpc('bb_pvp_get_leaderboard', {p_limit:50});
+    if(!document.getElementById('bbLeaderboardBody')) return; // 그새 화면이 바뀜
+    if(error) throw error;
+    const rows = Array.isArray(data) ? data : [];
+    if(!rows.length){
+      body.innerHTML = `<div class="empty">아직 완료된 대결이 없습니다.<br>대결을 마치면 여기 순위표에 표시돼요.</div>`;
+      return;
+    }
+    body.innerHTML = `<div class="bb-lb-list">${rows.map((r,i) => `
+      <button class="bb-lb-row" data-nick="${esc(r.nickname)}" type="button">
+        <span class="bb-lb-rank">${i+1}</span>
+        <span class="bb-lb-nick">${esc(r.nickname)}</span>
+        <span class="bb-lb-stat">${r.wins}승 ${r.losses}패 ${r.draws}무 <span class="bb-lb-rate">(${r.winRate}%)</span></span>
+      </button>`).join('')}</div>`;
+    body.querySelectorAll('.bb-lb-row').forEach(btn => {
+      btn.onpointerdown = e => e.stopPropagation();
+      btn.onclick = e => { e.stopPropagation(); bbShowHistoryOverlay(btn.dataset.nick); };
+    });
+  }catch(e){
+    body.innerHTML = `<div class="empty">순위표를 불러오지 못했습니다.<br>관리자가 블랙배틀_PvP_매칭.sql을 다시 실행해야 사용할 수 있어요.</div>`;
+  }
+}
+async function bbShowHistoryOverlay(nickname){
+  if(!sb) return;
+  const ov = document.createElement('div');
+  ov.className = 'ghist-ov';
+  ov.innerHTML = `<div class="ghist">
+    <div class="ghist-h">👤 <b>${esc(nickname)}</b>의 최근 대결<button class="ghist-x" onclick="this.closest('.ghist-ov').remove()">✕</button></div>
+    <div class="bb-hist-list" id="bbHistList"><div class="empty">불러오는 중…</div></div>
+  </div>`;
+  ov.onclick = e => { if(e.target===ov) ov.remove(); };
+  document.body.append(ov);
+  try{
+    const {data, error} = await sb.rpc('bb_pvp_get_history', {p_nickname:nickname, p_limit:20});
+    const listEl = ov.querySelector('#bbHistList');
+    if(!listEl || !document.body.contains(ov)) return; // 그새 팝업이 닫힘
+    if(error) throw error;
+    const list = Array.isArray(data) ? data : [];
+    const reasonTxt = r => r==='finish' ? '피니쉬(KO)' : r==='decision' ? '판정' : r==='forfeit' ? '기권' : r==='aborted' ? '무효' : r==='draw' ? '무승부' : (r||'');
+    const fighterNick = art => (BB_FIGHTERS.find(f=>f.art===art)||{}).nick || art;
+    listEl.innerHTML = list.length ? list.map(h => {
+      const cls = h.result==='win' ? 'win' : h.result==='lose' ? 'lose' : 'draw';
+      const resTxt = h.result==='win' ? '승' : h.result==='lose' ? '패' : '무';
+      return `<div class="bb-hist-row ${cls}">
+        <span class="bb-hist-res ${cls}">${resTxt}</span>
+        <span class="bb-hist-vs">${esc(fighterNick(h.myFighter))} vs ${esc(fighterNick(h.oppFighter))} <b>${esc(h.opponentNickname)}</b></span>
+        <span class="bb-hist-hp">HP ${Math.max(0,h.myHp)}-${Math.max(0,h.oppHp)} · ${esc(reasonTxt(h.reason))}</span>
+      </div>`;
+    }).join('') : `<div class="empty">아직 완료된 대결이 없습니다.</div>`;
+  }catch(e){
+    const listEl = ov.querySelector('#bbHistList');
+    if(listEl) listEl.innerHTML = `<div class="empty">대결 이력을 불러오지 못했습니다.</div>`;
+  }
 }
 
 /* --- 전투 시작 --- */
@@ -5184,6 +5422,9 @@ function bbLogHtml(){
 function bbForfeit(){
   if(BB.mode === 'pvp'){ bbPvpForfeit(); return; }
   if(BB.phase !== 'fight') return;
+  // Bot과의 스파링은 전적에 전혀 영향이 없으므로("즉시 패배로 처리되며"는 사실이 아니게 된다),
+  // 되묻지 않고 곧바로 연습 대결을 끝낸다
+  if(BB.isBotSpar){ bbClearPickTimer(); bbEndMatch(false, 'forfeit'); return; }
   bbShowConfirmModal({
     title: '정말 기권하시겠습니까?',
     body: '즉시 패배로 처리되며 되돌릴 수 없습니다.',
@@ -5735,7 +5976,9 @@ function bbPick(moveKey){
     gmVib(isFinisherHit ? 60 : (res.rel !== 'tie' ? 30 : 10));
     bbRefreshBars();
 
-    if(BB.round >= BB_TOTAL_ROUNDS){
+    // 5회 공방을 다 채우지 않았더라도, 상대 체력을 이번 판에 0으로 만들었다면(필살기 등)
+    // 그 즉시 KO성 피니쉬로 경기를 끝낸다 — 상성표에 적힌 "즉시 종료" 약속과 실제 동작을 맞춘다.
+    if(BB.round >= BB_TOTAL_ROUNDS || BB.hp.me <= 0 || BB.hp.opp <= 0){
       if(txt) txt.textContent = '판정 결과를 집계하는 중…';
       gmDelay(() => bbFinishMatch(), 1100);
       return;
@@ -5839,7 +6082,9 @@ function bbPickTimeout(){
     gmVib(30);
     bbRefreshBars();
 
-    if(BB.round >= BB_TOTAL_ROUNDS){
+    // 5회 공방을 다 채우지 않았더라도, 상대 체력을 이번 판에 0으로 만들었다면(필살기 등)
+    // 그 즉시 KO성 피니쉬로 경기를 끝낸다 — 상성표에 적힌 "즉시 종료" 약속과 실제 동작을 맞춘다.
+    if(BB.round >= BB_TOTAL_ROUNDS || BB.hp.me <= 0 || BB.hp.opp <= 0){
       if(txt) txt.textContent = '판정 결과를 집계하는 중…';
       gmDelay(() => bbFinishMatch(), 1100);
       return;
@@ -5941,22 +6186,27 @@ function bbFinishMatch(){
 function bbEndMatch(iWon, reason){
   BB.phase = 'over'; BB.busy = true;
   bbDisarmLeaveGuard();
-  const record = bbLoadRecord();
-  if(iWon === null){
-    // 무승부 — 연승은 끊되 승패 집계는 하지 않음
-    record.streak = 0;
-  }else if(iWon){
-    record.wins++; record.streak++; record.bestStreak = Math.max(record.bestStreak, record.streak);
-    if(reason === 'finish') record.kos++;
-  }else{
-    record.losses++; record.streak = 0;
-  }
-  bbSaveRecord(record);
-  // 다음 대전의 화이트/블랙 코너 배정을 위해, 이번에 쓰인 두 챔피언의 개별 전적도 갱신한다(무승부는 집계 제외)
-  if(iWon !== null){
-    const meRec = bbLoadFighterRecord(BB.me.nick), oppRec = bbLoadFighterRecord(BB.opp.nick);
-    if(iWon){ meRec.wins++; oppRec.losses++; } else { meRec.losses++; oppRec.wins++; }
-    bbSaveFighterRecord(BB.me.nick, meRec); bbSaveFighterRecord(BB.opp.nick, oppRec);
+  // Bot과의 스파링(연습 대결)은 어떤 전적에도 반영하지 않는다 — 이 기기의 로컬 승/패 집계조차
+  // 건드리지 않아야, 결과 화면에 뜨는 숫자가 "실제로 뭔가 바뀌었다"는 인상을 주지 않는다.
+  let record = null;
+  if(!BB.isBotSpar){
+    record = bbLoadRecord();
+    if(iWon === null){
+      // 무승부 — 연승은 끊되 승패 집계는 하지 않음
+      record.streak = 0;
+    }else if(iWon){
+      record.wins++; record.streak++; record.bestStreak = Math.max(record.bestStreak, record.streak);
+      if(reason === 'finish') record.kos++;
+    }else{
+      record.losses++; record.streak = 0;
+    }
+    bbSaveRecord(record);
+    // 다음 대전의 화이트/블랙 코너 배정을 위해, 이번에 쓰인 두 챔피언의 개별 전적도 갱신한다(무승부는 집계 제외)
+    if(iWon !== null){
+      const meRec = bbLoadFighterRecord(BB.me.nick), oppRec = bbLoadFighterRecord(BB.opp.nick);
+      if(iWon){ meRec.wins++; oppRec.losses++; } else { meRec.losses++; oppRec.wins++; }
+      bbSaveFighterRecord(BB.me.nick, meRec); bbSaveFighterRecord(BB.opp.nick, oppRec);
+    }
   }
   gmSnd('over');
   gmDelay(() => gmSnd(iWon ? 'cheer' : 'weak'), 250);
@@ -5977,13 +6227,13 @@ function bbShowResult(iWon, reason, record){
   a.innerHTML = `
   <div class="bg-result" style="background-image:linear-gradient(180deg,rgba(10,7,5,.82) 0%,rgba(10,7,5,.6) 40%,rgba(10,7,5,.92) 100%),url('${GM_ART_SRC.battleCage}')">
     <div class="bg-result-t ${cls}">${title}</div>
-    <div class="bg-result-r">${esc(reasonTxt)} · 총 ${BB_TOTAL_ROUNDS}회 공방 · 최종 HP ${esc(BB.me.nick)} <b class="${meHpCls}">${meHp}</b> — <b class="${oppHpCls}">${oppHp}</b> ${esc(BB.opp.nick)}</div>
-    <div class="bb-record">
+    <div class="bg-result-r">${BB.isBotSpar ? '🤖 Bot과의 연습 대결 · ' : ''}${esc(reasonTxt)} · 총 ${BB_TOTAL_ROUNDS}라운드 · 최종 HP ${esc(BB.me.nick)} <b class="${meHpCls}">${meHp}</b> — <b class="${oppHpCls}">${oppHp}</b> ${esc(BB.opp.nick)}</div>
+    ${record ? `<div class="bb-record">
       <span>🏆 승 <b>${record.wins}</b></span>
       <span>💀 패 <b>${record.losses}</b></span>
       <span>🔥 연승 <b>${record.streak}</b></span>
       <span>⚡ 피니쉬 <b>${record.kos}</b></span>
-    </div>
+    </div>` : `<div class="bb-botspar-note" style="color:var(--dim)">🤖 연습 대결은 순위표 전적에 반영되지 않아요</div>`}
     <button class="g-start g-en" id="bbAgain">다시 도전</button>
     <div class="bg-log" id="bbLog2" style="margin-top:16px;text-align:left">${bbLogHtml()}</div>
   </div>`;
