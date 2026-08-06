@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>🔥블랙컴뱃 잡담방🔥 승부예측</title>
-<meta property="og:title" content="🔥블랙컴뱃 잡담방🔥 승부예측">
-<meta property="og:description" content="블랙컴뱃 승부예측 투표 · 자동 집계 · 격잘알 랭킹">
+<title>🔥블랙컴뱃 잡담방🔥</title>
+<meta property="og:title" content="🔥블랙컴뱃 잡담방🔥">
+<meta property="og:description" content="블랙컴뱃 승부예측 · 랭킹 · 게임">
 <meta property="og:image" content="https://kingfather0.github.io/BlackCombat/og.jpg?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://kingfather0.github.io/BlackCombat/">
-<meta name="description" content="격투기 승부예측 투표 · 자동 집계 · 랭킹">
+<meta name="description" content="격투기 승부예측 · 랭킹 · 게임">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦁</text></svg>">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#f4f6fa">
@@ -70,7 +70,7 @@ h1.page{font-size:24px;font-weight:900;margin-top:24px;line-height:1.35}
 .sub{color:var(--muted);font-size:14.5px;margin-top:6px}
 .badge{display:inline-block;font-size:12.5px;font-weight:800;padding:3px 10px;border-radius:99px;vertical-align:2px}
 .badge.live{background:var(--key-soft);color:var(--key-deep)}
-.badge.rt{background:#e0f3e6;color:#116131}
+.badge.rt{background:#e3edfd;color:#1d4ed8}
 .badge.wait{background:#fdf0cd;color:#7c5a06}
 .badge.done{background:#fdecec;color:#a51c1c}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:#fff;border:1.5px solid var(--border);border-radius:11px;padding:11px 18px;font-weight:800;font-size:15px;transition:.15s;color:var(--text)}
@@ -86,7 +86,7 @@ h1.page{font-size:24px;font-weight:900;margin-top:24px;line-height:1.35}
 .field label{display:block;font-size:13.5px;font-weight:800;color:var(--muted);margin-bottom:6px}
 .field input,.field select{width:100%;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:12px 13px;color:var(--text);outline:none;font-size:16px}
 .field input:focus{border-color:var(--key)}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
 .msg{margin-top:12px;padding:12px 14px;border-radius:10px;font-size:15px;font-weight:700;display:none}
 .msg.err{display:block;background:#fdecec;color:#a51c1c;border:1px solid #f2bcbc}
 .msg.ok{display:block;background:#e0f3e6;color:#116131;border:1px solid #b3ddc0}
@@ -362,7 +362,7 @@ h1.page{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .gr-bar{height:4px;border-radius:99px;background:#edf0f5;margin-top:4px;overflow:hidden}
 .gr-fill{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--key),#7fa8f8)}
 .grank-row.top1 .gr-fill{background:linear-gradient(90deg,#f5b50a,#f8d477)}
-#gHall{background:linear-gradient(135deg,#fff8e6,#ffffff);border:1px solid #eedfae}
+#gHall{background:linear-gradient(135deg,#eaf2ff,#ffffff);border:1px solid #cfe0f5}
 .glogin{display:flex;flex-direction:column;align-items:center;gap:9px;width:100%;max-width:280px;margin:0 auto}
 .gl-t{font-family:'Jua','Pretendard Variable',Pretendard,sans-serif;font-weight:900;font-size:26px;color:#fff;text-shadow:0 2px 6px rgba(20,50,100,.5)}
 .gl-d{font-size:13px;color:#e8f2ff;font-weight:600;line-height:1.65;text-shadow:0 1px 3px rgba(20,50,100,.5);text-align:center}
@@ -485,9 +485,7 @@ body.gm-pf-lock{overflow:hidden;position:fixed;width:100%}
    전에는 아이콘 버튼들을 세로로 쌓아 카드 우측 상단에 절대위치로 띄워뒀는데, 그러면 바로 아래
    HUD의 상대 선수 이름·게이지 바와 같은 자리를 차지해 겹쳐 보였다. 같은 줄의 일반 흐름에 두면
    아이콘 버튼 높이가 얼마든 HUD가 항상 그 아래로 자연스럽게 밀려나서 절대 겹치지 않는다 */
-.bb-topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
-.bb-rules-btn{background:rgba(10,10,16,.5);backdrop-filter:blur(3px);border:1px solid rgba(255,255,255,.14);color:#f1f4fb;font-size:11.5px;font-weight:700;border-radius:99px;padding:6px 14px;cursor:pointer;text-shadow:0 1px 3px rgba(0,0,0,.55);white-space:nowrap}
-.bb-rules-btn:active{transform:translateY(1px)}
+.bb-topbar{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:10px}
 /* 상성표 버튼: 화면 최상단 "👊 블랙 배틀" 타이틀 바(밝은 배경)에 "게임 선택" 버튼과 나란히 둔다.
    예전엔 어두운 배틀 아레나 안, 혹은 화면 맨 아래에 상성표 카드 전체를 길게 펼쳐놨는데, 내용이 길어
    화면(특히 좁은 화면)에서 잘려 보이는 문제가 있었다. 버튼+팝업 방식으로 바꿔서 스크롤되는 모달 안에서
@@ -925,12 +923,18 @@ img.bb-fin-ic{width:1em;height:1em;object-fit:contain;vertical-align:-0.15em;bor
 /* --- 대결 화면에서 Bot 스파링 중임을 계속 알려주는 배지 (PvP의 🌐 실시간 매칭 표시와 대칭되는 자리) --- */
 .bb-botspar-badge{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);color:#ffe9b8;font-size:10.5px;font-weight:800;padding:3px 10px;border-radius:99px;margin-bottom:6px}
 /* --- 블랙 배틀 순위표(랭킹) + 닉네임별 대결 이력 모달 --- */
-.bb-lb-list{display:flex;flex-direction:column;gap:6px}
-.bb-lb-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:9px 12px;cursor:pointer;font-family:inherit}
+.bb-lb-list{display:flex;flex-direction:column;gap:2px}
+.bb-lb-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid #f0f2f6;border-radius:9px;padding:7px 6px;cursor:pointer;font-family:inherit}
+.bb-lb-row:last-child{border-bottom:none}
 .bb-lb-row:active{transform:scale(.98)}
-.bb-lb-rank{flex-shrink:0;width:22px;text-align:center;font-weight:900;color:var(--dim);font-size:13px}
-.bb-lb-nick{flex-shrink:0;font-weight:800;font-size:13.5px;color:var(--text)}
-.bb-lb-stat{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
+.bb-lb-row.me{background:var(--key-soft)}
+.bb-lb-rank{flex-shrink:0;width:40px;text-align:center;font-weight:800;color:var(--dim);font-size:14px}
+.bb-lb-wrap{flex:1;min-width:0}
+.bb-lb-nick{font-weight:800;font-size:13.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bb-lb-bar{height:4px;border-radius:99px;background:#edf0f5;margin-top:4px;overflow:hidden}
+.bb-lb-fill{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--key),#7fa8f8)}
+.bb-lb-row.top1 .bb-lb-fill{background:linear-gradient(90deg,#f5b50a,#f8d477)}
+.bb-lb-stat{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap;flex-shrink:0}
 .bb-lb-rate{color:var(--dim)}
 .bb-lb-back{display:block;margin-bottom:10px}
 .bb-hist-t{font-weight:800;font-size:14px;margin-bottom:10px}
@@ -1009,7 +1013,7 @@ img.bb-fin-ic{width:1em;height:1em;object-fit:contain;vertical-align:-0.15em;bor
 <body>
 <header>
   <div class="hd">
-    <a class="logo" href="https://open.kakao.com/o/guJ1LAuh" target="_blank" rel="noopener"><img src="data:image/jpeg;base64,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" alt="블랙컴뱃 잡담방"> 블랙컴뱃 잡담방 <small>승부예측</small></a>
+    <a class="logo" href="https://open.kakao.com/o/guJ1LAuh" target="_blank" rel="noopener"><img src="data:image/jpeg;base64,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" alt="블랙컴뱃 잡담방"> 블랙컴뱃 잡담방 <small>승부예측</small></a>
     <nav id="nav">
       <a href="#/" data-nav="home">홈</a>
       <a href="#/fighters" data-nav="fighters">랭킹</a>
@@ -1029,7 +1033,7 @@ img.bb-fin-ic{width:1em;height:1em;object-fit:contain;vertical-align:-0.15em;bor
 <datalist id="fighters-dl"></datalist>
 <div class="wrap" id="app"><div class="empty">불러오는 중…</div></div>
 <footer>
-  🔥블랙컴뱃 잡담방🔥 승부예측 · 자동 집계 &nbsp;|&nbsp; <a href="#/admin">관리자</a>
+  🔥블랙컴뱃 잡담방🔥 승부예측 · 랭킹 · 게임 &nbsp;|&nbsp; <a href="#/admin">관리자</a>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -1151,6 +1155,7 @@ async function boot(){
   }
   initPresence();
   renderHeaderIdentity();
+  await gmVerifyWhitelistOnBoot();
   try{
     const {data} = await sb.rpc('server_now');
     if (data) timeOffset = new Date(data).getTime() - Date.now();
@@ -1702,7 +1707,7 @@ async function openFighterStats(nick){
         <div class="tile"><div class="v">${rate}%</div><div class="k">우리 방 적중률</div></div>
       </div>
       ${rows.map(r=>{
-        const W = '<span class="badge" style="background:#e0f3e6;color:#116131;font-size:11px">승</span>';
+        const W = '<span class="badge" style="background:#e3edfd;color:#1d4ed8;font-size:11px">승</span>';
         const L = '<span class="badge" style="background:#fdecec;color:#a51c1c;font-size:11px">패</span>';
         return `<div class="pcard" style="padding:11px 14px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
@@ -1734,7 +1739,7 @@ function viewFighters(){
     <h1 class="page" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
       <span>블랙컴뱃 선수 랭킹</span>
       <span style="display:inline-flex;gap:8px;align-items:center">
-        ${fightersUpdatedAt?`<span style="font-size:12px;font-weight:800;background:#e0f3e6;color:#116131;padding:4px 11px;border-radius:99px">🔄 ${fmtDT(fightersUpdatedAt)} 갱신</span>`:''}
+        ${fightersUpdatedAt?`<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${fmtDT(fightersUpdatedAt)} 갱신</span>`:''}
         ${adminPass()?`<button class="btn primary small" onclick="refreshFighters(this)">🔄 수동 갱신</button>`:''}
       </span>
     </h1>
@@ -1972,7 +1977,7 @@ function bbShowConfirmModal(opts){
 }
 
 /* ---------- 미니게임 (펀치머신 + 챔피언 로드) ---------- */
-let gmToken = 0, gmTimers = [], gmCurGame = '';
+let gmToken = 0, gmTimers = [], gmCurGame = '', gmCurRule = '';
 let gmAC = null, gmMuted = false, gmMyNick = '';
 try{ gmMuted = localStorage.getItem('gm_mute') === '1'; }catch(e){}
 let gmMyPin = '';
@@ -1990,6 +1995,23 @@ async function fetchAllowedNicknames(){
     __allowedNicknamesCache = (data||[]).map(r=>r.nickname);
   }catch(e){ __allowedNicknamesCache = []; }
   return __allowedNicknamesCache;
+}
+/* --- 관리자가 "유저 관리"에서 제거하면 계정+화이트리스트 등록이 모두 삭제되지만,
+   이미 그 닉네임으로 로그인해 둔 기기의 localStorage에는 예전 nickname/pin이 그대로
+   남아있어 앱이 계속 "로그인된 것처럼" 보인다. 재접속(새로고침/앱 재실행) 시마다
+   현재 로그인된 닉네임이 화이트리스트에 여전히 있는지 확인해서, 없다면 강제로
+   로그아웃(localStorage 초기화)시켜 처음부터 다시 닉네임을 등록해야 이용할 수
+   있게 한다. 화이트리스트 조회 자체가 실패하면(패치 미적용 등) 아무도 막지 않는다. */
+async function gmVerifyWhitelistOnBoot(){
+  if(!gmMyNick) return;
+  const list = await fetchAllowedNicknames();
+  if(!list.length) return;
+  if(list.some(n => n.toLowerCase() === gmMyNick.toLowerCase())) return;
+  const removedNick = gmMyNick;
+  gmMyNick = ''; gmMyPin = '';
+  try{ localStorage.removeItem('gm_nick'); localStorage.removeItem('gm_pin'); }catch(e){}
+  renderHeaderIdentity();
+  toastMsg(`'${removedNick}' 님은 더 이상 이용할 수 없는 닉네임입니다. 닉네임을 다시 등록해 주세요.`);
 }
 function gmClear(){ gmTimers.forEach(clearTimeout); gmTimers = []; if(G.raf){ cancelAnimationFrame(G.raf); G.raf = 0; } if(gmCurGame === 'battle' && typeof gmBattleLeave === 'function') gmBattleLeave(); }
 function gmDelay(fn, ms){ gmTimers.push(setTimeout(fn, ms)); }
@@ -2229,8 +2251,9 @@ function gmRRectS(ctx, x, y, w2, h2, r){
   ctx.closePath(); ctx.stroke();
 }
 function gmShellHTML(wk, title, sub, desc, startLabel, hint, rule){
+  gmCurRule = rule;
   return `
-  <h1 class="page">${title} <a class="gback" href="#/game">🎮 게임 선택</a></h1>
+  <h1 class="page">${title} <button class="bb-rules-btn-top" id="gRulesBtn" type="button">📖 설명서</button><a class="gback" href="#/game">🎮 게임 선택</a></h1>
   <div id="gArea" class="ga-${gmCurGame}">
     <canvas id="gCanvas"></canvas>
     <div class="ghud">
@@ -2254,13 +2277,28 @@ function gmShellHTML(wk, title, sub, desc, startLabel, hint, rule){
     <div id="gOver" style="display:none"></div>
   </div>
   <div class="card" id="gSubmit" style="display:none;margin-top:14px"></div>
-  <div class="card" style="padding:11px 16px;margin-top:14px">
-    <div style="font-size:12.5px;line-height:1.75;color:var(--muted)">${rule}<br>
-      <b style="color:var(--text)">랭킹</b> 매주 월요일 0시 리셋 · ⏱ 리셋까지 <b style="color:#e0332a">${gmResetLeft()}</b> · 지난 주 기록도 아래에 남아요</div>
-  </div>
   <div class="sec-title">🏆 이번 주 랭킹</div>
-  <div class="card" id="gRank"><div class="empty">불러오는 중…</div></div>
-  <div class="card" id="gHall" style="display:none;margin-top:10px"></div>`;
+  <div class="card" id="gHall" style="display:none;margin-bottom:10px"></div>
+  <div class="card" id="gRank"><div class="empty">불러오는 중…</div></div>`;
+}
+/* --- 게임 하단에 항상 펼쳐서 보여주던 설명 카드를, 블랙 배틀과 동일하게 제목 옆
+   "📖 설명서" 버튼 + 모달 방식으로 바꿨다. 버튼을 누르면 그 순간의 gmCurRule(게임별 룰
+   텍스트)과 리셋 카운트다운을 모달로 띄운다 --- */
+function gmOpenRulesModal(){
+  const ov = document.createElement('div');
+  ov.className = 'modal-ov';
+  ov.innerHTML = `<div class="modal" style="max-width:420px">
+    <div class="modal-h"><span><b>📖 설명서</b></span><button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-b"><div style="font-size:12.5px;line-height:1.75;color:var(--muted)">${gmCurRule}<br>
+      <b style="color:var(--text)">랭킹</b> 매주 월요일 0시 리셋 · ⏱ 리셋까지 <b style="color:#e0332a">${gmResetLeft()}</b> · 지난 주 기록도 아래에 남아요</div></div></div>`;
+  ov.onclick = e => { if(e.target===ov) history.back(); };
+  pushModal(ov);
+}
+function gmBindRulesBtn(){
+  const btn = document.getElementById('gRulesBtn');
+  if(!btn) return;
+  btn.onpointerdown = e => e.stopPropagation();
+  btn.onclick = e => { e.stopPropagation(); gmOpenRulesModal(); };
 }
 
 /* --- 선수 등록 확인 (게임 시작 전 필수) — 등록은 이제 홈 화면에서만 하므로, 여기서는
@@ -2301,9 +2339,10 @@ async function gmRenderLoginChangeView(ov){
         <div id="gmn-suggest-list" class="gmn-suggest-list" style="display:none"></div>
       </div>
       <input id="gmn-pin" inputmode="numeric" maxlength="4" placeholder="비밀번호 (숫자 4자리)" type="password">
+      ${isRegister ? `<input id="gmn-pin2" inputmode="numeric" maxlength="4" placeholder="비밀번호 확인" type="password">` : ''}
       <div class="msg" id="gmn-msg"></div>
       <button class="btn primary wide" style="margin-top:14px" id="gmnGo">${isRegister ? '등록' : '로그인'}</button>
-      <div class="gl-d" style="color:${isRegister?'var(--red)':'#8a94a6'};text-shadow:none;font-weight:600;margin-top:12px">${isRegister ? '잡담방 닉네임을 입력하면 목록이 나옵니다.<br>본인 닉네임을 선택한 후 비밀번호를 입력해 주세요.<br>본인 닉네임이 없거나, 이미 사용 중인 경우 킹빠더에게 문의하세요.' : '오픈톡방 닉네임을 입력하면 목록이 뜹니다. 본인 닉네임을 클릭한 후<br>비밀번호를 입력해 주세요. 처음이면 새로 등록됩니다.'}</div>
+      <div class="gl-d" style="color:${isRegister?'var(--red)':'#8a94a6'};text-shadow:none;font-weight:600;margin-top:12px">${isRegister ? '잡담방 닉네임을 입력하면 목록이 나옵니다.<br>본인 닉네임을 선택한 후 비밀번호를 입력해 주세요.<br>본인 닉네임이 없거나, 이미 사용 중인 경우 킹빠더에게 문의하세요.' : '오픈톡방 닉네임을 입력하면 목록이 나옵니다.<br>본인 닉네임을 선택한 후 비밀번호를 입력해 주세요.<br>아직 등록 전인 경우 닉네임 등록을 먼저 진행해 주세요.'}</div>
       ${gmMyNick ? `<button type="button" class="gmn-pinlink" id="gmnPinLink">비밀번호만 변경하기</button>` : ''}
     </div>`;
   const msg = body.querySelector('#gmn-msg');
@@ -2344,9 +2383,16 @@ async function gmRenderLoginChangeView(ov){
     const pin = (body.querySelector('#gmn-pin').value||'').trim();
     if(!nick) return put('닉네임을 입력해 주세요.');
     if(!/^[0-9]{4}$/.test(pin)) return put('비밀번호는 숫자 4자리입니다.');
-    const {data, error} = await sb.rpc('game_login', {p_nickname:nick, p_pin:pin});
+    if(isRegister){
+      const pin2 = (body.querySelector('#gmn-pin2').value||'').trim();
+      if(pin !== pin2) return put('비밀번호가 서로 일치하지 않습니다.');
+    }
+    // 로그인 변경 화면(이미 로그인된 상태)에서는 아직 등록되지 않은 닉네임을 골라도
+    // 그 자리에서 새로 등록되어 버리면 안 된다 — p_allow_register:false로 막는다.
+    // (닉네임 등록은 반드시 홈 화면의 "닉네임 등록" 화면에서만 가능해야 한다)
+    const {data, error} = await sb.rpc('game_login', {p_nickname:nick, p_pin:pin, p_allow_register:isRegister});
     if(error){
-      if(/function|not find/i.test(error.message||'')) return put('미니게임_패치4.sql을 먼저 실행해 주세요. (관리자에게 문의)');
+      if(/function|not find/i.test(error.message||'')) return put('미니게임_패치4.sql / 로그인변경_등록방지_패치.sql을 먼저 실행해 주세요. (관리자에게 문의)');
       return put(cleanErr(error.message));
     }
     if(!data || data.ok === false) return put((data && data.msg) || '변경에 실패했습니다.');
@@ -2438,7 +2484,7 @@ function viewGameMenu(){
     <div class="gc-b">
       <b>블랙 배틀</b>
       <span>실시간 1:1 대결! 상대를 제압하라</span>
-      <span class="gc-top">랜덤 매칭 · 지금 바로 대결!</span>
+      <span class="gc-top" id="gTopBattle">${gmMyNick ? '🥇 불러오는 중…' : '랜덤 매칭 · 지금 바로 대결!'}</span>
     </div>
     <span class="gc-go">PLAY</span>
   </a>
@@ -2448,6 +2494,7 @@ function viewGameMenu(){
   </div>`;
   gmApplyPoses();
   loadMenuTops(wk);
+  if(gmMyNick) loadMenuBattleRecord();
 }
 async function loadMenuTops(wk){
   const set = (id, txt) => { const el = document.getElementById(id); if(el) el.innerHTML = txt; };
@@ -2461,6 +2508,22 @@ async function loadMenuTops(wk){
     set('gTopGrow', fmt(top('grow'), '점'));
   }catch(e){
     set('gTopRun', '랭킹 준비 중'); set('gTopPunch', '랭킹 준비 중'); set('gTopGrow', '랭킹 준비 중');
+  }
+}
+// 블랙 배틀은 미니게임 3종과 달리 주간 리셋이 없는 누적 전적이므로, 게임 메뉴 카드에는
+// "이번 주 1위" 대신 내 통산 전적(승/패/무 + 승률)을 미니게임과 같은 톤으로 보여준다.
+async function loadMenuBattleRecord(){
+  const el = document.getElementById('gTopBattle');
+  if(!el || !gmMyNick) return;
+  try{
+    const {data, error} = await sb.rpc('bb_pvp_get_record', {p_nickname: gmMyNick});
+    if(error) throw error;
+    const r = (data && data.ok !== false) ? data : {wins:0,losses:0,draws:0};
+    const wins = r.wins||0, losses = r.losses||0, draws = r.draws||0;
+    const pct = (wins+losses) > 0 ? Math.round((wins/(wins+losses))*100) : 0;
+    el.innerHTML = `🥇 <b style="color:var(--text)">${esc(gmMyNick)}</b> ${wins}승 ${losses}패 ${draws}무(${pct}%)`;
+  }catch(e){
+    el.textContent = '랭킹 준비 중';
   }
 }
 
@@ -2477,6 +2540,7 @@ async function viewGamePunch(){
   area.addEventListener('pointerdown', gmTap);
   document.getElementById('gStart').onclick = e => { e.stopPropagation(); gmStartGate(gmNewGame); };
   gmBindMute();
+  gmBindRulesBtn();
   gmCanvasInit();
   gmHudReset();
   const tok = gmToken;
@@ -3470,6 +3534,7 @@ async function viewGameRun(){
   area.addEventListener('pointerdown', gmTap);
   document.getElementById('gStart').onclick = e => { e.stopPropagation(); gmStartGate(runStart); };
   gmBindMute();
+  gmBindRulesBtn();
   gmCanvasInit();
   runHud(true);
   const tok = gmToken;
@@ -3868,6 +3933,7 @@ async function viewGameJump(){
   area.addEventListener('pointerleave', jumpRelease);
   document.getElementById('gStart').onclick = e => { e.stopPropagation(); gmStartGate(jumpStart); };
   gmBindMute();
+  gmBindRulesBtn();
   gmCanvasInit();
   jumpHud(true);
   const tok = gmToken;
@@ -4377,7 +4443,9 @@ async function loadGameRank(wk, game){
     }else{
       const medal = i => i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'위';
       const top = +rows[0].score || 1;
-      box.innerHTML = rows.slice(0,20).map((r,i)=>{
+      // 6.88: 20위까지만 보여주고 나머지를 "외 N명"으로 뭉뚱그리던 제한을 없애고, 참여한
+      // 전원을 다 보여준다.
+      box.innerHTML = rows.map((r,i)=>{
         const me = gmMyNick && r.nickname === gmMyNick;
         const pct = Math.max(5, Math.round(+r.score / top * 100));
         const sub2 = game === 'run'
@@ -4394,7 +4462,7 @@ async function loadGameRank(wk, game){
           </div>
           <span style="font-weight:900;color:${i===0?'#c62828':'var(--text)'}">${(+r.score).toLocaleString()}<span style="font-size:11px;color:var(--dim)">${unit}</span></span>
         </div>`;
-      }).join('') + (rows.length>20 ? `<div class="note" style="margin-top:6px">외 ${rows.length-20}명</div>` : '');
+      }).join('');
     }
     // 지난 주 TOP3 (히스토리)
     const prevWk = gameWeekKey(new Date(svrNow().getTime() - 7*86400000));
@@ -4409,7 +4477,7 @@ async function loadGameRank(wk, game){
     if(hall && all && all.length){
       const b = all[0];
       hall.style.display = '';
-      hall.innerHTML = `<div style="font-size:13.5px">🏛️ <b>명예의 전당</b> — 역대 최고 기록 <b class="gr-nk" data-n="${esc(b.nickname)}" onclick="gmShowHist(this.dataset.n)">${esc(b.nickname)}</b> · <b style="color:#c62828">${(+b.score).toLocaleString()}${unit}</b> <span style="color:var(--dim)">(${gmWeekLabel(b.week)})</span></div>`;
+      hall.innerHTML = `<div style="font-size:13.5px">🏛️ <b>명예의 전당</b> — 역대 최고 기록 <b class="gr-nk" data-n="${esc(b.nickname)}" onclick="gmShowHist(this.dataset.n)">${esc(b.nickname)}</b> · <b style="color:#c62828">${(+b.score).toLocaleString()}${unit}</b></div>`;
     }
   }catch(e){
     box.innerHTML = '<div class="empty">랭킹을 불러오지 못했습니다.<br>관리자가 미니게임_패치4.sql을 실행해야 사용할 수 있어요.</div>';
@@ -4430,11 +4498,8 @@ const BB_STAT_FIELDS = [
   {key:'wins', label:'승'}, {key:'losses', label:'패'}, {key:'draws', label:'무'},
   {key:'winStreak', label:'연승'}, {key:'bestWinStreak', label:'최고 연승'}
 ];
-function toggleWhitelistList(){
-  const list = document.getElementById('wl-list');
-  if(!list) return;
-  list.style.display = list.style.display === 'none' ? '' : 'none';
-}
+/* 6.94: "전체 관리" 토글 버튼을 없애고 유저 관리 목록을 항상 펼쳐서 보여준다 —
+   특정 닉네임은 위의 검색창이나 스크롤로 찾으면 된다. */
 async function toggleWhitelistUserGames(btn){
   const idx = btn.dataset.idx;
   const box = document.getElementById('wlgames-'+idx);
@@ -4526,14 +4591,25 @@ async function resetWhitelistUserPin(btn){
 }
 async function removeWhitelistUser(btn){
   const nick = btn.dataset.nick;
-  if(!confirm(`'${nick}' 님을 사이트에서 제거할까요?\n게임 계정+미니게임/블랙 배틀 기록+투표 기록이 모두 삭제되며 되돌릴 수 없습니다.\n(화이트리스트 등록 자체는 유지되어 다시 등록은 가능합니다)`)) return;
+  if(!confirm(`'${nick}' 님을 사이트에서 완전히 제거할까요?\n게임 계정+미니게임/블랙 배틀 기록+투표 기록과 화이트리스트 등록이 모두 삭제되며 되돌릴 수 없습니다.\n(제거 후에는 같은 닉네임을 다시 만들 수 없고, 추후 필요하면 화이트리스트에 다시 등록해야 합니다)`)) return;
   const {data, error} = await sb.rpc('admin_force_delete_game_user',{p_pass:adminPass(), p_nickname:nick});
   if(error){
     if(/function|not find/i.test(error.message||'')) return toastMsg('⚠️ 미니게임_계정관리_패치.sql을 먼저 실행해 주세요.');
     return toastMsg('⚠️ ' + cleanErr(error.message));
   }
-  if(!data || data.ok === false) return toastMsg('⚠️ ' + ((data && data.msg) || '제거에 실패했습니다.'));
-  toastMsg(`'${nick}' 님이 사이트에서 제거되었습니다.`);
+  // 계정/투표 기록이 애초에 없었던 닉네임(화이트리스트에만 등록되고 아직 미사용)도 있을 수 있다 —
+  // 그 경우 위 RPC는 ok:false(찾을 수 없음)를 돌려주지만, 그래도 화이트리스트 제거는 계속 진행해야 한다.
+  if(data && data.ok === false && !/찾을 수 없습니다/.test(data.msg||'')){
+    return toastMsg('⚠️ ' + (data.msg || '제거에 실패했습니다.'));
+  }
+  const wl = await sb.rpc('admin_delete_allowed_nickname',{p_pass:adminPass(), p_nickname:nick});
+  if(wl.error){
+    if(/function|not find/i.test(wl.error.message||'')) return toastMsg('⚠️ 잡담방_닉네임_화이트리스트_패치.sql을 먼저 실행해 주세요. (게임 계정/기록은 이미 삭제됨)');
+    return toastMsg('⚠️ ' + cleanErr(wl.error.message) + ' (게임 계정/기록은 이미 삭제됨)');
+  }
+  if(!wl.data || wl.data.ok === false) return toastMsg('⚠️ ' + ((wl.data && wl.data.msg) || '화이트리스트 삭제에 실패했습니다.') + ' (게임 계정/기록은 이미 삭제됨)');
+  toastMsg(`'${nick}' 님이 사이트와 화이트리스트에서 완전히 제거되었습니다.`);
+  loadWhitelist();
 }
 
 
@@ -4810,7 +4886,7 @@ async function viewGameBattle(){
   // 이전에 골랐던 선수를 자동으로 미리 선택해두지 않는다 — 매번 직접 골라야 매칭 버튼을 누를 수 있다
   BB.phase = 'pick'; BB.mode = 'cpu'; BB.pickStep = 'me'; BB.me = null; BB.opp = null; BB.busy = false; BB.isBotSpar = false;
   $app.innerHTML = `
-  <h1 class="page">👊 블랙 배틀 <button class="bb-rules-btn-top" id="bbRulesBtnPick" type="button">📖 상성표 보기</button><a class="gback" href="#/game" id="bbGameSelectBack">🎮 게임 선택</a></h1>
+  <h1 class="page">👊 블랙 배틀 <button class="bb-rules-btn-top" id="bbRulesBtnPick" type="button">📖 설명서</button><a class="gback" href="#/game" id="bbGameSelectBack">🎮 게임 선택</a></h1>
   <div id="bbArea"></div>`;
   // 대결 도중(fight/pvp_fight) "게임 선택"을 누르면 바로 나가지 않고 먼저 확인 팝업을 띄운다.
   // 단, Bot과의 스파링은 전적에 전혀 영향이 없으므로 되묻지 않고 바로 나가게 해준다.
@@ -4823,9 +4899,10 @@ async function viewGameBattle(){
       }
     });
   }
-  // 상성표 버튼은 화면 최상단(타이틀 바)에 고정으로 하나만 두고, 픽/매칭 화면은 물론 전투 중에도
-  // 같은 버튼으로 동일한 모달을 연다 (전투 화면 안에도 별도의 📖 상성표 보기 버튼이 있는 것은
-  // 전체화면 모드에서는 이 타이틀 바가 보이지 않기 때문 — 그 경우를 위한 보조 버튼이다)
+  // 설명서(상성표) 버튼은 화면 최상단(타이틀 바)에 고정으로 하나만 두고, 픽/매칭 화면은 물론
+  // 전투 중에도 같은 버튼으로 동일한 모달을 연다. 예전에는 전투 화면 안에도 별도 버튼이 있었지만
+  // (전체화면 모드에서 타이틀 바가 가려지는 경우의 보조용) 중복이라는 피드백에 따라 제거했다 —
+  // 전체화면 중에는 최상단 버튼을 쓸 수 없으니 필요하면 잠깐 전체화면을 해제하고 확인하면 된다.
   const rulesBtnTop = document.getElementById('bbRulesBtnPick');
   if(rulesBtnTop){
     rulesBtnTop.onpointerdown = e => e.stopPropagation();
@@ -5553,7 +5630,9 @@ async function bbLoadLeaderboard(){
   const body = document.getElementById('bbLeaderboardBody'); if(!body || !sb) return;
   body.innerHTML = `<div class="empty">불러오는 중…</div>`;
   try{
-    const {data, error} = await sb.rpc('bb_pvp_get_leaderboard', {p_limit:50});
+    // 6.88: 20위(미니게임)/50위(블랙 배틀)까지만 보이던 제한 없이 전체를 다 보여준다 —
+    // 200은 서버(bb_pvp_get_leaderboard)가 허용하는 최대치.
+    const {data, error} = await sb.rpc('bb_pvp_get_leaderboard', {p_limit:200});
     if(!document.getElementById('bbLeaderboardBody')) return; // 그새 화면이 바뀜
     if(error) throw error;
     const rows = Array.isArray(data) ? data : [];
@@ -5561,12 +5640,23 @@ async function bbLoadLeaderboard(){
       body.innerHTML = `<div class="empty">아직 완료된 대결이 없습니다.<br>대결을 마치면 여기 순위표에 표시돼요.</div>`;
       return;
     }
-    body.innerHTML = `<div class="bb-lb-list">${rows.map((r,i) => `
-      <button class="bb-lb-row" data-nick="${esc(r.nickname)}" type="button">
-        <span class="bb-lb-rank">${i+1}</span>
-        <span class="bb-lb-nick">${esc(r.nickname)}</span>
+    // 6.85: 다른 미니게임들의 "이번 주 랭킹"(loadGameRank의 .grank-row)과 같은 톤으로 —
+    // 상위 3명은 메달 아이콘, 닉네임 아래 승수 기준 상대 진행바를 보여준다.
+    const medal = i => i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'위';
+    const topWins = Math.max(1, +rows[0].wins || 1);
+    body.innerHTML = `<div class="bb-lb-list">${rows.map((r,i) => {
+      const me = gmMyNick && r.nickname === gmMyNick;
+      const pct = Math.max(5, Math.round((+r.wins||0) / topWins * 100));
+      return `
+      <button class="bb-lb-row${i===0?' top1':''}${me?' me':''}" data-nick="${esc(r.nickname)}" type="button">
+        <span class="bb-lb-rank">${medal(i)}</span>
+        <div class="bb-lb-wrap">
+          <span class="bb-lb-nick">${esc(r.nickname)}</span>${me?' <span style="font-size:11px;color:var(--key-deep)">나</span>':''}
+          <div class="bb-lb-bar"><span class="bb-lb-fill" style="width:${pct}%"></span></div>
+        </div>
         <span class="bb-lb-stat">${r.wins}승 ${r.losses}패 ${r.draws}무 <span class="bb-lb-rate">(${r.winRate}%)</span></span>
-      </button>`).join('')}</div>`;
+      </button>`;
+    }).join('')}</div>`;
     body.querySelectorAll('.bb-lb-row').forEach(btn => {
       btn.onpointerdown = e => e.stopPropagation();
       btn.onclick = e => { e.stopPropagation(); bbShowHistoryOverlay(btn.dataset.nick); };
@@ -5655,7 +5745,6 @@ function bbRenderFight(){
   a.innerHTML = `
   <div class="bgx" style="background-image:linear-gradient(180deg,rgba(10,7,5,.86) 0%,rgba(10,7,5,.5) 30%,rgba(10,7,5,.55) 70%,rgba(10,7,5,.9) 100%),url('${GM_ART_SRC.battleCage}')">
     <div class="bb-topbar">
-      <button class="bb-rules-btn" id="bbRulesBtn" type="button">📖 상성표 보기</button>
       <div class="bb-topbtns">
         <button class="bb-topbtn" id="bbSoundBtn" type="button" aria-label="사운드">${gmMuted?'🔇':'🔊'}</button>
         <button class="bb-topbtn" id="bbFullBtn" type="button" aria-label="전체화면">⛶</button>
@@ -5738,8 +5827,6 @@ function bbRenderFight(){
   }
   const fb = document.getElementById('bbForfeitBtn');
   if(fb){ fb.onpointerdown = e=>e.stopPropagation(); fb.onclick = e => { e.stopPropagation(); bbForfeit(); }; }
-  const rb = document.getElementById('bbRulesBtn');
-  if(rb){ rb.onpointerdown = e=>e.stopPropagation(); rb.onclick = e => { e.stopPropagation(); bbOpenMatchupModal(); }; }
   const flb = document.getElementById('bbFullBtn');
   if(flb){
     flb.onpointerdown = e=>e.stopPropagation();
@@ -6675,9 +6762,8 @@ function voteFormHTML(t, matches, parts){
     </div>`).join('');
   const identityBlock = gmMyNick
     ? `<div class="home-login-id" style="margin:0">👤 <b>${esc(gmMyNick)}</b> 님으로 투표합니다</div>
-       <div class="note" style="margin-top:8px">💡 마감 전까지 다시 제출하면 수정됩니다. · 게이지를 누르면 <b>투표자 목록</b>이 보입니다.</div>`
-    : `<div class="empty" style="padding:10px 0">투표하려면 먼저 닉네임을 등록해 주세요.</div>
-       <button class="btn primary wide" style="margin-top:8px" onclick="location.hash='#/'">🦁 홈에서 닉네임 등록하기</button>`;
+       <div class="note" style="margin-top:8px">💡 마감 전까지 수정 가능합니다. · 게이지를 누르면 <b>투표자 목록</b>이 보입니다.</div>`
+    : `<div class="empty" style="padding:10px 0;color:var(--red)">투표하려면 먼저 닉네임을 등록해 주세요.</div>`;
   return `
     <div class="sec-title" style="justify-content:space-between">승부 예측 · 실시간 현황
       <button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button></div>
@@ -6991,7 +7077,7 @@ async function viewRanking(){
     <h1 class="page">격잘알 랭킹</h1>
     <div class="sub">누적 대회 ${d.finals.length}개 · <b>우승 횟수 기준</b> (동률 시 총 적중 수)</div>
     <div class="card" style="display:flex;gap:8px;padding:12px;align-items:center">
-      <input id="rk-search" placeholder="닉네임 검색 (내 전적 보기)" style="flex:1;min-width:0;box-sizing:border-box;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);outline:none;font-size:15px" onkeydown="if(event.key==='Enter')searchNick()">
+      <input id="rk-search" placeholder="닉네임 검색 (내 전적 보기)" style="flex:1;min-width:0;box-sizing:border-box;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);outline:none;font-size:15px" oninput="filterRankTable()" onkeydown="if(event.key==='Enter')searchNick()">
       <button class="btn primary small" style="white-space:nowrap;flex-shrink:0" onclick="searchNick()">검색</button>
     </div>
     <div class="card" style="padding:0;overflow:hidden">
@@ -7011,13 +7097,30 @@ async function viewRanking(){
       </div>
     </div>
     <div class="sec-title">누적 랭킹</div>
-    <div class="tbl-scroll"><table>
+    <div class="tbl-scroll"><table id="rkTable">
       <tr><th style="width:64px">순위</th><th class="nick">닉네임 · 칭호</th></tr>
-      ${season.map(r=>`<tr>
+      ${season.map(r=>`<tr data-nick="${esc(r.nickname.toLowerCase())}">
         <td>${chip(r)}</td>
         <td class="nick" style="max-width:none;white-space:normal;line-height:1.9"><a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a>${badgesFor(r, streaks).map(b=>' '+badgeChip(b)).join('')}</td></tr>`).join('')}
     </table></div>
+    <div class="empty" id="rkEmpty" style="display:none">일치하는 닉네임이 없습니다.</div>
     <div class="note">닉네임을 누르면 우승·적중률 등 상세 전적을 볼 수 있습니다.</div>`;
+}
+/* --- 6.82: 검색창에 입력하는 즉시 누적 랭킹 표를 텍스트와 유사한(포함되는) 닉네임만
+   남도록 필터링한다. "검색" 버튼/Enter로 상세 페이지로 이동하는 기존 동작은 그대로 유지 --- */
+function filterRankTable(){
+  const tbl = document.getElementById('rkTable');
+  if(!tbl) return;
+  const q = (document.getElementById('rk-search')?.value||'').trim().toLowerCase();
+  const rows = tbl.querySelectorAll('tr[data-nick]');
+  let shown = 0;
+  rows.forEach(tr=>{
+    const match = !q || tr.dataset.nick.includes(q);
+    tr.style.display = match ? '' : 'none';
+    if(match) shown++;
+  });
+  const empty = document.getElementById('rkEmpty');
+  if(empty) empty.style.display = (q && shown===0) ? '' : 'none';
 }
 function searchNick(){
   const v = document.getElementById('rk-search').value.trim();
@@ -7135,11 +7238,10 @@ async function viewAdmin(){
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
         <button class="btn small primary" id="wl-add-btn" onclick="addWhitelistNick()">추가</button>
-        <button class="btn small" id="wl-open-btn" onclick="toggleWhitelistList()">전체 관리</button>
       </div>
       <div class="msg" id="wl-msg"></div>
       <div style="font-size:12px;color:var(--muted);font-weight:700;margin-top:12px" id="wl-count">불러오는 중…</div>
-      <div id="wl-list" style="max-height:340px;overflow-y:auto;margin-top:6px;display:none"></div>
+      <div id="wl-list" style="max-height:340px;overflow-y:auto;margin-top:6px"></div>
     </div>
     <div class="sec-title">⚙️ 관리자 비밀번호 변경</div>
     <div class="card" style="max-width:420px">
