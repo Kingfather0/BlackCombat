@@ -50,6 +50,17 @@ nav{display:flex;gap:4px}
 nav a{padding:8px 13px;border-radius:9px;font-size:14.5px;font-weight:700;color:var(--muted);white-space:nowrap}
 nav a.on{background:var(--key);color:#fff}
 nav a:hover:not(.on){background:var(--card2);color:var(--text)}
+.visitor-bar{max-width:760px;margin:0 auto;padding:0 14px 8px;display:flex;justify-content:flex-end;position:relative}
+.visitor-badge{background:#e0f3e6;color:#116131;border:none;border-radius:99px;padding:3px 11px;font-size:11.5px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:3px;line-height:1.6}
+.visitor-badge:active{background:#c8ecd3}
+.visitor-pop{position:absolute;top:26px;right:14px;background:#fff;border:1.5px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(20,40,80,.16);width:200px;max-height:260px;overflow-y:auto;z-index:55}
+.visitor-pop-h{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;font-size:12.5px;font-weight:800;color:var(--muted);border-bottom:1px solid #f0f2f6;position:sticky;top:0;background:#fff}
+.visitor-pop-x{font-size:14px;color:var(--dim);padding:2px 4px;line-height:1}
+.visitor-pop-body{padding:6px 4px}
+.visitor-row{padding:6px 10px;font-size:13px;font-weight:700;color:var(--text);border-radius:8px}
+.visitor-row.guest{color:var(--dim);font-weight:600}
+.visitor-row.me{background:var(--key-soft);color:var(--key-deep)}
+.visitor-me-tag{font-size:11px;font-weight:700;color:var(--key-deep)}
 /* common */
 .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-top:14px;box-shadow:0 1px 4px rgba(20,40,80,.06)}
 .sec-title{font-size:17px;font-weight:800;color:var(--text);margin:32px 0 4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-left:4px solid var(--key);padding-left:10px}
@@ -331,6 +342,8 @@ h1.page{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .gmenu-foot b{color:var(--key-deep)}
 .gmenu-nick-edit{font-size:12px;padding:2px 6px;border-radius:99px;border:1.5px solid #cfe0f5;background:#fff;cursor:pointer;vertical-align:middle;line-height:1.4}
 .gmenu-nick-edit:active{background:#eef4ff}
+.gmn-pinlink{background:none;border:none;color:#8a94a6;font-size:12.5px;font-weight:700;text-decoration:underline;cursor:pointer;margin-top:10px;padding:4px}
+.gmn-pinlink:active{color:var(--key-deep)}
 .grank-row{display:flex;align-items:center;gap:10px;padding:7px 6px;border-bottom:1px solid #f0f2f6;font-size:14px;border-radius:9px}
 .grank-row:last-child{border-bottom:none}
 .grank-row.me{background:var(--key-soft)}
@@ -341,7 +354,7 @@ h1.page{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .gr-fill{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--key),#7fa8f8)}
 .grank-row.top1 .gr-fill{background:linear-gradient(90deg,#f5b50a,#f8d477)}
 #gHall{background:linear-gradient(135deg,#fff8e6,#ffffff);border:1px solid #eedfae}
-.glogin{display:flex;flex-direction:column;align-items:center;gap:9px;width:100%;max-width:280px}
+.glogin{display:flex;flex-direction:column;align-items:center;gap:9px;width:100%;max-width:280px;margin:0 auto}
 .gl-t{font-family:'Jua','Pretendard Variable',Pretendard,sans-serif;font-weight:900;font-size:26px;color:#fff;text-shadow:0 2px 6px rgba(20,50,100,.5)}
 .gl-d{font-size:13px;color:#e8f2ff;font-weight:600;line-height:1.65;text-shadow:0 1px 3px rgba(20,50,100,.5);text-align:center}
 .gl-d b{color:#ffe28a}
@@ -995,6 +1008,13 @@ img.bb-fin-ic{width:1em;height:1em;object-fit:contain;vertical-align:-0.15em;bor
       <a href="#/game" data-nav="game">게임</a>
     </nav>
   </div>
+  <div class="visitor-bar" id="visitorBar">
+    <button type="button" id="visitorBadge" class="visitor-badge" onclick="toggleVisitorList(event)">🟢 접속자 <b id="visitorCount">-</b>명</button>
+    <div id="visitorListPop" class="visitor-pop" style="display:none">
+      <div class="visitor-pop-h">현재 접속자<button type="button" class="visitor-pop-x" onclick="toggleVisitorList(event)">✕</button></div>
+      <div id="visitorListBody" class="visitor-pop-body"></div>
+    </div>
+  </div>
 </header>
 <datalist id="fighters-dl"></datalist>
 <div class="wrap" id="app"><div class="empty">불러오는 중…</div></div>
@@ -1022,6 +1042,79 @@ function isConfigured(){
 }
 function svrNow(){ return new Date(Date.now() + timeOffset); }
 
+/* --- 실시간 접속자 수 (Supabase Realtime Presence) — 헤더에 항상 떠 있는 배지, 클릭하면
+   현재 접속 중인 브라우저 탭 목록을 닉네임(미로그인은 Guest)으로 보여준다. DB 테이블/RPC를
+   전혀 쓰지 않는 순수 웹소켓 pub/sub 기능이라 별도 SQL 실행 없이 바로 동작한다.
+   테스트용 mock(window.__TEST_SB)에는 channel()이 없으므로 조용히 스킵된다. */
+let __presenceChannel = null;
+let __presenceClientId = null;
+let __presenceState = {};
+function gmPresenceId(){
+  if(__presenceClientId) return __presenceClientId;
+  try{ __presenceClientId = sessionStorage.getItem('fp_presence_id'); }catch(e){}
+  if(!__presenceClientId){
+    __presenceClientId = 'c-' + Math.random().toString(36).slice(2) + '-' + Date.now().toString(36);
+    try{ sessionStorage.setItem('fp_presence_id', __presenceClientId); }catch(e){}
+  }
+  return __presenceClientId;
+}
+function initPresence(){
+  try{
+    if(!sb || typeof sb.channel !== 'function') return;
+    __presenceChannel = sb.channel('online-users', { config: { presence: { key: gmPresenceId() } } });
+    __presenceChannel.on('presence', { event: 'sync' }, () => {
+      try{ renderPresenceBadge(__presenceChannel.presenceState()); }catch(e){}
+    });
+    __presenceChannel.subscribe(status => {
+      if(status === 'SUBSCRIBED') presenceRetrack();
+    });
+  }catch(e){}
+}
+function presenceRetrack(){
+  try{ if(__presenceChannel) __presenceChannel.track({ nickname: gmMyNick || null }).catch(()=>{}); }catch(e){}
+}
+function renderPresenceBadge(state){
+  __presenceState = state || {};
+  const countEl = document.getElementById('visitorCount');
+  if(countEl) countEl.textContent = Object.keys(__presenceState).length;
+  const listEl = document.getElementById('visitorListBody');
+  if(listEl && listEl.dataset.open === '1') renderVisitorList();
+}
+function renderVisitorList(){
+  const listEl = document.getElementById('visitorListBody');
+  if(!listEl) return;
+  const myKey = gmPresenceId();
+  const keys = Object.keys(__presenceState);
+  listEl.innerHTML = keys.length
+    ? keys.map(k => {
+        const meta = (__presenceState[k] && __presenceState[k][0]) || {};
+        const nick = meta.nickname;
+        const isMe = k === myKey;
+        return `<div class="visitor-row${nick ? '' : ' guest'}${isMe ? ' me' : ''}">${nick ? '👤 ' + esc(nick) : '👻 Guest'}${isMe ? ' <span class="visitor-me-tag">(나)</span>' : ''}</div>`;
+      }).join('')
+    : '<div class="empty" style="padding:10px">접속자가 없습니다.</div>';
+}
+function toggleVisitorList(e){
+  if(e) e.stopPropagation();
+  const pop = document.getElementById('visitorListPop');
+  const listEl = document.getElementById('visitorListBody');
+  if(!pop || !listEl) return;
+  const isOpen = listEl.dataset.open === '1';
+  if(!isOpen){ pop.style.display = ''; listEl.dataset.open = '1'; renderVisitorList(); }
+  else{ pop.style.display = 'none'; listEl.dataset.open = '0'; }
+}
+function closeVisitorList(){
+  const pop = document.getElementById('visitorListPop');
+  const listEl = document.getElementById('visitorListBody');
+  if(pop) pop.style.display = 'none';
+  if(listEl) listEl.dataset.open = '0';
+}
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('visitorBar');
+  if(wrap && !wrap.contains(e.target)) closeVisitorList();
+});
+window.addEventListener('hashchange', closeVisitorList);
+
 async function boot(){
   if (window.__TEST_SB) { sb = window.__TEST_SB; }
   else if (!isConfigured()){ renderSetup(); return; }
@@ -1032,6 +1125,7 @@ async function boot(){
     }
     sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
+  initPresence();
   try{
     const {data} = await sb.rpc('server_now');
     if (data) timeOffset = new Date(data).getTime() - Date.now();
@@ -2161,6 +2255,7 @@ function gmShowLogin(startFn){
     gmMyNick = data.nickname || nick;
     gmMyPin = pin;
     try{ localStorage.setItem('gm_nick', gmMyNick); localStorage.setItem('gm_pin', gmMyPin); }catch(err){}
+    presenceRetrack();
     startFn();
   };
 }
@@ -2169,33 +2264,43 @@ function gmLogout(){
   try{ localStorage.removeItem('gm_pin'); }catch(e){}
 }
 
-/* --- 다른 닉네임으로 변경 (게임 메뉴 하단 ⚙️에서 진입, 게임 3종 + 블랙 배틀 공용) --- */
+/* --- 다른 닉네임으로 변경 (게임 메뉴 하단 ⚙️에서 진입, 게임 3종 + 블랙 배틀 공용).
+   같은 오버레이 안에서 "로그인 변경" 뷰 ↔ "비밀번호 변경"(본인 계정 비번만 변경) 뷰를
+   내용만 바꿔치기하며 오간다 — 모달을 닫았다 다시 여는 대신 innerHTML만 교체해서
+   history 스택이 꼬이지 않게 한다. */
 function gmShowNickChangeModal(){
   const ov = document.createElement('div');
   ov.className = 'modal-ov';
   ov.innerHTML = `<div class="modal" style="max-width:360px">
-    <div class="modal-h"><b>👤 닉네임 변경</b><button class="modal-x" onclick="history.back()">✕</button></div>
-    <div class="modal-b">
-      <div class="glogin" style="padding:0">
-        <div class="gl-d">변경할 잡담방 닉네임과 비밀번호를 입력해 주세요.<br>등록된 적 없는 닉네임이면 새로 등록됩니다.</div>
-        <input id="gmn-nick" maxlength="20" placeholder="잡담방 닉네임" value="">
-        <input id="gmn-pin" inputmode="numeric" maxlength="4" placeholder="비밀번호 (숫자 4자리)" type="password">
-        <div class="msg" id="gmn-msg"></div>
-        <button class="g-start" id="gmnGo">변경하기</button>
-      </div>
-    </div></div>`;
+    <div class="modal-h"><b id="gmnTitle"></b><button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-b" id="gmnBody"></div>
+  </div>`;
   ov.onclick = e => { if(e.target===ov) history.back(); };
   pushModal(ov);
-  const msg = ov.querySelector('#gmn-msg');
+  gmRenderLoginChangeView(ov);
+}
+function gmRenderLoginChangeView(ov){
+  ov.querySelector('#gmnTitle').textContent = '👤 로그인 변경';
+  const body = ov.querySelector('#gmnBody');
+  body.innerHTML = `
+    <div class="glogin" style="padding:0">
+      <input id="gmn-nick" maxlength="20" placeholder="잡담방 닉네임" value="">
+      <input id="gmn-pin" inputmode="numeric" maxlength="4" placeholder="비밀번호 (숫자 4자리)" type="password">
+      <div class="msg" id="gmn-msg"></div>
+      <button class="btn primary wide" style="margin-top:14px" id="gmnGo">로그인</button>
+      <div class="gl-d" style="color:#8a94a6;text-shadow:none;font-weight:600;margin-top:12px">변경할 잡담방 닉네임과 비밀번호를 입력해 주세요.<br>등록된 적 없는 닉네임이면 새로 등록됩니다.</div>
+      ${gmMyNick ? `<button type="button" class="gmn-pinlink" id="gmnPinLink">비밀번호만 변경하기</button>` : ''}
+    </div>`;
+  const msg = body.querySelector('#gmn-msg');
   const put = s => { msg.className = 'msg err'; msg.textContent = s; };
-  const box = ov.querySelector('.glogin');
+  const box = body.querySelector('.glogin');
   box.onpointerdown = e => e.stopPropagation();
-  const goBtn = ov.querySelector('#gmnGo');
+  const goBtn = body.querySelector('#gmnGo');
   goBtn.onpointerdown = e => e.stopPropagation();
   goBtn.onclick = async e => {
     e.stopPropagation();
-    const nick = (ov.querySelector('#gmn-nick').value||'').trim();
-    const pin = (ov.querySelector('#gmn-pin').value||'').trim();
+    const nick = (body.querySelector('#gmn-nick').value||'').trim();
+    const pin = (body.querySelector('#gmn-pin').value||'').trim();
     if(!nick) return put('닉네임을 입력해 주세요.');
     if(!/^[0-9]{4}$/.test(pin)) return put('비밀번호는 숫자 4자리입니다.');
     const {data, error} = await sb.rpc('game_login', {p_nickname:nick, p_pin:pin});
@@ -2207,10 +2312,58 @@ function gmShowNickChangeModal(){
     gmMyNick = data.nickname || nick;
     gmMyPin = pin;
     try{ localStorage.setItem('gm_nick', gmMyNick); localStorage.setItem('gm_pin', gmMyPin); }catch(err){}
+    presenceRetrack();
     history.back();
     toastMsg(`👤 ${gmMyNick} 님으로 변경되었습니다!`);
     route();
   };
+  const pinLink = body.querySelector('#gmnPinLink');
+  if(pinLink){
+    pinLink.onpointerdown = e => e.stopPropagation();
+    pinLink.onclick = e => { e.stopPropagation(); gmRenderPinChangeView(ov); };
+  }
+}
+function gmRenderPinChangeView(ov){
+  ov.querySelector('#gmnTitle').textContent = '🔒 비밀번호 변경';
+  const body = ov.querySelector('#gmnBody');
+  body.innerHTML = `
+    <div class="glogin" style="padding:0">
+      <input id="gpc-old" inputmode="numeric" maxlength="4" placeholder="현재 비밀번호 (숫자 4자리)" type="password">
+      <input id="gpc-new" inputmode="numeric" maxlength="4" placeholder="새 비밀번호 (숫자 4자리)" type="password">
+      <input id="gpc-new2" inputmode="numeric" maxlength="4" placeholder="새 비밀번호 확인" type="password">
+      <div class="msg" id="gpc-msg"></div>
+      <button class="btn primary wide" style="margin-top:14px" id="gpcGo">비밀번호 변경</button>
+      <div class="gl-d" style="color:#8a94a6;text-shadow:none;font-weight:600;margin-top:12px">닉네임 <b style="color:var(--key-deep)">${esc(gmMyNick)}</b> 계정의 비밀번호를 변경합니다.</div>
+      <button type="button" class="gmn-pinlink" id="gmnBackLink">← 로그인 변경으로 돌아가기</button>
+    </div>`;
+  const msg = body.querySelector('#gpc-msg');
+  const put = s => { msg.className = 'msg err'; msg.textContent = s; };
+  const box = body.querySelector('.glogin');
+  box.onpointerdown = e => e.stopPropagation();
+  const goBtn = body.querySelector('#gpcGo');
+  goBtn.onpointerdown = e => e.stopPropagation();
+  goBtn.onclick = async e => {
+    e.stopPropagation();
+    const oldPin = (body.querySelector('#gpc-old').value||'').trim();
+    const newPin = (body.querySelector('#gpc-new').value||'').trim();
+    const newPin2 = (body.querySelector('#gpc-new2').value||'').trim();
+    if(!/^[0-9]{4}$/.test(oldPin)) return put('현재 비밀번호를 숫자 4자리로 입력해 주세요.');
+    if(!/^[0-9]{4}$/.test(newPin)) return put('새 비밀번호는 숫자 4자리입니다.');
+    if(newPin !== newPin2) return put('새 비밀번호가 서로 일치하지 않습니다.');
+    const {data, error} = await sb.rpc('game_change_pin', {p_nickname:gmMyNick, p_old_pin:oldPin, p_new_pin:newPin});
+    if(error){
+      if(/function|not find/i.test(error.message||'')) return put('미니게임_계정관리_패치.sql을 먼저 실행해 주세요. (관리자에게 문의)');
+      return put(cleanErr(error.message));
+    }
+    if(!data || data.ok === false) return put((data && data.msg) || '변경에 실패했습니다.');
+    gmMyPin = newPin;
+    try{ localStorage.setItem('gm_pin', gmMyPin); }catch(err){}
+    history.back();
+    toastMsg('비밀번호가 변경되었습니다!');
+  };
+  const backLink = body.querySelector('#gmnBackLink');
+  backLink.onpointerdown = e => e.stopPropagation();
+  backLink.onclick = e => { e.stopPropagation(); gmRenderLoginChangeView(ov); };
 }
 
 /* --- 게임 선택 메뉴 --- */
@@ -4222,48 +4375,200 @@ async function loadGameRank(wk, game){
     box.innerHTML = '<div class="empty">랭킹을 불러오지 못했습니다.<br>관리자가 미니게임_패치4.sql을 실행해야 사용할 수 있어요.</div>';
   }
 }
-async function adminDelGame(){
-  const v = (document.getElementById('g-del').value||'').trim();
-  if(!v) return toastMsg('닉네임을 입력해 주세요');
-  if(!confirm(`'${v}' 님의 게임 기록(모든 게임·주차)을 삭제할까요?`)) return;
-  const {error} = await sb.rpc('admin_delete_game_score',{p_pass:adminPass(), p_nickname:v});
-  toastMsg(error ? '삭제 실패: ' + cleanErr(error.message) : '삭제되었습니다');
+/* --- 관리자: 게임 유저(닉네임) 계정 관리 — 참가자 관리 버튼으로 목록을 열고, 대회 참가자 관리와
+   동일한 UX(이름 변경/비번 초기화/강제 삭제 + 기록 변경)로 조작한다. 닉네임은 유저가 직접 정하는
+   값이라 onclick 인라인 문자열에 그대로 꽂으면 안 되므로(따옴표 등으로 깨질 수 있음) data-nick/
+   data-idx 속성 + this.dataset로만 주고받는다.
+   강제 삭제는 계정+전적을 완전히 지우는 동작이라 되돌릴 수 없고, 같은 닉네임을 다시 쓰려면
+   유저가 처음부터 새로 등록해야 한다(비밀번호도 새로 정해짐) — 확인 팝업 문구에도 명시한다. */
+const GU_GAMES = [ {key:'punch', label:'🥊 블랙 펀칭', unit:'kg'}, {key:'run', label:'🏃 블랙 러닝', unit:'점'}, {key:'grow', label:'🏔️ 블랙 점핑', unit:'점'} ];
+let __gameUsersCache = [];
+async function openGameUsers(){
+  const box = document.getElementById('gu-list');
+  if(!box) return;
+  if(box.innerHTML){ box.innerHTML = ''; return; }
+  const {data, error} = await sb.from('game_players').select('nickname,created_at').order('created_at');
+  if(error){
+    if(/function|not find/i.test(error.message||'')) return toastMsg('⚠️ 미니게임_패치4.sql을 먼저 실행해 주세요.');
+    return toastMsg('⚠️ ' + cleanErr(error.message));
+  }
+  __gameUsersCache = data || [];
+  renderGameUsers();
 }
-/* --- 관리자: 게임 유저(닉네임) 계정 관리 — 이름 변경 / 비번 초기화 / 강제 삭제 --- */
-async function adminRenameGameUser(){
-  const oldNick = (document.getElementById('gu-old').value||'').trim();
-  const newNick = (document.getElementById('gu-new').value||'').trim();
-  if(!oldNick || !newNick) return toastMsg('기존 닉네임과 새 닉네임을 모두 입력해 주세요');
-  if(!confirm(`'${oldNick}' 님을 '${newNick}' (으)로 변경할까요?\n미니게임 기록 + 블랙 배틀 전적이 함께 이전됩니다.`)) return;
-  const {data, error} = await sb.rpc('admin_rename_game_user',{p_pass:adminPass(), p_old_nickname:oldNick, p_new_nickname:newNick});
-  if(error) return toastMsg('변경 실패: ' + cleanErr(error.message));
-  if(!data || data.ok === false) return toastMsg((data && data.msg) || '변경에 실패했습니다.');
-  toastMsg(`'${oldNick}' → '${data.nickname || newNick}' 로 변경되었습니다`);
-  document.getElementById('gu-old').value = '';
-  document.getElementById('gu-new').value = '';
+async function searchGameUsers(){
+  const q = (document.getElementById('gu-search').value||'').trim();
+  if(!q) return toastMsg('닉네임을 입력해 주세요');
+  const {data, error} = await sb.from('game_players').select('nickname,created_at').order('created_at');
+  if(error){
+    if(/function|not find/i.test(error.message||'')) return toastMsg('⚠️ 미니게임_패치4.sql을 먼저 실행해 주세요.');
+    return toastMsg('⚠️ ' + cleanErr(error.message));
+  }
+  __gameUsersCache = (data||[]).filter(u => u.nickname.toLowerCase().includes(q.toLowerCase()));
+  renderGameUsers();
+  if(!__gameUsersCache.length) toastMsg(`'${q}' 닉네임을 찾을 수 없습니다`);
 }
-async function adminResetGamePin(){
-  const nick = (document.getElementById('gu-pin-nick').value||'').trim();
-  const pin = (document.getElementById('gu-pin-new').value||'').trim();
-  if(!nick) return toastMsg('닉네임을 입력해 주세요');
-  if(!/^[0-9]{4}$/.test(pin)) return toastMsg('새 비밀번호는 숫자 4자리로 입력해 주세요');
-  if(!confirm(`'${nick}' 님의 비밀번호를 초기화할까요?`)) return;
-  const {data, error} = await sb.rpc('admin_reset_game_pin',{p_pass:adminPass(), p_nickname:nick, p_new_pin:pin});
-  if(error) return toastMsg('초기화 실패: ' + cleanErr(error.message));
-  if(!data || data.ok === false) return toastMsg((data && data.msg) || '초기화에 실패했습니다.');
-  toastMsg(`'${nick}' 님의 비밀번호가 초기화되었습니다`);
-  document.getElementById('gu-pin-nick').value = '';
-  document.getElementById('gu-pin-new').value = '';
+function renderGameUsers(){
+  const box = document.getElementById('gu-list');
+  if(!box) return;
+  box.innerHTML = `
+    <hr class="sep">
+    <div style="font-size:13px;font-weight:700;color:var(--muted)">게임 등록 유저 ${__gameUsersCache.length}명 · 강제 삭제 시 계정+미니게임 3종 기록+블랙 배틀 전적이 모두 삭제되며, 같은 닉네임을 다시 쓰려면 새로 등록해야 합니다</div>
+    ${__gameUsersCache.map((u,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid #eef1f6;flex-wrap:wrap" id="gurow-${i}">
+      <b id="guname-${i}">${esc(u.nickname)}</b>
+      <span style="display:inline-flex;gap:5px;flex-wrap:wrap">
+        <button class="btn xs" data-idx="${i}" data-nick="${esc(u.nickname)}" onclick="editGameUserName(this)">이름 변경</button>
+        <button class="btn xs" data-idx="${i}" onclick="editGameUserScores(this)">기록 변경</button>
+        <button class="btn xs" data-nick="${esc(u.nickname)}" onclick="resetGameUserPin(this)">비번 초기화</button>
+        <button class="btn xs" style="color:#c62828" data-nick="${esc(u.nickname)}" onclick="delGameUser(this)">강제 삭제</button>
+      </span>
+    </div><div id="guscores-${i}" style="display:none;padding:0 2px"></div>`).join('') || '<div class="empty" style="padding:14px 0">등록된 게임 유저가 없습니다.</div>'}`;
 }
-async function adminForceDeleteGameUser(){
-  const nick = (document.getElementById('gu-force-del').value||'').trim();
-  if(!nick) return toastMsg('닉네임을 입력해 주세요');
-  if(!confirm(`'${nick}' 님의 게임 계정을 완전히 삭제할까요?\n미니게임 3종 기록 + 블랙 배틀 전적이 모두 삭제되며 되돌릴 수 없습니다.`)) return;
+async function editGameUserScores(btn){
+  const idx = btn.dataset.idx;
+  const box = document.getElementById('guscores-'+idx);
+  if(!box) return;
+  if(box.dataset.open === '1'){ box.innerHTML = ''; box.style.display = 'none'; delete box.dataset.open; return; }
+  box.dataset.open = '1';
+  box.style.display = '';
+  box.innerHTML = '<div class="empty" style="padding:8px 0">불러오는 중…</div>';
+  const nick = __gameUsersCache[idx].nickname;
+  const wk = gameWeekKey(svrNow());
+  const [{data, error}, bbRes] = await Promise.all([
+    sb.from('game_scores').select().eq('nickname', nick).eq('week', wk),
+    sb.rpc('bb_pvp_get_record', {p_nickname: nick})
+  ]);
+  if(error){ box.innerHTML = '<div class="empty">기록을 불러오지 못했습니다.</div>'; return; }
+  const rows = data || [];
+  const bb = (bbRes && !bbRes.error && bbRes.data && bbRes.data.ok !== false) ? bbRes.data : {wins:0,losses:0,draws:0,winStreak:0,bestWinStreak:0};
+  box.innerHTML = `<div style="padding:8px 4px;border-radius:10px;background:#f7f9fc;margin:4px 0 8px">
+    <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px">이번 주(${esc(wk)}) 기록 수정</div>
+    ${GU_GAMES.map(g=>{
+      const r = rows.find(x=>x.game===g.key);
+      return `<div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+        <span style="font-size:12.5px;font-weight:700;width:84px;flex-shrink:0">${g.label}</span>
+        <input type="number" min="0" max="100000" step="5" value="${r?r.score:0}"
+          id="guscore-${idx}-${g.key}" style="width:90px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:5px 8px;font-size:13px">
+        <span style="font-size:11.5px;color:var(--dim)">${g.unit}</span>
+        <button class="btn xs primary" data-idx="${idx}" data-game="${g.key}" data-combo="${r?r.combo:0}" data-kos="${r?r.kos:0}" onclick="saveGameUserScore(this)">저장</button>
+      </div>`;
+    }).join('')}
+    <hr class="sep" style="margin:10px 0 8px">
+    <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px">🥊 블랙 배틀 전적 수정</div>
+    ${BB_STAT_FIELDS.map(f=>`<div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+        <span style="font-size:12.5px;font-weight:700;width:84px;flex-shrink:0">${f.label}</span>
+        <input type="number" min="0" max="100000" step="1" value="${bb[f.key]||0}"
+          id="gubb-${idx}-${f.key}" style="width:90px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:5px 8px;font-size:13px">
+      </div>`).join('')}
+    <button class="btn xs primary" style="margin-top:8px" data-idx="${idx}" onclick="saveGameUserBBRecord(this)">전적 저장</button>
+  </div>`;
+}
+const BB_STAT_FIELDS = [
+  {key:'wins', label:'승'}, {key:'losses', label:'패'}, {key:'draws', label:'무'},
+  {key:'winStreak', label:'연승'}, {key:'bestWinStreak', label:'최고 연승'}
+];
+async function saveGameUserBBRecord(btn){
+  const idx = btn.dataset.idx;
+  const nick = __gameUsersCache[idx].nickname;
+  const vals = {};
+  for(const f of BB_STAT_FIELDS){
+    const inp = document.getElementById(`gubb-${idx}-${f.key}`);
+    const v = parseInt(inp.value, 10);
+    if(!Number.isFinite(v) || v < 0) return toastMsg('⚠️ 전적 값은 0 이상의 숫자여야 합니다.');
+    vals[f.key] = v;
+  }
+  const {data, error} = await sb.rpc('admin_update_bb_record', {
+    p_pass: adminPass(), p_nickname: nick,
+    p_wins: vals.wins, p_losses: vals.losses, p_draws: vals.draws,
+    p_win_streak: vals.winStreak, p_best_win_streak: vals.bestWinStreak
+  });
+  if(error){
+    if(/function|not find/i.test(error.message||'')) return toastMsg('⚠️ 미니게임_계정관리_패치.sql을 먼저 실행해 주세요.');
+    return toastMsg('⚠️ ' + cleanErr(error.message));
+  }
+  if(!data || data.ok === false) return toastMsg('⚠️ ' + ((data && data.msg) || '전적 수정에 실패했습니다.'));
+  toastMsg(`${nick} 님의 블랙 배틀 전적이 수정되었습니다.`);
+}
+async function saveGameUserScore(btn){
+  const idx = btn.dataset.idx, game = btn.dataset.game;
+  const nick = __gameUsersCache[idx].nickname;
+  const wk = gameWeekKey(svrNow());
+  const inp = document.getElementById(`guscore-${idx}-${game}`);
+  const score = parseInt(inp.value, 10);
+  if(!Number.isFinite(score) || score < 0) return toastMsg('⚠️ 올바른 점수를 입력해 주세요.');
+  const combo = parseInt(btn.dataset.combo, 10) || 0;
+  const kos = parseInt(btn.dataset.kos, 10) || 0;
+  const {data, error} = await sb.rpc('admin_upsert_game_score',
+    {p_pass:adminPass(), p_nickname:nick, p_game:game, p_week:wk, p_score:score, p_combo:combo, p_kos:kos});
+  if(error){
+    if(/function|not find/i.test(error.message||'')) return toastMsg('⚠️ 미니게임_계정관리_패치.sql을 먼저 실행해 주세요.');
+    return toastMsg('⚠️ ' + cleanErr(error.message));
+  }
+  if(!data || data.ok === false) return toastMsg('⚠️ ' + ((data && data.msg) || '수정에 실패했습니다.'));
+  toastMsg(`${nick} 님의 기록이 수정되었습니다.`);
+}
+function editGameUserName(btn){
+  const idx = btn.dataset.idx;
+  const el = document.getElementById('guname-'+idx);
+  if(!el || el.dataset.e) return;
+  el.dataset.e = '1';
+  const cur = btn.dataset.nick;
+  el.dataset.orig = cur;
+  el.innerHTML = `<input id="guinput-${idx}" value="${esc(cur)}" maxlength="20"
+      style="background:#fff;border:1.5px solid var(--key);border-radius:8px;padding:5px 8px;font-size:13.5px;font-weight:700;width:130px"
+      onkeydown="if(event.key==='Enter')saveGameUserName(${idx}); if(event.key==='Escape')cancelGameUserName(${idx})">
+    <button class="btn xs primary" onclick="saveGameUserName(${idx})">저장</button>
+    <button class="btn xs" onclick="cancelGameUserName(${idx})">취소</button>`;
+}
+function cancelGameUserName(idx){
+  const el = document.getElementById('guname-'+idx);
+  if(!el) return;
+  el.textContent = el.dataset.orig || '';
+  delete el.dataset.e;
+}
+async function saveGameUserName(idx){
+  const inp = document.getElementById('guinput-'+idx);
+  const v = (inp.value||'').trim();
+  if(!v) return toastMsg('⚠️ 닉네임을 입력해 주세요.');
+  const old = __gameUsersCache[idx].nickname;
+  const {data, error} = await sb.rpc('admin_rename_game_user',{p_pass:adminPass(), p_old_nickname:old, p_new_nickname:v});
+  if(error){
+    if(/function|not find/i.test(error.message||'')) return toastMsg('⚠️ 미니게임_계정관리_패치.sql을 먼저 실행해 주세요.');
+    return toastMsg('⚠️ ' + cleanErr(error.message));
+  }
+  if(!data || data.ok === false) return toastMsg('⚠️ ' + ((data && data.msg) || '변경에 실패했습니다.'));
+  const finalNick = data.nickname || v;
+  __gameUsersCache[idx].nickname = finalNick;
+  const el = document.getElementById('guname-'+idx);
+  delete el.dataset.e;
+  el.textContent = finalNick;
+  const row = document.getElementById('gurow-'+idx);
+  row.querySelectorAll('button[data-nick]').forEach(b=>b.dataset.nick = finalNick);
+  toastMsg('닉네임이 변경되었습니다.');
+  flashEl(row);
+}
+async function resetGameUserPin(btn){
+  const nick = btn.dataset.nick;
+  if(!confirm(`'${nick}' 님의 비밀번호를 0000으로 초기화할까요?\n(유저에게 0000으로 로그인 후 수정하라고 안내하세요)`)) return;
+  const {data, error} = await sb.rpc('admin_reset_game_pin',{p_pass:adminPass(), p_nickname:nick, p_new_pin:'0000'});
+  if(error){
+    if(/function|not find/i.test(error.message||'')) return toastMsg('⚠️ 미니게임_계정관리_패치.sql을 먼저 실행해 주세요.');
+    return toastMsg('⚠️ ' + cleanErr(error.message));
+  }
+  if(!data || data.ok === false) return toastMsg('⚠️ ' + ((data && data.msg) || '초기화에 실패했습니다.'));
+  toastMsg('비밀번호가 0000으로 초기화되었습니다.');
+}
+async function delGameUser(btn){
+  const nick = btn.dataset.nick;
+  if(!confirm(`'${nick}' 님의 게임 계정을 완전히 삭제할까요?\n미니게임 3종 기록 + 블랙 배틀 전적이 모두 삭제되며 되돌릴 수 없습니다.\n같은 닉네임을 다시 쓰려면 유저가 처음부터 새로 등록해야 합니다.`)) return;
   const {data, error} = await sb.rpc('admin_force_delete_game_user',{p_pass:adminPass(), p_nickname:nick});
-  if(error) return toastMsg('삭제 실패: ' + cleanErr(error.message));
-  if(!data || data.ok === false) return toastMsg((data && data.msg) || '삭제에 실패했습니다.');
-  toastMsg(`'${nick}' 님의 계정이 삭제되었습니다`);
-  document.getElementById('gu-force-del').value = '';
+  if(error){
+    if(/function|not find/i.test(error.message||'')) return toastMsg('⚠️ 미니게임_계정관리_패치.sql을 먼저 실행해 주세요.');
+    return toastMsg('⚠️ ' + cleanErr(error.message));
+  }
+  if(!data || data.ok === false) return toastMsg('⚠️ ' + ((data && data.msg) || '삭제에 실패했습니다.'));
+  toastMsg('게임 계정이 삭제되었습니다.');
+  __gameUsersCache = __gameUsersCache.filter(u=>u.nickname !== nick);
+  renderGameUsers();
 }
 
 
@@ -6915,27 +7220,14 @@ async function viewAdmin(){
     <div class="sec-title">📋 대회 관리</div>
     ${rows.join('') || '<div class="empty">대회가 없습니다.</div>'}
     ${statsHTML}
-    <div class="sec-title">🥊 미니게임 기록 관리</div>
+    <div class="sec-title">게임 관리</div>
     <div class="card" style="max-width:420px">
-      <div class="field"><label>삭제할 닉네임 (모든 주차 기록 삭제 · 부정 기록 정리용)</label><input id="g-del"></div>
-      <button class="btn small" style="margin-top:12px;color:#c62828" onclick="adminDelGame()">기록 삭제</button>
-    </div>
-    <div class="sec-title">👤 게임 유저 계정 관리</div>
-    <div class="card" style="max-width:420px">
-      <div class="field"><label>닉네임 변경</label>
-        <input id="gu-old" placeholder="기존 닉네임" style="margin-bottom:6px">
-        <input id="gu-new" placeholder="새 닉네임"></div>
-      <button class="btn small" id="gu-rename-btn" style="margin-top:12px" onclick="adminRenameGameUser()">변경하기</button>
-    </div>
-    <div class="card" style="max-width:420px;margin-top:10px">
-      <div class="field"><label>비밀번호 초기화</label>
-        <input id="gu-pin-nick" placeholder="닉네임" style="margin-bottom:6px">
-        <input id="gu-pin-new" inputmode="numeric" maxlength="4" placeholder="새 비밀번호 (숫자 4자리)"></div>
-      <button class="btn small" id="gu-pin-btn" style="margin-top:12px" onclick="adminResetGamePin()">초기화하기</button>
-    </div>
-    <div class="card" style="max-width:420px;margin-top:10px">
-      <div class="field"><label>강제 삭제 (계정 + 미니게임 기록 + 블랙 배틀 전적 모두 삭제)</label><input id="gu-force-del" placeholder="닉네임"></div>
-      <button class="btn small" id="gu-force-del-btn" style="margin-top:12px;color:#c62828" onclick="adminForceDeleteGameUser()">강제 삭제</button>
+      <div class="field"><label>닉네임 검색</label><input id="gu-search" placeholder="닉네임 입력" onkeydown="if(event.key==='Enter')searchGameUsers()"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn small" id="gu-search-btn" onclick="searchGameUsers()">검색</button>
+        <button class="btn small" id="gu-open-btn" onclick="openGameUsers()">참가자 관리</button>
+      </div>
+      <div id="gu-list"></div>
     </div>
     <div class="sec-title">⚙️ 관리자 비밀번호 변경</div>
     <div class="card" style="max-width:420px">
