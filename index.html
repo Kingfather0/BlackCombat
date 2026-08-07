@@ -299,8 +299,6 @@
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
-      border-left: 4px solid var(--key);
-      padding-left: 10px
     }
 
     h1.page {
@@ -482,12 +480,15 @@
       display: block;
       background: var(--card);
       border: 1px solid var(--border);
-      border-left: 5px solid var(--key);
       border-radius: 12px;
       padding: 16px;
       margin-top: 12px;
       transition: .15s;
       box-shadow: 0 1px 4px rgba(20, 40, 80, .06)
+    }
+
+    .t-card.open {
+      border-left: 5px solid var(--key);
     }
 
     .t-card:hover {
@@ -2099,7 +2100,6 @@
       border-radius: 18px;
       background: linear-gradient(180deg, #ffffff, #f6f9ff);
       border: 2px solid #dfe8f5;
-      border-left: 5px solid var(--key);
       box-shadow: 0 4px 12px rgba(60, 110, 180, .12);
       transition: transform .15s, box-shadow .15s, border-color .15s;
       color: var(--text)
