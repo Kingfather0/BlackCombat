@@ -7098,7 +7098,7 @@
     function gmShellHTML(wk, title, sub, desc, startLabel, hint, rule) {
       gmCurRule = rule;
       return `
-  <h1 class="page" style="gap:6px">${title} <button class="bb-rules-btn-top" id="gRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button><span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰ 주간 랭킹 리셋까지 <b style="color:#e0332a">${gmResetLeft()}</b></span></h1>
+  <h1 class="page" style="gap:6px">${title} <button class="bb-rules-btn-top" id="gRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button><span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰ 주간 랭킹 리셋까지 <b>${gmResetLeft()}</b></span></h1>
   <div id="gArea" class="ga-${gmCurGame}">
     <canvas id="gCanvas"></canvas>
     <div class="ghud">
