@@ -178,7 +178,7 @@ footer a{color:var(--dim);text-decoration:underline}
 .corner{padding:10px 6px;font-size:15px}
 .fmeta{display:block;font-size:11px;font-weight:700;margin-top:3px;opacity:.9}
 .votebar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:2px solid var(--key);z-index:60;box-shadow:0 -4px 16px rgba(20,40,80,.12)}
-.votebar .in{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px}
+.votebar .in{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:10px 14px}
 .votebar .cnt{font-weight:800;font-size:15px}
 .votebar .cnt b{color:var(--key-deep);font-size:17px}
 body.has-votebar .wrap{padding-bottom:160px}
@@ -2297,7 +2297,7 @@ function gmRRectS(ctx, x, y, w2, h2, r){
 function gmShellHTML(wk, title, sub, desc, startLabel, hint, rule){
   gmCurRule = rule;
   return `
-  <h1 class="page">${title} <button class="bb-rules-btn-top" id="gRulesBtn" type="button">📖 설명서</button><span style="font-size:12.5px;font-weight:700;color:var(--muted);font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰ 주간 랭킹 리셋까지 <b style="color:#e0332a">${gmResetLeft()}</b></span></h1>
+  <h1 class="page" style="gap:6px">${title} <button class="bb-rules-btn-top" id="gRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button><span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰ 리셋까지 <b style="color:#e0332a">${gmResetLeft()}</b></span></h1>
   <div id="gArea" class="ga-${gmCurGame}">
     <canvas id="gCanvas"></canvas>
     <div class="ghud">
@@ -5013,7 +5013,7 @@ function bbFighterGridHtml(selectedNick){
    기존 공유 기능(copyLink)과 동일하게 클립보드에 복사해 붙여넣기만 하면 되도록 돕는다.
    공유되는 링크는 잡담방 오픈채팅 참여 링크가 아니라 블랙 배틀 매칭 화면으로 바로 들어오는 링크다 —
    받은 사람이 누르자마자 곧장 매칭 화면으로 이동할 수 있게 하기 위함이다. */
-const BB_PROMOTE_TEXT = '블랙 배틀 한판 하실분?!🤗';
+const BB_PROMOTE_TEXT = '블랙 배틀 한판 하실분?!🔥🔥';
 const BB_PROMOTE_URL = location.origin + location.pathname + '#/game/battle';
 function bbPromoteInChat(){
   const text = BB_PROMOTE_TEXT, url = BB_PROMOTE_URL;
