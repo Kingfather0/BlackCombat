@@ -6367,7 +6367,7 @@
           [12, '쿠빌라이', '뷰렌저릭', 16, 20, 0, 'mn'], [13, '블랙리스트', '박찬솔', 5, 2, 0, 'kr'], [14, '박조교', '박지환', 3, 1, 0, 'kr'],
           [15, '방탄', '김민석', 6, 4, 0, 'kr'], [16, '갓균', '김연균', 3, 3, 0, 'kr'], [17, '니카', 'Gilberto Macedo', 3, 2, 0, 'br'],
           [18, '스톤골렘', '손민', 5, 3, 0, 'kr'], [19, '오니', 'Tanaka Yu', 6, 6, 0, 'jp'], [20, '로꼬', 'Otacilio Oliveira', 7, 9, 0, 'br'],
-          [21, '그레네이드', '이설호', 4, 9, 0, 'kr'], [22, '청드래곤', '이청수', 1, 1, 0, 'kr']]
+          [21, '그레네이드', '이설호', 4, 9, 0, 'kr'], [22, '청드래곤', '이청수', 1, 1, 0, 'kr'], [23, 'Gunslinger', 'Miles Hunsinger', 7, 2, 0, 'us']]
       },
       {
         div: '미들급', list: [
@@ -6454,6 +6454,60 @@
         toastMsg('⚠️ ' + (e.message || '갱신에 실패했습니다.') + ' 실패가 반복되면 클로드에게 수동 갱신을 요청하세요.');
         btn.disabled = false; btn.textContent = '🔄 수동 갱신';
       }
+    }
+    /* ── 선수 수동 추가 (관리자) — 아직 공식 랭킹 페이지에 안 올라온 신인 선수를 대진에서
+       바로 쓸 수 있게 직접 등록한다. 순위는 항상 해당 체급 맨 아래(신인)로 붙는다.
+       공식 랭킹에 정식으로 오르면 [🔄 수동 갱신]을 누르는 순간 그쪽 데이터로 자연스럽게 교체된다. */
+    function toggleAddFighterForm() {
+      const box = document.getElementById('afx');
+      if (!box) return;
+      if (box.innerHTML) { box.innerHTML = ''; return; }
+      box.innerHTML = `
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:14px;font-weight:800;margin-bottom:10px">➕ 신인 선수 직접 추가</div>
+      <div class="note" style="margin-bottom:10px">공식 랭킹 페이지에 아직 없는 선수를 체급 맨 아래(신인)로 등록합니다. 저장하면 바로 대진 등록에 쓸 수 있어요.</div>
+      <div class="field"><label>체급</label>
+        <select id="af-div">${FIGHTERS.map(d => `<option value="${esc(d.div)}">${esc(d.div)}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>선수 이름 (대진에 쓸 이름)</label><input id="af-nick" placeholder="예: Gunslinger"></div>
+      <div class="field"><label>실명 (선택)</label><input id="af-real" placeholder="예: Miles Hunsinger"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="field" style="flex:1;min-width:70px"><label>승</label><input type="number" id="af-w" value="0" min="0"></div>
+        <div class="field" style="flex:1;min-width:70px"><label>패</label><input type="number" id="af-l" value="0" min="0"></div>
+        <div class="field" style="flex:1;min-width:70px"><label>무</label><input type="number" id="af-d" value="0" min="0"></div>
+      </div>
+      <div class="field"><label>국가 코드 (2자리, 예: kr/us/jp/br)</label><input id="af-flag" value="kr" maxlength="2" style="width:90px;text-transform:lowercase"></div>
+      <div class="msg" id="af-msg"></div>
+      <button class="btn primary wide" style="margin-top:10px" onclick="submitAddFighter()">추가하기</button>
+    </div>`;
+    }
+    async function submitAddFighter() {
+      const divSel = document.getElementById('af-div').value;
+      const nick = document.getElementById('af-nick').value.trim();
+      const real = document.getElementById('af-real').value.trim();
+      const w = parseInt(document.getElementById('af-w').value || '0', 10);
+      const l = parseInt(document.getElementById('af-l').value || '0', 10);
+      const dr = parseInt(document.getElementById('af-d').value || '0', 10);
+      const flag = (document.getElementById('af-flag').value.trim().toLowerCase() || 'kr').slice(0, 2);
+      const msg = document.getElementById('af-msg');
+      const show = (c, s) => { msg.className = 'msg ' + c; msg.textContent = s; };
+      if (!nick) return show('err', '선수 이름을 입력해 주세요.');
+      if (FIGHTER_NORM[normName(nick)]) return show('err', '이미 등록된 이름입니다.');
+      const div = FIGHTERS.find(d => d.div === divSel);
+      if (!div) return show('err', '체급을 찾을 수 없습니다.');
+      const nums = div.list.map(f => typeof f[0] === 'number' ? f[0] : 0);
+      const nextRank = (nums.length ? Math.max(...nums) : 0) + 1;
+      div.list.push([nextRank, nick, real, w, l, dr, flag]);
+      const { error } = await sb.rpc('admin_save_data', { p_pass: adminPass(), p_key: 'fighters', p_value: { divisions: FIGHTERS } });
+      if (error) {
+        div.list.pop();
+        if (/function|not find/i.test(error.message || '')) return show('err', '랭킹갱신_패치.sql을 먼저 Supabase에서 실행해 주세요.');
+        return show('err', cleanErr(error.message));
+      }
+      fightersUpdatedAt = new Date().toISOString();
+      buildFighterMap(); seasonCache = null;
+      toastMsg(`✅ ${nick} 선수가 ${divSel}에 추가되었습니다.`);
+      viewFighters();
     }
     function parseFighterHTML(raw) {
       const doc = new DOMParser().parseFromString(raw, 'text/html');
@@ -6582,10 +6636,12 @@
       <span>블랙컴뱃 선수 랭킹</span>
       <span style="display:inline-flex;gap:8px;align-items:center">
         ${fightersUpdatedAt ? `<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${fmtDT(fightersUpdatedAt)} 갱신</span>` : ''}
+        ${adminPass() ? `<button class="btn small" onclick="toggleAddFighterForm()">➕ 선수 추가</button>` : ''}
         ${adminPass() ? `<button class="btn primary small" onclick="refreshFighters(this)">🔄 수동 갱신</button>` : ''}
       </span>
     </h1>
     <div class="sub">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 매일 새벽 자동 갱신</div>
+    <div id="afx"></div>
     <div class="fgrid">
       ${FIGHTERS.map((d, di) => {
         const vis = d.list.slice(0, 11), more = d.list.slice(11);
