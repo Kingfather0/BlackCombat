@@ -7454,9 +7454,9 @@
         const listLine = bannerTiers.map(g => `<b>${esc(g.desc)} ${g.max}명</b>`).join(' → ');
         html += `
     <div class="card gift-banner" style="margin-top:16px">
-      <b>🎁 당첨 선물</b> <b style="color:#8a6a12">— 총 ${totalWinners}명</b>
+      <b>🎁 당첨 선물</b> <b style="color:var(--key-deep)">— 총 ${totalWinners}명</b>
       <div class="note" style="margin-top:6px;color:#57503a">
-        <div style="font-size:13.5px">${listLine}</div>
+        <div style="font-size:13.5px;color:var(--key-deep)">${listLine}</div>
         <div style="margin-top:6px">많이 맞힌 순서대로 ${totalWinners}명을 뽑아, 앞의 선물부터 차례로 드려요.<br>동점자끼리는 순서를 랜덤 추첨으로 정해요.</div>
         ${giftExampleHTML(bannerTiers)}
       </div>
@@ -12624,7 +12624,7 @@
       <div class="note" style="color:#57503a">
         ${t.gift_winners ? `
           ${(t.gift_winners.mode === 'waterfall' && Array.isArray(t.gift_winners.tiers)) ? `
-          <div style="font-weight:800;font-size:14px">🎲 선물 추첨 결과</div>
+          <div style="font-weight:800;font-size:14px;color:var(--key-deep)">🎲 선물 추첨 결과</div>
           ${t.gift_winners.tiers.map((g, i) => {
             // 닉네임 옆에 그 사람의 적중 순위를 괄호로 표시한다 (1~3등은 메달 이모지)
             const winners = Array.isArray(g.winners) ? g.winners : (g.names || []).map(n => ({ n }));
