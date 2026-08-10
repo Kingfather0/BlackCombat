@@ -6445,6 +6445,12 @@
     function fmtDT(d) {
       return new Date(d).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit' });
     }
+    // 경기 시작일 표시 — 시간까지 저장된 대회(event_at)는 "8월 29일 (토) 오후 05:00" 형태로,
+    // 날짜만 있는 예전 대회(event_date)는 기존처럼 날짜만 보여준다.
+    function fmtEventDT(t) {
+      if (t.event_at) return new Date(t.event_at).toLocaleString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit' });
+      return fmtDate(t.event_date);
+    }
     function countdownText(deadline) {
       const ms = new Date(deadline).getTime() - svrNow().getTime();
       if (ms <= 0) return null;
@@ -6542,7 +6548,7 @@
         return `<a class="t-card ${tState(t)}" href="#/t/${t.id}">
       <div class="tt">${esc(t.title)} &nbsp;${stateBadge(t)}</div>
       <div class="meta">
-        ${t.event_date ? `<span>📅 ${fmtDate(t.event_date)}</span>` : ''}
+        ${(t.event_at || t.event_date) ? `<span>📅 ${fmtEventDT(t)}</span>` : ''}
         <span>👥 ${d.counts[t.id] || 0}명 참여</span>
         ${cd ? cdHTML(t.deadline) : `<span>🔒 ${fmtDT(t.deadline)} 마감</span>`}
       </div></a>`;
@@ -7028,11 +7034,21 @@
         if (pv) pv.innerHTML = esc(tkLive.shareText).replace(/\n/g, '<br>');
       }).catch(() => { });
     }
+    // 지금까지 기록된 모든 티켓(경기)의 목록 — "지난 티켓" 섹션용.
+    // 패치를 아직 안 돌렸거나 실패하면 빈 목록(섹션 숨김)으로 조용히 대체된다.
+    async function fetchTicketEvents() {
+      try {
+        const { data, error } = await sb.rpc('get_ticket_events');
+        if (error) return [];
+        return data || [];
+      } catch (e) { return []; }
+    }
+    function fmtSnapDate(d) {
+      return new Date(d).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    }
     async function viewTickets(previewKey) {
       // 모든 방문자에게 공개된 페이지다.
-      // #/tickets/아무키 로 들어오면, 실제 행사 데이터 대신 그 키로 기록된 테스트 데이터를 미리 볼 수 있다.
-      // (자동 기록 스크립트를 실제 행사와 무관한 테스트용 event_key로 한 번 돌려보고, 화면에 잘 나오는지
-      // 확인할 때 쓰는 용도 — 실제 판매 현황 데이터는 전혀 건드리지 않는다.)
+      // #/tickets/아무키 로 들어오면 그 키로 기록된 데이터(지난 티켓/테스트)를 볼 수 있다.
       const isPreview = !!previewKey;
       loading();
       // "지금 추적 중인 event_key"를 Supabase에서 물어본다 — 새 경기를 추적하기 시작할 때
@@ -7042,9 +7058,26 @@
       const eventKey = previewKey || (await fetchCurrentTicketEventKey()) || TICKET_EVENT_KEY;
       let rows; try { rows = await fetchTicketSnapshots(eventKey); } catch (e) { return fail(e); }
 
+      // 지난 티켓 목록 (현재 보고 있는 티켓은 제외) — 현재 화면(메인)에서만 보여준다.
+      let pastHTML = '';
+      if (!isPreview) {
+        const events = await fetchTicketEvents();
+        const past = events.filter(e => e.event_key !== eventKey);
+        if (past.length) {
+          pastHTML = `
+      <div class="sec-title" style="margin-top:24px">🏁 지난 티켓 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최신순 · 총 ${past.length}개</span></div>
+      ${past.map(e => `
+      <a class="card tk-past" href="#/tickets/${encodeURIComponent(e.event_key)}" style="display:block;padding:13px 16px;text-decoration:none;color:inherit">
+        <div style="font-weight:800;font-size:14.5px">${esc(e.title || e.event_key)}</div>
+        <div class="sub" style="margin-top:3px">📅 ${fmtSnapDate(e.first_at)} ~ ${fmtSnapDate(e.last_at)} · 기록 ${Number(e.snap_count).toLocaleString()}건</div>
+      </a>`).join('')}`;
+        }
+      }
+
       const meta = mergedTicketMeta(rows);
       const previewBanner = isPreview
-        ? `<div class="badge wait" style="margin-top:10px">🧪 테스트 미리보기 — event_key: ${esc(eventKey)} (실제 판매 현황이 아닙니다)</div>`
+        ? `<div class="badge wait" style="margin-top:10px">🏁 지난 티켓 기록 보기 — ${esc(eventKey)}</div>
+       <div style="margin-top:8px"><a class="btn small" href="#/tickets">← 현재 티켓으로 돌아가기</a></div>`
         : '';
       const infoCard = `
     <div class="card" style="padding:14px 16px">
@@ -7052,14 +7085,15 @@
       <div class="sub" style="margin-top:4px">📅 ${esc(meta.eventDateText)} · 📍 ${esc(meta.place)}</div>
       <div class="sub" style="margin-top:2px">🎟️ 티켓 오픈: ${esc(meta.openText)}</div>
       ${previewBanner}
-      <a class="btn primary small" style="margin-top:10px" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">예매하러 가기</a>
+      ${isPreview ? '' : `<a class="btn primary small" style="margin-top:10px" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">예매하러 가기</a>`}
     </div>`;
 
       if (!rows.length) {
         $app.innerHTML = `
       <h1 class="page">티켓 판매 현황</h1>
       ${infoCard}
-      <div class="empty" style="margin-top:14px">아직 판매 현황 기록이 없습니다.<br>티켓이 오픈되면(${esc(meta.openText)}) 자동으로 여기에 표시됩니다.</div>`;
+      <div class="empty" style="margin-top:14px">아직 판매 현황 기록이 없습니다.<br>티켓이 오픈되면(${esc(meta.openText)}) 자동으로 여기에 표시됩니다.</div>
+      ${pastHTML}`;
         return;
       }
 
@@ -7177,7 +7211,8 @@
       ${currentHTML}
       <div class="sec-title">판매 히스토리 <span style="color:var(--dim);font-size:12.5px;font-weight:700">전체 ${rows.length.toLocaleString()}건</span></div>
       <div class="card tk-hist-scroll" style="padding:0">${histHTML}</div>
-      <div class="note">이 페이지는 예매 사이트 화면을 주기적으로 자동 확인해 기록한 값으로, 실제 판매 시점과 몇 분 정도 오차가 있을 수 있습니다.</div>`;
+      <div class="note">이 페이지는 예매 사이트 화면을 주기적으로 자동 확인해 기록한 값으로, 실제 판매 시점과 몇 분 정도 오차가 있을 수 있습니다.</div>
+      ${pastHTML}`;
     }
 
     /* ── 선수 랭킹 자동 갱신 (관리자) ── */
@@ -7438,11 +7473,10 @@
       let html = `
     <h1 class="page">${esc(t.title)} ${stateBadge(t)}</h1>
     <div class="sub">
-      ${t.event_date ? `📅 경기일 ${fmtDate(t.event_date)} &nbsp;·&nbsp; ` : ''}
+      ${(t.event_at || t.event_date) ? `📅 경기일 ${fmtEventDT(t)} &nbsp;·&nbsp; ` : ''}
       🚫 ${fmtDT(t.deadline)} 마감
       ${cd ? ` &nbsp;·&nbsp; ${cdHTML(t.deadline)}` : ''}
       &nbsp;·&nbsp; 👥 ${parts.length}명 참여
-      &nbsp;·&nbsp; <button style="color:var(--muted);font-size:inherit;font-weight:inherit;font-family:inherit;padding:0;vertical-align:baseline" onclick="copyLink()">🔗 링크복사</button>
     </div>`;
 
       // 선물에는 등수 이름표(1등 선물/2등 선물)를 붙이지 않는다 — 밀어내기 방식에서는 1등이
@@ -7454,7 +7488,7 @@
         const listLine = bannerTiers.map(g => `<b>${esc(g.desc)} ${g.max}명</b>`).join(' → ');
         html += `
     <div class="card gift-banner" style="margin-top:16px">
-      <b>🎁 당첨 선물</b> <b style="color:var(--key-deep)">— 총 ${totalWinners}명</b>
+      <b>🎁 당첨 선물</b> <b style="color:#8a6a12">— 총 ${totalWinners}명</b>
       <div class="note" style="margin-top:6px;color:#57503a">
         <div style="font-size:13.5px;color:var(--key-deep)">${listLine}</div>
         <div style="margin-top:6px">많이 맞힌 순서대로 ${totalWinners}명을 뽑아, 앞의 선물부터 차례로 드려요.<br>동점자끼리는 순서를 랜덤 추첨으로 정해요.</div>
@@ -12603,7 +12637,7 @@
       const second = ranked.filter(r => r.rank === 2);
       const chip = rankChips(ranked);
       // 선물 수령 기한: 경기일(없으면 마감일) 다음날
-      const baseD = t.event_date ? new Date(t.event_date + 'T00:00:00') : new Date(t.deadline);
+      const baseD = t.event_at ? new Date(t.event_at) : (t.event_date ? new Date(t.event_date + 'T00:00:00') : new Date(t.deadline));
       const nextD = new Date(baseD.getTime() + 86400000);
       const nextStr = nextD.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' });
       const GIFT = 'https://open.kakao.com/o/su9HLAuh';
@@ -12624,7 +12658,7 @@
       <div class="note" style="color:#57503a">
         ${t.gift_winners ? `
           ${(t.gift_winners.mode === 'waterfall' && Array.isArray(t.gift_winners.tiers)) ? `
-          <div style="font-weight:800;font-size:14px;color:var(--key-deep)">🎲 선물 추첨 결과</div>
+          <div style="font-weight:800;font-size:14px">🎲 선물 추첨 결과</div>
           ${t.gift_winners.tiers.map((g, i) => {
             // 닉네임 옆에 그 사람의 적중 순위를 괄호로 표시한다 (1~3등은 메달 이모지)
             const winners = Array.isArray(g.winners) ? g.winners : (g.names || []).map(n => ({ n }));
@@ -13340,6 +13374,12 @@
       // 1·2등은 위에서 이미 저장됐으므로 — 3등 이상이 있을 때만 안내한다.
       const { error: tErr } = await sb.rpc('admin_set_gift_tiers', { p_pass: adminPass(), p_tid: data, p_tiers: tiers });
       if (tErr && tiers.length > 2) toastMsg('⚠️ 3등 이상 선물 저장에는 선물_등수확장_패치.sql 실행이 필요합니다.');
+      // 경기 시작 "시간"까지 저장 (경기일 입력값에 시간이 포함돼 있으므로 그대로 보존)
+      if (dateRaw) {
+        const { error: atErr } = await sb.rpc('admin_set_event_at', { p_pass: adminPass(), p_tid: data, p_event_at: new Date(dateRaw).toISOString() });
+        if (atErr && !/function|not find/i.test(atErr.message || '')) toastMsg('⚠️ 경기 시작 시간 저장 실패: ' + cleanErr(atErr.message));
+        else if (atErr && dateRaw.length > 10 && !/T00:00$/.test(dateRaw)) toastMsg('⚠️ 경기 시작 "시간" 저장에는 경기시작시간_패치.sql 실행이 필요합니다.');
+      }
       toastMsg('대회가 개설되었습니다!');
       location.hash = `#/t/${data}`;
     }
@@ -13805,7 +13845,7 @@
       box.innerHTML = `<hr class="sep">
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <span style="font-size:13px;font-weight:700;color:var(--muted)">경기 시작일</span>
-      <input type="datetime-local" id="evi-${tid}" value="${t.event_date ? t.event_date + 'T00:00' : ''}" style="background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:9px 11px;font-size:15px;color:var(--text)">
+      <input type="datetime-local" id="evi-${tid}" value="${t.event_at ? (() => { const e = new Date(t.event_at); return `${e.getFullYear()}-${pad(e.getMonth() + 1)}-${pad(e.getDate())}T${pad(e.getHours())}:${pad(e.getMinutes())}`; })() : (t.event_date ? t.event_date + 'T00:00' : '')}" style="background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:9px 11px;font-size:15px;color:var(--text)">
       <span style="font-size:13px;font-weight:700;color:var(--muted)">투표 마감</span>
       <input type="datetime-local" id="dli-${tid}" value="${dlVal}" style="background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:9px 11px;font-size:15px;color:var(--text)">
       <button class="btn primary small" onclick="saveDeadline('${tid}')">저장</button>
@@ -13819,6 +13859,9 @@
         p_pass: adminPass(), p_tid: tid, p_title: null, p_event_date: ev ? ev.slice(0, 10) : null, p_deadline: new Date(v).toISOString()
       });
       if (error) return toastMsg('⚠️ ' + cleanErr(error.message));
+      // 경기 시작 "시간"까지 함께 저장 (비워두면 시간 표시도 지운다)
+      const { error: atErr } = await sb.rpc('admin_set_event_at', { p_pass: adminPass(), p_tid: tid, p_event_at: ev ? new Date(ev).toISOString() : null });
+      if (atErr && ev && ev.length > 10 && !/function|not find/i.test(atErr.message || '')) toastMsg('⚠️ 경기 시작 시간 저장 실패: ' + cleanErr(atErr.message));
       toastMsg('일정이 변경되었습니다.');
       route();
       setTimeout(() => flashEl(document.getElementById('dls-' + tid)), 900);
