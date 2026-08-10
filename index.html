@@ -1638,6 +1638,18 @@
     }
 
     /* 선물 관련 */
+    /* 당첨 선물 배너: 한 등수(예: "3등 [메가 커피] 최대 5명")가 화면이 좁을 때 중간에서
+       찢어지지 않고, 통째로 다음 줄로 내려가도록 묶는다 */
+    .gift-tier-line {
+      white-space: nowrap;
+      display: inline-block
+    }
+
+    /* 선물 등수 입력칸(내용/인원)의 글자는 항상 검정색으로 */
+    .gift-tier-row input {
+      color: var(--text)
+    }
+
     .gift-name {
       display: inline-block;
       background: #fff;
@@ -7438,7 +7450,7 @@
     <div class="card gift-banner" style="margin-top:16px">
       <b>🎁 당첨 선물</b>
       <div class="note" style="margin-top:3px;color:#57503a">
-        ${bannerTiers.map(g => `<b>${g.rank}등</b> <span class="gift-name">${esc(g.desc)}</span> <b style="font-size:12.5px">최대 ${g.max}명</b>`).join(' &nbsp; ')}
+        ${bannerTiers.map(g => `<span class="gift-tier-line"><b>${g.rank}등</b> <span class="gift-name">${esc(g.desc)}</span> <b style="font-size:12.5px">최대 ${g.max}명</b></span>`).join(' &nbsp; ')}
         <br><span style="font-size:12px">공동 순위 인원이 정원을 초과하면 랜덤 추첨으로 지급됩니다.</span>
       </div>
     </div>`;
