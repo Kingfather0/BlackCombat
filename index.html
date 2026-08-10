@@ -6624,6 +6624,16 @@
       if (error) throw error;
       return data || [];
     }
+    // 자동 기록 스크립트(ticket-watch.js)가 실행될 때마다 "지금 이 경기를 본다"고 Supabase에
+    // 남겨두는 값을 읽어온다. 실패하거나 아직 한 번도 설정된 적 없으면 null — 이 경우 호출부에서
+    // 기존처럼 하드코딩된 TICKET_EVENT_KEY로 대체한다(안전망, 회귀 없음).
+    async function fetchCurrentTicketEventKey() {
+      try {
+        const { data, error } = await sb.rpc('get_current_ticket_event');
+        if (error) return null;
+        return data || null;
+      } catch (e) { return null; }
+    }
     function fmtSnapTime(d) {
       return new Date(d).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
     }
@@ -6709,8 +6719,12 @@
       // (자동 기록 스크립트를 실제 행사와 무관한 테스트용 event_key로 한 번 돌려보고, 화면에 잘 나오는지
       // 확인할 때 쓰는 용도 — 실제 판매 현황 데이터는 전혀 건드리지 않는다.)
       const isPreview = !!previewKey;
-      const eventKey = previewKey || TICKET_EVENT_KEY;
       loading();
+      // "지금 추적 중인 event_key"를 Supabase에서 물어본다 — 새 경기를 추적하기 시작할 때
+      // 깃허브 Variables(TICKET_EVENT_KEY)만 바꾸면 자동 스크립트가 이 값을 갱신해주므로,
+      // index.html을 다시 고쳐서 올릴 필요가 없다. 아직 한 번도 안 갱신됐다면(패치를 안 돌렸거나,
+      // 자동 스크립트가 아직 한 번도 안 돌았다면) 기존처럼 하드코딩된 값으로 안전하게 대체된다.
+      const eventKey = previewKey || (await fetchCurrentTicketEventKey()) || TICKET_EVENT_KEY;
       let rows; try { rows = await fetchTicketSnapshots(eventKey); } catch (e) { return fail(e); }
 
       const meta = mergedTicketMeta(rows);
