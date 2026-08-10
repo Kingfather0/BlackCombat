@@ -534,6 +534,12 @@
       align-items: center
     }
 
+    .match-joined {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--dim)
+    }
+
     .vs-row {
       display: grid;
       grid-template-columns: 1fr 36px 1fr;
@@ -660,7 +666,7 @@
     .tk-total-label {
       font-weight: 800;
       font-size: 13px;
-      color: var(--muted)
+      color: var(--text)
     }
 
     .tk-total-num {
@@ -7143,7 +7149,7 @@
       ${adminPass() ? `<div style="display:flex;gap:8px;margin-top:10px">
         <button class="btn small" onclick="tkManualRefresh(this)">🔄 수동 갱신</button>
       </div>` : ''}
-      <div class="sec-title">등급 판매 현황</div>
+      <div class="sec-title">잔여 좌석</div>
       ${currentHTML}
       <div class="sec-title">판매 히스토리 <span style="color:var(--dim);font-size:12.5px;font-weight:700">전체 ${rows.length.toLocaleString()}건</span></div>
       <div class="card tk-hist-scroll" style="padding:0">${histHTML}</div>
@@ -7415,13 +7421,12 @@
       &nbsp;·&nbsp; <button style="color:var(--muted);font-size:inherit;font-weight:inherit;font-family:inherit;padding:0;vertical-align:baseline" onclick="copyLink()">🔗 링크복사</button>
     </div>`;
 
-      if ((st === 'open' || st === 'wait') && (t.gift1_desc || t.gift2_desc)) html += `
+      const bannerTiers = giftTiers(t).filter(g => g.desc);
+      if ((st === 'open' || st === 'wait') && bannerTiers.length) html += `
     <div class="card gift-banner" style="margin-top:16px">
       <b>🎁 당첨 선물</b>
       <div class="note" style="margin-top:3px;color:#57503a">
-        ${t.gift1_desc ? `<b>1등</b> <span class="gift-name">${esc(t.gift1_desc)}</span> <b style="font-size:12.5px">최대 ${t.gift1_max ?? 2}명</b>` : ''}
-        ${t.gift1_desc && t.gift2_desc ? ' &nbsp; ' : ''}
-        ${t.gift2_desc ? `<b>2등</b> <span class="gift-name">${esc(t.gift2_desc)}</span> <b style="font-size:12.5px">최대 ${t.gift2_max ?? 5}명</b>` : ''}
+        ${bannerTiers.map(g => `<b>${g.rank}등</b> <span class="gift-name">${esc(g.desc)}</span> <b style="font-size:12.5px">최대 ${g.max}명</b>`).join(' &nbsp; ')}
         <br><span style="font-size:12px">공동 순위 인원이 정원을 초과하면 랜덤 추첨으로 지급됩니다.</span>
       </div>
     </div>`;
@@ -12488,6 +12493,8 @@
       matches.forEach(m => {
         const el = document.getElementById('split-' + m.id);
         if (el) el.innerHTML = splitInner(m, parts, false, true);
+        const j = document.getElementById('joined-' + m.id);
+        if (j) j.textContent = pickStats(m, parts).tot + '명 참여';
       });
     }
 
@@ -12513,7 +12520,7 @@
     function voteCardsHTML(matches, parts) {
       const rows = matches.map(m => `
     <div class="match">
-      <div class="no"><span>${m.seq}경기</span></div>
+      <div class="no"><span>${m.seq}경기</span><span class="match-joined" id="joined-${m.id}">${pickStats(m, parts).tot}명 참여</span></div>
       <div class="vs-row">
         <button class="corner red ${voteSel[m.id] === 'A' ? 'sel' : ''}" data-mid="${m.id}" data-side="A" onclick="pick(this)">
           ${esc(m.fighter_a)}${fmeta(m.fighter_a)}</button>
@@ -12584,14 +12591,15 @@
       </div>
       <div class="note" style="color:#57503a">
         ${t.gift_winners ? `
-          <b>1등 당첨${t.gift1_desc ? ` (${esc(t.gift1_desc)})` : ''}</b> :
-          ${(t.gift_winners.first || []).map(n => `<span class="gift-name">${esc(n)}</span>`).join('') || '-'}
-          ${first.length > (t.gift_winners.first || []).length ? `<span style="color:#8a6a12">← 공동 ${first.length}명 중 ${(t.gift_winners.first || []).length}명 랜덤 추첨</span>` : ''}<br>
-          <b>2등 당첨${t.gift2_desc ? ` (${esc(t.gift2_desc)})` : ''}</b> :
-          ${(t.gift_winners.second || []).map(n => `<span class="gift-name">${esc(n)}</span>`).join('') || '-'}
-          ${second.length > (t.gift_winners.second || []).length ? `<span style="color:#8a6a12">← 공동 ${second.length}명 중 ${(t.gift_winners.second || []).length}명 랜덤 추첨</span>` : ''}<br>
+          ${giftTiers(t).map(g => {
+          const winners = giftWinnersFor(t.gift_winners, g.rank);
+          const tied = ranked.filter(r => r.rank === g.rank);
+          return `<b>${g.rank}등 당첨${g.desc ? ` (${esc(g.desc)})` : ''}</b> :
+            ${winners.map(n => `<span class="gift-name">${esc(n)}</span>`).join('') || '-'}
+            ${tied.length > winners.length ? `<span style="color:#8a6a12">← 공동 ${tied.length}명 중 ${winners.length}명 랜덤 추첨</span>` : ''}<br>`;
+        }).join('')}
           위 당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>`
-          : `1등·2등 당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>`}
+          : `당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>`}
         <span style="color:#c62828;font-weight:800">기한 내 연락이 없으면 당첨 선물은 지급되지 않습니다.</span>
       </div>
       <a class="btn primary small" style="margin-top:10px" href="${GIFT}" target="_blank" rel="noopener">킹빠더 1:1 오픈톡 바로가기</a>
@@ -13002,13 +13010,9 @@
       <div class="field"><label>대회명</label><input id="c-title" placeholder="예: 블랙컴뱃 넘버링"></div>
       <div class="field"><label>경기 날짜</label><input id="c-date" type="datetime-local"></div>
       <div class="field"><label>투표 마감 시각 (자동 마감)</label><input id="c-deadline" type="datetime-local"></div>
-      <div class="row2">
-        <div class="field"><label>1등 선물 (선택)</label><input id="c-g1" placeholder="예: 스타벅스 아메리카노"></div>
-        <div class="field"><label>1등 최대 인원</label><input id="c-g1n" type="number" value="2" min="0" max="99"></div>
-      </div>
-      <div class="row2">
-        <div class="field"><label>2등 선물 (선택)</label><input id="c-g2" placeholder="예: 메가커피"></div>
-        <div class="field"><label>2등 최대 인원</label><input id="c-g2n" type="number" value="5" min="0" max="99"></div>
+      <div class="field gift-tiers-wrap"><label>등수별 선물 (선택) — 3등 이상은 [+ 등수 추가]로 자유롭게 추가/삭제</label>
+        <div class="gift-tiers" id="c-gift-tiers"></div>
+        <button type="button" class="btn small" style="margin-top:8px" onclick="giftTierAdd(this)">+ 등수 추가</button>
       </div>
       <div class="field"><label>랭킹 선수 빠른 입력 (누르면 아래 빈 칸에 자동 입력)</label>
         <select id="fp-div" onchange="renderFighterPick()" style="margin-bottom:4px"></select>
@@ -13202,6 +13206,9 @@
       const open = box.style.display !== 'none';
       box.style.display = open ? 'none' : 'block';
       btn.textContent = open ? '➕ 새 대회 만들기' : '➖ 새 대회 만들기 접기';
+      // 처음 펼칠 때 선물 등수 입력줄(기본 1등·2등)을 채워둔다
+      const gt = document.getElementById('c-gift-tiers');
+      if (!open && gt && !gt.innerHTML) renderGiftTierRows(gt, [{ desc: '', max: 2 }, { desc: '', max: 5 }]);
     }
     async function adminLogin() {
       const pass = document.getElementById('a-pass').value;
@@ -13276,15 +13283,19 @@
       const vChk = validateFighterNames(ms.flatMap(m => [m.a, m.b]));
       if (!vChk.ok) return show('err', `랭킹에 없는 선수: ${[...new Set(vChk.bad)].join(', ')} — 빨간 입력칸의 추천 이름을 확인해 주세요.`);
       ms.forEach(m => { m.a = FIGHTER_NORM[normName(m.a)]; m.b = FIGHTER_NORM[normName(m.b)]; });
+      const tiers = readGiftTiers(document.getElementById('c-gift-tiers'));
+      const t1 = tiers[0] || { desc: '', max: 2 }, t2 = tiers[1] || { desc: '', max: 5 };
       const { data, error } = await sb.rpc('admin_create_tournament', {
         p_pass: adminPass(), p_title: title, p_event_date: date,
         p_deadline: new Date(dl).toISOString(), p_matches: ms,
-        p_g1desc: document.getElementById('c-g1').value.trim() || null,
-        p_g1max: parseInt(document.getElementById('c-g1n').value || '2', 10),
-        p_g2desc: document.getElementById('c-g2').value.trim() || null,
-        p_g2max: parseInt(document.getElementById('c-g2n').value || '5', 10)
+        p_g1desc: t1.desc || null, p_g1max: t1.max,
+        p_g2desc: t2.desc || null, p_g2max: t2.max
       });
       if (error) return show('err', cleanErr(error.message));
+      // 등수 목록 전체(3등 이상 포함)를 저장한다. 패치 전이라 함수가 없으면 —
+      // 1·2등은 위에서 이미 저장됐으므로 — 3등 이상이 있을 때만 안내한다.
+      const { error: tErr } = await sb.rpc('admin_set_gift_tiers', { p_pass: adminPass(), p_tid: data, p_tiers: tiers });
+      if (tErr && tiers.length > 2) toastMsg('⚠️ 3등 이상 선물 저장에는 선물_등수확장_패치.sql 실행이 필요합니다.');
       toastMsg('대회가 개설되었습니다!');
       location.hash = `#/t/${data}`;
     }
@@ -13313,6 +13324,60 @@
     <div id="mem-${t.id}"></div>
   </div>`;
     }
+    /* ── 선물 등수(1등/2등/3등…) 공용 도우미 ──
+       예전 데이터는 gift1_desc/gift2_desc 두 칸에만 있었고, 이제는 gift_tiers(jsonb 배열)에
+       [{rank,desc,max}, ...] 형태로 등수 제한 없이 저장한다. gift_tiers가 없는 예전 대회는
+       기존 두 칸을 그대로 읽어 완전히 똑같이 동작한다(회귀 없음). */
+    function giftTiers(t) {
+      if (Array.isArray(t.gift_tiers) && t.gift_tiers.length) {
+        return t.gift_tiers
+          .map(x => ({ rank: +x.rank, desc: x.desc || '', max: x.max != null ? +x.max : 0 }))
+          .sort((a, b) => a.rank - b.rank);
+      }
+      return [
+        { rank: 1, desc: t.gift1_desc || '', max: t.gift1_max ?? 2 },
+        { rank: 2, desc: t.gift2_desc || '', max: t.gift2_max ?? 5 }
+      ];
+    }
+    function giftWinnersFor(gw, rank) {
+      if (!gw) return [];
+      if (Array.isArray(gw[String(rank)])) return gw[String(rank)];
+      if (rank === 1) return gw.first || [];
+      if (rank === 2) return gw.second || [];
+      return [];
+    }
+    /* 등수별 선물 입력 UI (새 대회 만들기 + 선물 변경 공용).
+       1·2등 줄은 기본으로 고정(삭제 불가), 3등부터는 [+ 등수 추가]로 붙이고 ✕로 뺄 수 있다.
+       중간 등수를 지우면 남은 줄이 자동으로 1,2,3… 순서로 다시 번호가 매겨진다. */
+    function giftTierRowHTML(rank, desc, max) {
+      return `<div class="gift-tier-row" style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap;font-size:14px;font-weight:700">
+      <span class="gt-rank" style="min-width:32px">${rank}등</span>
+      <input class="gt-desc" value="${esc(desc || '')}" placeholder="선물 내용 (선택)" style="width:150px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:7px 9px">
+      최대 <input type="number" class="gt-max" value="${max}" min="0" max="99" style="width:60px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:7px 8px;text-align:center">명
+      ${rank > 2 ? `<button type="button" class="btn xs gt-del" style="color:#c62828" onclick="giftTierRemove(this)">✕</button>` : ''}
+    </div>`;
+    }
+    function readGiftTiers(container) {
+      return [...container.querySelectorAll('.gift-tier-row')].map((r, i) => ({
+        rank: i + 1,
+        desc: r.querySelector('.gt-desc').value.trim(),
+        max: Math.max(0, parseInt(r.querySelector('.gt-max').value || '0', 10) || 0)
+      }));
+    }
+    function renderGiftTierRows(container, tiers) {
+      container.innerHTML = tiers.map((g, i) => giftTierRowHTML(i + 1, g.desc, g.max)).join('');
+    }
+    function giftTierAdd(btn) {
+      const c = btn.closest('.gift-tiers-wrap').querySelector('.gift-tiers');
+      const tiers = readGiftTiers(c);
+      tiers.push({ desc: '', max: 1 });
+      renderGiftTierRows(c, tiers);
+    }
+    function giftTierRemove(btn) {
+      const c = btn.closest('.gift-tiers');
+      btn.closest('.gift-tier-row').remove();
+      renderGiftTierRows(c, readGiftTiers(c)); // 남은 줄 번호 재정렬
+    }
     async function drawGiftsFromResult(tid) {
       if (!adminPass()) return toastMsg('⚠️ 선물 추첨은 관리자만 실행할 수 있습니다.');
       if (!confirm('선물 당첨자를 랜덤 추첨할까요?\n추첨 결과는 저장되어 바뀌지 않습니다.')) return;
@@ -13320,10 +13385,14 @@
       const d = await fetchTournament(tid);
       if (!d.t.finalized) return toastMsg('⚠️ 먼저 경기 결과를 모두 입력해 주세요.');
       const ranked = rankParts(d.parts, d.matches);
-      const first = ranked.filter(r => r.rank === 1).map(r => r.nickname);
-      const second = ranked.filter(r => r.rank === 2).map(r => r.nickname);
-      const { error } = await sb.rpc('admin_draw_gifts', { p_pass: adminPass(), p_tid: tid, p_first: first, p_second: second });
-      if (error) return toastMsg('⚠️ ' + cleanErr(error.message));
+      const tiers = giftTiers(d.t);
+      const pools = {};
+      tiers.forEach(g => { pools[String(g.rank)] = ranked.filter(r => r.rank === g.rank).map(r => r.nickname); });
+      const { error } = await sb.rpc('admin_draw_gifts_multi', { p_pass: adminPass(), p_tid: tid, p_pools: pools });
+      if (error) {
+        if (/function|not find/i.test(error.message || '')) return toastMsg('⚠️ 선물_등수확장_패치.sql을 먼저 실행해 주세요.');
+        return toastMsg('⚠️ ' + cleanErr(error.message));
+      }
       toastMsg('🎲 추첨이 완료되었습니다!');
       viewTournament(tid);
     }
@@ -13343,30 +13412,29 @@
       box.innerHTML = `
     <hr class="sep">
     <div style="font-size:13px;font-weight:700;color:var(--muted)">등수별 선물 지급 최대 인원 · 공동 인원이 초과되면 그 안에서 랜덤 추첨됩니다</div>
-    <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;font-size:14px;font-weight:700">
-      1등 <input id="g1d-${tid}" value="${esc(t.gift1_desc || '')}" placeholder="선물 내용" style="width:150px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:7px 9px">
-      최대 <input type="number" id="g1-${tid}" value="${t.gift1_max ?? 2}" min="0" max="99" style="width:60px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:7px 8px;text-align:center">명
-    </div>
-    <div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap;font-size:14px;font-weight:700">
-      2등 <input id="g2d-${tid}" value="${esc(t.gift2_desc || '')}" placeholder="선물 내용" style="width:150px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:7px 9px">
-      최대 <input type="number" id="g2-${tid}" value="${t.gift2_max ?? 5}" min="0" max="99" style="width:60px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:7px 8px;text-align:center">명
-      <button class="btn small" onclick="saveGiftRules('${tid}')">저장</button>
+    <div class="gift-tiers-wrap">
+      <div class="gift-tiers" id="gtiers-${tid}"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn small" onclick="giftTierAdd(this)">+ 등수 추가</button>
+        <button class="btn small primary" onclick="saveGiftTiers('${tid}')">저장</button>
+      </div>
     </div>
     <div id="gift-res-${tid}" class="note">${t.gift_winners ? renderGiftWinners(t.gift_winners) : '추첨은 결과 확정 후, 대회 결과 페이지의 [선물 추첨하기] 버튼(관리자 로그인 시에만 표시)으로 진행합니다.'}</div>`;
+      renderGiftTierRows(document.getElementById('gtiers-' + tid), giftTiers(t));
     }
     function renderGiftWinners(gw) {
-      return `🎁 <b>현재 당첨자</b> — 1등: ${(gw.first || []).map(esc).join(', ') || '-'} / 2등: ${(gw.second || []).map(esc).join(', ') || '-'}
+      const ranks = Object.keys(gw || {}).filter(k => /^\d+$/.test(k)).map(Number).sort((a, b) => a - b);
+      const list = ranks.length ? ranks : [1, 2];
+      return `🎁 <b>현재 당첨자</b> — ${list.map(r => `${r}등: ${giftWinnersFor(gw, r).map(esc).join(', ') || '-'}`).join(' / ')}
   <br>결과 페이지의 당첨 안내에 자동으로 표시됩니다.`;
     }
-    async function saveGiftRules(tid, silent) {
-      const g1 = parseInt(document.getElementById('g1-' + tid).value || '0', 10);
-      const g2 = parseInt(document.getElementById('g2-' + tid).value || '0', 10);
-      const { error } = await sb.rpc('admin_set_gift_rules', {
-        p_pass: adminPass(), p_tid: tid, p_g1: g1, p_g2: g2,
-        p_g1desc: document.getElementById('g1d-' + tid).value.trim() || null,
-        p_g2desc: document.getElementById('g2d-' + tid).value.trim() || null
-      });
-      if (error) { toastMsg('⚠️ ' + cleanErr(error.message)); return false; }
+    async function saveGiftTiers(tid, silent) {
+      const tiers = readGiftTiers(document.getElementById('gtiers-' + tid));
+      const { error } = await sb.rpc('admin_set_gift_tiers', { p_pass: adminPass(), p_tid: tid, p_tiers: tiers });
+      if (error) {
+        if (/function|not find/i.test(error.message || '')) { toastMsg('⚠️ 선물_등수확장_패치.sql을 먼저 실행해 주세요.'); return false; }
+        toastMsg('⚠️ ' + cleanErr(error.message)); return false;
+      }
       if (!silent) { toastMsg('저장되었습니다.'); flashEl(document.getElementById('gift-' + tid)); }
       return true;
     }
@@ -13559,10 +13627,7 @@
       const box = document.getElementById('create-box');
       if (box.style.display === 'none') toggleCreate(document.getElementById('create-toggle'));
       document.getElementById('c-title').value = d.t.title;
-      document.getElementById('c-g1').value = d.t.gift1_desc || '';
-      document.getElementById('c-g1n').value = d.t.gift1_max ?? 2;
-      document.getElementById('c-g2').value = d.t.gift2_desc || '';
-      document.getElementById('c-g2n').value = d.t.gift2_max ?? 5;
+      renderGiftTierRows(document.getElementById('c-gift-tiers'), giftTiers(d.t));
       const cm = document.getElementById('c-matches'); cm.innerHTML = '';
       d.matches.forEach(m => addMatchRow(m.fighter_a, m.fighter_b));
       window.scrollTo({ top: 0, behavior: 'smooth' });
