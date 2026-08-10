@@ -534,10 +534,11 @@
       align-items: center
     }
 
+    /* "N명 참여" 배지는 왼쪽의 "N경기" 텍스트와 같은 크기/색/굵기로 맞춘다 (.no에서 그대로 상속) */
     .match-joined {
-      font-size: 12px;
-      font-weight: 800;
-      color: var(--dim)
+      font-size: inherit;
+      font-weight: inherit;
+      color: inherit
     }
 
     .vs-row {
@@ -6814,10 +6815,10 @@
         .map(r => ({ t: r.captured_at, pct: computeRowSoldPct(r, roundOverall) }))
         .filter(p => p.pct != null);
       if (points.length < 2) return '';
-      // 기록이 아주 많이 쌓이면(5~10분마다 며칠씩) 점이 수백 개가 되어 겹쳐버리므로,
-      // 그래프는 최대 60개 지점으로 고르게 솎아내서 그린다. 맨 처음과 맨 끝 지점은
+      // 기록이 많이 쌓이면 점이 수십~수백 개가 되어 (특히 모바일에서) 겹쳐버리므로,
+      // 그래프는 최대 10개 지점으로 고르게 솎아내서 그린다. 맨 처음과 맨 끝 지점은
       // 항상 포함되고, 전체적인 추세 모양은 그대로 유지된다.
-      const MAX_POINTS = 60;
+      const MAX_POINTS = 10;
       if (points.length > MAX_POINTS) {
         const sampled = [];
         for (let i = 0; i < MAX_POINTS; i++) {
@@ -7058,11 +7059,28 @@
       const eventKey = previewKey || (await fetchCurrentTicketEventKey()) || TICKET_EVENT_KEY;
       let rows; try { rows = await fetchTicketSnapshots(eventKey); } catch (e) { return fail(e); }
 
-      // 지난 티켓 목록 (현재 보고 있는 티켓은 제외) — 현재 화면(메인)에서만 보여준다.
+      // 경기 "기간"이 지난 티켓은 새 티켓 등록을 기다리지 않고 자동으로 "지난 티켓"으로
+      // 내려보낸다. 예) 기간이 2026.07.26(하루짜리 경기)이면 7/27 00:00부터,
+      // "2026.08.16 ~ 2026.11.15" 같은 기간형이면 마지막 날짜 다음날 00:00부터.
+      // 기간을 자동 인식하지 못한 티켓은 안전망으로 "마지막 기록이 1시간 넘게 멈춤"을 종료로 본다.
+      const metaDateText = ((rows.find(r => r.meta && r.meta.dateText) || {}).meta || {}).dateText || '';
+      let periodEnd = null;
+      [...String(metaDateText).matchAll(/(\d{4})[.\-\/]\s*(\d{1,2})[.\-\/]\s*(\d{1,2})/g)].forEach(dm => {
+        const d = new Date(+dm[1], +dm[2] - 1, +dm[3]);
+        if (!periodEnd || d > periodEnd) periodEnd = d;
+      });
+      const TK_STALE_MS = 60 * 60 * 1000;
+      const trackingEnded = !isPreview && rows.length > 0 && (
+        periodEnd
+          ? (Date.now() >= periodEnd.getTime() + 86400000)
+          : (Date.now() - new Date(rows[0].captured_at).getTime() > TK_STALE_MS));
+
+      // 지난 티켓 목록 — 현재 화면(메인)에서만 보여준다. 추적이 종료된 상태면
+      // 지금까지 보던 티켓도 이 목록에 포함시킨다.
       let pastHTML = '';
       if (!isPreview) {
         const events = await fetchTicketEvents();
-        const past = events.filter(e => e.event_key !== eventKey);
+        const past = events.filter(e => trackingEnded || e.event_key !== eventKey);
         if (past.length) {
           pastHTML = `
       <div class="sec-title" style="margin-top:24px">🏁 지난 티켓 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최신순 · 총 ${past.length}개</span></div>
@@ -7072,6 +7090,14 @@
         <div class="sub" style="margin-top:3px">📅 ${fmtSnapDate(e.first_at)} ~ ${fmtSnapDate(e.last_at)} · 기록 ${Number(e.snap_count).toLocaleString()}건</div>
       </a>`).join('')}`;
         }
+      }
+
+      if (trackingEnded) {
+        $app.innerHTML = `
+      <h1 class="page">티켓 판매 현황</h1>
+      <div class="empty" style="margin-top:14px">지금 판매 추적 중인 티켓이 없습니다.<br>새 경기 티켓 추적이 시작되면 자동으로 여기에 표시됩니다.</div>
+      ${pastHTML}`;
+        return;
       }
 
       const meta = mergedTicketMeta(rows);
