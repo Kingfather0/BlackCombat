@@ -7446,14 +7446,28 @@
     </div>`;
 
       const bannerTiers = giftTiers(t).filter(g => g.desc);
-      if ((st === 'open' || st === 'wait') && bannerTiers.length) html += `
+      if ((st === 'open' || st === 'wait') && bannerTiers.length) {
+        const totalWinners = bannerTiers.reduce((s, g) => s + (g.max || 0), 0);
+        const medal = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : `<b>${r}등</b>`;
+        // 밀어내기(순위 높은 사람부터 좋은 선물 순서) 방식을 예시로 풀어준다 — 선물이 3개 이상일 때만
+        const ex = bannerTiers.length >= 3 ? `
+        <div style="margin-top:8px;font-size:12.5px">💡 예) 공동 1등이 ${bannerTiers[0].max + bannerTiers[1].max + 1}명이라면?<br>
+          · ${bannerTiers[0].max}명 → ${esc(bannerTiers[0].desc)} 🎉<br>
+          · ${bannerTiers[1].max}명 → ${esc(bannerTiers[1].desc)} (2등보다 먼저!)<br>
+          · 1명 → ${esc(bannerTiers[2].desc)} 1순위</div>` : '';
+        html += `
     <div class="card gift-banner" style="margin-top:16px">
-      <b>🎁 당첨 선물</b>
-      <div class="note" style="margin-top:3px;color:#57503a">
-        ${bannerTiers.map(g => `<span class="gift-tier-line"><b>${g.rank}등</b> <span class="gift-name">${esc(g.desc)}</span> <b style="font-size:12.5px">최대 ${g.max}명</b></span>`).join(' &nbsp; ')}
-        <br><span style="font-size:12px">공동 순위 인원이 정원을 초과하면 랜덤 추첨으로 지급됩니다.</span>
+      <b>🎁 당첨 선물</b> <b style="color:#8a6a12">— 총 ${totalWinners}명</b>
+      <div class="note" style="margin-top:6px;color:#57503a">
+        ${bannerTiers.map(g => `<div>${medal(g.rank)} <span class="gift-name">${esc(g.desc)}</span> · <b>${g.max}명</b></div>`).join('')}
+        <div style="margin-top:8px"><b>지급 방식</b><br>
+          ① 적중 순위가 높은 사람부터, 좋은 선물부터 차례로 받아갑니다.<br>
+          ② 공동 순위가 남은 자리보다 많으면 → 그 안에서 랜덤 추첨!<br>
+          ③ 추첨에서 아깝게 떨어져도 끝이 아닙니다 → 다음 선물 1순위로 자동 이동!</div>
+        ${ex}
       </div>
     </div>`;
+      }
       if (st !== 'final') html += rulesHTML();
       if (st === 'open') html += voteFormHTML(t, matches, parts);
       if (st === 'final') html += resultHTML(t, matches, parts) + rulesHTML();
@@ -12615,13 +12629,21 @@
       </div>
       <div class="note" style="color:#57503a">
         ${t.gift_winners ? `
+          ${(t.gift_winners.mode === 'waterfall' && Array.isArray(t.gift_winners.tiers)) ? `
+          <div style="font-weight:800;font-size:14px">🎲 선물 추첨 결과</div>
+          ${t.gift_winners.tiers.map((g, i) => `
+            <div style="margin-top:6px">${['🥇', '🥈', '🥉'][i] || `<b>${i + 1}.</b>`} <b>${esc(g.desc || (i + 1) + '순위 선물')}</b><br>
+              → ${(g.names || []).map(n => `<span class="gift-name">${esc(n)}</span>`).join('') || '-'}
+              ${g.note ? `<span style="color:#8a6a12;font-size:12px">(${esc(g.note)})</span>` : ''}
+            </div>`).join('')}
+          <div style="margin-top:8px"></div>` : `
           ${giftTiers(t).map(g => {
-          const winners = giftWinnersFor(t.gift_winners, g.rank);
-          const tied = ranked.filter(r => r.rank === g.rank);
-          return `<b>${g.rank}등 당첨${g.desc ? ` (${esc(g.desc)})` : ''}</b> :
+            const winners = giftWinnersFor(t.gift_winners, g.rank);
+            const tied = ranked.filter(r => r.rank === g.rank);
+            return `<b>${g.rank}등 당첨${g.desc ? ` (${esc(g.desc)})` : ''}</b> :
             ${winners.map(n => `<span class="gift-name">${esc(n)}</span>`).join('') || '-'}
             ${tied.length > winners.length ? `<span style="color:#8a6a12">← 공동 ${tied.length}명 중 ${winners.length}명 랜덤 추첨</span>` : ''}<br>`;
-        }).join('')}
+          }).join('')}`}
           위 당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>`
           : `당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>`}
         <span style="color:#c62828;font-weight:800">기한 내 연락이 없으면 당첨 선물은 지급되지 않습니다.</span>
@@ -13402,19 +13424,68 @@
       btn.closest('.gift-tier-row').remove();
       renderGiftTierRows(c, readGiftTiers(c)); // 남은 줄 번호 재정렬
     }
+    /* ── 밀어내기(waterfall) 추첨 ──
+       선물을 좋은 순서대로 한 줄로 세워놓고(1순위 선물 N개 → 2순위 선물 M개 → …),
+       적중 순위가 높은 사람부터 차례대로 받아간다. 공동 순위 그룹이 선물 경계에 걸리면
+       그 그룹 안에서만 무작위 순서로 세워서 "그 안에서 랜덤 추첨"이 된다.
+       → 나보다 못 맞힌 사람이 나보다 좋은 선물을 받는 역전이 원천적으로 없다. */
+    function shuffleArr(a) {
+      const arr = a.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+    function drawWaterfall(ranked, tiers) {
+      // 공동 순위 그룹(순위 오름차순) — 각 그룹 안에서만 무작위 순서
+      const groups = [];
+      ranked.forEach(r => {
+        const g = groups.find(x => x.rank === r.rank);
+        if (g) g.names.push(r.nickname);
+        else groups.push({ rank: r.rank, names: [r.nickname] });
+      });
+      groups.sort((a, b) => a.rank - b.rank);
+      const queue = groups.map(g => ({ rank: g.rank, pool: shuffleArr(g.names), total: g.names.length, consumedBefore: false }));
+      let gi = 0;
+      return tiers.map(tier => {
+        let need = Math.max(0, tier.max || 0);
+        const names = [], noteParts = [];
+        while (need > 0 && gi < queue.length) {
+          const g = queue[gi];
+          const taken = g.pool.splice(0, Math.min(need, g.pool.length));
+          names.push(...taken); need -= taken.length;
+          const split = g.pool.length > 0; // 이 그룹이 다음 선물로도 이어짐 → 경계에 걸려 랜덤이 작동한 것
+          const baseCount = g.consumedBefore ? (taken.length + g.pool.length) : g.total;
+          if (g.consumedBefore && split) noteParts.push(`${g.rank}등에서 내려온 ${baseCount}명 중 랜덤 ${taken.length}명`);
+          else if (g.consumedBefore) noteParts.push(`${g.rank}등에서 내려온 ${taken.length}명`);
+          else if (split) noteParts.push(`공동 ${g.rank}등 ${g.total}명 중 랜덤 ${taken.length}명`);
+          else noteParts.push(g.total > 1 ? `공동 ${g.rank}등 ${g.total}명` : `${g.rank}등`);
+          if (g.pool.length === 0) gi++; else g.consumedBefore = true;
+        }
+        return { desc: tier.desc || '', max: tier.max || 0, names, note: noteParts.join(' + ') };
+      });
+    }
     async function drawGiftsFromResult(tid) {
       if (!adminPass()) return toastMsg('⚠️ 선물 추첨은 관리자만 실행할 수 있습니다.');
-      if (!confirm('선물 당첨자를 랜덤 추첨할까요?\n추첨 결과는 저장되어 바뀌지 않습니다.')) return;
+      if (!confirm('선물 당첨자를 추첨할까요?\n(적중 순위가 높은 사람부터 좋은 선물 순서로 지급되며, 결과는 저장되어 바뀌지 않습니다)')) return;
 
       const d = await fetchTournament(tid);
       if (!d.t.finalized) return toastMsg('⚠️ 먼저 경기 결과를 모두 입력해 주세요.');
       const ranked = rankParts(d.parts, d.matches);
-      const tiers = giftTiers(d.t);
-      const pools = {};
-      tiers.forEach(g => { pools[String(g.rank)] = ranked.filter(r => r.rank === g.rank).map(r => r.nickname); });
-      const { error } = await sb.rpc('admin_draw_gifts_multi', { p_pass: adminPass(), p_tid: tid, p_pools: pools });
+      const tiers = giftTiers(d.t).filter(g => (g.max || 0) > 0);
+      if (!tiers.length) return toastMsg('⚠️ 먼저 [선물 변경]에서 선물을 설정해 주세요.');
+      const resTiers = drawWaterfall(ranked, tiers);
+      const winners = {
+        mode: 'waterfall',
+        tiers: resTiers,
+        // 예전 형식과의 호환 키 (혹시 예전 화면이 캐시로 열려 있어도 깨지지 않도록)
+        first: (resTiers[0] && resTiers[0].names) || [],
+        second: (resTiers[1] && resTiers[1].names) || []
+      };
+      const { error } = await sb.rpc('admin_set_gift_winners', { p_pass: adminPass(), p_tid: tid, p_winners: winners });
       if (error) {
-        if (/function|not find/i.test(error.message || '')) return toastMsg('⚠️ 선물_등수확장_패치.sql을 먼저 실행해 주세요.');
+        if (/function|not find/i.test(error.message || '')) return toastMsg('⚠️ 선물_밀어내기추첨_패치.sql을 먼저 실행해 주세요.');
         return toastMsg('⚠️ ' + cleanErr(error.message));
       }
       toastMsg('🎲 추첨이 완료되었습니다!');
@@ -13447,6 +13518,10 @@
       renderGiftTierRows(document.getElementById('gtiers-' + tid), giftTiers(t));
     }
     function renderGiftWinners(gw) {
+      if (gw && gw.mode === 'waterfall' && Array.isArray(gw.tiers)) {
+        return `🎁 <b>현재 당첨자</b> — ${gw.tiers.map(g => `${esc(g.desc || '선물')}: ${(g.names || []).map(esc).join(', ') || '-'}`).join(' / ')}
+  <br>결과 페이지의 당첨 안내에 자동으로 표시됩니다.`;
+      }
       const ranks = Object.keys(gw || {}).filter(k => /^\d+$/.test(k)).map(Number).sort((a, b) => a - b);
       const list = ranks.length ? ranks : [1, 2];
       return `🎁 <b>현재 당첨자</b> — ${list.map(r => `${r}등: ${giftWinnersFor(gw, r).map(esc).join(', ') || '-'}`).join(' / ')}
