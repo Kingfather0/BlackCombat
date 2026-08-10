@@ -759,11 +759,27 @@
       margin-bottom: 4px
     }
 
+    .tk-trend-plot {
+      position: relative
+    }
+
     .tk-trend-svg {
       width: 100%;
       height: 44px;
       display: block;
       color: var(--key-deep)
+    }
+
+    .tk-trend-dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--key-deep);
+      border: 1.5px solid #fff;
+      box-shadow: 0 0 0 1px rgba(29, 78, 216, .25);
+      transform: translate(-50%, -50%);
+      cursor: pointer
     }
 
     .tk-trend-labels {
@@ -6325,9 +6341,9 @@
       // 게임 메뉴(#/game)나 홈/랭킹/격잘알 등 다른 페이지에서는 숨긴다.
       const headerGS = document.getElementById('headerGameSelectLink');
       if (headerGS) headerGS.style.display = (seg[0] === 'game' && ['run', 'punch', 'grow', 'battle'].includes(seg[1])) ? '' : 'none';
-      // 티켓 판매 현황은 아직 일반 공개 전 단계 — 관리자로 로그인해 있을 때만 메뉴에 노출한다.
+      // 티켓 판매 현황 — 모든 방문자에게 공개.
       const navTickets = document.querySelector('[data-nav="tickets"]');
-      if (navTickets) navTickets.style.display = adminPass() ? '' : 'none';
+      if (navTickets) navTickets.style.display = '';
       if (seg[0] === '') { mark('home'); viewHome(); }
       else if (seg[0] === 't') { viewTournament(decodeURIComponent(seg[1] || '')); }
       else if (seg[0] === 'fighters') { mark('fighters'); viewFighters(); }
@@ -6707,21 +6723,26 @@
       const xAt = i => PAD + (i / (n - 1)) * (W - PAD * 2);
       const yAt = pct => H - PAD - (pct / 100) * (H - PAD * 2);
       const linePts = points.map((p, i) => `${xAt(i).toFixed(1)},${yAt(p.pct).toFixed(1)}`).join(' ');
+      // 각 기록 지점에 동그라미 점을 얹는다 — 마우스를 올리면(title 속성) 그 시점의
+      // 날짜/시간과 판매율이 뜬다. SVG는 가로로 늘려 그리는(preserveAspectRatio=none)
+      // 구조라 원이 찌그러지므로, 점은 SVG 밖에서 %좌표로 겹쳐 배치한다.
+      const dotsHTML = points.map((p, i) =>
+        `<i class="tk-trend-dot" style="left:${xAt(i).toFixed(1)}%;top:${(yAt(p.pct) / H * 100).toFixed(1)}%" title="${fmtSnapTime(p.t)} · ${p.pct.toFixed(1)}% 판매"></i>`
+      ).join('');
       const first = points[0], last = points[points.length - 1];
       return `<div class="tk-trend">
         <div class="tk-trend-title">판매 추이</div>
-        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="tk-trend-svg">
-          <polyline points="${linePts}" fill="none" stroke="currentColor" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+        <div class="tk-trend-plot">
+          <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="tk-trend-svg">
+            <polyline points="${linePts}" fill="none" stroke="currentColor" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          ${dotsHTML}
+        </div>
         <div class="tk-trend-labels"><span>${fmtSnapTime(first.t)} · ${first.pct.toFixed(1)}%</span><span>${fmtSnapTime(last.t)} · ${last.pct.toFixed(1)}%</span></div>
       </div>`;
     }
     async function viewTickets(previewKey) {
-      // 아직 일반 공개 전 단계 — 관리자 로그인 상태가 아니면 데이터 없이 안내만 보여준다.
-      if (!adminPass()) {
-        $app.innerHTML = `<h1 class="page">티켓 판매 현황</h1><div class="empty">관리자만 볼 수 있는 페이지입니다.<br>(공개 준비 중입니다)</div>`;
-        return;
-      }
+      // 모든 방문자에게 공개된 페이지다.
       // #/tickets/아무키 로 들어오면, 실제 행사 데이터 대신 그 키로 기록된 테스트 데이터를 미리 볼 수 있다.
       // (자동 기록 스크립트를 실제 행사와 무관한 테스트용 event_key로 한 번 돌려보고, 화면에 잘 나오는지
       // 확인할 때 쓰는 용도 — 실제 판매 현황 데이터는 전혀 건드리지 않는다.)
@@ -6837,7 +6858,7 @@
           : `잔여 합계 ${hRemainAll.toLocaleString()}석`;
         return `<div class="tk-hist-row">
         <span class="tk-hist-time">${fmtSnapTime(r.captured_at)}</span>
-        <span class="tk-hist-round">${r.round_label ? esc(r.round_label) + ' · ' : ''}${esc(summaryText)}</span>
+        <span class="tk-hist-round">${(showRoundLabel && r.round_label) ? esc(r.round_label) + ' · ' : ''}${esc(summaryText)}</span>
       </div>`;
       }).join('');
 
