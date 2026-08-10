@@ -790,6 +790,54 @@
       border-radius: 50%
     }
 
+    /* 점을 탭/클릭했을 때 그 점 바로 위에 뜨는 말풍선 */
+    .tk-dot-tip {
+      position: absolute;
+      transform: translate(-50%, -135%);
+      background: #242d3f;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 700;
+      white-space: nowrap;
+      z-index: 5;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
+      animation: fadeUp .15s ease
+    }
+
+    /* 페이지 제목 우측의 티켓 현황 공유 버튼 — 하늘색 배경 + 파란 글자 알약 모양 */
+    .tk-share-btn {
+      background: var(--key-soft);
+      color: var(--key-deep);
+      border: 1.5px solid #cfe0f5;
+      border-radius: 99px;
+      padding: 9px 16px;
+      font-weight: 800;
+      font-size: 13.5px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: .15s
+    }
+
+    .tk-share-btn:hover {
+      background: #dbe7fb
+    }
+
+    /* "🔄 자동 갱신 …" / "🔄 실시간 조회 …" 표시 — 하늘색 배경 + 파란 글자 알약 배지 */
+    .tk-updated-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--key-soft);
+      color: var(--key-deep);
+      border-radius: 99px;
+      padding: 4px 11px;
+      font-size: 12px;
+      font-weight: 800
+    }
+
     .tk-trend-labels {
       display: flex;
       justify-content: space-between;
@@ -6761,11 +6809,11 @@
       // 각 기록 지점에 동그라미 점을 얹는다 — 마우스를 올리면(title 속성) 그 시점의
       // 날짜/시간과 판매율이 뜬다. SVG는 가로로 늘려 그리는(preserveAspectRatio=none)
       // 구조라 원이 찌그러지므로, 점은 SVG 밖에서 %좌표로 겹쳐 배치한다.
-      // title 속성은 PC에서 마우스를 올렸을 때만 뜨므로, 모바일에서는 점을 탭하면
-      // 같은 내용을 화면 하단 토스트 알림으로 보여준다 (PC에서 클릭해도 동일하게 동작).
+      // title 속성은 PC에서 마우스를 올렸을 때만 뜨므로, 점을 탭/클릭하면 같은 내용을
+      // 그 점 바로 위에 작은 말풍선으로 띄운다 (모바일/PC 공통).
       const dotsHTML = points.map((p, i) => {
         const tip = `${fmtSnapTime(p.t)} · ${p.pct.toFixed(1)}% 판매`;
-        return `<i class="tk-trend-dot" style="left:${xAt(i).toFixed(1)}%;top:${(yAt(p.pct) / H * 100).toFixed(1)}%" title="${esc(tip)}" onclick="toastMsg('${esc(tip)}')"></i>`;
+        return `<i class="tk-trend-dot" style="left:${xAt(i).toFixed(1)}%;top:${(yAt(p.pct) / H * 100).toFixed(1)}%" title="${esc(tip)}" onclick="tkDotTip(this, '${esc(tip)}')"></i>`;
       }).join('');
       const first = points[0], last = points[points.length - 1];
       return `<div class="tk-trend">
@@ -6779,22 +6827,44 @@
         <div class="tk-trend-labels"><span>${fmtSnapTime(first.t)} · ${first.pct.toFixed(1)}%</span><span>${fmtSnapTime(last.t)} · ${last.pct.toFixed(1)}%</span></div>
       </div>`;
     }
+    /* 추이 그래프의 점을 탭/클릭했을 때, 화면 하단 토스트 대신 그 점 바로 위에
+       작은 말풍선을 띄운다. 2.5초 뒤 자동으로 사라지고, 다른 점을 누르면 즉시 교체된다.
+       그래프 가장자리의 점은 말풍선이 카드 밖으로 잘리지 않도록 안쪽으로 붙여서 보정한다. */
+    function tkDotTip(dotEl, text) {
+      const plot = dotEl.parentElement;
+      if (!plot) return;
+      plot.querySelectorAll('.tk-dot-tip').forEach(t => t.remove());
+      const tip = document.createElement('div');
+      tip.className = 'tk-dot-tip';
+      tip.textContent = text;
+      tip.style.left = dotEl.style.left;
+      tip.style.top = dotEl.style.top;
+      plot.appendChild(tip);
+      requestAnimationFrame(() => {
+        const pr = plot.getBoundingClientRect(), tr = tip.getBoundingClientRect();
+        if (tr.left < pr.left + 2) tip.style.transform = 'translate(0, -135%)';
+        else if (tr.right > pr.right - 2) tip.style.transform = 'translate(-100%, -135%)';
+      });
+      setTimeout(() => tip.remove(), 2500);
+    }
     /* 티켓 페이지의 "수동 갱신(실시간 조회)"과 "카톡 공유"가 쓰는 화면 상태.
        viewTickets()가 렌더링할 때마다 새로 채워진다. */
     let tkLive = null;
-    function tkBuildShareText(remainByGrade) {
+    const TK_SHARE_LINK = 'kingfather0.github.io/BlackCombat/#/tickets';
+    function tkBuildShareText(remainByGrade, atIso) {
       if (!tkLive) return;
-      const lines = [];
+      const lines = [`🎫티켓 판매 현황 (${fmtSnapTime(atIso)})`];
       if (tkLive.overallTotal) {
         const sumRemain = Object.values(remainByGrade).reduce((s, v) => s + (v || 0), 0);
         const sold = tkLive.overallTotal - sumRemain;
-        lines.push(`* 총 ${tkLive.overallTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${(sold / tkLive.overallTotal * 100).toFixed(1)}%)`);
+        lines.push(`- 총 ${tkLive.overallTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${(sold / tkLive.overallTotal * 100).toFixed(1)}%)`);
       }
       sortGradeKeys(Object.keys(remainByGrade)).forEach(g => {
         const r = remainByGrade[g];
-        lines.push(`* ${g}석 ${r === 0 ? '매진' : (r != null ? r.toLocaleString() + '석 남음' : '-')}`);
+        lines.push(`${g}석 ${r === 0 ? '매진' : (r != null ? r.toLocaleString() + '석 남음' : '-')}`);
       });
-      tkLive.shareText = '전체 판매 현황\n\n' + lines.join('\n');
+      lines.push(TK_SHARE_LINK);
+      tkLive.shareText = lines.join('\n');
     }
     /* 수동 갱신 — 5분 자동 스케줄을 기다리지 않고, 예매 사이트(NOL)의 잔여석 API를
        그 자리에서 직접 조회해 화면만 즉석으로 갱신한다. (기록으로 저장되지는 않는다 —
@@ -6842,8 +6912,8 @@
           if (barEl) barEl.style.width = Math.min(100, Math.max(0, pct)) + '%';
         }
         const upEl = document.getElementById('tk-updated');
-        if (upEl) upEl.textContent = '실시간 조회 ' + fmtSnapTime(new Date().toISOString());
-        tkBuildShareText(remainByGrade); // 공유 문구도 방금 조회한 최신값으로 교체
+        if (upEl) upEl.textContent = '🔄 실시간 조회 ' + fmtSnapTime(new Date().toISOString());
+        tkBuildShareText(remainByGrade, new Date().toISOString()); // 공유 문구도 방금 조회한 최신값으로 교체
         toastMsg('✅ 예매 사이트에서 방금 직접 조회한 값입니다.');
       } catch (e) { toastMsg('⚠️ ' + (e.message || '실시간 조회에 실패했습니다.')); }
       btn.disabled = false; btn.textContent = orig;
@@ -7003,17 +7073,17 @@
         const v = r.grades[k] && r.grades[k].remain;
         if (v != null) liveRemain[k] = (liveRemain[k] || 0) + v;
       }));
-      tkBuildShareText(liveRemain);
+      tkBuildShareText(liveRemain, newestAt);
 
       $app.innerHTML = `
-      <h1 class="page">티켓 판매 현황</h1>
+      <h1 class="page" style="display:flex;justify-content:space-between;align-items:center;gap:10px">티켓 판매 현황
+        <button class="tk-share-btn" onclick="tkShare()">💬 티켓 현황 공유</button></h1>
       ${infoCard}
       ${totalBarHTML}
-      <div style="display:flex;gap:8px;margin-top:10px">
+      ${adminPass() ? `<div style="display:flex;gap:8px;margin-top:10px">
         <button class="btn small" onclick="tkManualRefresh(this)">🔄 수동 갱신</button>
-        <button class="btn small" onclick="tkShare()">💬 카톡 공유</button>
-      </div>
-      <div class="sec-title">현재 판매 현황 <span id="tk-updated" style="color:var(--dim);font-size:12.5px;font-weight:700">최종 갱신 ${fmtSnapTime(newestAt)}</span></div>
+      </div>` : ''}
+      <div class="sec-title">현재 판매 현황 <span id="tk-updated" class="tk-updated-badge">🔄 자동 갱신 ${fmtSnapTime(newestAt)}</span></div>
       ${currentHTML}
       <div class="sec-title">판매 히스토리 <span style="color:var(--dim);font-size:12.5px;font-weight:700">전체 ${rows.length.toLocaleString()}건</span></div>
       <div class="card tk-hist-scroll" style="padding:0">${histHTML}</div>
