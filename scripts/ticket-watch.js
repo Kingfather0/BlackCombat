@@ -91,7 +91,85 @@ function parseGrades(text) {
   return grades;
 }
 
-async function postSnapshot(grades, roundLabel, note) {
+// 티켓 제목/장소/기간/오픈안내를 화면 텍스트에서 최대한 뽑아낸다.
+// NOL 상품 페이지는 보통 이런 구조로 나온다 (실제 관찰된 원문):
+//   뮤지컬 〈엘리자벳〉
+//   08.20(목) 11:00
+//   D-10 3차티켓오픈
+//   장소
+//   블루스퀘어 우리은행홀
+//   기간
+//   2026.08.16 ~ 2026.11.15
+//   ...
+//   3차 티켓오픈 : 8월 20일(목) 오전 11시
+// 못 찾은 항목은 그냥 비워두고, 부르는 쪽(postSnapshot 호출부)에서 null로 넘어가면
+// 사이트가 알아서 기존 값(TICKET_INFO 기본값)으로 대체해서 보여준다.
+function extractMeta(bodyText) {
+  const meta = {};
+  const lines = bodyText.split('\n').map((s) => s.trim()).filter(Boolean);
+
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i] === '장소' && lines[i + 1]) meta.place = lines[i + 1];
+    if (lines[i] === '기간' && lines[i + 1]) meta.dateText = lines[i + 1];
+  }
+
+  const openMatch = bodyText.match(
+    /(\d+차)?\s*티켓\s*오픈\s*[:：]?\s*(\d{1,2}월\s*\d{1,2}일\([가-힣]\)\s*(?:오전|오후)?\s*\d{1,2}시(?:\s*\d{1,2}분)?)/
+  );
+  if (openMatch) meta.openText = (openMatch[1] ? openMatch[1] + ' ' : '') + openMatch[2];
+
+  // 제목: 페이지 맨 위쪽 줄들 중, 메뉴/버튼/날짜 표기가 아닌 첫 번째 그럴듯한 줄을 후보로 삼는다.
+  // (사이트마다 구조가 조금씩 달라질 수 있어서 100% 정확하진 않음 — 못 찾으면 그냥 비워둔다)
+  const skipExact = ['로그인', '회원가입', '장바구니', '메뉴', '검색', '고객센터', 'NOL', '홈', '일반 예매'];
+  const skipPattern = /^(일반\s*예매|장소|기간|시간|연령|D-\d+|\d{1,2}\.\d{1,2}|\d{1,2}월|\d{1,2}차|오픈예정|오픈\s*안내)/;
+  for (const l of lines.slice(0, 15)) {
+    if (l.length < 2 || l.length > 60) continue;
+    if (skipExact.includes(l)) continue;
+    if (skipPattern.test(l)) continue;
+    meta.title = l;
+    break;
+  }
+
+  return meta;
+}
+
+// 같은 event_key + round_label로 이미 기록된 스냅샷이 있는지 확인한다.
+// (총원 자동 추정에 쓰임 — 아래 참고)
+async function fetchExistingSnapshotCount(roundLabel) {
+  try {
+    const params = new URLSearchParams({
+      event_key: `eq.${EVENT_KEY}`,
+      select: 'id',
+      limit: '1',
+    });
+    if (roundLabel) params.set('round_label', `eq.${roundLabel}`);
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/ticket_snapshots?${params.toString()}`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    });
+    if (!res.ok) return null;
+    const rows = await res.json().catch(() => null);
+    return Array.isArray(rows) ? rows.length : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+// 등급별 "총 좌석수"는 예매 사이트 화면 어디에도 직접 나오지 않는다(잔여석만 보여줌).
+// 대신, 이 회차를 통틀어 우리가 "처음으로" 기록하는 순간이라면 그때의 잔여석 = 총원이라고
+// 볼 수 있다(아직 아무도 안 샀을 가능성이 가장 높은 시점이므로). 이후 회차에는 그 총원을
+// 기준으로 실제 판매 수/비율을 계산한다.
+// 주의: 이미 판매가 어느 정도 진행된 뒤에 자동화를 처음 켠 경우에는 이 방식이 정확하지 않다
+// (그 시점의 잔여석을 총원으로 잘못 볼 수 있음) — 그런 경우엔 그냥 총원 없이(null) 넘어가고,
+// 지금까지처럼 잔여석만 보여주는 기존 방식 그대로 동작한다(회귀 없음).
+async function estimateTotalsIfFirstSnapshot(grades, roundLabel) {
+  const priorCount = await fetchExistingSnapshotCount(roundLabel);
+  if (priorCount !== 0) return null; // 이미 기록이 있거나, 확인 자체에 실패한 경우엔 추정하지 않는다
+  const totals = {};
+  for (const g of Object.keys(grades)) totals[g] = grades[g].remain;
+  return totals;
+}
+
+async function postSnapshot(grades, roundLabel, note, totals, meta) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/record_ticket_snapshot`, {
     method: 'POST',
     headers: {
@@ -104,8 +182,9 @@ async function postSnapshot(grades, roundLabel, note) {
       p_event_key: EVENT_KEY,
       p_grades: grades,
       p_round_label: roundLabel || null,
-      p_totals: null,
+      p_totals: totals || null,
       p_note: note || null,
+      p_meta: meta && Object.keys(meta).length ? meta : null,
     }),
   });
   if (!res.ok) {
@@ -154,6 +233,12 @@ async function postSnapshot(grades, roundLabel, note) {
       throw new Error('봇 차단 페이지가 표시되었습니다 (실제 티켓 페이지가 아님). 접속 IP가 자동화 트래픽으로 감지되어 막힌 것으로 보입니다.');
     }
 
+    // 제목/장소/기간/오픈안내는 달력을 누르기 전, 페이지 상단에 이미 나와 있는 경우가 많다.
+    // (날짜를 클릭하면 회차별 잔여석이 나오는 것과는 별개 정보라 여기서 미리 읽어둔다)
+    const fullBodyText = await page.innerText('body').catch(() => '');
+    const meta = extractMeta(fullBodyText);
+    console.log('🔎 자동 추출된 행사 정보:', JSON.stringify(meta));
+
     const dateBtn = await findAndClickDate(page);
     if (!dateBtn) {
       // 달력이 아예 없는 상황(판매 종료/판매 예정 등)인지 먼저 확인한다.
@@ -191,14 +276,19 @@ async function postSnapshot(grades, roundLabel, note) {
       if (Object.keys(grades).length === 0) {
         throw new Error('날짜는 클릭했지만 등급별 잔여석 정보를 화면에서 찾지 못했습니다.');
       }
-      await postSnapshot(grades, null, '회차 구분 없이 페이지 전체에서 추출');
+      const totals = await estimateTotalsIfFirstSnapshot(grades, null);
+      if (totals) console.log('🆕 이 회차의 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다:', JSON.stringify(totals));
+      await postSnapshot(grades, null, '회차 구분 없이 페이지 전체에서 추출', totals, meta);
       recorded++;
     } else {
       for (const line of roundLines) {
         const timeMatch = line.match(/\d{1,2}:\d{2}/);
         const grades = parseGrades(line);
         if (Object.keys(grades).length === 0) continue;
-        await postSnapshot(grades, `${TARGET_DATE} ${timeMatch[0]}`, null);
+        const roundLabel = `${TARGET_DATE} ${timeMatch[0]}`;
+        const totals = await estimateTotalsIfFirstSnapshot(grades, roundLabel);
+        if (totals) console.log(`🆕 [${roundLabel}] 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다:`, JSON.stringify(totals));
+        await postSnapshot(grades, roundLabel, null, totals, meta);
         recorded++;
       }
     }
