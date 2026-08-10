@@ -1,0 +1,46 @@
+name: 티켓 판매 현황 자동 기록
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # 10분마다 실행 (GitHub 사정에 따라 실제 실행은 다소 늦어질 수 있음)
+  workflow_dispatch:
+    inputs:
+      ticket_url:
+        description: '(선택) 이번 한 번만 다르게 확인할 예매 페이지 주소'
+        required: false
+      target_date:
+        description: '(선택) 이번 한 번만 다르게 확인할 날짜 (YYYY-MM-DD)'
+        required: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    # 스케줄 실행은 TICKET_WATCH_ENABLED 변수가 true일 때만 동작합니다.
+    # (티켓 오픈 전/매진 후에는 굳이 10분마다 돌 필요가 없으니 꺼두세요)
+    # 수동 실행(workflow_dispatch)은 이 값과 상관없이 항상 테스트해볼 수 있습니다.
+    if: vars.TICKET_WATCH_ENABLED == 'true' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Playwright 설치
+        run: |
+          npm install playwright@1
+          npx playwright install --with-deps chromium
+      - name: 티켓 현황 확인 및 기록
+        env:
+          TICKET_URL: ${{ github.event.inputs.ticket_url || vars.TICKET_URL }}
+          TARGET_DATE: ${{ github.event.inputs.target_date || vars.TICKET_TARGET_DATE }}
+          EVENT_KEY: ${{ vars.TICKET_EVENT_KEY }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          TICKET_BOT_SECRET: ${{ secrets.TICKET_BOT_SECRET }}
+        run: node scripts/ticket-watch.js
+      - name: 실패 시 디버그 스크린샷 저장
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ticket-debug-screenshot
+          path: ticket-debug.png
+          if-no-files-found: ignore
