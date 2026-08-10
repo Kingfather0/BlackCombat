@@ -6550,12 +6550,15 @@
     // 아래 값들은 이제 "기본값(fallback)"이다 — 깃허브 액션이 예매 페이지에서 제목/장소/기간/
     // 오픈안내를 자동으로 읽어와 기록하면(스냅샷의 meta) 그 값을 우선 사용하고, 못 읽어온
     // 항목만 여기 값으로 대신 채운다. buyUrl은 자동 추출 대상이 아니라 항상 이 값을 쓴다.
+    // ※ 실제 블랙컴뱃 티켓이 오픈되기 전까지, UI 확인/개선 작업용으로 실제 판매 중인
+    //   뮤지컬 〈엘리자벳〉 정보를 임시로 넣어둔 상태입니다. 블랙컴뱃 티켓 오픈 일정이
+    //   정해지면 이 값들을 실제 블랙컴뱃 정보로 되돌려야 합니다.
     const TICKET_INFO = {
-      title: '블랙컴뱃 대회 티켓',
-      eventDateText: '7월 26일',
-      place: '잠실학생체육관',
-      openText: '7월 16일 목요일 17시',
-      buyUrl: 'https://nol.yanolja.com/ticket/products/26010059'
+      title: '뮤지컬 〈엘리자벳〉',
+      eventDateText: '2026.08.16(일) 7:00 PM',
+      place: '블루스퀘어 우리은행홀',
+      openText: '3차 8월 20일(목) 오전 11시',
+      buyUrl: 'https://nol.yanolja.com/ticket/products/26009314'
     };
     function mergedTicketMeta(rows) {
       // 최신 기록부터 훑으면서 필드별로 값이 있는 걸 채운다(과거 기록에만 남아있을 수도 있음).
