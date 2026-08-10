@@ -134,8 +134,11 @@ async function postSnapshot(grades, roundLabel, note) {
   let recorded = 0;
   try {
     console.log('▶ 티켓 페이지 접속:', TICKET_URL);
-    await page.goto(TICKET_URL, { waitUntil: 'networkidle', timeout: 45000 });
-    await page.waitForTimeout(2000);
+    // networkidle(요청이 완전히 잠잠해질 때까지 대기)은 채팅위젯/광고/분석 스크립트가
+    // 계속 백그라운드 통신을 하는 요즘 사이트에서는 영영 안 걸릴 수 있어 타임아웃이 잦다.
+    // 대신 HTML만 로드되면 넘어가고, 뒤이어 자바스크립트 렌더링 시간을 넉넉히 기다린다.
+    await page.goto(TICKET_URL, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.waitForTimeout(4000);
 
     // 진단용: 스크린샷을 따로 안 받아도 로그만 보고 "지금 실제로 브라우저가 뭘 보고 있는지"
     // 바로 알 수 있도록, 페이지 제목과 화면 텍스트 앞부분을 그대로 출력해둔다.
