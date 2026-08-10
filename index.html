@@ -6671,9 +6671,12 @@
     }
     // 회차 하나의 시간대별 판매율 기록으로 아주 단순한 추이(꺾은선) 그래프를 그린다.
     // 기록이 2개 미만이면(선을 그릴 수 없으므로) 아무것도 표시하지 않는다.
-    function computeRowSoldPct(r) {
+    // fallbackOverall: 이 기록 자체에는 정확한 전체 총원(meta.overallTotal)이 없지만, 같은 회차의
+    // 다른 기록(예: 북마클릿 수동 캡처)에서 이미 총원을 알아낸 경우 그 값을 대신 쓴다 —
+    // 자동 기록과 수동 캡처가 섞여도 판매율 계산 기준이 갈라지지 않게 하기 위함.
+    function computeRowSoldPct(r, fallbackOverall) {
       const grades = r.grades || {}, totals = r.totals || {};
-      const overallTotal = r.meta && r.meta.overallTotal;
+      const overallTotal = (r.meta && r.meta.overallTotal != null) ? r.meta.overallTotal : (fallbackOverall != null ? fallbackOverall : null);
       let total = 0, remain = 0, has = false;
       if (overallTotal != null) {
         total = overallTotal;
@@ -6689,10 +6692,14 @@
       return Math.max(0, Math.min(100, (total - remain) / total * 100));
     }
     function trendChartHTML(roundRows) {
+      // 이 회차에서 가장 최근에 알아낸 정확한 전체 총원(meta.overallTotal)을 찾아, 총원이 없는
+      // 다른 기록에도 같은 기준으로 적용한다. (roundRows는 최신순 정렬이므로 첫 매칭 = 최신값)
+      const ovRow = roundRows.find(x => x.meta && x.meta.overallTotal != null);
+      const roundOverall = ovRow ? ovRow.meta.overallTotal : null;
       const points = roundRows
         .slice()
         .sort((a, b) => new Date(a.captured_at) - new Date(b.captured_at))
-        .map(r => ({ t: r.captured_at, pct: computeRowSoldPct(r) }))
+        .map(r => ({ t: r.captured_at, pct: computeRowSoldPct(r, roundOverall) }))
         .filter(p => p.pct != null);
       if (points.length < 2) return '';
       const W = 100, H = 30, PAD = 2;
@@ -6757,13 +6764,22 @@
       const latestRows = [...latestByRound.values()].sort((a, b) => String(a.round_label || '').localeCompare(String(b.round_label || '')));
       const newestAt = rows[0].captured_at;
 
+      // 회차별로 "가장 최근에 알아낸 정확한 전체 총원(meta.overallTotal)"을 미리 찾아둔다.
+      // 최신 기록 자체에는 총원이 없어도(예: 자동 기록), 같은 회차의 과거 기록(예: 북마클릿
+      // 수동 캡처)에서 알아낸 총원이 있으면 그걸 이어서 쓴다. (rows는 최신순 → 첫 매칭 = 최신값)
+      const overallByRound = new Map();
+      rows.forEach(r => {
+        const key = r.round_label || '__default__';
+        if (!overallByRound.has(key) && r.meta && r.meta.overallTotal != null) overallByRound.set(key, r.meta.overallTotal);
+      });
+
       // 전체(모든 회차 합산) 판매 현황.
       // meta.overallTotal(북마클릿으로 실제 좌석맵을 세어 얻은 정확한 총원)이 있으면 그걸 우선 사용하고,
       // 없는 회차는 기존처럼 등급별 총원(totals) 추정치를 합산한다.
       let sumTotal = 0, sumRemainForTotal = 0, hasTotal = false;
       latestRows.forEach(r => {
         const grades = r.grades || {}, totals = r.totals || {};
-        const overallTotal = r.meta && r.meta.overallTotal;
+        const overallTotal = overallByRound.get(r.round_label || '__default__');
         if (overallTotal != null) {
           const remainSum = Object.keys(grades).reduce((s, k) => s + ((grades[k] && grades[k].remain) || 0), 0);
           sumTotal += overallTotal; sumRemainForTotal += remainSum; hasTotal = true;
@@ -6804,7 +6820,9 @@
       const histHTML = rows.slice(0, 100).map(r => {
         const grades = r.grades || {}, totals = r.totals || {};
         let hTotal = 0, hRemainForTotal = 0, hRemainAll = 0, hHasTotal = false;
-        const overallTotal = r.meta && r.meta.overallTotal;
+        const overallTotal = (r.meta && r.meta.overallTotal != null)
+          ? r.meta.overallTotal
+          : overallByRound.get(r.round_label || '__default__');
         Object.keys(grades).forEach(k => {
           const remain = grades[k] && grades[k].remain;
           hRemainAll += (remain || 0);
