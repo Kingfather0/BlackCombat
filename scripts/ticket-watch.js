@@ -47,6 +47,23 @@ if (!TICKET_BOT_SECRET) bail('TICKET_BOT_SECRET 환경변수가 없습니다.');
 
 const targetDayNum = String(parseInt(TARGET_DATE.split('-')[2], 10));
 
+// 회차 이름을 "YYYY.MM.DD(요일) h:mm AM/PM" 형식으로 통일해서 만든다.
+// (북마클릿이 로그인 후 실제 좌석맵 화면에서 그대로 읽어오는 표기와 정확히 같은 형식으로
+//  맞춰야, 이 자동 스크립트가 기록한 회차와 북마클릿으로 수동 기록한 같은 회차가
+//  round_label 문자열이 달라서 서로 다른 회차로 갈라지는 일이 없다.)
+function formatRoundLabel(dateStr, timeStr) {
+  const dm = String(dateStr || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+  const tm = String(timeStr || '').match(/(\d{1,2}):(\d{2})/);
+  if (!dm || !tm) return `${dateStr || ''} ${timeStr || ''}`.trim(); // 형식이 예상과 다르면 원본 그대로(안전망)
+  const [, y, mo, d] = dm;
+  const h = parseInt(tm[1], 10);
+  const mi = tm[2];
+  const dow = ['일', '월', '화', '수', '목', '금', '토'][new Date(Number(y), Number(mo) - 1, Number(d)).getDay()];
+  const ampm = h < 12 ? 'AM' : 'PM';
+  let h12 = h % 12; if (h12 === 0) h12 = 12;
+  return `${y}.${mo}.${d}(${dow}) ${h12}:${mi} ${ampm}`;
+}
+
 async function tryFindDateButton(page) {
   const candidates = await page.$$(
     '[class*="calendar"] button, [class*="Calendar"] button, [class*="date"] button, [role="gridcell"] button, td button, [role="gridcell"], td[class*="day"]'
@@ -185,6 +202,31 @@ async function estimateTotalsIfFirstSnapshot(grades, roundLabel) {
   return totals;
 }
 
+// 사이트가 "지금 어떤 event_key를 봐야 하는지"를 index.html에 손대지 않고도 알 수 있도록,
+// 실행할 때마다 "지금 이 경기를 추적 중"이라고 Supabase에 알려둔다. 이 호출 자체가 실패해도
+// (예: 아직 티켓현황_자동event_key_패치.sql을 안 돌렸다면) 전체 스크립트를 멈추지는 않는다 —
+// 그 경우 사이트는 기존처럼 index.html에 하드코딩된 TICKET_EVENT_KEY로 대체 동작한다.
+async function setCurrentTicketEvent() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/set_current_ticket_event`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({ p_secret: TICKET_BOT_SECRET, p_event_key: EVENT_KEY }),
+    });
+    if (!res.ok) {
+      console.log('ℹ️ "지금 event_key" 갱신에 실패했습니다(패치를 아직 안 돌렸다면 정상) — 계속 진행합니다.');
+    } else {
+      console.log(`🔗 사이트가 자동으로 볼 event_key를 "${EVENT_KEY}"로 갱신했습니다.`);
+    }
+  } catch (_) {
+    console.log('ℹ️ "지금 event_key" 갱신 중 오류 — 계속 진행합니다.');
+  }
+}
+
 async function postSnapshot(grades, roundLabel, note, totals, meta) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/record_ticket_snapshot`, {
     method: 'POST',
@@ -263,6 +305,7 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
   });
   try {
     console.log('▶ 기록 대상 event_key:', EVENT_KEY);
+    await setCurrentTicketEvent();
     console.log('▶ 티켓 페이지 접속:', TICKET_URL);
     // networkidle(요청이 완전히 잠잠해질 때까지 대기)은 채팅위젯/광고/분석 스크립트가
     // 계속 백그라운드 통신을 하는 요즘 사이트에서는 영영 안 걸릴 수 있어 타임아웃이 잦다.
@@ -319,7 +362,7 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       for (const [playSeq, grades] of capturedRemainByPlaySeq) {
         if (Object.keys(grades).length === 0) continue;
         const sched = capturedScheduleByPlaySeq.get(playSeq);
-        const roundLabel = sched ? `${sched.playDate} ${sched.playTime}` : `${TARGET_DATE} (playSeq ${playSeq})`;
+        const roundLabel = sched ? formatRoundLabel(sched.playDate, sched.playTime) : `${TARGET_DATE} (playSeq ${playSeq})`;
         const totals = await estimateTotalsIfFirstSnapshot(grades, roundLabel);
         if (totals) console.log(`🆕 [${roundLabel}] 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다:`, JSON.stringify(totals));
         await postSnapshot(grades, roundLabel, 'NOL API 응답에서 직접 추출', totals, meta);
@@ -351,7 +394,7 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
           const timeMatch = line.match(/\d{1,2}:\d{2}/);
           const grades = parseGrades(line);
           if (Object.keys(grades).length === 0) continue;
-          const roundLabel = `${TARGET_DATE} ${timeMatch[0]}`;
+          const roundLabel = formatRoundLabel(TARGET_DATE, timeMatch[0]);
           const totals = await estimateTotalsIfFirstSnapshot(grades, roundLabel);
           if (totals) console.log(`🆕 [${roundLabel}] 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다:`, JSON.stringify(totals));
           await postSnapshot(grades, roundLabel, null, totals, meta);
