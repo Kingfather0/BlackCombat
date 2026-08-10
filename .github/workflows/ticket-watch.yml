@@ -2,7 +2,7 @@ name: 티켓 판매 현황 자동 기록
 
 on:
   schedule:
-    - cron: '*/10 * * * *'   # 10분마다 실행 (GitHub 사정에 따라 실제 실행은 다소 늦어질 수 있음)
+    - cron: '*/5 * * * *'   # 10분마다 실행 (GitHub 사정에 따라 실제 실행은 다소 늦어질 수 있음)
   workflow_dispatch:
     inputs:
       ticket_url:
