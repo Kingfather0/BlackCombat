@@ -7445,26 +7445,20 @@
       &nbsp;·&nbsp; <button style="color:var(--muted);font-size:inherit;font-weight:inherit;font-family:inherit;padding:0;vertical-align:baseline" onclick="copyLink()">🔗 링크복사</button>
     </div>`;
 
-      const bannerTiers = giftTiers(t).filter(g => g.desc);
+      // 선물에는 등수 이름표(1등 선물/2등 선물)를 붙이지 않는다 — 밀어내기 방식에서는 1등이
+      // 두 번째 선물을 받을 수도 있어서, 등수를 붙이면 오히려 오해를 만든다. 좋은 순서대로
+      // 나열된 선물 목록 + 짧은 규칙 두 줄 + (접혀 있는) 동적 예시로 구성한다.
+      const bannerTiers = giftTiers(t).filter(g => g.desc && (g.max || 0) > 0);
       if ((st === 'open' || st === 'wait') && bannerTiers.length) {
-        const totalWinners = bannerTiers.reduce((s, g) => s + (g.max || 0), 0);
-        const medal = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : `<b>${r}등</b>`;
-        // 밀어내기(순위 높은 사람부터 좋은 선물 순서) 방식을 예시로 풀어준다 — 선물이 3개 이상일 때만
-        const ex = bannerTiers.length >= 3 ? `
-        <div style="margin-top:8px;font-size:12.5px">💡 예) 공동 1등이 ${bannerTiers[0].max + bannerTiers[1].max + 1}명이라면?<br>
-          · ${bannerTiers[0].max}명 → ${esc(bannerTiers[0].desc)} 🎉<br>
-          · ${bannerTiers[1].max}명 → ${esc(bannerTiers[1].desc)} (2등보다 먼저!)<br>
-          · 1명 → ${esc(bannerTiers[2].desc)} 1순위</div>` : '';
+        const totalWinners = bannerTiers.reduce((s, g) => s + g.max, 0);
+        const listLine = bannerTiers.map(g => `<b>${esc(g.desc)} ${g.max}명</b>`).join(' → ');
         html += `
     <div class="card gift-banner" style="margin-top:16px">
       <b>🎁 당첨 선물</b> <b style="color:#8a6a12">— 총 ${totalWinners}명</b>
       <div class="note" style="margin-top:6px;color:#57503a">
-        ${bannerTiers.map(g => `<div>${medal(g.rank)} <span class="gift-name">${esc(g.desc)}</span> · <b>${g.max}명</b></div>`).join('')}
-        <div style="margin-top:8px"><b>지급 방식</b><br>
-          ① 적중 순위가 높은 사람부터, 좋은 선물부터 차례로 받아갑니다.<br>
-          ② 공동 순위가 남은 자리보다 많으면 → 그 안에서 랜덤 추첨!<br>
-          ③ 추첨에서 아깝게 떨어져도 끝이 아닙니다 → 다음 선물 1순위로 자동 이동!</div>
-        ${ex}
+        <div style="font-size:13.5px">${listLine}</div>
+        <div style="margin-top:6px">많이 맞힌 순서대로 ${totalWinners}명을 뽑아, 앞의 선물부터 차례로 드려요.<br>동점자끼리는 순서를 랜덤 추첨으로 정해요.</div>
+        ${giftExampleHTML(bannerTiers)}
       </div>
     </div>`;
       }
@@ -12631,11 +12625,15 @@
         ${t.gift_winners ? `
           ${(t.gift_winners.mode === 'waterfall' && Array.isArray(t.gift_winners.tiers)) ? `
           <div style="font-weight:800;font-size:14px">🎲 선물 추첨 결과</div>
-          ${t.gift_winners.tiers.map((g, i) => `
-            <div style="margin-top:6px">${['🥇', '🥈', '🥉'][i] || `<b>${i + 1}.</b>`} <b>${esc(g.desc || (i + 1) + '순위 선물')}</b><br>
-              → ${(g.names || []).map(n => `<span class="gift-name">${esc(n)}</span>`).join('') || '-'}
-              ${g.note ? `<span style="color:#8a6a12;font-size:12px">(${esc(g.note)})</span>` : ''}
-            </div>`).join('')}
+          ${t.gift_winners.tiers.map((g, i) => {
+            // 닉네임 옆에 그 사람의 적중 순위를 괄호로 표시한다 (1~3등은 메달 이모지)
+            const winners = Array.isArray(g.winners) ? g.winners : (g.names || []).map(n => ({ n }));
+            const rankTag = r => r == null ? '' : `(${r <= 3 ? ['🥇', '🥈', '🥉'][r - 1] : r + '등'})`;
+            return `
+            <div style="margin-top:6px"><b>${esc(g.desc || (i + 1) + '순위 선물')}</b> →
+              ${winners.map(w => `<span class="gift-name">${esc(w.n)}${rankTag(w.r)}</span>`).join('') || '-'}
+            </div>`;
+          }).join('')}
           <div style="margin-top:8px"></div>` : `
           ${giftTiers(t).map(g => {
             const winners = giftWinnersFor(t.gift_winners, g.rank);
@@ -13056,9 +13054,9 @@
       <div class="field"><label>대회명</label><input id="c-title" placeholder="예: 블랙컴뱃 넘버링"></div>
       <div class="field"><label>경기 날짜</label><input id="c-date" type="datetime-local"></div>
       <div class="field"><label>투표 마감 시각 (자동 마감)</label><input id="c-deadline" type="datetime-local"></div>
-      <div class="field gift-tiers-wrap"><label>등수별 선물 (선택) — 3등 이상은 [+ 등수 추가]로 자유롭게 추가/삭제</label>
+      <div class="field gift-tiers-wrap"><label>선물 목록 (선택) — 좋은 선물부터 순서대로, 3순위부터는 [+ 선물 추가]로 자유롭게 추가/삭제</label>
         <div class="gift-tiers" id="c-gift-tiers"></div>
-        <button type="button" class="btn small" style="margin-top:8px" onclick="giftTierAdd(this)">+ 등수 추가</button>
+        <button type="button" class="btn small" style="margin-top:8px" onclick="giftTierAdd(this)">+ 선물 추가</button>
       </div>
       <div class="field"><label>랭킹 선수 빠른 입력 (누르면 아래 빈 칸에 자동 입력)</label>
         <select id="fp-div" onchange="renderFighterPick()" style="margin-bottom:4px"></select>
@@ -13385,6 +13383,40 @@
         { rank: 2, desc: t.gift2_desc || '', max: t.gift2_max ?? 5 }
       ];
     }
+    /* 당첨 선물 배너의 "지급 방식 예시" — 고정 문장이 아니라, 그 대회에 실제로 설정된
+       선물 이름/개수로 그때그때 자동 계산되는 시나리오다. (1등을 첫 선물 정원보다 1명,
+       2등을 남은 자리보다 많게 잡아서 밀어내기가 눈에 보이는 상황을 만든다)
+       선물이 1개뿐이면 예시가 성립하지 않으므로 버튼 자체를 숨긴다. */
+    function giftExampleHTML(tiers) {
+      if (tiers.length < 2) return '';
+      const [t1, t2, t3] = tiers;
+      const n1 = t1.max + 1;
+      const n2 = t2.max + 2;
+      const slot2Left = t2.max - 1; // 첫 선물에서 1명이 내려와 차지한 뒤 남는 자리
+      const lines = [`· 1등 ${n1}명 → 랜덤으로 ${t1.max}명 ${esc(t1.desc)}, 남은 1명은 ${esc(t2.desc)}`];
+      if (slot2Left <= 0) {
+        lines.push(`· 2등 ${n2}명 → ${t3 ? `모두 ${esc(t3.desc)} 순서로!` : '아쉽지만 다음 기회에…'}`);
+      } else if (t3) {
+        const down2 = n2 - slot2Left;
+        lines.push(`· 2등 ${n2}명 → 랜덤으로 ${slot2Left}명 ${esc(t2.desc)}, 남은 ${down2}명은 ${esc(t3.desc)}`);
+        const left3 = t3.max - down2;
+        if (left3 > 0) lines.push(`· 남은 ${esc(t3.desc)} ${left3}개는 3등 몫!`);
+      } else {
+        lines.push(`· 2등 ${n2}명 → 랜덤으로 ${slot2Left}명 ${esc(t2.desc)} (나머지는 다음 기회에…)`);
+      }
+      return `
+      <button type="button" class="btn xs" style="margin-top:8px" onclick="toggleGiftExample(this)">💡 지급 방식 예시 보기 ▾</button>
+      <div class="gift-example" style="display:none;margin-top:6px;font-size:12.5px">
+        예) 1등 ${n1}명, 2등 ${n2}명이라면?<br>${lines.join('<br>')}
+      </div>`;
+    }
+    function toggleGiftExample(btn) {
+      const box = btn.nextElementSibling;
+      if (!box) return;
+      const open = box.style.display !== 'none';
+      box.style.display = open ? 'none' : '';
+      btn.textContent = open ? '💡 지급 방식 예시 보기 ▾' : '💡 지급 방식 예시 접기 ▴';
+    }
     function giftWinnersFor(gw, rank) {
       if (!gw) return [];
       if (Array.isArray(gw[String(rank)])) return gw[String(rank)];
@@ -13397,7 +13429,7 @@
        중간 등수를 지우면 남은 줄이 자동으로 1,2,3… 순서로 다시 번호가 매겨진다. */
     function giftTierRowHTML(rank, desc, max) {
       return `<div class="gift-tier-row" style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap;font-size:14px;font-weight:700">
-      <span class="gt-rank" style="min-width:32px">${rank}등</span>
+      <span class="gt-rank" style="min-width:44px">${rank}순위</span>
       <input class="gt-desc" value="${esc(desc || '')}" placeholder="선물 내용 (선택)" style="width:150px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:7px 9px">
       최대 <input type="number" class="gt-max" value="${max}" min="0" max="99" style="width:60px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:7px 8px;text-align:center">명
       ${rank > 2 ? `<button type="button" class="btn xs gt-del" style="color:#c62828" onclick="giftTierRemove(this)">✕</button>` : ''}
@@ -13450,11 +13482,12 @@
       let gi = 0;
       return tiers.map(tier => {
         let need = Math.max(0, tier.max || 0);
-        const names = [], noteParts = [];
+        const names = [], winners = [], noteParts = [];
         while (need > 0 && gi < queue.length) {
           const g = queue[gi];
           const taken = g.pool.splice(0, Math.min(need, g.pool.length));
           names.push(...taken); need -= taken.length;
+          winners.push(...taken.map(n => ({ n, r: g.rank }))); // 당첨자별 적중 순위도 함께 저장 (결과 표시용)
           const split = g.pool.length > 0; // 이 그룹이 다음 선물로도 이어짐 → 경계에 걸려 랜덤이 작동한 것
           const baseCount = g.consumedBefore ? (taken.length + g.pool.length) : g.total;
           if (g.consumedBefore && split) noteParts.push(`${g.rank}등에서 내려온 ${baseCount}명 중 랜덤 ${taken.length}명`);
@@ -13463,7 +13496,7 @@
           else noteParts.push(g.total > 1 ? `공동 ${g.rank}등 ${g.total}명` : `${g.rank}등`);
           if (g.pool.length === 0) gi++; else g.consumedBefore = true;
         }
-        return { desc: tier.desc || '', max: tier.max || 0, names, note: noteParts.join(' + ') };
+        return { desc: tier.desc || '', max: tier.max || 0, names, winners, note: noteParts.join(' + ') };
       });
     }
     async function drawGiftsFromResult(tid) {
@@ -13506,11 +13539,11 @@
       if (error) return toastMsg('⚠️ ' + cleanErr(error.message));
       box.innerHTML = `
     <hr class="sep">
-    <div style="font-size:13px;font-weight:700;color:var(--muted)">등수별 선물 지급 최대 인원 · 공동 인원이 초과되면 그 안에서 랜덤 추첨됩니다</div>
+    <div style="font-size:13px;font-weight:700;color:var(--muted)">좋은 선물부터 순서대로 등록하세요 · 많이 맞힌 사람부터 앞 순위 선물을 받아갑니다 (동점자는 랜덤 추첨)</div>
     <div class="gift-tiers-wrap">
       <div class="gift-tiers" id="gtiers-${tid}"></div>
       <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn small" onclick="giftTierAdd(this)">+ 등수 추가</button>
+        <button class="btn small" onclick="giftTierAdd(this)">+ 선물 추가</button>
         <button class="btn small primary" onclick="saveGiftTiers('${tid}')">저장</button>
       </div>
     </div>
