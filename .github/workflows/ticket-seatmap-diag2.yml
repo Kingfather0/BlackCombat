@@ -1,0 +1,36 @@
+name: 티켓 좌석배치도 진입 진단 (1회성)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ticket_url:
+        description: '진단할 티켓 페이지 주소 (NOL 상품 페이지)'
+        required: true
+      target_date:
+        description: '클릭해볼 날짜 (YYYY-MM-DD)'
+        required: true
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Playwright 설치
+        run: |
+          npm install playwright@1
+          npx playwright install --with-deps chromium
+      - name: 좌석배치도 진입 진단
+        env:
+          TICKET_URL: ${{ github.event.inputs.ticket_url }}
+          TARGET_DATE: ${{ github.event.inputs.target_date }}
+        run: node scripts/ticket-seatmap-diag2.js
+      - name: 스크린샷 저장
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ticket-seatmap-diag2-screenshot
+          path: ticket-seatmap-diag2.png
+          if-no-files-found: ignore
