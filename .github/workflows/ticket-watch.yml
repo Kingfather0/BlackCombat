@@ -11,6 +11,9 @@ on:
       target_date:
         description: '(선택) 이번 한 번만 다르게 확인할 날짜 (YYYY-MM-DD)'
         required: false
+      event_key:
+        description: '(선택) 테스트용 event_key — 비워두면 실제 행사 데이터에 기록됨. 다른 티켓으로 테스트할 땐 꼭 채워서(예: test_preview) 실제 데이터와 섞이지 않게 하세요.'
+        required: false
 
 jobs:
   watch:
@@ -32,7 +35,7 @@ jobs:
         env:
           TICKET_URL: ${{ github.event.inputs.ticket_url || vars.TICKET_URL }}
           TARGET_DATE: ${{ github.event.inputs.target_date || vars.TICKET_TARGET_DATE }}
-          EVENT_KEY: ${{ vars.TICKET_EVENT_KEY }}
+          EVENT_KEY: ${{ github.event.inputs.event_key || vars.TICKET_EVENT_KEY }}
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
           TICKET_BOT_SECRET: ${{ secrets.TICKET_BOT_SECRET }}
