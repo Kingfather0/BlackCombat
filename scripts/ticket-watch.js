@@ -125,8 +125,22 @@ async function postSnapshot(grades, roundLabel, note) {
 
     const dateBtn = await findAndClickDate(page);
     if (!dateBtn) {
+      // 달력이 아예 없는 상황(판매 종료/판매 예정 등)인지 먼저 확인한다.
+      // 이런 경우는 스크립트나 화면 구조 문제가 아니라 "지금은 기록할 게 없다"는 정상 상태이므로,
+      // 실패(빨간 X)로 처리하지 않고 조용히 종료한다.
+      const preText = await page.innerText('body').catch(() => '');
+      if (/판매\s*종료/.test(preText)) {
+        console.log('ℹ️ 이 상품은 판매가 종료된 상태입니다. 기록할 내용이 없어 정상 종료합니다.');
+        await browser.close();
+        process.exit(0);
+      }
+      if (/판매\s*(예정|대기|전)|오픈\s*예정/.test(preText)) {
+        console.log('ℹ️ 아직 판매 시작 전(오픈 예정) 상태로 보입니다. 기록할 내용이 없어 정상 종료합니다.');
+        await browser.close();
+        process.exit(0);
+      }
       throw new Error(
-        `달력에서 ${targetDayNum}일 버튼을 찾지 못했습니다. (티켓이 아직 오픈 전이거나 화면 구조가 바뀌었을 수 있습니다)`
+        `달력에서 ${targetDayNum}일 버튼을 찾지 못했습니다. (판매 종료/예정 문구도 없었습니다 — 화면 구조가 예상과 다를 수 있습니다)`
       );
     }
     await dateBtn.click();
