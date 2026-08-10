@@ -6646,10 +6646,18 @@
       const latestRows = [...latestByRound.values()].sort((a, b) => String(a.round_label || '').localeCompare(String(b.round_label || '')));
       const newestAt = rows[0].captured_at;
 
-      // 전체(모든 회차 합산) 판매 현황 — 등급별 총원(totals)이 기록된 회차만 합산한다.
+      // 전체(모든 회차 합산) 판매 현황.
+      // meta.overallTotal(북마클릿으로 실제 좌석맵을 세어 얻은 정확한 총원)이 있으면 그걸 우선 사용하고,
+      // 없는 회차는 기존처럼 등급별 총원(totals) 추정치를 합산한다.
       let sumTotal = 0, sumRemainForTotal = 0, hasTotal = false;
       latestRows.forEach(r => {
         const grades = r.grades || {}, totals = r.totals || {};
+        const overallTotal = r.meta && r.meta.overallTotal;
+        if (overallTotal != null) {
+          const remainSum = Object.keys(grades).reduce((s, k) => s + ((grades[k] && grades[k].remain) || 0), 0);
+          sumTotal += overallTotal; sumRemainForTotal += remainSum; hasTotal = true;
+          return;
+        }
         Object.keys(grades).forEach(k => {
           const remain = grades[k] && grades[k].remain;
           const total = totals[k];
@@ -6680,11 +6688,13 @@
       const histHTML = rows.slice(0, 100).map(r => {
         const grades = r.grades || {}, totals = r.totals || {};
         let hTotal = 0, hRemainForTotal = 0, hRemainAll = 0, hHasTotal = false;
+        const overallTotal = r.meta && r.meta.overallTotal;
         Object.keys(grades).forEach(k => {
           const remain = grades[k] && grades[k].remain;
           hRemainAll += (remain || 0);
-          if (totals[k] != null && remain != null) { hTotal += totals[k]; hRemainForTotal += remain; hHasTotal = true; }
+          if (overallTotal == null && totals[k] != null && remain != null) { hTotal += totals[k]; hRemainForTotal += remain; hHasTotal = true; }
         });
+        if (overallTotal != null) { hTotal = overallTotal; hRemainForTotal = hRemainAll; hHasTotal = true; }
         const summaryText = (hHasTotal && hTotal > 0)
           ? `총 좌석 판매 수 : ${(hTotal - hRemainForTotal).toLocaleString()}/${hTotal.toLocaleString()} (${((hTotal - hRemainForTotal) / hTotal * 100).toFixed(1)}%)`
           : `잔여 합계 ${hRemainAll.toLocaleString()}석`;
