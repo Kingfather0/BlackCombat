@@ -278,10 +278,12 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
   // 파싱으로 자동 대체됨 — 안전망은 그대로 유지)
   const capturedRemainByPlaySeq = new Map(); // playSeq -> {VIP:{remain:5}, ...}
   const capturedScheduleByPlaySeq = new Map(); // playSeq -> {playDate, playTime, saleOpenTime}
+  let capturedGoodsCode = null; // 사이트의 "수동 갱신(실시간 조회)" 버튼이 쓸 API 주소 재료
   page.on('response', async (res) => {
     try {
       const url = res.url();
       if (/\/api\/remaining-seats/.test(url)) {
+        try { capturedGoodsCode = new URL(url).searchParams.get('goodsCode') || capturedGoodsCode; } catch (_) {}
         const json = await res.json().catch(() => null);
         if (json && Array.isArray(json.remainSeat)) {
           for (const row of json.remainSeat) {
@@ -365,7 +367,12 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
         const roundLabel = sched ? formatRoundLabel(sched.playDate, sched.playTime) : `${TARGET_DATE} (playSeq ${playSeq})`;
         const totals = await estimateTotalsIfFirstSnapshot(grades, roundLabel);
         if (totals) console.log(`🆕 [${roundLabel}] 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다:`, JSON.stringify(totals));
-        await postSnapshot(grades, roundLabel, 'NOL API 응답에서 직접 추출', totals, meta);
+        // 이 회차의 API 좌표(goodsCode/playSeq)를 meta에 같이 남긴다 — 사이트의 "수동 갱신"
+        // 버튼이 5분 스케줄을 기다리지 않고 예매 사이트에서 즉석으로 잔여석을 조회할 때 쓴다.
+        const metaForRound = capturedGoodsCode
+          ? Object.assign({}, meta, { api: { goodsCode: capturedGoodsCode, playSeq } })
+          : meta;
+        await postSnapshot(grades, roundLabel, 'NOL API 응답에서 직접 추출', totals, metaForRound);
         recorded++;
       }
     } else {
