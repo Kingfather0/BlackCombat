@@ -133,6 +133,7 @@ async function postSnapshot(grades, roundLabel, note) {
   const page = await context.newPage();
   let recorded = 0;
   try {
+    console.log('▶ 기록 대상 event_key:', EVENT_KEY);
     console.log('▶ 티켓 페이지 접속:', TICKET_URL);
     // networkidle(요청이 완전히 잠잠해질 때까지 대기)은 채팅위젯/광고/분석 스크립트가
     // 계속 백그라운드 통신을 하는 요즘 사이트에서는 영영 안 걸릴 수 있어 타임아웃이 잦다.
