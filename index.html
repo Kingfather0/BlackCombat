@@ -653,6 +653,32 @@
       padding: 14px 16px
     }
 
+    .tk-total-card {
+      padding: 14px 16px
+    }
+
+    .tk-total-label {
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    .tk-total-num {
+      font-weight: 800;
+      font-size: 17px;
+      margin-top: 4px;
+      color: var(--key-deep)
+    }
+
+    .tk-total-bar {
+      height: 12px;
+      margin-top: 9px
+    }
+
+    .tk-total-bar i {
+      background: linear-gradient(90deg, var(--key), var(--key-deep))
+    }
+
     .tk-round {
       font-weight: 800;
       font-size: 14.5px;
@@ -6521,6 +6547,9 @@
        ticket_snapshots 테이블에 기록하면, 이 페이지가 그 기록을 읽어서 보여준다.
        TICKET_EVENT_KEY는 깃허브 저장소 Variables의 EVENT_KEY 값과 반드시 동일해야 함. */
     const TICKET_EVENT_KEY = 'bc_2026_0726'; // ★ 실제 행사에 맞게 필요 시 수정 (깃허브 EVENT_KEY와 동일해야 함)
+    // 아래 값들은 이제 "기본값(fallback)"이다 — 깃허브 액션이 예매 페이지에서 제목/장소/기간/
+    // 오픈안내를 자동으로 읽어와 기록하면(스냅샷의 meta) 그 값을 우선 사용하고, 못 읽어온
+    // 항목만 여기 값으로 대신 채운다. buyUrl은 자동 추출 대상이 아니라 항상 이 값을 쓴다.
     const TICKET_INFO = {
       title: '블랙컴뱃 대회 티켓',
       eventDateText: '7월 26일',
@@ -6528,6 +6557,24 @@
       openText: '7월 16일 목요일 17시',
       buyUrl: 'https://nol.yanolja.com/ticket/products/26010059'
     };
+    function mergedTicketMeta(rows) {
+      // 최신 기록부터 훑으면서 필드별로 값이 있는 걸 채운다(과거 기록에만 남아있을 수도 있음).
+      const m = {};
+      for (const r of rows) {
+        if (!r.meta) continue;
+        if (m.title == null && r.meta.title) m.title = r.meta.title;
+        if (m.dateText == null && r.meta.dateText) m.dateText = r.meta.dateText;
+        if (m.place == null && r.meta.place) m.place = r.meta.place;
+        if (m.openText == null && r.meta.openText) m.openText = r.meta.openText;
+      }
+      return {
+        title: m.title || TICKET_INFO.title,
+        eventDateText: m.dateText || TICKET_INFO.eventDateText,
+        place: m.place || TICKET_INFO.place,
+        openText: m.openText || TICKET_INFO.openText,
+        buyUrl: TICKET_INFO.buyUrl
+      };
+    }
     async function fetchTicketSnapshots(eventKey) {
       const { data, error } = await sb.from('ticket_snapshots')
         .select('*')
@@ -6569,23 +6616,24 @@
       loading();
       let rows; try { rows = await fetchTicketSnapshots(eventKey); } catch (e) { return fail(e); }
 
+      const meta = mergedTicketMeta(rows);
       const previewBanner = isPreview
         ? `<div class="badge wait" style="margin-top:10px">🧪 테스트 미리보기 — event_key: ${esc(eventKey)} (실제 판매 현황이 아닙니다)</div>`
         : '';
       const infoCard = `
     <div class="card" style="padding:14px 16px">
-      <div style="font-weight:800;font-size:15.5px">${esc(TICKET_INFO.title)}</div>
-      <div class="sub" style="margin-top:4px">📅 ${esc(TICKET_INFO.eventDateText)} · 📍 ${esc(TICKET_INFO.place)}</div>
-      <div class="sub" style="margin-top:2px">🎟️ 티켓 오픈: ${esc(TICKET_INFO.openText)}</div>
+      <div style="font-weight:800;font-size:15.5px">${esc(meta.title)}</div>
+      <div class="sub" style="margin-top:4px">📅 ${esc(meta.eventDateText)} · 📍 ${esc(meta.place)}</div>
+      <div class="sub" style="margin-top:2px">🎟️ 티켓 오픈: ${esc(meta.openText)}</div>
       ${previewBanner}
-      <a class="btn primary wide" style="margin-top:10px" href="${esc(TICKET_INFO.buyUrl)}" target="_blank" rel="noopener">예매하러 가기 ↗</a>
+      <a class="btn primary wide" style="margin-top:10px" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">예매하러 가기 ↗</a>
     </div>`;
 
       if (!rows.length) {
         $app.innerHTML = `
       <h1 class="page">🎫 좌석 판매 현황</h1>
       ${infoCard}
-      <div class="empty" style="margin-top:14px">아직 판매 현황 기록이 없습니다.<br>티켓이 오픈되면(${esc(TICKET_INFO.openText)}) 자동으로 여기에 표시됩니다.</div>`;
+      <div class="empty" style="margin-top:14px">아직 판매 현황 기록이 없습니다.<br>티켓이 오픈되면(${esc(meta.openText)}) 자동으로 여기에 표시됩니다.</div>`;
         return;
       }
 
@@ -6598,6 +6646,31 @@
       const latestRows = [...latestByRound.values()].sort((a, b) => String(a.round_label || '').localeCompare(String(b.round_label || '')));
       const newestAt = rows[0].captured_at;
 
+      // 전체(모든 회차 합산) 판매 현황 — 등급별 총원(totals)이 기록된 회차만 합산한다.
+      let sumTotal = 0, sumRemainForTotal = 0, hasTotal = false;
+      latestRows.forEach(r => {
+        const grades = r.grades || {}, totals = r.totals || {};
+        Object.keys(grades).forEach(k => {
+          const remain = grades[k] && grades[k].remain;
+          const total = totals[k];
+          if (total != null && remain != null) { sumTotal += total; sumRemainForTotal += remain; hasTotal = true; }
+        });
+      });
+      const totalBarHTML = (hasTotal && sumTotal > 0) ? (() => {
+        const sold = sumTotal - sumRemainForTotal;
+        const pct = (sold / sumTotal * 100).toFixed(1);
+        return `
+      <div class="card tk-total-card">
+        <div class="tk-total-label">전체 판매 현황</div>
+        <div class="tk-total-num">총 ${sumTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%)</div>
+        <div class="tk-bar tk-total-bar"><i style="width:${Math.min(100, Math.max(0, pct))}%"></i></div>
+      </div>`;
+      })() : `
+      <div class="card tk-total-card">
+        <div class="tk-total-label">전체 판매 현황</div>
+        <div class="sub" style="margin-top:4px">총 좌석수가 아직 집계되지 않았습니다. (오픈 시점 기록이 쌓이면 자동으로 표시됩니다)</div>
+      </div>`;
+
       const currentHTML = latestRows.map(r => `
       <div class="card tk-card">
         ${r.round_label ? `<div class="tk-round">${esc(r.round_label)}</div>` : ''}
@@ -6605,16 +6678,26 @@
       </div>`).join('');
 
       const histHTML = rows.slice(0, 100).map(r => {
-        const remainSum = Object.values(r.grades || {}).reduce((s, g) => s + ((g && g.remain) || 0), 0);
+        const grades = r.grades || {}, totals = r.totals || {};
+        let hTotal = 0, hRemainForTotal = 0, hRemainAll = 0, hHasTotal = false;
+        Object.keys(grades).forEach(k => {
+          const remain = grades[k] && grades[k].remain;
+          hRemainAll += (remain || 0);
+          if (totals[k] != null && remain != null) { hTotal += totals[k]; hRemainForTotal += remain; hHasTotal = true; }
+        });
+        const summaryText = (hHasTotal && hTotal > 0)
+          ? `총 좌석 판매 수 : ${(hTotal - hRemainForTotal).toLocaleString()}/${hTotal.toLocaleString()} (${((hTotal - hRemainForTotal) / hTotal * 100).toFixed(1)}%)`
+          : `잔여 합계 ${hRemainAll.toLocaleString()}석`;
         return `<div class="tk-hist-row">
         <span class="tk-hist-time">${fmtSnapTime(r.captured_at)}</span>
-        <span class="tk-hist-round">${r.round_label ? esc(r.round_label) + ' · ' : ''}잔여 합계 ${remainSum.toLocaleString()}석</span>
+        <span class="tk-hist-round">${r.round_label ? esc(r.round_label) + ' · ' : ''}${esc(summaryText)}</span>
       </div>`;
       }).join('');
 
       $app.innerHTML = `
       <h1 class="page">🎫 좌석 판매 현황</h1>
       ${infoCard}
+      ${totalBarHTML}
       <div class="sec-title">현재 판매 현황 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최종 갱신 ${fmtSnapTime(newestAt)}</span></div>
       ${currentHTML}
       <div class="sec-title">판매 히스토리 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최근 ${Math.min(rows.length, 100)}건</span></div>
