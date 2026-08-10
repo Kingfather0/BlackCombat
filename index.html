@@ -648,6 +648,93 @@
       background: #3b66d6
     }
 
+    /* 티켓 판매 현황 */
+    .tk-card {
+      padding: 14px 16px
+    }
+
+    .tk-round {
+      font-weight: 800;
+      font-size: 14.5px;
+      color: var(--key-deep);
+      margin-bottom: 8px
+    }
+
+    .tk-grade {
+      padding: 8px 0;
+      border-top: 1px solid var(--border)
+    }
+
+    .tk-grade:first-child {
+      border-top: none;
+      padding-top: 0
+    }
+
+    .tk-grade-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 14.5px
+    }
+
+    .tk-grade-name {
+      font-weight: 800
+    }
+
+    .tk-grade-remain {
+      font-weight: 800;
+      color: var(--key-deep)
+    }
+
+    .tk-grade-remain.sold-out {
+      color: var(--red)
+    }
+
+    .tk-bar {
+      display: flex;
+      height: 8px;
+      border-radius: 99px;
+      overflow: hidden;
+      background: #e3e8f0;
+      margin-top: 6px
+    }
+
+    .tk-bar i {
+      display: block;
+      height: 100%;
+      background: var(--key)
+    }
+
+    .tk-pct {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 3px
+    }
+
+    .tk-hist-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 15px;
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap
+    }
+
+    .tk-hist-row:first-child {
+      border-top: none
+    }
+
+    .tk-hist-time {
+      color: var(--muted);
+      white-space: nowrap
+    }
+
+    .tk-hist-round {
+      font-weight: 700;
+      text-align: right
+    }
+
     /* tables */
     .tbl-scroll {
       overflow-x: auto;
@@ -1318,11 +1405,13 @@
       line-height: 1.5
     }
 
-    /* 투표 카드 압축 그리드 */
+    /* 투표 카드 압축 그리드 — 화면 폭이 넉넉할 때만(데스크톱) 2열, 모바일에서는 기존처럼
+       1열로 쭉 나열한다. 경기당 세로 길이를 확실히 줄여서 스크롤을 덜어낸다(패딩·줄간격·
+       글자 크기를 전체적으로 낮췄다 — 이름/국기/랭킹/전적/게이지는 전부 그대로 보인다). */
     .vote-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 8px;
+      gap: 6px;
       margin-top: 12px
     }
 
@@ -1334,37 +1423,38 @@
 
     .vote-grid .match {
       margin-top: 0;
-      padding: 10px 12px
+      padding: 7px 10px
     }
 
     .vote-grid .match .no {
-      font-size: 12px;
-      margin-bottom: 5px;
+      font-size: 11px;
+      margin-bottom: 3px;
       color: var(--muted)
     }
 
     .vote-grid .corner {
-      padding: 9px 4px;
-      font-size: 14px
+      padding: 6px 4px;
+      font-size: 13px;
+      line-height: 1.2
     }
 
     .vote-grid .fmeta {
-      font-size: 10px;
-      margin-top: 2px
+      font-size: 9px;
+      margin-top: 1px
     }
 
     .vote-grid .split {
-      margin-top: 6px
+      margin-top: 4px
     }
 
     .vote-grid .split .lbl {
-      font-size: 12px;
-      margin-bottom: 3px;
+      font-size: 11px;
+      margin-bottom: 2px;
       font-weight: 800
     }
 
     .vote-grid .split .bar {
-      height: 8px
+      height: 5px
     }
 
     /* 칭호 배지 */
@@ -5822,6 +5912,7 @@
         <a href="#/fighters" data-nav="fighters">랭킹</a>
         <a href="#/ranking" data-nav="ranking">격잘알</a>
         <a href="#/game" data-nav="game">게임</a>
+        <a href="#/tickets" data-nav="tickets">티켓</a>
       </nav>
     </div>
     <div class="visitor-bar" id="visitorBar">
@@ -6171,11 +6262,15 @@
       // 게임 메뉴(#/game)나 홈/랭킹/격잘알 등 다른 페이지에서는 숨긴다.
       const headerGS = document.getElementById('headerGameSelectLink');
       if (headerGS) headerGS.style.display = (seg[0] === 'game' && ['run', 'punch', 'grow', 'battle'].includes(seg[1])) ? '' : 'none';
+      // 티켓 판매 현황은 아직 일반 공개 전 단계 — 관리자로 로그인해 있을 때만 메뉴에 노출한다.
+      const navTickets = document.querySelector('[data-nav="tickets"]');
+      if (navTickets) navTickets.style.display = adminPass() ? '' : 'none';
       if (seg[0] === '') { mark('home'); viewHome(); }
       else if (seg[0] === 't') { viewTournament(decodeURIComponent(seg[1] || '')); }
       else if (seg[0] === 'fighters') { mark('fighters'); viewFighters(); }
       else if (seg[0] === 'ranking') { mark('ranking'); viewRanking(); }
       else if (seg[0] === 'game') { mark('game'); viewGame(seg[1] || ''); }
+      else if (seg[0] === 'tickets') { mark('tickets'); viewTickets(); }
       else if (seg[0] === 'player') { viewPlayer(decodeURIComponent(seg[1] || '')); }
       else if (seg[0] === 'admin') { viewAdmin(); }
       else viewHome();
@@ -6421,6 +6516,103 @@
       if (!f) return '';
       return `<span class="fmeta">${flagImg(f.flag)} ${f.rank === 'C' ? '챔피언' : '랭킹 ' + f.rank + '위'} · ${f.w}승 ${f.l}패${f.dr ? ' ' + f.dr + '무' : ''}</span>`;
     }
+    /* ── 티켓 판매 현황 ──
+       깃허브 액션(auto/scripts/ticket-watch.js)이 주기적으로 예매 페이지를 확인해
+       ticket_snapshots 테이블에 기록하면, 이 페이지가 그 기록을 읽어서 보여준다.
+       TICKET_EVENT_KEY는 깃허브 저장소 Variables의 EVENT_KEY 값과 반드시 동일해야 함. */
+    const TICKET_EVENT_KEY = 'bc_2026_0726'; // ★ 실제 행사에 맞게 필요 시 수정 (깃허브 EVENT_KEY와 동일해야 함)
+    const TICKET_INFO = {
+      title: '블랙컴뱃 대회 티켓',
+      eventDateText: '7월 26일',
+      place: '잠실학생체육관',
+      openText: '7월 16일 목요일 17시',
+      buyUrl: 'https://nol.yanolja.com/ticket/products/26010059'
+    };
+    async function fetchTicketSnapshots() {
+      const { data, error } = await sb.from('ticket_snapshots')
+        .select('*')
+        .eq('event_key', TICKET_EVENT_KEY)
+        .order('captured_at', { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      return data || [];
+    }
+    function fmtSnapTime(d) {
+      return new Date(d).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+    function gradeRowsHTML(grades, totals) {
+      const keys = Object.keys(grades || {});
+      if (!keys.length) return '<div class="empty" style="padding:8px 0">등급별 정보 없음</div>';
+      return keys.map(k => {
+        const remain = grades[k] && grades[k].remain;
+        const total = totals && totals[k];
+        const soldPct = (total && remain != null) ? Math.min(100, Math.max(0, Math.round((total - remain) / total * 100))) : null;
+        const remainText = remain === 0 ? '매진' : (remain != null ? esc(remain.toLocaleString()) + '석 남음' : '-');
+        return `<div class="tk-grade">
+        <div class="tk-grade-top"><span class="tk-grade-name">${esc(k)}석</span>
+          <span class="tk-grade-remain${remain === 0 ? ' sold-out' : ''}">${remainText}</span></div>
+        ${soldPct != null ? `<div class="tk-bar"><i style="width:${soldPct}%"></i></div><div class="tk-pct">${soldPct}% 판매</div>` : ''}
+      </div>`;
+      }).join('');
+    }
+    async function viewTickets() {
+      // 아직 일반 공개 전 단계 — 관리자 로그인 상태가 아니면 데이터 없이 안내만 보여준다.
+      if (!adminPass()) {
+        $app.innerHTML = `<h1 class="page">🎫 좌석 판매 현황</h1><div class="empty">관리자만 볼 수 있는 페이지입니다.<br>(공개 준비 중입니다)</div>`;
+        return;
+      }
+      loading();
+      let rows; try { rows = await fetchTicketSnapshots(); } catch (e) { return fail(e); }
+
+      const infoCard = `
+    <div class="card" style="padding:14px 16px">
+      <div style="font-weight:800;font-size:15.5px">${esc(TICKET_INFO.title)}</div>
+      <div class="sub" style="margin-top:4px">📅 ${esc(TICKET_INFO.eventDateText)} · 📍 ${esc(TICKET_INFO.place)}</div>
+      <div class="sub" style="margin-top:2px">🎟️ 티켓 오픈: ${esc(TICKET_INFO.openText)}</div>
+      <a class="btn primary wide" style="margin-top:10px" href="${esc(TICKET_INFO.buyUrl)}" target="_blank" rel="noopener">예매하러 가기 ↗</a>
+    </div>`;
+
+      if (!rows.length) {
+        $app.innerHTML = `
+      <h1 class="page">🎫 좌석 판매 현황</h1>
+      ${infoCard}
+      <div class="empty" style="margin-top:14px">아직 판매 현황 기록이 없습니다.<br>티켓이 오픈되면(${esc(TICKET_INFO.openText)}) 자동으로 여기에 표시됩니다.</div>`;
+        return;
+      }
+
+      // round_label(회차)별로 가장 최근 기록 1개씩 뽑아서 "현재 판매 현황"으로 보여준다.
+      const latestByRound = new Map();
+      rows.forEach(r => {
+        const key = r.round_label || '__default__';
+        if (!latestByRound.has(key)) latestByRound.set(key, r);
+      });
+      const latestRows = [...latestByRound.values()].sort((a, b) => String(a.round_label || '').localeCompare(String(b.round_label || '')));
+      const newestAt = rows[0].captured_at;
+
+      const currentHTML = latestRows.map(r => `
+      <div class="card tk-card">
+        ${r.round_label ? `<div class="tk-round">${esc(r.round_label)}</div>` : ''}
+        ${gradeRowsHTML(r.grades, r.totals)}
+      </div>`).join('');
+
+      const histHTML = rows.slice(0, 100).map(r => {
+        const remainSum = Object.values(r.grades || {}).reduce((s, g) => s + ((g && g.remain) || 0), 0);
+        return `<div class="tk-hist-row">
+        <span class="tk-hist-time">${fmtSnapTime(r.captured_at)}</span>
+        <span class="tk-hist-round">${r.round_label ? esc(r.round_label) + ' · ' : ''}잔여 합계 ${remainSum.toLocaleString()}석</span>
+      </div>`;
+      }).join('');
+
+      $app.innerHTML = `
+      <h1 class="page">🎫 좌석 판매 현황</h1>
+      ${infoCard}
+      <div class="sec-title">현재 판매 현황 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최종 갱신 ${fmtSnapTime(newestAt)}</span></div>
+      ${currentHTML}
+      <div class="sec-title">판매 히스토리 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최근 ${Math.min(rows.length, 100)}건</span></div>
+      <div class="card" style="padding:0">${histHTML}</div>
+      <div class="note">이 페이지는 예매 사이트 화면을 주기적으로 자동 확인해 기록한 값으로, 실제 판매 시점과 몇 분 정도 오차가 있을 수 있습니다.</div>`;
+    }
+
     /* ── 선수 랭킹 자동 갱신 (관리자) ── */
     async function refreshFighters(btn) {
       btn.disabled = true; btn.textContent = '갱신 중...';
@@ -11764,6 +11956,24 @@
 
     /* --- 투표 폼 --- */
     function voteFormHTML(t, matches, parts) {
+      const identityBlock = gmMyNick
+        ? `<div class="home-login-id" style="margin:0">👤 <b>${esc(gmMyNick)}</b> 님으로 투표합니다</div>
+       <div class="note" style="margin-top:8px">💡 마감 전까지 수정 가능하고, 게이지를 누르면 <b>투표자 목록</b>이 보입니다.</div>`
+        : `<div class="empty" style="padding:10px 0;color:var(--red)"><b>투표하려면 먼저 닉네임을 등록해 주세요.</b></div>`;
+      return `
+    <div class="sec-title" style="justify-content:space-between">승부 예측 · 실시간 현황
+      <button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button>
+    </div>
+    <div class="card vform">${identityBlock}</div>
+    <div id="vote-matches">${voteCardsHTML(matches, parts)}</div>
+    <div class="msg" id="v-msg"></div>
+    ${gmMyNick ? `<div class="votebar"><div class="in">
+      <span class="cnt"><b id="vb-count">${Object.keys(voteSel).length}</b> / ${matches.length} 선택</span>
+      <button class="btn primary" id="vb-submit" onclick="submitVote('${t.id}', ${matches.length})">투표 제출하기</button>
+    </div></div>` : ''}`;
+    }
+    // 카드 그리드 마크업
+    function voteCardsHTML(matches, parts) {
       const rows = matches.map(m => `
     <div class="match">
       <div class="no"><span>${m.seq}경기</span></div>
@@ -11776,20 +11986,7 @@
       </div>
       <div class="split" id="split-${m.id}" onclick="openMatchVoters('${m.id}')" style="cursor:pointer" title="누가 투표했는지 보기">${splitInner(m, parts, false, true)}</div>
     </div>`).join('');
-      const identityBlock = gmMyNick
-        ? `<div class="home-login-id" style="margin:0">👤 <b>${esc(gmMyNick)}</b> 님으로 투표합니다</div>
-       <div class="note" style="margin-top:8px">💡 마감 전까지 수정 가능합니다. · 게이지를 누르면 <b>투표자 목록</b>이 보입니다.</div>`
-        : `<div class="empty" style="padding:10px 0;color:var(--red)">투표하려면 먼저 닉네임을 등록해 주세요.</div>`;
-      return `
-    <div class="sec-title" style="justify-content:space-between">승부 예측 · 실시간 현황
-      <button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button></div>
-    <div class="card vform">${identityBlock}</div>
-    <div class="vote-grid">${rows}</div>
-    <div class="msg" id="v-msg"></div>
-    ${gmMyNick ? `<div class="votebar"><div class="in">
-      <span class="cnt"><b id="vb-count">${Object.keys(voteSel).length}</b> / ${matches.length} 선택</span>
-      <button class="btn primary" id="vb-submit" onclick="submitVote('${t.id}', ${matches.length})">투표 제출하기</button>
-    </div></div>` : ''}`;
+      return `<div class="vote-grid">${rows}</div>`;
     }
     function pick(btn) {
       const mid = btn.dataset.mid, side = btn.dataset.side;
@@ -11799,7 +11996,7 @@
         btn.classList.remove('sel');
       } else {
         voteSel[mid] = side;
-        document.querySelectorAll(`.corner[data-mid="${mid}"]`).forEach(b => b.classList.remove('sel'));
+        document.querySelectorAll(`[data-mid="${mid}"][data-side]`).forEach(b => b.classList.remove('sel'));
         btn.classList.add('sel');
       }
       const c = document.getElementById('vb-count');
