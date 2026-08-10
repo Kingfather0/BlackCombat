@@ -6853,7 +6853,7 @@
     const TK_SHARE_LINK = 'kingfather0.github.io/BlackCombat/#/tickets';
     function tkBuildShareText(remainByGrade, atIso) {
       if (!tkLive) return;
-      const lines = [`🎫티켓 판매 현황 (${fmtSnapTime(atIso)})`];
+      const lines = [`🎫 티켓 판매 현황 (${fmtSnapTime(atIso)})`];
       if (tkLive.overallTotal) {
         const sumRemain = Object.values(remainByGrade).reduce((s, v) => s + (v || 0), 0);
         const sold = tkLive.overallTotal - sumRemain;
@@ -6866,31 +6866,38 @@
       lines.push(TK_SHARE_LINK);
       tkLive.shareText = lines.join('\n');
     }
-    /* 수동 갱신 — 5분 자동 스케줄을 기다리지 않고, 예매 사이트(NOL)의 잔여석 API를
-       그 자리에서 직접 조회해 화면만 즉석으로 갱신한다. (기록으로 저장되지는 않는다 —
-       히스토리는 자동 기록이 계속 담당) API 좌표(goodsCode/playSeq)는 자동 기록이
-       meta에 남겨준 값을 쓰므로, 자동 기록이 한 번 이상 성공한 뒤부터 동작한다. */
+    /* 예매 사이트(NOL)의 잔여석 API를 그 자리에서 직접 조회해 등급별 잔여석을 돌려준다.
+       (수동 갱신 버튼과 공유 팝업이 공용으로 사용) API 좌표(goodsCode/playSeq)는 자동 기록이
+       meta에 남겨준 값을 쓰므로, 자동 기록이 한 번 이상 성공한 뒤부터 동작한다.
+       실패하거나 좌표가 없으면 null을 돌려준다. */
+    async function tkFetchLiveRemain() {
+      if (!tkLive || !tkLive.api) return null;
+      const target = `https://nol.yanolja.com/ticket/products/api/remaining-seats?goodsCode=${encodeURIComponent(tkLive.api.goodsCode)}&playSeq=${encodeURIComponent(tkLive.api.playSeq)}`;
+      const proxies = [
+        'https://api.allorigins.win/raw?url=' + encodeURIComponent(target),
+        'https://corsproxy.io/?url=' + encodeURIComponent(target)
+      ];
+      let json = null;
+      for (const p of proxies) {
+        try { const r = await fetch(p, { cache: 'no-store' }); if (r.ok) { json = await r.json(); break; } } catch (e) { }
+      }
+      if (!json || !Array.isArray(json.remainSeat)) return null;
+      const remainByGrade = {};
+      for (const row of json.remainSeat) {
+        if (row.playSeq != null && String(row.playSeq) !== String(tkLive.api.playSeq)) continue;
+        const g = String(row.seatGradeName || '').replace(/석$/, '');
+        if (g) remainByGrade[g] = row.remainCnt;
+      }
+      return Object.keys(remainByGrade).length ? remainByGrade : null;
+    }
+    /* 수동 갱신 — 5분 자동 스케줄을 기다리지 않고, 예매 사이트의 잔여석을 즉석 조회해
+       화면만 갱신한다. (기록으로 저장되지는 않는다 — 히스토리는 자동 기록이 계속 담당) */
     async function tkManualRefresh(btn) {
       if (!tkLive || !tkLive.api) { toastMsg('자동 기록이 한 번 이상 실행된 뒤부터 사용할 수 있어요.'); return; }
       btn.disabled = true; const orig = btn.textContent; btn.textContent = '조회 중...';
       try {
-        const target = `https://nol.yanolja.com/ticket/products/api/remaining-seats?goodsCode=${encodeURIComponent(tkLive.api.goodsCode)}&playSeq=${encodeURIComponent(tkLive.api.playSeq)}`;
-        const proxies = [
-          'https://api.allorigins.win/raw?url=' + encodeURIComponent(target),
-          'https://corsproxy.io/?url=' + encodeURIComponent(target)
-        ];
-        let json = null;
-        for (const p of proxies) {
-          try { const r = await fetch(p, { cache: 'no-store' }); if (r.ok) { json = await r.json(); break; } } catch (e) { }
-        }
-        if (!json || !Array.isArray(json.remainSeat)) throw new Error('예매 사이트에서 잔여석 정보를 받지 못했습니다.');
-        const remainByGrade = {};
-        for (const row of json.remainSeat) {
-          if (row.playSeq != null && String(row.playSeq) !== String(tkLive.api.playSeq)) continue;
-          const g = String(row.seatGradeName || '').replace(/석$/, '');
-          if (g) remainByGrade[g] = row.remainCnt;
-        }
-        if (!Object.keys(remainByGrade).length) throw new Error('조회 결과에 잔여석 정보가 없습니다.');
+        const remainByGrade = await tkFetchLiveRemain();
+        if (!remainByGrade) throw new Error('예매 사이트에서 잔여석 정보를 받지 못했습니다.');
         // 등급별 잔여석 표시 즉석 갱신
         document.querySelectorAll('.tk-card .tk-grade').forEach(el => {
           const nameEl = el.querySelector('.tk-grade-name'), remEl = el.querySelector('.tk-grade-remain');
@@ -6918,28 +6925,75 @@
       } catch (e) { toastMsg('⚠️ ' + (e.message || '실시간 조회에 실패했습니다.')); }
       btn.disabled = false; btn.textContent = orig;
     }
-    /* 카톡 공유 — 판매 현황 요약 문구를 OS 공유 시트(모바일: 카카오톡 선택 가능)로 보내고,
-       공유 시트가 없는 환경(PC 등)에서는 클립보드에 복사해 붙여넣게 한다.
+    /* 실제 발송 수단 — OS 공유 시트(모바일: 카카오톡 선택 가능) → 클립보드 복사 → 수동 복사 안내
+       순서로 시도한다. 잡담방 홍보 버튼(bbPromoteInChat)과 동일한 방식/안전장치.
        (카카오톡을 포함한 모든 메신저는 웹페이지가 사용자 확인 없이 대화방에 자동으로 글을
-       올리는 것을 막아두었기 때문에, "완전 자동 발송"은 기술적으로 불가능하다 — 잡담방
-       홍보 버튼과 동일한 방식의 반자동 공유가 최선이다.) */
-    async function tkShare() {
-      if (!tkLive || !tkLive.shareText) { toastMsg('공유할 판매 현황이 아직 없습니다.'); return; }
-      const text = tkLive.shareText;
+       올리는 것을 막아두었기 때문에, "완전 자동 발송"은 기술적으로 불가능하다) */
+    function tkDoShare(text) {
       const protocol = window.__BB_PROMOTE_PROTOCOL_OVERRIDE || location.protocol;
       const unsafeOrigin = /^(content|blob|about|data):$/.test(protocol);
       try {
         if (!unsafeOrigin && typeof navigator.share === 'function') {
           navigator.share({ text }).catch(() => { });
-          return;
+          return 'share';
         }
         if (!unsafeOrigin && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-          await navigator.clipboard.writeText(text);
-          toastMsg('판매 현황이 복사되었습니다. 카톡방에 붙여넣어 주세요!');
-          return;
+          navigator.clipboard.writeText(text)
+            .then(() => toastMsg('판매 현황이 복사되었습니다. 카톡방에 붙여넣어 주세요!'))
+            .catch(() => toastMsg('위 문구를 직접 선택해 복사해 주세요!'));
+          return 'clipboard';
         }
       } catch (e) { }
-      toastMsg('복사에 실패했습니다. 화면의 내용을 직접 복사해 주세요.');
+      toastMsg('위 문구를 직접 선택해 복사해 주세요!');
+      return 'manual';
+    }
+    /* 공유 확인 팝업 — 잡담방 홍보 버튼과 동일하게, 실제로 전달될 메시지를 미리 보여주고
+       [보내기]를 눌렀을 때만 공유 시트/클립보드로 넘긴다. */
+    function tkShowShareConfirm(text) {
+      const ov = document.createElement('div');
+      ov.className = 'modal-ov bb-confirm-ov';
+      ov.innerHTML = `<div class="bb-confirm">
+    <div class="bb-confirm-ic">💬</div>
+    <div class="bb-confirm-t">카톡방에 공유할까요?</div>
+    <div class="bb-confirm-b">아래 메시지가 그대로 전달돼요.</div>
+    <div class="bb-promote-preview" style="text-align:left">${esc(text).replace(/\n/g, '<br>')}</div>
+    <div class="bb-confirm-actions">
+      <button type="button" class="bb-confirm-btn cancel">취소</button>
+      <button type="button" class="bb-confirm-btn ok">보내기</button>
+    </div>
+  </div>`;
+      ov.onclick = e => { if (e.target === ov) history.back(); };
+      const [cancelBtn, okBtn] = ov.querySelectorAll('.bb-confirm-btn');
+      cancelBtn.onpointerdown = e => e.stopPropagation();
+      cancelBtn.onclick = e => { e.stopPropagation(); history.back(); };
+      okBtn.onpointerdown = e => e.stopPropagation();
+      okBtn.onclick = e => {
+        e.stopPropagation();
+        const method = tkDoShare(text);
+        if (method === 'manual') {
+          // 공유 시트도 클립보드도 쓸 수 없는 환경 — 팝업을 바로 닫지 않고, 문구를 계속 보여준 채로
+          // 직접 선택해서 복사할 수 있게 "보내기" 버튼을 숨기고 "닫기"만 남긴다
+          okBtn.style.display = 'none';
+          cancelBtn.textContent = '닫기';
+          return;
+        }
+        history.back();
+      };
+      pushModal(ov);
+    }
+    /* 티켓 현황 공유 버튼 — 누르면 먼저 예매 사이트에서 "지금 이 순간"의 잔여석을 즉석
+       조회해 공유 문구를 최신값으로 갈아끼운 뒤(조회 실패 시 마지막 자동 기록값 그대로),
+       확인 팝업을 띄운다. */
+    async function tkShare(btn) {
+      if (!tkLive || !tkLive.shareText) { toastMsg('공유할 판매 현황이 아직 없습니다.'); return; }
+      let orig = null;
+      if (btn) { btn.disabled = true; orig = btn.textContent; btn.textContent = '준비 중...'; }
+      try {
+        const live = await tkFetchLiveRemain();
+        if (live) tkBuildShareText(live, new Date().toISOString());
+      } catch (e) { }
+      if (btn) { btn.disabled = false; btn.textContent = orig; }
+      tkShowShareConfirm(tkLive.shareText);
     }
     async function viewTickets(previewKey) {
       // 모든 방문자에게 공개된 페이지다.
@@ -7012,18 +7066,24 @@
           if (total != null && remain != null) { sumTotal += total; sumRemainForTotal += remain; hasTotal = true; }
         });
       });
+      // 자동 갱신 시각 배지는 전체 판매 현황 카드의 우측 상단에 함께 표시한다.
+      const updatedBadge = `<span id="tk-updated" class="tk-updated-badge">🔄 자동 갱신 ${fmtSnapTime(newestAt)}</span>`;
       const totalBarHTML = (hasTotal && sumTotal > 0) ? (() => {
         const sold = sumTotal - sumRemainForTotal;
         const pct = (sold / sumTotal * 100).toFixed(1);
         return `
       <div class="card tk-total-card">
-        <div class="tk-total-label">전체 판매 현황</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+          <div class="tk-total-label">전체 판매 현황</div>${updatedBadge}
+        </div>
         <div class="tk-total-num">총 ${sumTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%)</div>
         <div class="tk-bar tk-total-bar"><i style="width:${Math.min(100, Math.max(0, pct))}%"></i></div>
       </div>`;
       })() : `
       <div class="card tk-total-card">
-        <div class="tk-total-label">전체 판매 현황</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+          <div class="tk-total-label">전체 판매 현황</div>${updatedBadge}
+        </div>
         <div class="sub" style="margin-top:4px">총 좌석수가 아직 집계되지 않았습니다. (오픈 시점 기록이 쌓이면 자동으로 표시됩니다)</div>
       </div>`;
 
@@ -7077,13 +7137,13 @@
 
       $app.innerHTML = `
       <h1 class="page" style="display:flex;justify-content:space-between;align-items:center;gap:10px">티켓 판매 현황
-        <button class="tk-share-btn" onclick="tkShare()">💬 티켓 현황 공유</button></h1>
+        <button class="tk-share-btn" onclick="tkShare(this)">💬 티켓 현황 공유</button></h1>
       ${infoCard}
       ${totalBarHTML}
       ${adminPass() ? `<div style="display:flex;gap:8px;margin-top:10px">
         <button class="btn small" onclick="tkManualRefresh(this)">🔄 수동 갱신</button>
       </div>` : ''}
-      <div class="sec-title">현재 판매 현황 <span id="tk-updated" class="tk-updated-badge">🔄 자동 갱신 ${fmtSnapTime(newestAt)}</span></div>
+      <div class="sec-title">등급 판매 현황</div>
       ${currentHTML}
       <div class="sec-title">판매 히스토리 <span style="color:var(--dim);font-size:12.5px;font-weight:700">전체 ${rows.length.toLocaleString()}건</span></div>
       <div class="card tk-hist-scroll" style="padding:0">${histHTML}</div>
