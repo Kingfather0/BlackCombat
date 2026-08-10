@@ -108,9 +108,25 @@ function extractMeta(bodyText) {
   const meta = {};
   const lines = bodyText.split('\n').map((s) => s.trim()).filter(Boolean);
 
+  // "장소"/"기간" 라벨 줄 다음에 값이 여러 줄로 나뉘어 나오는 경우가 있다
+  // (예: "장소" 다음 줄에 "블루스퀘어", 그 다음 줄에 "우리은행홀"이 따로 나옴 →
+  // 합쳐서 "블루스퀘어 우리은행홀"이 되어야 함). 다음 라벨 줄이 나올 때까지 이어붙인다.
+  // 페이지에 같은 이름의 라벨이 여러 번 나올 수도 있어서(예: 상단 탭 메뉴에도 "장소"라는
+  // 글자가 있음), 처음으로 값을 제대로 찾은 것만 쓰고 그 이후 중복은 무시한다.
+  const labelSet = new Set(['장소', '기간', '시간', '연령', '일반 예매']);
   for (let i = 0; i < lines.length; i++) {
-    if (lines[i] === '장소' && lines[i + 1]) meta.place = lines[i + 1];
-    if (lines[i] === '기간' && lines[i + 1]) meta.dateText = lines[i + 1];
+    const isPlace = lines[i] === '장소' && meta.place == null;
+    const isPeriod = lines[i] === '기간' && meta.dateText == null;
+    if (!isPlace && !isPeriod) continue;
+    const collected = [];
+    let j = i + 1;
+    while (j < lines.length && !labelSet.has(lines[j]) && collected.length < 3) {
+      collected.push(lines[j]);
+      j++;
+    }
+    if (!collected.length) continue;
+    if (isPlace) meta.place = collected.join(' ');
+    else meta.dateText = collected.join(' ');
   }
 
   const openMatch = bodyText.match(
