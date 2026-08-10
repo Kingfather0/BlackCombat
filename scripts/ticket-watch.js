@@ -227,6 +227,40 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
   });
   const page = await context.newPage();
   let recorded = 0;
+
+  // NOL은 화면에 회차/잔여석을 그려주기 전에, 자체 API에서 깨끗한 JSON으로 그 데이터를
+  // 받아온다는 걸 진단 과정에서 확인했다 (/ticket/products/api/remaining-seats,
+  // /ticket/products/api/schedules). 화면 텍스트를 정규식으로 긁는 것보다 이 응답을
+  // 직접 읽는 게 훨씬 정확하고 화면 구조가 바뀌어도 잘 안 깨지므로, 날짜/회차를 클릭하는
+  // 동안 이 응답들이 지나가면 가로채서 저장해둔다. (여기서 못 잡으면 기존처럼 화면 텍스트
+  // 파싱으로 자동 대체됨 — 안전망은 그대로 유지)
+  const capturedRemainByPlaySeq = new Map(); // playSeq -> {VIP:{remain:5}, ...}
+  const capturedScheduleByPlaySeq = new Map(); // playSeq -> {playDate, playTime, saleOpenTime}
+  page.on('response', async (res) => {
+    try {
+      const url = res.url();
+      if (/\/api\/remaining-seats/.test(url)) {
+        const json = await res.json().catch(() => null);
+        if (json && Array.isArray(json.remainSeat)) {
+          for (const row of json.remainSeat) {
+            const seq = row.playSeq;
+            if (!seq || !row.seatGradeName) continue;
+            const gradeName = String(row.seatGradeName).replace(/석$/, '');
+            const prev = capturedRemainByPlaySeq.get(seq) || {};
+            prev[gradeName] = { remain: row.remainCnt };
+            capturedRemainByPlaySeq.set(seq, prev);
+          }
+        }
+      } else if (/\/api\/schedules/.test(url)) {
+        const json = await res.json().catch(() => null);
+        if (json && Array.isArray(json.content)) {
+          for (const row of json.content) {
+            if (row.playSeq) capturedScheduleByPlaySeq.set(row.playSeq, row);
+          }
+        }
+      }
+    } catch (_) {}
+  });
   try {
     console.log('▶ 기록 대상 event_key:', EVENT_KEY);
     console.log('▶ 티켓 페이지 접속:', TICKET_URL);
@@ -276,36 +310,53 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       );
     }
     await dateBtn.click();
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(2000); // API 응답이 도착할 시간을 조금 더 준다
 
-    const bodyText = await page.innerText('body').catch(() => '');
-    // 회차(시간)별로 줄을 나눠서, 시간 표기 + 등급/잔여석이 함께 있는 줄만 추린다.
-    const lines = bodyText
-      .split('\n')
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const roundLines = lines.filter((l) => /\d{1,2}:\d{2}/.test(l) && /석/.test(l));
-
-    if (roundLines.length === 0) {
-      // 회차 목록이 한 줄로 안 묶여 있을 수도 있으니, 페이지 전체에서 한 번 더 시도한다.
-      const grades = parseGrades(bodyText);
-      if (Object.keys(grades).length === 0) {
-        throw new Error('날짜는 클릭했지만 등급별 잔여석 정보를 화면에서 찾지 못했습니다.');
-      }
-      const totals = await estimateTotalsIfFirstSnapshot(grades, null);
-      if (totals) console.log('🆕 이 회차의 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다:', JSON.stringify(totals));
-      await postSnapshot(grades, null, '회차 구분 없이 페이지 전체에서 추출', totals, meta);
-      recorded++;
-    } else {
-      for (const line of roundLines) {
-        const timeMatch = line.match(/\d{1,2}:\d{2}/);
-        const grades = parseGrades(line);
+    if (capturedRemainByPlaySeq.size > 0) {
+      // NOL 자체 API에서 잔여석 JSON을 직접 받았으면, 화면 텍스트를 긁는 것보다 이게 훨씬
+      // 정확하고 화면 구조 변경에도 안 깨지므로 이쪽을 우선 사용한다.
+      console.log(`🔗 API에서 ${capturedRemainByPlaySeq.size}개 회차의 잔여석 응답을 직접 받았습니다 (화면 텍스트 대신 이걸 우선 사용).`);
+      for (const [playSeq, grades] of capturedRemainByPlaySeq) {
         if (Object.keys(grades).length === 0) continue;
-        const roundLabel = `${TARGET_DATE} ${timeMatch[0]}`;
+        const sched = capturedScheduleByPlaySeq.get(playSeq);
+        const roundLabel = sched ? `${sched.playDate} ${sched.playTime}` : `${TARGET_DATE} (playSeq ${playSeq})`;
         const totals = await estimateTotalsIfFirstSnapshot(grades, roundLabel);
         if (totals) console.log(`🆕 [${roundLabel}] 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다:`, JSON.stringify(totals));
-        await postSnapshot(grades, roundLabel, null, totals, meta);
+        await postSnapshot(grades, roundLabel, 'NOL API 응답에서 직접 추출', totals, meta);
         recorded++;
+      }
+    } else {
+      // 안전망: API 응답을 못 잡았을 경우, 기존처럼 화면 텍스트를 정규식으로 긁는다.
+      console.log('ℹ️ API 응답을 못 잡았습니다 — 화면 텍스트 파싱 방식으로 대체합니다.');
+      const bodyText = await page.innerText('body').catch(() => '');
+      // 회차(시간)별로 줄을 나눠서, 시간 표기 + 등급/잔여석이 함께 있는 줄만 추린다.
+      const lines = bodyText
+        .split('\n')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const roundLines = lines.filter((l) => /\d{1,2}:\d{2}/.test(l) && /석/.test(l));
+
+      if (roundLines.length === 0) {
+        // 회차 목록이 한 줄로 안 묶여 있을 수도 있으니, 페이지 전체에서 한 번 더 시도한다.
+        const grades = parseGrades(bodyText);
+        if (Object.keys(grades).length === 0) {
+          throw new Error('날짜는 클릭했지만 등급별 잔여석 정보를 화면에서 찾지 못했습니다.');
+        }
+        const totals = await estimateTotalsIfFirstSnapshot(grades, null);
+        if (totals) console.log('🆕 이 회차의 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다:', JSON.stringify(totals));
+        await postSnapshot(grades, null, '회차 구분 없이 페이지 전체에서 추출', totals, meta);
+        recorded++;
+      } else {
+        for (const line of roundLines) {
+          const timeMatch = line.match(/\d{1,2}:\d{2}/);
+          const grades = parseGrades(line);
+          if (Object.keys(grades).length === 0) continue;
+          const roundLabel = `${TARGET_DATE} ${timeMatch[0]}`;
+          const totals = await estimateTotalsIfFirstSnapshot(grades, roundLabel);
+          if (totals) console.log(`🆕 [${roundLabel}] 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다:`, JSON.stringify(totals));
+          await postSnapshot(grades, roundLabel, null, totals, meta);
+          recorded++;
+        }
       }
     }
 
