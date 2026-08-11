@@ -1181,8 +1181,12 @@
     }
 
     /* 대진 행 가운데의 체급 선택 — 좁은 모바일 화면에서도 번호·선수1·체급·선수2·▲▼✕가
-       전부 한 줄에 들어가도록 폭을 최소화한 콤팩트 드롭다운 */
-    .m-div {
+       전부 한 줄에 들어가도록 폭을 최소화한 콤팩트 드롭다운.
+       ※ "새 대회 만들기"의 #c-matches는 .field 안에 있어서 일반 폼용 .field select 규칙
+       (넓은 좌우 padding)이 끼어들면 목록 텍스트가 옆으로 밀려 보인다 — .field 안에서도
+       항상 이 콤팩트 스타일이 이기도록 선택자를 함께 걸어 양쪽 화면의 모양을 통일한다. */
+    .m-div,
+    .field select.m-div {
       background: #fff;
       border: 1.5px solid var(--border);
       border-radius: 9px;
@@ -1196,6 +1200,10 @@
       text-align: center;
       appearance: none;
       -webkit-appearance: none
+    }
+
+    .m-div option {
+      text-align: center
     }
 
     @media (max-width: 480px) {
