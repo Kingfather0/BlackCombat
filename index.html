@@ -752,9 +752,9 @@
       background: var(--key)
     }
 
-    /* 등급별 바는 전체 좌석 바(진한 파랑)보다 한 톤 밝은 파랑 — 전체 바가 주인공 */
+    /* 등급별 바도 전체 좌석 바와 동일한 진한 파랑 그라데이션 (두께로만 구분) */
     .tk-bar:not(.tk-total-bar) i {
-      background: #60a5fa
+      background: linear-gradient(90deg, var(--key), var(--key-deep))
     }
 
     .tk-pct {
@@ -7395,7 +7395,7 @@
           <div class="tk-rev-body" style="display:none">
             <div class="tk-rev-top"><span>💰 예상 매출</span><span class="tk-rev-sum">${revSum.toLocaleString()}원</span></div>
             ${revRows.join('')}
-            <div class="tk-rev-note">※ 초대권·이벤트 티켓은 구분되지 않으므로, 등급별 정가 × 판매 수량 기준으로 계산한 추정 매출입니다.${skipped ? ' (총원/가격 정보가 없는 등급은 제외)' : ''}</div>
+            <div class="tk-rev-note">※ 초대권·이벤트 티켓은 구분되지 않으므로, 좌석 등급별 정가 × 판매 수량 기준으로 계산한 추정 매출입니다.${skipped ? ' (총원/가격 정보가 없는 등급은 제외)' : ''}</div>
           </div>
         </div>`;
           }
