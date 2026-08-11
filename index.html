@@ -752,9 +752,15 @@
       background: var(--key)
     }
 
+    /* 등급별 바는 전체 좌석 바(진한 파랑)보다 살짝 연하게 — 전체 바가 주인공 */
+    .tk-bar:not(.tk-total-bar) i {
+      opacity: .45
+    }
+
     .tk-pct {
-      font-size: 11.5px;
-      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      color: #414c5c;
       margin-top: 3px
     }
 
@@ -764,7 +770,43 @@
     }
 
     .tk-pct-sub {
-      opacity: .8
+      opacity: .85;
+      font-weight: 500
+    }
+
+    /* 등급 가격 기반 예상 매출 블록 (잔여 좌석 카드 하단) */
+    .tk-rev {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px dashed var(--border)
+    }
+
+    .tk-rev-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 14px;
+      font-weight: 800
+    }
+
+    .tk-rev-sum {
+      color: var(--key-deep);
+      font-size: 15px
+    }
+
+    .tk-rev-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12.5px;
+      color: #414c5c;
+      margin-top: 4px
+    }
+
+    .tk-rev-note {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.5
     }
 
     .tk-trend {
@@ -7261,6 +7303,17 @@
         if (!overallByRound.has(key) && r.meta && r.meta.overallTotal != null) overallByRound.set(key, r.meta.overallTotal);
       });
 
+      // 등급별 총원(totals)과 등급별 가격(meta.gradePrices)도 같은 방식으로 이어서 쓴다.
+      // 이 값들은 북마클릿 캡처에만 담기고 자동 기록에는 없으므로, 최신 자동 기록을
+      // 보여줄 때도 과거 캡처에서 알아낸 총원/가격을 계속 활용해야 판매율/매출이 유지된다.
+      const totalsByRound = new Map();
+      const pricesByRound = new Map();
+      rows.forEach(r => {
+        const key = r.round_label || '__default__';
+        if (!totalsByRound.has(key) && r.totals && Object.keys(r.totals).length) totalsByRound.set(key, r.totals);
+        if (!pricesByRound.has(key) && r.meta && r.meta.gradePrices && Object.keys(r.meta.gradePrices).length) pricesByRound.set(key, r.meta.gradePrices);
+      });
+
       // 전체(모든 회차 합산) 판매 현황.
       // meta.overallTotal(북마클릿으로 실제 좌석맵을 세어 얻은 정확한 총원)이 있으면 그걸 우선 사용하고,
       // 없는 회차는 기존처럼 등급별 총원(totals) 추정치를 합산한다.
@@ -7303,10 +7356,37 @@
       const currentHTML = latestRows.map(r => {
         const roundKey = r.round_label || '__default__';
         const roundRows = rows.filter(x => (x.round_label || '__default__') === roundKey);
+        // 최신 기록에 totals가 없으면(자동 기록) 같은 회차의 캡처에서 알아낸 총원을 대신 사용
+        const gradeTotals = (r.totals && Object.keys(r.totals).length) ? r.totals : (totalsByRound.get(roundKey) || null);
+        // 예상 매출: 등급별 (총원 - 잔여) × 정가. 총원과 가격을 모두 아는 등급만 합산한다.
+        const gradePrices = pricesByRound.get(roundKey) || null;
+        let revenueHTML = '';
+        if (gradeTotals && gradePrices) {
+          let revSum = 0; const revRows = []; let skipped = false;
+          sortGradeKeys(Object.keys(gradeTotals)).forEach(k => {
+            const total = gradeTotals[k];
+            const remain = r.grades && r.grades[k] ? r.grades[k].remain : null;
+            const price = gradePrices[k];
+            if (total == null || remain == null || price == null) { skipped = true; return; }
+            const sold = Math.max(0, total - remain);
+            const amt = sold * price;
+            revSum += amt;
+            revRows.push(`<div class="tk-rev-row"><span>${esc(k)}석 ${sold.toLocaleString()}석 × ${price.toLocaleString()}원</span><span>${amt.toLocaleString()}원</span></div>`);
+          });
+          if (revRows.length) {
+            revenueHTML = `
+        <div class="tk-rev">
+          <div class="tk-rev-top"><span>💰 예상 매출</span><span class="tk-rev-sum">${revSum.toLocaleString()}원</span></div>
+          ${revRows.join('')}
+          <div class="tk-rev-note">※ 초대권·이벤트 티켓은 구분되지 않으므로, 등급별 정가 × 판매 수량 기준으로 계산한 추정 매출입니다.${skipped ? ' (총원/가격 정보가 없는 등급은 제외)' : ''}</div>
+        </div>`;
+          }
+        }
         return `
       <div class="card tk-card">
         ${showRoundLabel && r.round_label ? `<div class="tk-round">${esc(r.round_label)}</div>` : ''}
-        ${gradeRowsHTML(r.grades, r.totals)}
+        ${gradeRowsHTML(r.grades, gradeTotals)}
+        ${revenueHTML}
         ${trendChartHTML(roundRows)}
       </div>`;
       }).join('');
