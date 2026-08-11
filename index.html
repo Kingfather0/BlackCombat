@@ -674,7 +674,11 @@
       font-weight: 800;
       font-size: 17px;
       margin-top: 4px;
-      color: var(--key-deep)
+      color: var(--key-deep);
+      /* "· 잔여 N석"까지 붙어 길어져도 모바일에서 두 줄로 꺾이지 않게 — 넘치면
+         tkFitTotalLine()이 글자 크기를 조금씩 줄여서 한 줄에 맞춘다 */
+      white-space: nowrap;
+      overflow: hidden
     }
 
     .tk-total-bar {
@@ -6245,10 +6249,13 @@
         cand.sort((a, b) => new Date(b.t || 0) - new Date(a.t || 0));
         FIGHTERS = cand[0].d;
         fightersUpdatedAt = cand[0].t;
-        buildFighterMap();
-        const BASE_FLAGS = {};
-        Object.entries(FIGHTER_MAP).forEach(([k, f]) => { if (f.flag && f.flag !== 'kr') BASE_FLAGS[k] = f.flag; });
+        buildFighterMap(); // 국기 되채움용 BASE_FLAGS도 이 안에서 함께 갱신된다
       }
+      // 선수 정보 보관함 불러오기 — 랭킹에서 사라진 선수의 국적/전적을 대진 카드에 계속 표시하기 위함
+      try {
+        const { data } = await sb.from('site_data').select('value').eq('key', 'fighter_archive').single();
+        if (data && data.value && typeof data.value === 'object') FIGHTER_ARCHIVE = data.value;
+      } catch (e) { }
       route();
     }
     window.addEventListener('hashchange', route);
@@ -6663,6 +6670,12 @@
     let FIGHTER_MAP = {};
     let fightersUpdatedAt = null;
     let FIGHTER_NORM = {};
+    // 선수 정보 보관함 — 랭킹 갱신으로 공식 랭킹에서 사라진 선수(긴급 투입 등으로 직접
+    // 추가했던 선수)의 국적/전적을 승부예측 카드에서 계속 보여주기 위한 백업 (site_data에 저장)
+    let FIGHTER_ARCHIVE = {};
+    // 지금까지 알게 된 "한국 외 국기" 기록 — 공식 랭킹 페이지에는 국기 정보가 없어서,
+    // 랭킹 갱신 시 이 기록으로 국기를 되채운다 (예전엔 boot() 안 지역변수라 갱신 때 에러가 났었다)
+    let BASE_FLAGS = {};
     function normName(s) { return String(s).toLowerCase().replace(/\s+/g, ''); }
     function buildFighterMap() {
       FIGHTER_MAP = {};
@@ -6673,14 +6686,20 @@
         if (!FIGHTER_MAP[k]) FIGHTER_MAP[k] = { rank: f[0], nick: f[1], real: f[2], w: f[3], l: f[4], dr: f[5], flag: f[6], div: d.div };
         FIGHTER_NORM[normName(f[1])] = f[1];
       }));
+      Object.entries(FIGHTER_MAP).forEach(([k, f]) => { if (f.flag && f.flag !== 'kr') BASE_FLAGS[k] = f.flag; });
       const dl = document.getElementById('fighters-dl');
       if (dl) dl.innerHTML = Object.values(FIGHTER_MAP).map(f => `<option value="${f.nick}">`).join('');
     }
     buildFighterMap();
     function fmeta(name) {
-      const f = FIGHTER_MAP[String(name).trim().toLowerCase()];
-      if (!f) return '';
-      return `<span class="fmeta">${flagImg(f.flag)} ${f.rank === 'C' ? '챔피언' : '랭킹 ' + f.rank + '위'} · ${f.w}승 ${f.l}패${f.dr ? ' ' + f.dr + '무' : ''}</span>`;
+      const key = String(name).trim().toLowerCase();
+      const f = FIGHTER_MAP[key];
+      if (f) return `<span class="fmeta">${flagImg(f.flag)} ${f.rank === 'C' ? '챔피언' : '랭킹 ' + f.rank + '위'} · ${f.w}승 ${f.l}패${f.dr ? ' ' + f.dr + '무' : ''}</span>`;
+      // 랭킹 갱신으로 목록에서 사라진 선수라도 보관함에 정보가 남아 있으면 국적/전적은 계속
+      // 보여준다 (공식 랭킹에 없는 선수이므로 "랭킹 N위"는 표시하지 않는다).
+      const a = FIGHTER_ARCHIVE[key];
+      if (!a) return '';
+      return `<span class="fmeta">${a.flag ? flagImg(a.flag) + ' ' : ''}${a.w || 0}승 ${a.l || 0}패${a.dr ? ' ' + a.dr + '무' : ''}</span>`;
     }
     /* ── 티켓 판매 현황 ──
        깃허브 액션(auto/scripts/ticket-watch.js)이 주기적으로 예매 페이지를 확인해
@@ -6749,6 +6768,19 @@
     function fmtSnapTime(d) {
       return new Date(d).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
     }
+    /* "전체 좌석" 숫자 줄("총 N석 중 N석 판매 (N%) · 잔여 N석")이 좁은 모바일 화면에서
+       두 줄로 꺾이지 않게, 칸을 넘치면 글자 크기를 조금씩 줄여 한 줄에 맞춘다. */
+    function tkFitTotalLine() {
+      const el = document.querySelector('.tk-total-num');
+      if (!el) return;
+      el.style.fontSize = '';
+      let size = parseFloat(getComputedStyle(el).fontSize) || 17;
+      let guard = 24; // 무한 루프 방지용 안전장치
+      while (el.scrollWidth > el.clientWidth && size > 11 && guard-- > 0) {
+        size -= 0.5;
+        el.style.fontSize = size + 'px';
+      }
+    }
     // 등급은 매번 데이터에 저장된 순서(뒤죽박죽일 수 있음)가 아니라, 항상 비싼 등급 순으로
     // 고정해서 보여준다. 목록에 없는 새 등급명이 나오면 뒤쪽에 가나다순으로 붙는다.
     const GRADE_ORDER = ['VIP', 'R', 'S', 'A', 'B', 'C'];
@@ -6764,7 +6796,7 @@
     function gradeRowsHTML(grades, totals) {
       const keys = sortGradeKeys(Object.keys(grades || {}));
       if (!keys.length) return '<div class="empty" style="padding:8px 0">등급별 정보 없음</div>';
-      // 위쪽 "전체 판매 현황"과 표현을 통일: 항상 "남은 좌석 수"와 "판매율"을 같이 보여준다
+      // 위쪽 "전체 좌석"과 표현을 통일: 항상 "남은 좌석 수"와 "판매율"을 같이 보여준다
       // (총원을 몰라서 판매율을 계산 못 할 때만 "총원 미집계"로 대체).
       return keys.map(k => {
         const remain = grades[k] && grades[k].remain;
@@ -6946,14 +6978,14 @@
           remEl.textContent = remain === 0 ? '매진' : remain.toLocaleString() + '석 남음';
           remEl.classList.toggle('sold-out', remain === 0);
         });
-        // 전체 판매 현황 카드 갱신 (총원을 아는 경우에만)
+        // 전체 좌석 카드 갱신 (총원을 아는 경우에만)
         const sumRemain = Object.values(remainByGrade).reduce((s, v) => s + (v || 0), 0);
         if (tkLive.overallTotal) {
           const sold = tkLive.overallTotal - sumRemain;
           const pct = (sold / tkLive.overallTotal * 100).toFixed(1);
           const numEl = document.querySelector('.tk-total-num');
           const barEl = document.querySelector('.tk-total-bar i');
-          if (numEl) numEl.textContent = `총 ${tkLive.overallTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%)`;
+          if (numEl) { numEl.textContent = `총 ${tkLive.overallTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%) · 잔여 ${sumRemain.toLocaleString()}석`; tkFitTotalLine(); }
           if (barEl) barEl.style.width = Math.min(100, Math.max(0, pct)) + '%';
         }
         const upEl = document.getElementById('tk-updated');
@@ -7083,7 +7115,7 @@
         const past = events.filter(e => trackingEnded || e.event_key !== eventKey);
         if (past.length) {
           pastHTML = `
-      <div class="sec-title" style="margin-top:24px">🏁 지난 티켓 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최신순 · 총 ${past.length}개</span></div>
+      <div class="sec-title" style="margin-top:24px">🎟️ 지난 티켓 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최신순 · 총 ${past.length}개</span></div>
       ${past.map(e => `
       <a class="card tk-past" href="#/tickets/${encodeURIComponent(e.event_key)}" style="display:block;padding:13px 16px;text-decoration:none;color:inherit">
         <div style="font-weight:800;font-size:14.5px">${esc(e.title || e.event_key)}</div>
@@ -7102,7 +7134,7 @@
 
       const meta = mergedTicketMeta(rows);
       const previewBanner = isPreview
-        ? `<div class="badge wait" style="margin-top:10px">🏁 지난 티켓 기록 보기 — ${esc(eventKey)}</div>
+        ? `<div class="badge wait" style="margin-top:10px">🎟️ 지난 티켓 기록 보기 — ${esc(eventKey)}</div>
        <div style="margin-top:8px"><a class="btn small" href="#/tickets">← 현재 티켓으로 돌아가기</a></div>`
         : '';
       const infoCard = `
@@ -7159,17 +7191,17 @@
           if (total != null && remain != null) { sumTotal += total; sumRemainForTotal += remain; hasTotal = true; }
         });
       });
-      // "전체 판매 현황"도 "잔여 좌석"과 동일하게 카드 밖 섹션 제목으로 배치하고,
+      // "전체 좌석"도 "잔여 좌석"과 동일하게 카드 밖 섹션 제목으로 배치하고,
       // 자동 갱신 시각 배지를 제목 줄 우측에 표시한다.
       const totalTitleHTML = `
-      <div class="sec-title" style="justify-content:space-between">전체 판매 현황
+      <div class="sec-title" style="justify-content:space-between">전체 좌석
         <span id="tk-updated" class="tk-updated-badge">🔄 자동 갱신 ${fmtSnapTime(newestAt)}</span></div>`;
       const totalBarHTML = totalTitleHTML + ((hasTotal && sumTotal > 0) ? (() => {
         const sold = sumTotal - sumRemainForTotal;
         const pct = (sold / sumTotal * 100).toFixed(1);
         return `
       <div class="card tk-total-card">
-        <div class="tk-total-num">총 ${sumTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%)</div>
+        <div class="tk-total-num">총 ${sumTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%) · 잔여 ${sumRemainForTotal.toLocaleString()}석</div>
         <div class="tk-bar tk-total-bar"><i style="width:${Math.min(100, Math.max(0, pct))}%"></i></div>
       </div>`;
       })() : `
@@ -7239,8 +7271,36 @@
       <div class="card tk-hist-scroll" style="padding:0">${histHTML}</div>
       <div class="note">이 페이지는 예매 사이트 화면을 주기적으로 자동 확인해 기록한 값으로, 실제 판매 시점과 몇 분 정도 오차가 있을 수 있습니다.</div>
       ${pastHTML}`;
+      tkFitTotalLine();
     }
 
+    /* ── 선수 정보 보관함 저장 ── 랭킹 갱신은 공식 랭킹 페이지 기준으로 목록을 통째로
+       교체하므로, 직접 추가했던 선수(긴급 투입 등)는 랭킹 페이지에서 사라진다 — 이건 정상.
+       다만 승부예측 카드에서는 그 선수의 국적/전적이 계속 보여야 하므로, 선수를 추가하거나
+       대진에 등록할 때마다 "그 시점에 알던 선수 정보"를 별도 보관함에 저장해 두고,
+       랭킹에 없는 선수는 카드에서 보관함 정보로 대신 표시한다(fmeta의 fallback). */
+    async function saveFighterArchive(entries) {
+      if (!entries || !Object.keys(entries).length || !adminPass()) return;
+      try {
+        let cur = {};
+        try {
+          const { data } = await sb.from('site_data').select('value').eq('key', 'fighter_archive').single();
+          if (data && data.value && typeof data.value === 'object') cur = data.value;
+        } catch (e) { }
+        Object.assign(cur, entries);
+        const { error } = await sb.rpc('admin_save_data', { p_pass: adminPass(), p_key: 'fighter_archive', p_value: cur });
+        if (!error) FIGHTER_ARCHIVE = cur;
+      } catch (e) { /* 보관함 저장 실패는 치명적이지 않으므로 조용히 넘어간다 */ }
+    }
+    function archiveFightersByName(names) {
+      const entries = {};
+      (names || []).forEach(n => {
+        const k = String(n).trim().toLowerCase();
+        const f = FIGHTER_MAP[k];
+        if (f) entries[k] = { nick: f.nick, real: f.real, w: f.w, l: f.l, dr: f.dr, flag: f.flag, div: f.div };
+      });
+      return saveFighterArchive(entries);
+    }
     /* ── 선수 랭킹 자동 갱신 (관리자) ── */
     async function refreshFighters(btn) {
       btn.disabled = true; btn.textContent = '갱신 중...';
@@ -7266,6 +7326,9 @@
           if (/function|not find/i.test(error.message || '')) throw new Error('랭킹갱신_패치.sql을 먼저 실행해 주세요.');
           throw new Error(cleanErr(error.message));
         }
+        // 교체 전에, 지금 알고 있는 모든 선수 정보를 보관함에 남긴다 — 공식 랭킹에서 빠지는
+        // 선수(직접 추가한 긴급 투입 선수 등)의 국적/전적을 승부예측 카드에서 계속 쓰기 위함.
+        await archiveFightersByName(Object.keys(FIGHTER_MAP));
         FIGHTERS = parsed; fightersUpdatedAt = new Date().toISOString();
         buildFighterMap(); seasonCache = null;
         toastMsg(`✅ 선수 랭킹이 갱신되었습니다. (${parsed.length}개 체급 · ${total}명)`);
@@ -7326,6 +7389,9 @@
       }
       fightersUpdatedAt = new Date().toISOString();
       buildFighterMap(); seasonCache = null;
+      // 방금 추가한 선수를 보관함에도 저장 — 나중에 랭킹 갱신으로 목록에서 빠져도
+      // 승부예측 카드의 국적/전적 표시는 유지된다.
+      await saveFighterArchive({ [nick.toLowerCase()]: { nick, real, w, l, dr, flag, div: divSel } });
       toastMsg(`✅ ${nick} 선수가 ${divSel}에 추가되었습니다.`);
       viewFighters();
     }
@@ -13406,6 +13472,8 @@
         if (atErr && !/function|not find/i.test(atErr.message || '')) toastMsg('⚠️ 경기 시작 시간 저장 실패: ' + cleanErr(atErr.message));
         else if (atErr && dateRaw.length > 10 && !/T00:00$/.test(dateRaw)) toastMsg('⚠️ 경기 시작 "시간" 저장에는 경기시작시간_패치.sql 실행이 필요합니다.');
       }
+      // 대진에 등장한 선수들을 보관함에 기록 — 랭킹 갱신 후에도 카드의 국적/전적 유지용
+      await archiveFightersByName(ms.flatMap(m => [m.a, m.b]));
       toastMsg('대회가 개설되었습니다!');
       location.hash = `#/t/${data}`;
     }
@@ -13741,6 +13809,8 @@
       const finalIds = parsed.map(p => p.mid);
       const { error: reorderErr } = await sb.rpc('admin_reorder_matches', { p_pass: adminPass(), p_tid: tid, p_ids: finalIds });
       if (reorderErr) return matchErr(reorderErr);
+      // 저장된 대진에 등장한 선수들을 보관함에 기록 — 랭킹 갱신 후에도 카드의 국적/전적 유지용
+      await archiveFightersByName(parsed.flatMap(p => [p.a, p.b]));
 
       toastMsg(`✅ 저장되었습니다 (추가 ${addN} · 수정 ${updN} · 삭제 ${delN})`);
       matchEditRefresh(tid);
