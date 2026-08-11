@@ -6618,7 +6618,7 @@
           ['C', '캡틴 코리아', '정한국', 14, 11, 2, 'kr'], [1, '수부타이', '난딘에르덴', 19, 11, 0, 'mn'], [2, '다게르', 'Ali Gadzhiev', 5, 0, 0, 'ru'],
           [3, '직쏘', '문기범', 14, 9, 0, 'kr'], [4, '영보스', '박어진', 10, 2, 1, 'kr'], [5, '사쿠라', '황도윤', 3, 6, 0, 'kr'],
           [6, '헌터', '박종헌', 7, 6, 0, 'kr'], [7, '곰주먹', '김정균', 4, 4, 0, 'kr'], [8, '영타이거', '이영훈', 8, 5, 1, 'kr'],
-          [9, '그루트', '정용완', 5, 2, 0, 'kr'], [10, 'Lion King', 'Chuka Willis', 17, 7, 0, 'us'], [11, '글래디에이터', 'Bruno Itamar', 5, 0, 0, 'br'],
+          [9, '그루트', '정용완', 5, 2, 0, 'kr'], [10, '라이언킹', 'Chuka Willis', 17, 7, 0, 'us'], [11, '글래디에이터', 'Bruno Itamar', 5, 0, 0, 'br'],
           [12, '워리어', '정영제', 6, 5, 0, 'kr'], [13, '그리즐리', 'Yamamoto Takuya', 11, 3, 1, 'jp'], [14, '파라오', 'Youssef Barakat', 9, 2, 0, 'eg'],
           [15, '몬스터', '오수환', 8, 2, 1, 'kr'], [16, '빅프린스', 'Deberson Batista', 14, 6, 2, 'br'], [17, '칠라운', 'Gantumur', 4, 1, 0, 'mn'],
           [18, '슬로스', '장근영', 3, 5, 0, 'kr'], [19, '맨티스', '윤다원', 5, 9, 1, 'kr'], [20, '더 마스터', '전현우', 2, 2, 0, 'kr'],
@@ -6675,7 +6675,10 @@
     let FIGHTER_ARCHIVE = {};
     // 지금까지 알게 된 "한국 외 국기" 기록 — 공식 랭킹 페이지에는 국기 정보가 없어서,
     // 랭킹 갱신 시 이 기록으로 국기를 되채운다 (예전엔 boot() 안 지역변수라 갱신 때 에러가 났었다)
+    // BASE_REALS는 같은 기록을 "실명" 기준으로도 남긴 것 — 공식 페이지에서 표기 이름이
+    // 바뀌어도(예: "Lion King" → "라이언킹") 실명(Chuka Willis)이 같으면 국기를 이어받는다.
     let BASE_FLAGS = {};
+    let BASE_REALS = {};
     function normName(s) { return String(s).toLowerCase().replace(/\s+/g, ''); }
     function buildFighterMap() {
       FIGHTER_MAP = {};
@@ -6686,7 +6689,12 @@
         if (!FIGHTER_MAP[k]) FIGHTER_MAP[k] = { rank: f[0], nick: f[1], real: f[2], w: f[3], l: f[4], dr: f[5], flag: f[6], div: d.div };
         FIGHTER_NORM[normName(f[1])] = f[1];
       }));
-      Object.entries(FIGHTER_MAP).forEach(([k, f]) => { if (f.flag && f.flag !== 'kr') BASE_FLAGS[k] = f.flag; });
+      Object.entries(FIGHTER_MAP).forEach(([k, f]) => {
+        if (f.flag && f.flag !== 'kr') {
+          BASE_FLAGS[k] = f.flag;
+          if (f.real) BASE_REALS[String(f.real).trim().toLowerCase()] = f.flag;
+        }
+      });
       const dl = document.getElementById('fighters-dl');
       if (dl) dl.innerHTML = Object.values(FIGHTER_MAP).map(f => `<option value="${f.nick}">`).join('');
     }
@@ -7115,7 +7123,7 @@
         const past = events.filter(e => trackingEnded || e.event_key !== eventKey);
         if (past.length) {
           pastHTML = `
-      <div class="sec-title" style="margin-top:24px">🎟️ 지난 티켓 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최신순 · 총 ${past.length}개</span></div>
+      <div class="sec-title" style="margin-top:24px">🏁 지난 티켓 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최신순 · 총 ${past.length}개</span></div>
       ${past.map(e => `
       <a class="card tk-past" href="#/tickets/${encodeURIComponent(e.event_key)}" style="display:block;padding:13px 16px;text-decoration:none;color:inherit">
         <div style="font-weight:800;font-size:14.5px">${esc(e.title || e.event_key)}</div>
@@ -7134,7 +7142,7 @@
 
       const meta = mergedTicketMeta(rows);
       const previewBanner = isPreview
-        ? `<div class="badge wait" style="margin-top:10px">🎟️ 지난 티켓 기록 보기 — ${esc(eventKey)}</div>
+        ? `<div class="badge wait" style="margin-top:10px">🏁 지난 티켓 기록 보기 — ${esc(eventKey)}</div>
        <div style="margin-top:8px"><a class="btn small" href="#/tickets">← 현재 티켓으로 돌아가기</a></div>`
         : '';
       const infoCard = `
@@ -7407,10 +7415,14 @@
       }
       const DIVS = ['플라이급', '벤텀급', '페더급', '라이트급', '웰터급', '미들급', '헤비급', '언더그라운드', '여성부'];
       const recRe = /^(\d{1,3})\s*\/\s*(\d{1,3})\s*\/\s*(\d{1,3})$/;
-      const flagOf = n => {
+      // 국기 결정: 현재 알고 있는 국기 → 이름 기록(BASE_FLAGS) → 실명 기록(BASE_REALS) 순.
+      // 실명 기록 덕분에 공식 페이지에서 표기 이름이 바뀌어도(예: "Lion King" → "라이언킹")
+      // 실명(Chuka Willis)이 같으면 국기가 한국(kr)으로 초기화되지 않고 그대로 이어진다.
+      const flagOf = (n, real) => {
         const k = String(n).trim().toLowerCase();
         const cur = (FIGHTER_MAP[k] || {}).flag;
-        return (cur && cur !== 'kr') ? cur : (BASE_FLAGS[k] || cur || 'kr');
+        if (cur && cur !== 'kr') return cur;
+        return BASE_FLAGS[k] || (real && BASE_REALS[String(real).trim().toLowerCase()]) || cur || 'kr';
       };
       const out = [];
       let cur = null, pend = [], pendRank = null, pendBadge = '', pendMove = 0;
@@ -7433,7 +7445,7 @@
           if (pend.length) {
             const nick = pend[0], real = pend[1] || '';
             const rank = pendRank != null ? pendRank : 'C';
-            cur.list.push([rank, nick, real, +m[1], +m[2], +m[3], flagOf(nick), pendBadge, pendMove]);
+            cur.list.push([rank, nick, real, +m[1], +m[2], +m[3], flagOf(nick, real), pendBadge, pendMove]);
           }
           pend = []; pendRank = null; pendBadge = ''; pendMove = 0; continue;
         }
