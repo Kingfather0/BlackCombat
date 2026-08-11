@@ -13532,10 +13532,32 @@
     // 선수 1 · 선수 2 사이의 체급 선택 드롭다운 (선택 안 하면 카드에 체급 표시 없음)
     // 대진 행 공용 열 구성 — 번호·선수1·체급·선수2·▲▼✕ 가 모바일에서도 한 줄에 들어간다
     const MROW_COLS = '24px minmax(0,1fr) 56px minmax(0,1fr) auto';
+    /* 관리자 대진 편집 전용 — 체급별 구분 색 (빨·주·노·초·파·남·보 + 계약은 회색).
+       경기가 많을 때 어떤 체급을 골랐는지 한눈에 보이도록, 선택 전 드롭다운 목록과
+       선택 후 박스 배경 양쪽에 칠한다. 승부예측 카드 표시에는 영향이 없다. */
+    const DIV_COLORS = {
+      '플라이': ['#ffcdd2', '#b71c1c'], // 빨
+      '벤텀': ['#ffe0b2', '#e65100'],   // 주
+      '페더': ['#fff59d', '#795b00'],   // 노
+      '라이트': ['#c8e6c9', '#1b5e20'], // 초
+      '웰터': ['#bbdefb', '#0d47a1'],   // 파
+      '미들': ['#c5cae9', '#283593'],   // 남
+      '헤비': ['#e1bee7', '#6a1b9a'],   // 보
+      '계약': ['#e6eaf0', '#525d6b']    // 회색
+    };
+    function mDivColor(sel) {
+      const c = DIV_COLORS[sel.value];
+      sel.style.background = c ? c[0] : '#fff';
+      sel.style.color = c ? c[1] : '';
+      sel.style.borderColor = c ? c[1] + '66' : '';
+      sel.style.fontWeight = c ? '800' : '';
+    }
     function divSelectHTML(val, orig) {
-      return `<select class="m-div" title="체급"${orig !== undefined ? ` data-orig="${esc(orig)}"` : ''}>
+      const c = DIV_COLORS[val];
+      const selStyle = c ? ` style="background:${c[0]};color:${c[1]};border-color:${c[1]}66;font-weight:800"` : '';
+      return `<select class="m-div" title="체급" onchange="mDivColor(this)"${orig !== undefined ? ` data-orig="${esc(orig)}"` : ''}${selStyle}>
       <option value="">체급</option>
-      ${MATCH_DIVISIONS.map(d => `<option value="${d}"${val === d ? ' selected' : ''}>${d}</option>`).join('')}
+      ${MATCH_DIVISIONS.map(d => { const cc = DIV_COLORS[d] || ['#fff', '']; return `<option value="${d}" style="background:${cc[0]};color:${cc[1]};font-weight:800"${val === d ? ' selected' : ''}>${d}</option>`; }).join('')}
     </select>`;
     }
     function addMatchRow(a = '', b = '', division = '') {
