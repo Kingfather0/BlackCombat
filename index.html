@@ -531,7 +531,17 @@
       margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
-      align-items: center
+      align-items: center;
+      position: relative
+    }
+
+    /* 경기 카드 제목 줄 정가운데의 체급 표시 ("1경기 · [체급] · N명 참여" 배치) —
+       타이틀전(해당 체급 챔피언 출전)이면 "미들 👑" 형태로 왕관이 붙는다 */
+    .match-div {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap
     }
 
     /* "N명 참여" 배지는 왼쪽의 "N경기" 텍스트와 같은 크기/색/굵기로 맞춘다 (.no에서 그대로 상속) */
@@ -1166,7 +1176,37 @@
       padding: 10px 11px;
       color: var(--text);
       width: 100%;
-      outline: none
+      outline: none;
+      min-width: 0
+    }
+
+    /* 대진 행 가운데의 체급 선택 — 좁은 모바일 화면에서도 번호·선수1·체급·선수2·▲▼✕가
+       전부 한 줄에 들어가도록 폭을 최소화한 콤팩트 드롭다운 */
+    .m-div {
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      padding: 10px 2px;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      width: 100%;
+      min-width: 0;
+      outline: none;
+      text-align: center;
+      appearance: none;
+      -webkit-appearance: none
+    }
+
+    @media (max-width: 480px) {
+      .mrow {
+        gap: 4px
+      }
+
+      .mrow input {
+        padding: 10px 6px;
+        font-size: 13px
+      }
     }
 
     .del-x {
@@ -6699,15 +6739,46 @@
       if (dl) dl.innerHTML = Object.values(FIGHTER_MAP).map(f => `<option value="${f.nick}">`).join('');
     }
     buildFighterMap();
+    /* ── 대진 체급 ── 대진에 표시할 체급(짧은 표기). '계약'은 계약 체급(캐치웨이트)이라
+       챔피언 개념이 없다. 챔피언 판정은 현재 랭킹 데이터(FIGHTERS)를 그때그때 조회하므로,
+       타이틀전 후 챔피언이 바뀌어 랭킹이 갱신되면 왕관 표시도 자동으로 따라간다. */
+    const MATCH_DIVISIONS = ['플라이', '벤텀', '페더', '라이트', '웰터', '미들', '계약'];
+    function champOf(shortDiv) {
+      if (!shortDiv) return null;
+      const d = FIGHTERS.find(x => x.div === shortDiv + '급');
+      if (!d) return null;
+      const c = d.list.find(f => f[0] === 'C' && f[1] && f[1] !== '공석');
+      return c ? c[1] : null;
+    }
+    // 이 선수가 "해당 체급의" 챔피언일 때만 왕관 — 같은 이름이 다른 체급에도 있을 수 있으므로
+    // (예: 미들급 챔피언 킹콩 vs 웰터급 3위 킹콩) 반드시 경기에 선택된 체급 기준으로만 판정한다.
+    function isChampOfDiv(name, shortDiv) {
+      const c = champOf(shortDiv);
+      return !!c && normName(c) === normName(name);
+    }
+    function matchDivHTML(m) {
+      if (!m.division) return '';
+      const title = isChampOfDiv(m.fighter_a, m.division) || isChampOfDiv(m.fighter_b, m.division);
+      return `<span class="match-div">${esc(m.division)}${title ? ' 👑' : ''}</span>`;
+    }
+    // 국기는 선수 "이름 왼쪽"에 표시한다 (전적 줄에서 이동)
+    function fflagHTML(name) {
+      const key = String(name).trim().toLowerCase();
+      const f = FIGHTER_MAP[key];
+      if (f && f.flag) return flagImg(f.flag) + ' ';
+      const a = FIGHTER_ARCHIVE[key];
+      if (a && a.flag) return flagImg(a.flag) + ' ';
+      return '';
+    }
     function fmeta(name) {
       const key = String(name).trim().toLowerCase();
       const f = FIGHTER_MAP[key];
-      if (f) return `<span class="fmeta">${flagImg(f.flag)} ${f.rank === 'C' ? '챔피언' : '랭킹 ' + f.rank + '위'} · ${f.w}승 ${f.l}패${f.dr ? ' ' + f.dr + '무' : ''}</span>`;
-      // 랭킹 갱신으로 목록에서 사라진 선수라도 보관함에 정보가 남아 있으면 국적/전적은 계속
+      if (f) return `<span class="fmeta">${f.rank === 'C' ? '챔피언' : '랭킹 ' + f.rank + '위'} · ${f.w}승 ${f.l}패${f.dr ? ' ' + f.dr + '무' : ''}</span>`;
+      // 랭킹 갱신으로 목록에서 사라진 선수라도 보관함에 정보가 남아 있으면 전적은 계속
       // 보여준다 (공식 랭킹에 없는 선수이므로 "랭킹 N위"는 표시하지 않는다).
       const a = FIGHTER_ARCHIVE[key];
       if (!a) return '';
-      return `<span class="fmeta">${a.flag ? flagImg(a.flag) + ' ' : ''}${a.w || 0}승 ${a.l || 0}패${a.dr ? ' ' + a.dr + '무' : ''}</span>`;
+      return `<span class="fmeta">${a.w || 0}승 ${a.l || 0}패${a.dr ? ' ' + a.dr + '무' : ''}</span>`;
     }
     /* ── 티켓 판매 현황 ──
        깃허브 액션(auto/scripts/ticket-watch.js)이 주기적으로 예매 페이지를 확인해
@@ -7516,9 +7587,9 @@
     }
     /* ── 선수 랭킹 페이지 ── */
     const frow = f => f[1] === '공석'
-      ? `<div class="frow"><span class="frk c">C</span><span class="fnm" style="color:var(--dim)">공석</span></div>`
+      ? `<div class="frow"><span class="frk c">👑</span><span class="fnm" style="color:var(--dim)">공석</span></div>`
       : `<div class="frow" style="cursor:pointer" onclick="openFighterStats('${f[1].replace(/'/g, "\\'")}')" title="${esc(f[2])} · ${f[3]}승 ${f[4]}패${f[5] ? ' ' + f[5] + '무' : ''} · 누르면 우리 방 승부예측 기록이 보입니다">
-  <span class="frk ${f[0] === 'C' ? 'c' : ''}">${f[0] === 'C' ? 'C' : f[0]}</span>
+  <span class="frk ${f[0] === 'C' ? 'c' : ''}">${f[0] === 'C' ? '👑' : f[0]}</span>
   ${flagImg(f[6])}<b class="fnm">${esc(f[1])}${f[7] ? ` <span class="fbadge ${f[7] === 'HOT' ? 'hot' : 'new'}">${f[7] === 'HOT' ? '🔥HOT' : 'NEW'}</span>` : ''}${f[8] ? ` <span class="fmove ${f[8] > 0 ? 'up' : 'down'}">${f[8] > 0 ? '▲' + f[8] : '▼' + (-f[8])}</span>` : ''}</b>
   <span class="frec">${f[3]}-${f[4]}${f[5] ? '-' + f[5] : ''}</span>
 </div>`;
@@ -12690,13 +12761,13 @@
     function voteCardsHTML(matches, parts) {
       const rows = matches.map(m => `
     <div class="match">
-      <div class="no"><span>${m.seq}경기</span><span class="match-joined" id="joined-${m.id}">${pickStats(m, parts).tot}명 참여</span></div>
+      <div class="no"><span>${m.seq}경기</span>${matchDivHTML(m)}<span class="match-joined" id="joined-${m.id}">${pickStats(m, parts).tot}명 참여</span></div>
       <div class="vs-row">
         <button class="corner red ${voteSel[m.id] === 'A' ? 'sel' : ''}" data-mid="${m.id}" data-side="A" onclick="pick(this)">
-          ${esc(m.fighter_a)}${fmeta(m.fighter_a)}</button>
+          ${fflagHTML(m.fighter_a)}${esc(m.fighter_a)}${isChampOfDiv(m.fighter_a, m.division) ? ' 👑' : ''}${fmeta(m.fighter_a)}</button>
         <div class="vs">VS</div>
         <button class="corner blue ${voteSel[m.id] === 'B' ? 'sel' : ''}" data-mid="${m.id}" data-side="B" onclick="pick(this)">
-          ${esc(m.fighter_b)}${fmeta(m.fighter_b)}</button>
+          ${fflagHTML(m.fighter_b)}${esc(m.fighter_b)}${isChampOfDiv(m.fighter_b, m.division) ? ' 👑' : ''}${fmeta(m.fighter_b)}</button>
       </div>
       <div class="split" id="split-${m.id}" onclick="openMatchVoters('${m.id}')" style="cursor:pointer" title="누가 투표했는지 보기">${splitInner(m, parts, false, true)}</div>
     </div>`).join('');
@@ -13458,13 +13529,23 @@
       <button type="button" class="del-x" onclick="${delOnclick}">✕</button>
     </span>`;
     }
-    function addMatchRow(a = '', b = '') {
+    // 선수 1 · 선수 2 사이의 체급 선택 드롭다운 (선택 안 하면 카드에 체급 표시 없음)
+    // 대진 행 공용 열 구성 — 번호·선수1·체급·선수2·▲▼✕ 가 모바일에서도 한 줄에 들어간다
+    const MROW_COLS = '24px minmax(0,1fr) 56px minmax(0,1fr) auto';
+    function divSelectHTML(val, orig) {
+      return `<select class="m-div" title="체급"${orig !== undefined ? ` data-orig="${esc(orig)}"` : ''}>
+      <option value="">체급</option>
+      ${MATCH_DIVISIONS.map(d => `<option value="${d}"${val === d ? ' selected' : ''}>${d}</option>`).join('')}
+    </select>`;
+    }
+    function addMatchRow(a = '', b = '', division = '') {
       const box = document.getElementById('c-matches');
       const div = document.createElement('div');
       div.className = 'mrow';
-      div.style.gridTemplateColumns = '24px 1fr 1fr auto';
+      div.style.gridTemplateColumns = MROW_COLS;
       div.innerHTML = `<span class="mrow-num" style="color:var(--dim);font-size:12px;font-weight:700"></span>
     <input placeholder="선수 1" value="${esc(a)}" list="fighters-dl" onblur="fixFighterInput(this)">
+    ${divSelectHTML(division)}
     <input placeholder="선수 2" value="${esc(b)}" list="fighters-dl" onblur="fixFighterInput(this)">
     ${matchRowActionsHTML("this.closest('.mrow').remove();renumberMrows(document.getElementById('c-matches'))")}`;
       box.appendChild(div);
@@ -13479,7 +13560,8 @@
       const show = (c, s) => { msg.className = 'msg ' + c; msg.textContent = s; };
       const ms = [...document.querySelectorAll('#c-matches .mrow')].map(r => {
         const [a, b] = r.querySelectorAll('input');
-        return { a: a.value.trim(), b: b.value.trim() };
+        const dv = r.querySelector('.m-div');
+        return { a: a.value.trim(), b: b.value.trim(), division: dv ? dv.value : '' };
       }).filter(m => m.a || m.b);
       if (!title) return show('err', '대회명을 입력해 주세요.');
       if (!dl) return show('err', '투표 마감 시각을 입력해 주세요.');
@@ -13744,10 +13826,12 @@
     // 임시 상태 역할을 하므로 별도로 안 들고 있어도 된다. [전체 저장]을 누르기 전까지는
     // 서버에 아무 것도 반영되지 않는다.
     let matchEditPending = {};
-    function matchEditRowHTML(mid, aVal, bVal) {
-      return `<div class="mrow" data-mid="${mid || ''}" style="grid-template-columns:24px 1fr 1fr auto">
+    function matchEditRowHTML(mid, aVal, bVal, divVal) {
+      const dv = divVal || '';
+      return `<div class="mrow" data-mid="${mid || ''}" style="grid-template-columns:${MROW_COLS}">
       <span class="mrow-num" style="color:var(--dim);font-size:12px;font-weight:700"></span>
       <input value="${esc(aVal)}" data-orig="${esc(aVal)}" list="fighters-dl" onblur="fixFighterInput(this)">
+      ${divSelectHTML(dv, dv)}
       <input value="${esc(bVal)}" data-orig="${esc(bVal)}" list="fighters-dl" onblur="fixFighterInput(this)">
       ${matchRowActionsHTML(`removePendingMatch('${mid}', this)`)}
     </div>`;
@@ -13760,7 +13844,7 @@
       box.innerHTML = `<hr class="sep">
     <div style="font-size:13px;font-weight:700;color:var(--muted)">선수 이름을 수정하거나 ▲▼로 순서를 바꾸고, ✕로 경기를 지우거나 맨 아래에서 새 경기를 추가한 뒤 <b>맨 아래 [전체 저장]</b>을 눌러야 실제로 반영됩니다 (저장 전까지는 화면에서만 바뀝니다 · 투표 데이터는 유지됩니다)</div>
     <div id="mrows-${tid}">
-    ${(ms || []).map(m => matchEditRowHTML(m.id, m.fighter_a, m.fighter_b)).join('')}
+    ${(ms || []).map(m => matchEditRowHTML(m.id, m.fighter_a, m.fighter_b, m.division)).join('')}
     </div>
     <div class="mrow" style="grid-template-columns:24px 1fr 1fr 82px;margin-top:12px">
       <span style="color:var(--dim);font-size:14px;font-weight:800">+</span>
@@ -13783,7 +13867,7 @@
       const div = document.createElement('div');
       div.innerHTML = matchEditRowHTML('', ck.fixed[0], ck.fixed[1]);
       const row = div.firstElementChild;
-      row.querySelectorAll('input').forEach(inp => { inp.dataset.orig = ''; }); // orig가 비어있어야 "새 행"으로 저장 시점에 add 처리됨
+      row.querySelectorAll('input, .m-div').forEach(inp => { inp.dataset.orig = ''; }); // orig가 비어있어야 "새 행"으로 저장 시점에 add 처리됨
       wrap.appendChild(row);
       renumberMrows(wrap);
       naEl.value = ''; nbEl.value = '';
@@ -13810,11 +13894,16 @@
       const bad = [];
       for (const r of rows) {
         const [a, b] = r.querySelectorAll('input');
+        const dvEl = r.querySelector('.m-div');
         const av = a.value.trim(), bv = b.value.trim();
         if (!av || !bv) return toastMsg('⚠️ 선수 이름이 비어 있는 경기가 있습니다.');
         const ck = validateFighterNames([av, bv]);
         if (!ck.ok) bad.push(...ck.bad);
-        parsed.push({ row: r, mid: r.dataset.mid || '', a: ck.fixed[0], b: ck.fixed[1], origA: a.dataset.orig, origB: b.dataset.orig });
+        parsed.push({
+          row: r, mid: r.dataset.mid || '', a: ck.fixed[0], b: ck.fixed[1],
+          division: dvEl ? dvEl.value : '',
+          origA: a.dataset.orig, origB: b.dataset.orig, origDiv: dvEl ? (dvEl.dataset.orig || '') : ''
+        });
       }
       if (bad.length) return toastMsg(`⚠️ 랭킹에 없는 선수: ${[...new Set(bad)].join(', ')}`);
 
@@ -13827,15 +13916,15 @@
       }
       for (const p of parsed) {
         if (!p.mid) continue;
-        if (p.a !== p.origA || p.b !== p.origB) {
-          const { error } = await sb.rpc('admin_update_match', { p_pass: adminPass(), p_mid: p.mid, p_a: p.a, p_b: p.b });
+        if (p.a !== p.origA || p.b !== p.origB || p.division !== p.origDiv) {
+          const { error } = await sb.rpc('admin_update_match', { p_pass: adminPass(), p_mid: p.mid, p_a: p.a, p_b: p.b, p_division: p.division });
           if (error) return matchErr(error);
           updN++;
         }
       }
       for (const p of parsed) {
         if (p.mid) continue;
-        const { data, error } = await sb.rpc('admin_add_match', { p_pass: adminPass(), p_tid: tid, p_a: p.a, p_b: p.b });
+        const { data, error } = await sb.rpc('admin_add_match', { p_pass: adminPass(), p_tid: tid, p_a: p.a, p_b: p.b, p_division: p.division });
         if (error) return matchErr(error);
         p.mid = data;
         addN++;
@@ -13858,7 +13947,7 @@
     function matchErr(error) {
       const m = cleanErr(error.message);
       if (/function|찾을 수 없|not find/i.test(error.message || ''))
-        return toastMsg('⚠️ 대진관리_패치.sql · 대진순서변경_패치.sql을 Supabase에서 먼저 실행해 주세요.');
+        return toastMsg('⚠️ 대진_체급_패치.sql (및 대진관리_패치.sql · 대진순서변경_패치.sql)을 Supabase에서 먼저 실행해 주세요.');
       toastMsg('⚠️ ' + m);
     }
     async function openMembers(tid) {
@@ -13932,7 +14021,7 @@
       document.getElementById('c-title').value = d.t.title;
       renderGiftTierRows(document.getElementById('c-gift-tiers'), giftTiers(d.t));
       const cm = document.getElementById('c-matches'); cm.innerHTML = '';
-      d.matches.forEach(m => addMatchRow(m.fighter_a, m.fighter_b));
+      d.matches.forEach(m => addMatchRow(m.fighter_a, m.fighter_b, m.division || ''));
       window.scrollTo({ top: 0, behavior: 'smooth' });
       toastMsg('대진·선물이 복사되었습니다. 날짜와 마감 시각만 설정하세요!');
     }
