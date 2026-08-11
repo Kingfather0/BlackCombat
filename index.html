@@ -6854,7 +6854,10 @@
       const m = {};
       for (const r of rows) {
         if (!r.meta) continue;
-        if (m.title == null && r.meta.title) m.title = r.meta.title;
+        // 제목은 자동 기록(상품 페이지에서 추출)만 신뢰한다. 북마클릿 캡처(meta에
+        // layoutType이 있음)는 좌석맵 화면에서 실행되는데, 그 화면 상단 텍스트가
+        // "마이페이지" 같은 메뉴 문구라 제목이 엉터리로 잡히는 경우가 있기 때문.
+        if (m.title == null && r.meta.title && !r.meta.layoutType) m.title = r.meta.title;
         if (m.dateText == null && r.meta.dateText) m.dateText = r.meta.dateText;
         if (m.place == null && r.meta.place) m.place = r.meta.place;
         if (m.openText == null && r.meta.openText) m.openText = r.meta.openText;
