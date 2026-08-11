@@ -752,9 +752,9 @@
       background: var(--key)
     }
 
-    /* 등급별 바는 전체 좌석 바(진한 파랑)보다 살짝 연하게 — 전체 바가 주인공 */
+    /* 등급별 바는 전체 좌석 바(진한 파랑)보다 한 톤 밝은 파랑 — 전체 바가 주인공 */
     .tk-bar:not(.tk-total-bar) i {
-      opacity: .45
+      background: #60a5fa
     }
 
     .tk-pct {
@@ -807,6 +807,10 @@
       color: var(--muted);
       margin-top: 8px;
       line-height: 1.5
+    }
+
+    .tk-rev-body {
+      margin-top: 8px
     }
 
     .tk-trend {
@@ -7087,6 +7091,14 @@
       }
       return Object.keys(remainByGrade).length ? remainByGrade : null;
     }
+    /* 예상 매출 접기/펼치기 (당첨 선물 배너의 "지급 방식 예시 보기"와 같은 방식) */
+    function toggleTkRevenue(btn) {
+      const box = btn.parentElement.querySelector('.tk-rev-body');
+      if (!box) return;
+      const open = box.style.display !== 'none';
+      box.style.display = open ? 'none' : '';
+      btn.textContent = open ? '💰 예상 매출 보기 ▾' : '💰 예상 매출 접기 ▴';
+    }
     /* 수동 갱신 — 5분 자동 스케줄을 기다리지 않고, 예매 사이트의 잔여석을 즉석 조회해
        화면만 갱신한다. (기록으로 저장되지는 않는다 — 히스토리는 자동 기록이 계속 담당) */
     async function tkManualRefresh(btn) {
@@ -7376,9 +7388,12 @@
           if (revRows.length) {
             revenueHTML = `
         <div class="tk-rev">
-          <div class="tk-rev-top"><span>💰 예상 매출</span><span class="tk-rev-sum">${revSum.toLocaleString()}원</span></div>
-          ${revRows.join('')}
-          <div class="tk-rev-note">※ 초대권·이벤트 티켓은 구분되지 않으므로, 등급별 정가 × 판매 수량 기준으로 계산한 추정 매출입니다.${skipped ? ' (총원/가격 정보가 없는 등급은 제외)' : ''}</div>
+          <button type="button" class="btn xs" onclick="toggleTkRevenue(this)">💰 예상 매출 보기 ▾</button>
+          <div class="tk-rev-body" style="display:none">
+            <div class="tk-rev-top"><span>💰 예상 매출</span><span class="tk-rev-sum">${revSum.toLocaleString()}원</span></div>
+            ${revRows.join('')}
+            <div class="tk-rev-note">※ 초대권·이벤트 티켓은 구분되지 않으므로, 등급별 정가 × 판매 수량 기준으로 계산한 추정 매출입니다.${skipped ? ' (총원/가격 정보가 없는 등급은 제외)' : ''}</div>
+          </div>
         </div>`;
           }
         }
