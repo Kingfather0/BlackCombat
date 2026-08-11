@@ -6742,7 +6742,7 @@
     /* ── 대진 체급 ── 대진에 표시할 체급(짧은 표기). '계약'은 계약 체급(캐치웨이트)이라
        챔피언 개념이 없다. 챔피언 판정은 현재 랭킹 데이터(FIGHTERS)를 그때그때 조회하므로,
        타이틀전 후 챔피언이 바뀌어 랭킹이 갱신되면 왕관 표시도 자동으로 따라간다. */
-    const MATCH_DIVISIONS = ['플라이', '벤텀', '페더', '라이트', '웰터', '미들', '계약'];
+    const MATCH_DIVISIONS = ['플라이', '벤텀', '페더', '라이트', '웰터', '미들', '헤비', '계약'];
     function champOf(shortDiv) {
       if (!shortDiv) return null;
       const d = FIGHTERS.find(x => x.div === shortDiv + '급');
