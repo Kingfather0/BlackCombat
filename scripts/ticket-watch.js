@@ -332,6 +332,9 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
     // (날짜를 클릭하면 회차별 잔여석이 나오는 것과는 별개 정보라 여기서 미리 읽어둔다)
     const fullBodyText = await page.innerText('body').catch(() => '');
     const meta = extractMeta(fullBodyText);
+    // 예매 페이지 주소도 기록에 남긴다 — 사이트의 "예매하러 가기" 버튼이 이 값을 우선 사용해서,
+    // 행사가 바뀔 때마다 index.html의 하드코딩 주소(TICKET_INFO.buyUrl)를 고칠 필요가 없어진다.
+    meta.buyUrl = TICKET_URL;
     console.log('🔎 자동 추출된 행사 정보:', JSON.stringify(meta));
 
     const dateBtn = await findAndClickDate(page);
