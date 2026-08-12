@@ -907,16 +907,17 @@
       margin-bottom: 4px
     }
 
-    /* 등급별 판매 비율 도넛 차트 — 넓은 화면: 도넛 왼쪽 + 범례 오른쪽 */
+    /* 등급별 판매 비율 도넛 차트 — 도넛 왼쪽 + 범례 오른쪽 고정.
+       도넛 크기는 tkFitPies()가 화면·범례 폭을 실측해서 남는 공간만큼 자동으로 키운다. */
     .tk-pie-wrap {
       display: flex;
       align-items: center;
-      gap: 14px
+      gap: 12px
     }
 
     .tk-pie-donut {
       flex: none;
-      width: clamp(110px, 20vw, 170px);
+      width: 96px;
       aspect-ratio: 1;
       border-radius: 50%;
       position: relative
@@ -935,43 +936,19 @@
     }
 
     .tk-pie-hole-label {
-      font-size: clamp(10px, 1.2vw, 12px);
+      font-size: 11px;
       color: var(--dim);
       font-weight: 700
     }
 
     .tk-pie-hole-num {
-      font-size: clamp(12px, 1.5vw, 15px);
+      font-size: 14px;
       font-weight: 800
     }
 
     .tk-pie-legend {
       flex: 1;
       min-width: 0
-    }
-
-    /* 좁은 화면(모바일): 도넛을 위에 크게, 범례는 아래 전체 폭 — 등급명이 잘리지 않으면서 차트도 커진다 */
-    @media (max-width: 640px) {
-      .tk-pie-wrap {
-        flex-direction: column;
-        gap: 10px
-      }
-
-      .tk-pie-donut {
-        width: 150px
-      }
-
-      .tk-pie-hole-label {
-        font-size: 11px
-      }
-
-      .tk-pie-hole-num {
-        font-size: 14px
-      }
-
-      .tk-pie-legend {
-        width: 100%
-      }
     }
 
     .tk-trend-plot {
@@ -7432,13 +7409,17 @@
         const pct = (p.sold / soldSum * 100);
         // 등급 내 판매율: 그 등급 총원 중 몇 %가 팔렸는지 (전체 대비 비율과 별개의 정보)
         const innerPct = totals[p.k] > 0 ? (p.sold / totals[p.k] * 100) : null;
-        return `<div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:2.5px 0">
-          <span style="width:10px;height:10px;border-radius:3px;background:${TK_PIE_COLORS[i % TK_PIE_COLORS.length]};flex:none"></span>
-          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.k)}석</span>
-          <span style="text-align:right;white-space:nowrap;line-height:1.25">
-            <span style="font-weight:800">${pct.toFixed(1)}% <span style="color:var(--dim);font-weight:600">(${p.sold.toLocaleString()}석)</span></span>
-            ${innerPct != null ? `<br><span style="font-size:10.5px;${innerPct >= 100 ? 'color:#dc2626;font-weight:800' : 'color:var(--dim);font-weight:600'}">등급 내 ${innerPct.toFixed(1)}% 판매${innerPct >= 100 ? ' (매진)' : ''}</span>` : ''}
-          </span>
+        // 등급명에 이미 '석'이 들어있으면(예: 일반석(지정석)) 굳이 '석'을 또 붙이지 않는다 — 폭 절약 + 중복 방지
+        const label = /석/.test(p.k) ? p.k : p.k + '석';
+        // 윗줄(등급명 + 전체 대비 비율)과 아랫줄(등급 내 판매율)을 나눠서, 아랫줄이
+        // 오른쪽 칸 폭을 잡아먹지 않게 한다 — 이래야 좁은 화면에서도 도넛을 크게 그릴 수 있다.
+        return `<div class="tk-pie-item" style="padding:2.5px 0">
+          <div style="display:flex;align-items:center;gap:5px;font-size:11.5px">
+            <span style="width:9px;height:9px;border-radius:3px;background:${TK_PIE_COLORS[i % TK_PIE_COLORS.length]};flex:none"></span>
+            <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(label)}</span>
+            <span style="white-space:nowrap;font-weight:800">${pct.toFixed(1)}% <span style="color:var(--dim);font-weight:600">(${p.sold.toLocaleString()}석)</span></span>
+          </div>
+          ${innerPct != null ? `<div style="display:flex;justify-content:flex-end;font-size:10px;line-height:1.3;${innerPct >= 100 ? 'color:#dc2626;font-weight:800' : 'color:var(--dim);font-weight:600'}">등급 내 ${innerPct.toFixed(1)}% 판매${innerPct >= 100 ? ' (매진)' : ''}</div>` : ''}
         </div>`;
       }).join('');
       // 카드 맨 위(요약 → 상세 흐름)에 놓이므로 위쪽 구분선 없이, 아래쪽에 구분선을 둔다.
@@ -7457,6 +7438,42 @@
         </div>
       </div>`;
     }
+    // 도넛 차트 자동 크기 조절: 범례가 실제로 필요로 하는 폭(등급명·숫자가 잘리지 않는 최소 폭)을
+    // 실측해서, 남는 공간을 전부 도넛에 준다. 화면이 좁으면 96px, 넓으면 최대 180px까지.
+    let __tkPieMeasureCtx = null;
+    function tkTextWidth(el) {
+      // 등급명 칸은 flex로 옆까지 늘어나 있어서 scrollWidth가 "텍스트의 실제 폭"이 아니다.
+      // 캔버스에 같은 폰트로 글자를 그려서 순수 텍스트 폭을 잰다.
+      if (!__tkPieMeasureCtx) __tkPieMeasureCtx = document.createElement('canvas').getContext('2d');
+      const cs = getComputedStyle(el);
+      __tkPieMeasureCtx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+      return __tkPieMeasureCtx.measureText(el.textContent).width;
+    }
+    function tkFitPies() {
+      document.querySelectorAll('.tk-pie-wrap').forEach(wrap => {
+        const donut = wrap.querySelector('.tk-pie-donut');
+        const legend = wrap.querySelector('.tk-pie-legend');
+        if (!donut || !legend) return;
+        let need = 0;
+        legend.querySelectorAll(':scope > .tk-pie-item').forEach(item => {
+          const top = item.firstElementChild;
+          if (!top) return;
+          const kids = [...top.children];
+          if (kids.length >= 3) {
+            // 윗줄 [색칩, 등급명, 비율숫자] — 등급명은 캔버스 실측(플렉스로 늘어난 폭 배제)
+            need = Math.max(need, kids[0].offsetWidth + Math.ceil(tkTextWidth(kids[1])) + kids[2].scrollWidth + 5 * (kids.length - 1));
+          }
+          const sub = item.children[1]; // 아랫줄(등급 내 판매율) — 있다면 이 줄의 자연 폭도 반영
+          if (sub) need = Math.max(need, Math.ceil(tkTextWidth(sub)));
+        });
+        const avail = wrap.clientWidth - need - 12 - 6; // 12 = 도넛-범례 gap, 6 = 여유
+        donut.style.width = Math.max(96, Math.min(180, avail)) + 'px';
+      });
+    }
+    window.addEventListener('resize', () => {
+      clearTimeout(window.__tkPieTimer);
+      window.__tkPieTimer = setTimeout(tkFitPies, 120);
+    });
     // 회차 하나의 시간대별 판매율 기록으로 아주 단순한 추이(꺾은선) 그래프를 그린다.
     // 기록이 2개 미만이면(선을 그릴 수 없으므로) 아무것도 표시하지 않는다.
     // fallbackOverall: 이 기록 자체에는 정확한 전체 총원(meta.overallTotal)이 없지만, 같은 회차의
@@ -8081,6 +8098,7 @@
       <div class="note">이 페이지는 예매 사이트 화면을 주기적으로 자동 확인해 기록한 값으로, 실제 판매 시점과 몇 분 정도 오차가 있을 수 있습니다.</div>
       ${pastHTML}`;
       tkFitTotalLine();
+      tkFitPies();
     }
 
     /* ── 선수 정보 보관함 저장 ── 랭킹 갱신은 공식 랭킹 페이지 기준으로 목록을 통째로
