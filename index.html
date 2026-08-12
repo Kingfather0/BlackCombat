@@ -958,6 +958,15 @@
       font-weight: 800
     }
 
+    /* 좁은 화면에서 버튼/뱃지 여러 개가 한 줄에 나란히 있을 때, 텍스트가 줄바꿈되어 2줄로
+       깨지는 대신 폰트 크기를 자동으로 조금씩 줄여서 항상 한 줄로 보이게 한다.
+       (JS의 fitRowOneLine()이 이 클래스를 가진 요소를 찾아서 처리한다) */
+    .fit-row > * {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
     .tk-trend-labels {
       display: flex;
       justify-content: space-between;
@@ -6269,6 +6278,40 @@
     }
     function svrNow() { return new Date(Date.now() + timeOffset); }
 
+    /* ---------- 좁은 화면에서 버튼/뱃지 줄바꿈 방지(자동 폰트 축소) ----------
+       .fit-row 클래스를 가진 요소의 직계 자식들을 각각 확인해서, 화면이 좁아 텍스트가
+       한 줄에 안 들어가면(가로로 넘치면) 그 요소의 폰트 크기만 조금씩 줄여서 항상 한 줄로
+       보이게 한다. $app 안에서 화면이 다시 그려질 때마다(MutationObserver) 자동으로 다시
+       계산되므로, 어떤 화면이든 .fit-row 클래스만 붙이면 이 처리가 자동 적용된다. */
+    function fitRowOneLine(rowEl) {
+      Array.from(rowEl.children).forEach(item => {
+        item.style.fontSize = '';
+        let size = parseFloat(getComputedStyle(item).fontSize);
+        if (!size) return;
+        const minSize = size * 0.72; // 너무 작아지지 않도록 하한선(원래 크기의 72%)
+        let guard = 0;
+        while (item.scrollWidth > item.clientWidth + 1 && size > minSize && guard < 16) {
+          size -= 0.5;
+          item.style.fontSize = size + 'px';
+          guard++;
+        }
+      });
+    }
+    let __fitRowTimer = null;
+    function initFitRowObserver() {
+      if (!$app) return;
+      const run = () => { $app.querySelectorAll('.fit-row').forEach(fitRowOneLine); };
+      new MutationObserver(() => {
+        clearTimeout(__fitRowTimer);
+        __fitRowTimer = setTimeout(run, 30);
+      }).observe($app, { childList: true, subtree: true });
+      window.addEventListener('resize', () => {
+        clearTimeout(__fitRowTimer);
+        __fitRowTimer = setTimeout(run, 80);
+      });
+      run();
+    }
+
     /* ---------- 방문/활동 통계 (관리자 전용) ----------
        - 로그인 여부와 무관하게 브라우저별 익명 세션ID(fp_sid, localStorage)로 방문을 구분한다.
        - 닉네임으로 로그인되어 있으면 nickname도 함께 기록해 "누가" 왔는지 더 직관적으로 보이게 하고,
@@ -6308,6 +6351,10 @@
     }
     function fpPathLabel(path) {
       const seg = String(path || '').replace(/^#\//, '').split('/');
+      if (seg[0] === 'game') {
+        const gameMap = { run: '블랙 러닝', punch: '블랙 펀칭', grow: '블랙 점핑', battle: '블랙 배틀' };
+        return gameMap[seg[1]] || '게임 메뉴';
+      }
       const map = { '': '홈', fighters: '선수단', ranking: '랭킹', game: '미니게임', tickets: '티켓 현황', admin: '관리자', t: '대회 상세', player: '선수 상세' };
       return map[seg[0]] || path;
     }
@@ -6415,6 +6462,7 @@
         sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
       initPresence();
+      initFitRowObserver();
       renderHeaderIdentity();
       await gmVerifyWhitelistOnBoot();
       try {
@@ -7187,7 +7235,7 @@
         <div class="tk-trend-title">판매 추이(일별)</div>
         <div class="tk-day-chart tk-trend-plot">${barsHTML}</div>
         <div class="tk-trend-labels"><span>${firstLabel}</span>${bars.length > 1 ? `<span>${fmtDayLabel(last.day)} · +${Math.max(0, last.delta).toLocaleString()}석</span>` : ''}</div>
-        <div class="tk-rev-note">※ 연한 색 막대(${fmtDayLabel(first.day)})는 추적을 시작한 날까지의 누적 판매량이며, 그 이전에 팔린 수량은 포함되지 않았을 수 있습니다. 이후 막대부터는 전날 대비 순수 증가분입니다.${hasAnyGap ? ' 빗금 막대는 자동 기록이 하루 이상 통째로 누락되어 여러 날짜의 판매량이 합산된 값입니다(막대를 눌러 정확한 기간 확인).' : ''}</div>
+        <div class="tk-rev-note">※ 연한 색 막대(${fmtDayLabel(first.day)})는 추적을 시작한 날까지의 누적 판매량이며, 그 이전에 팔린 수량은 포함되지 않습니다. 이후 막대부터는 전날 대비 순수 증가분입니다.${hasAnyGap ? ' 빗금 막대는 자동 기록이 하루 이상 통째로 누락되어 여러 날짜의 판매량이 합산된 값입니다(막대를 눌러 정확한 기간 확인).' : ''}</div>
       </div>`;
     }
     /* 추이 그래프의 점을 탭/클릭했을 때, 화면 하단 토스트 대신 그 점 바로 위에
@@ -7461,6 +7509,7 @@
       ${meta.openText ? `<div class="sub" style="margin-top:2px">🎟️ 티켓 오픈: ${esc(meta.openText)}</div>` : ''}
       ${previewBanner}
       ${isPreview || !meta.buyUrl ? '' : `<a class="btn primary small" style="margin-top:10px" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">예매하러 가기</a>`}
+      <div class="sub" style="margin-top:8px">출처: NOL 티켓 · 매일 시간별 자동 갱신</div>
     </div>`;
 
       if (!rows.length) {
@@ -7522,7 +7571,7 @@
       // "전체 좌석"도 "잔여 좌석"과 동일하게 카드 밖 섹션 제목으로 배치하고,
       // 자동 갱신 시각 배지를 제목 줄 우측에 표시한다.
       const totalTitleHTML = `
-      <div class="sec-title" style="justify-content:space-between">전체 좌석
+      <div class="sec-title fit-row" style="justify-content:space-between">전체 좌석
         <span id="tk-updated" class="tk-updated-badge">🔄 자동 갱신 ${fmtSnapTime(newestAt)}</span></div>`;
       const totalBarHTML = totalTitleHTML + ((hasTotal && sumTotal > 0) ? (() => {
         const sold = sumTotal - sumRemainForTotal;
@@ -7632,7 +7681,7 @@
       tkBuildShareText(liveRemain, newestAt);
 
       $app.innerHTML = `
-      <h1 class="page" style="display:flex;justify-content:space-between;align-items:center;gap:10px">티켓 판매 현황
+      <h1 class="page fit-row" style="display:flex;justify-content:space-between;align-items:center;gap:10px">티켓 판매 현황
         <button class="tk-share-btn" onclick="tkShare()">💬 티켓 현황 공유</button></h1>
       ${infoCard}
       ${totalBarHTML}
@@ -7899,7 +7948,7 @@
       $app.innerHTML = `
     <h1 class="page" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
       <span>블랙컴뱃 선수 랭킹</span>
-      <span style="display:inline-flex;gap:8px;align-items:center">
+      <span class="fit-row" style="display:inline-flex;gap:8px;align-items:center">
         ${fightersUpdatedAt ? `<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${fmtDT(fightersUpdatedAt)} 갱신</span>` : ''}
         ${adminPass() ? `<button class="btn small" onclick="toggleAddFighterForm()">➕ 선수 추가</button>` : ''}
         ${adminPass() ? `<button class="btn primary small" onclick="refreshFighters(this)">🔄 수동 갱신</button>` : ''}
@@ -13566,8 +13615,19 @@
           <span style="font-size:12px;font-weight:800;white-space:nowrap;width:78px;text-align:right">${d.uv || 0}명 · ${d.pv || 0}뷰</span>
         </div>`).join('');
           const topPathsHTML = (stats.topPaths || []).map(p => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(fpPathLabel(p.path))}</span><span style="font-weight:700">${p.cnt}회</span></div>`).join('');
-          const topActionsHTML = (stats.topActions || []).map(a => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(a.action)}</span><span style="font-weight:700">${a.cnt}회</span></div>`).join('');
-          const recentHTML = (stats.recentSessions || []).slice(0, 25).map(s => `<div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid #f0f1f4"><span>${s.nickname === '게스트' ? '👻 게스트' : '👤 ' + esc(s.nickname)}</span><span style="color:var(--dim)">${new Date(s.last_seen).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} · ${s.events}회 활동</span></div>`).join('');
+          // 활동 코드(영문) -> 사람이 읽기 좋은 한글 이름. 새 활동 추적을 추가하면 여기에도 이름을 등록한다.
+          const ACTION_LABELS = { submit_vote: '🗳️ 승부 예측 제출' };
+          const topActionsHTML = (stats.topActions || []).map(a => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(ACTION_LABELS[a.action] || a.action)}</span><span style="font-weight:700">${a.cnt}회</span></div>`).join('');
+          // 게스트(닉네임 없는 방문자)는 전부 "게스트"로 뭉뚱그려지면 몇 명인지 구분이 안 되므로,
+          // 실명/식별정보가 아닌 익명 세션ID의 끝 4자리만 짧게 붙여서 서로 구분되게 한다
+          // (예: 게스트 #a3f9). 세션ID 자체는 브라우저에 저장된 무작위 값이라 이것만으로 개인을
+          // 특정할 수 없다.
+          const recentHTML = (stats.recentSessions || []).slice(0, 25).map(s => {
+            const label = s.nickname === '게스트'
+              ? `👻 게스트 #${esc(String(s.session_id || '').slice(-4) || '?')}`
+              : '👤 ' + esc(s.nickname);
+            return `<div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid #f0f1f4"><span>${label}</span><span style="color:var(--dim)">${new Date(s.last_seen).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} · ${s.events}회 활동</span></div>`;
+          }).join('');
           siteStatsHTML = `
     <div class="sec-title">📊 방문 통계 <span style="color:var(--dim);font-size:12px;font-weight:700">관리자만 볼 수 있음</span></div>
     <div class="card">
@@ -13636,16 +13696,24 @@
     }
     /* --- 닉네임 화이트리스트 관리(관리자) --- */
     let __whitelistCache = [];
+    let __whitelistDates = {}; // 닉네임 -> 등록 시각(created_at). 카톡방 입퇴장 대조용.
     async function loadWhitelist() {
-      const { data, error } = await sb.from('allowed_nicknames').select('nickname').order('nickname');
+      const { data, error } = await sb.from('allowed_nicknames').select('nickname,created_at').order('nickname');
       if (error) {
         const el = document.getElementById('wl-count');
         if (el) el.textContent = /function|not find/i.test(error.message || '') ? '⚠️ 잡담방_닉네임_화이트리스트_패치.sql을 먼저 실행해 주세요.' : '⚠️ ' + cleanErr(error.message);
         return;
       }
       __whitelistCache = (data || []).map(r => r.nickname);
+      __whitelistDates = {};
+      (data || []).forEach(r => { if (r.created_at) __whitelistDates[r.nickname] = r.created_at; });
       __allowedNicknamesCache = __whitelistCache; // 홈 자동완성 캐시도 최신 상태로 갱신
       renderWhitelist();
+    }
+    function fmtWlDate(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      return d.toLocaleString('ko-KR', { year: '2-digit', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
     }
     function renderWhitelist() {
       const list = document.getElementById('wl-list');
@@ -13656,7 +13724,10 @@
       countEl.textContent = `총 ${__whitelistCache.length}명${q ? ` · 검색결과 ${filtered.length}명` : ''}`;
       list.innerHTML = filtered.map((n, i) => `
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #eef1f6;flex-wrap:wrap" id="wlrow-${i}">
-      <span id="wlname-${i}">${esc(n)}</span>
+      <span style="display:inline-flex;flex-direction:column;min-width:0">
+        <span id="wlname-${i}">${esc(n)}</span>
+        ${__whitelistDates[n] ? `<span style="font-size:10.5px;color:var(--dim);font-weight:600">등록 ${fmtWlDate(__whitelistDates[n])}</span>` : ''}
+      </span>
       <span style="display:inline-flex;gap:5px;flex-wrap:wrap">
         <button class="btn xs" data-idx="${i}" data-nick="${esc(n)}" onclick="editWhitelistNick(this)">이름 변경</button>
         <button class="btn xs" data-idx="${i}" data-nick="${esc(n)}" onclick="toggleWhitelistUserGames(this)">게임 관리</button>
@@ -13671,7 +13742,7 @@
       if (!__whitelistCache.length) return toastMsg('⚠️ 아직 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
       const escCsv = v => /[",\n]/.test(v) ? '"' + String(v).replace(/"/g, '""') + '"' : v;
       // 맨 앞의 ﻿(BOM)는 엑셀이 한글을 깨지지 않게 읽도록 하는 표식
-      const csv = '\uFEFF' + '닉네임\n' + __whitelistCache.map(escCsv).join('\n') + '\n';
+      const csv = '\uFEFF' + '닉네임,등록일\n' + __whitelistCache.map(n => escCsv(n) + ',' + escCsv(fmtWlDate(__whitelistDates[n]) || '')).join('\n') + '\n';
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const d = new Date();
