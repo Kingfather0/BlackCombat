@@ -865,6 +865,34 @@
       background: linear-gradient(180deg, #c3d3ef, #a9bfe6)
     }
 
+    /* 취소/환불로 판매량이 마이너스인 날 — 기준선 아래로 내려가는 빨간 막대.
+       마이너스가 하루라도 있으면 차트가 위(판매)/아래(취소) 두 구역으로 나뉜다 */
+    .tk-day-col2 {
+      flex-direction: column;
+      align-items: stretch
+    }
+
+    .tk-day-pos {
+      display: flex;
+      align-items: flex-end;
+      border-bottom: 1px dashed #b9c2cf
+    }
+
+    .tk-day-neg {
+      display: flex;
+      align-items: flex-start
+    }
+
+    .tk-day-pos .tk-day-fill,
+    .tk-day-neg .tk-day-fill {
+      width: 100%
+    }
+
+    .tk-day-fill-neg {
+      background: linear-gradient(180deg, #f87171, #dc2626) !important;
+      border-radius: 0 0 3px 3px
+    }
+
     /* 자동 기록이 하루 이상 통째로 누락돼 여러 날짜가 한 막대에 합산된 경우 — 빗금으로 경고 표시 */
     .tk-day-gap .tk-day-fill {
       background:
@@ -6397,12 +6425,15 @@
        쌓여도 화면 길이가 거의 늘어나지 않는다. 방문자 수는 각 구간의 고유 방문자를 서버에서
        정확히 다시 세므로(단순 합산 아님) 어떤 단위로 봐도 정확하다. */
     const FP_STAT_PRESETS = [
+      { label: '오늘', today: true, bucket: 'day', unit: '일별' },
       { label: '14일', days: 14, bucket: 'day', unit: '일별' },
       { label: '30일', days: 30, bucket: 'day', unit: '일별' },
       { label: '90일', days: 90, bucket: 'week', unit: '주별' },
       { label: '전체', days: null, bucket: 'month', unit: '월별' },
     ];
-    let __fpStatPreset = 0;
+    let __fpStatPreset = 1; // 기본은 14일 보기
+    // 한국 시간 기준 오늘 날짜(YYYY-MM-DD)
+    function fpKstToday() { return new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10); }
     let __fpStatCustom = null;   // 달력으로 직접 고른 {from:'YYYY-MM-DD', to:'YYYY-MM-DD'} (null = 프리셋 버튼 사용)
     let __fpStatListDate = null; // 방문자 목록 날짜 (null = 오늘)
     // 활동 코드(영문) -> 사람이 읽기 좋은 한글 이름. 새 활동 추적을 추가하면 여기에도 이름을 등록한다.
@@ -6443,11 +6474,16 @@
         return `<div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid #f0f1f4"><span>${label}</span><span style="color:var(--dim)">${new Date(s.last_seen).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} · ${s.events}회 활동</span></div>`;
       }).join('');
       // 방문자 목록 제목: 날짜를 달력으로 골라 오늘이 아닌 날도 볼 수 있다.
-      const todayStr = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10); // KST 오늘
+      const todayStr = fpKstToday();
       const listDate = stats.listDate || __fpStatListDate || todayStr;
       const listIsToday = listDate === todayStr;
+      // 요약 줄: 항상 "지금 보고 있는 기간"의 합계를 보여준다. (예전에는 어떤 기간을 골라도
+      // "오늘" 수치가 고정으로 떠서 헷갈렸음.) 구버전 SQL(합계 미지원)이면 오늘 수치로 대체.
+      const sumHTML = stats.rangeUniqueVisitors != null
+        ? `${esc(periodLabel)} 방문자 ${Number(stats.rangeUniqueVisitors).toLocaleString()}명 · 페이지 조회 ${Number(stats.rangePageViews || 0).toLocaleString()}회`
+        : `오늘 방문자 ${stats.todayUniqueVisitors || 0}명 · 페이지 조회 ${stats.todayPageViews || 0}회`;
       return `
-      <div style="font-size:14px;font-weight:800;margin-bottom:8px">오늘 방문자 ${stats.todayUniqueVisitors || 0}명 · 페이지 조회 ${stats.todayPageViews || 0}회</div>
+      <div style="font-size:14px;font-weight:800;margin-bottom:8px">${sumHTML}</div>
       <div class="sec-title" style="font-size:12.5px;margin-top:10px">${esc(periodLabel)} 추이 (${esc(preset.unit)})</div>
       ${barsHTML || '<div class="empty" style="padding:4px 0">데이터 없음</div>'}
       <div class="sec-title" style="font-size:12.5px;margin-top:14px">인기 페이지 (${esc(periodLabel)})</div>
@@ -6494,6 +6530,11 @@
           const cb = fpCustomBucket(__fpStatCustom.from, __fpStatCustom.to);
           preset = { days: null, bucket: cb.bucket, unit: cb.unit, customLabel: `${__fpStatCustom.from} ~ ${__fpStatCustom.to}` };
           res = await fpFetchSiteStats(null, cb.bucket, __fpStatCustom.from, __fpStatCustom.to);
+        } else if (FP_STAT_PRESETS[__fpStatPreset].today) {
+          // "오늘" 버튼: 한국 시간 기준 오늘 하루만 조회
+          const t = fpKstToday();
+          preset = { days: null, bucket: 'day', unit: '일별', customLabel: '오늘' };
+          res = await fpFetchSiteStats(null, 'day', t, t);
         } else {
           preset = FP_STAT_PRESETS[__fpStatPreset];
           res = await fpFetchSiteStats(preset.days, preset.bucket);
@@ -6510,7 +6551,12 @@
     }
     function fpLoadSiteStats(idx) {
       __fpStatPreset = idx;
-      __fpStatCustom = null; // 프리셋 버튼을 누르면 달력 선택 해제
+      __fpStatCustom = null;   // 프리셋 버튼을 누르면 달력 선택 해제
+      __fpStatListDate = null; // 방문자 목록도 오늘로 리셋
+      // 달력 입력칸도 공란으로 되돌린다 (남아있으면 아직 그 기간을 보는 걸로 오해하기 쉬움)
+      const f = document.getElementById('stat-from'), t = document.getElementById('stat-to');
+      if (f) f.value = '';
+      if (t) t.value = '';
       fpRenderSiteStats();
     }
     function fpApplyStatRange() {
@@ -6519,6 +6565,9 @@
       if (!from || !to) return toastMsg('⚠️ 시작일과 종료일을 모두 선택해 주세요.');
       if (from > to) return toastMsg('⚠️ 시작일이 종료일보다 늦을 수 없습니다.');
       __fpStatCustom = { from, to };
+      // 방문자 목록도 선택한 기간의 마지막 날(미래면 오늘)로 맞춰서 함께 이동한다
+      const today = fpKstToday();
+      __fpStatListDate = to > today ? today : to;
       fpRenderSiteStats();
     }
     function fpChangeStatListDate(v) {
@@ -7410,29 +7459,49 @@
       // (시간별 차트처럼 중간을 솎아내면 "그날 판매량"이라는 막대의 의미가 왜곡되기 때문)
       const MAX_BARS = 30;
       if (bars.length > MAX_BARS) bars = bars.slice(bars.length - MAX_BARS);
-      const maxDelta = Math.max(1, ...bars.map(b => Math.max(0, b.delta)));
-      const barsHTML = bars.map(b => {
-        const h = Math.max(0, b.delta) / maxDelta * 100;
+      const maxPos = Math.max(1, ...bars.map(b => Math.max(0, b.delta)));
+      const maxNeg = Math.max(0, ...bars.map(b => Math.max(0, -b.delta))); // 취소가 더 많았던 날의 최대 폭
+      // 마이너스인 날이 하나라도 있으면 차트를 기준선 위(판매·파랑)/아래(취소·빨강) 두 구역으로 나눈다.
+      // 구역 높이는 실제 최대값 비율대로 배분하되, 아래 구역이 너무 납작해지지 않게 최소 22%는 확보한다.
+      const negFrac = maxNeg > 0 ? Math.max(0.22, maxNeg / (maxPos + maxNeg)) : 0;
+      const posFrac = 1 - negFrac;
+      const tipOf = b => {
         const hasGap = !b.isStart && b.spanDays > 1;
-        const tip = b.isStart
-          ? `${fmtDayLabel(b.day)} · 추적 시작 시점까지 누적 ${b.delta.toLocaleString()}석 (누적 ${b.pct.toFixed(1)}%)`
-          : hasGap
-            ? `⚠️ ${fmtDayLabel(b.prevDay)}~${fmtDayLabel(b.day)} (기록 누락으로 ${b.spanDays}일치 합산) · ${b.delta >= 0 ? '+' : ''}${b.delta.toLocaleString()}석 판매 (누적 ${b.pct.toFixed(1)}%)`
-            : `${fmtDayLabel(b.day)} · ${b.delta >= 0 ? '+' : ''}${b.delta.toLocaleString()}석 판매 (누적 ${b.pct.toFixed(1)}%)`;
-        return `<div class="tk-day-col${b.isStart ? ' tk-day-start' : ''}${hasGap ? ' tk-day-gap' : ''}" title="${esc(tip)}" onclick="tkDotTip(this, '${esc(tip)}')">
+        const deltaText = `${b.delta >= 0 ? '+' : ''}${b.delta.toLocaleString()}석`;
+        if (b.isStart) return `${fmtDayLabel(b.day)} · 추적 시작 시점까지 누적 ${b.delta.toLocaleString()}석 (누적 ${b.pct.toFixed(1)}%)`;
+        if (hasGap) return `⚠️ ${fmtDayLabel(b.prevDay)}~${fmtDayLabel(b.day)} (기록 누락으로 ${b.spanDays}일치 합산) · ${deltaText} ${b.delta < 0 ? '(취소가 더 많음)' : '판매'} (누적 ${b.pct.toFixed(1)}%)`;
+        return `${fmtDayLabel(b.day)} · ${deltaText} ${b.delta < 0 ? '(취소가 더 많음)' : '판매'} (누적 ${b.pct.toFixed(1)}%)`;
+      };
+      const barsHTML = bars.map(b => {
+        const hasGap = !b.isStart && b.spanDays > 1;
+        const tip = tipOf(b);
+        const cls = `${b.isStart ? ' tk-day-start' : ''}${hasGap ? ' tk-day-gap' : ''}`;
+        if (negFrac === 0) {
+          // 마이너스 날이 없으면 기존과 동일한 단순 막대
+          const h = Math.max(0, b.delta) / maxPos * 100;
+          return `<div class="tk-day-col${cls}" title="${esc(tip)}" onclick="tkDotTip(this, '${esc(tip)}')">
           <i class="tk-day-fill" style="height:${Math.max(h, b.delta > 0 ? 3 : 0).toFixed(1)}%"></i>
+        </div>`;
+        }
+        const hPos = b.delta > 0 ? Math.max(b.delta / maxPos * 100, 3) : 0;
+        const hNeg = b.delta < 0 ? Math.max(-b.delta / maxNeg * 100, 3) : 0;
+        return `<div class="tk-day-col tk-day-col2${cls}" title="${esc(tip)}" onclick="tkDotTip(this, '${esc(tip)}')">
+          <span class="tk-day-pos" style="height:${(posFrac * 100).toFixed(1)}%"><i class="tk-day-fill" style="height:${hPos.toFixed(1)}%"></i></span>
+          <span class="tk-day-neg" style="height:${(negFrac * 100).toFixed(1)}%"><i class="tk-day-fill tk-day-fill-neg" style="height:${hNeg.toFixed(1)}%"></i></span>
         </div>`;
       }).join('');
       const first = bars[0], last = bars[bars.length - 1];
+      const signed = n => `${n >= 0 ? '+' : ''}${n.toLocaleString()}석`;
       const firstLabel = first.isStart
         ? `${fmtDayLabel(first.day)} · 누적 ${first.delta.toLocaleString()}석`
-        : `${fmtDayLabel(first.day)} · +${Math.max(0, first.delta).toLocaleString()}석`;
+        : `${fmtDayLabel(first.day)} · ${signed(first.delta)}`;
       const hasAnyGap = bars.some(b => !b.isStart && b.spanDays > 1);
+      const hasAnyNeg = negFrac > 0;
       return `<div class="tk-trend">
         <div class="tk-trend-title">판매 추이(일별)</div>
         <div class="tk-day-chart tk-trend-plot">${barsHTML}</div>
-        <div class="tk-trend-labels"><span>${firstLabel}</span>${bars.length > 1 ? `<span>${fmtDayLabel(last.day)} · +${Math.max(0, last.delta).toLocaleString()}석</span>` : ''}</div>
-        <div class="tk-rev-note">※ 연한 색 막대(${fmtDayLabel(first.day)})는 추적을 시작한 날까지의 누적 판매량이며, 그 이전에 팔린 수량은 포함되지 않습니다. 이후 막대부터는 전날 대비 순수 증가분입니다.${hasAnyGap ? ' 빗금 막대는 자동 기록이 하루 이상 통째로 누락되어 여러 날짜의 판매량이 합산된 값입니다(막대를 눌러 정확한 기간 확인).' : ''}</div>
+        <div class="tk-trend-labels"><span>${firstLabel}</span>${bars.length > 1 ? `<span>${fmtDayLabel(last.day)} · ${signed(last.delta)}</span>` : ''}</div>
+        <div class="tk-rev-note">※ 연한 색 막대(${fmtDayLabel(first.day)})는 추적을 시작한 날까지의 누적 판매량이며, 그 이전에 팔린 수량은 포함되지 않습니다. 이후 막대부터는 전날 대비 순수 증가분입니다.${hasAnyNeg ? ' 기준선 아래 빨간 막대는 취소·환불이 판매보다 많아 그날 판매 좌석이 오히려 줄어든 날입니다.' : ''}${hasAnyGap ? ' 빗금 막대는 자동 기록이 하루 이상 통째로 누락되어 여러 날짜의 판매량이 합산된 값입니다(막대를 눌러 정확한 기간 확인).' : ''}</div>
       </div>`;
     }
     /* 추이 그래프의 점을 탭/클릭했을 때, 화면 하단 토스트 대신 그 점 바로 위에
@@ -13887,9 +13956,16 @@
         if (el) el.textContent = /function|not find/i.test(error.message || '') ? '⚠️ 잡담방_닉네임_화이트리스트_패치.sql을 먼저 실행해 주세요.' : '⚠️ ' + cleanErr(error.message);
         return;
       }
-      __whitelistCache = (data || []).map(r => r.nickname);
+      // 목록 순서: 최근에 추가한 닉네임이 맨 위 (추가 시각까지 같으면 — 최초 일괄 등록분 등 — 이름순)
+      const sorted = (data || []).slice().sort((a, b) => {
+        const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+        if (ta !== tb) return tb - ta; // 추가 날짜 내림차순 (최신이 위)
+        return String(a.nickname).localeCompare(String(b.nickname), 'ko');
+      });
+      __whitelistCache = sorted.map(r => r.nickname);
       __whitelistDates = {};
-      (data || []).forEach(r => { if (r.created_at) __whitelistDates[r.nickname] = r.created_at; });
+      sorted.forEach(r => { if (r.created_at) __whitelistDates[r.nickname] = r.created_at; });
       __allowedNicknamesCache = __whitelistCache; // 홈 자동완성 캐시도 최신 상태로 갱신
       renderWhitelist();
     }
