@@ -8021,7 +8021,7 @@
         const past = events.filter(e => trackingEnded || e.event_key !== eventKey);
         if (past.length) {
           pastHTML = `
-      <div class="sec-title" style="margin-top:24px">🏁 지난 티켓 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최신순 · 총 ${past.length}개</span></div>
+      <div class="sec-title" style="margin-top:24px">🎟️ 지난 티켓 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최신순 · 총 ${past.length}개</span></div>
       ${past.map(e => `
       <a class="card tk-past" href="#/tickets/${encodeURIComponent(e.event_key)}" style="display:block;padding:13px 16px;text-decoration:none;color:inherit">
         <div style="font-weight:800;font-size:14.5px">${esc(e.title || e.event_key)}</div>
@@ -8040,7 +8040,7 @@
 
       const meta = mergedTicketMeta(rows);
       const previewBanner = isPreview
-        ? `<div class="badge wait" style="margin-top:10px">🏁 지난 티켓 기록 보기 — ${esc(eventKey)}</div>
+        ? `<div class="badge wait" style="margin-top:10px">🎟️ 지난 티켓 기록 보기 — ${esc(eventKey)}</div>
        <div style="margin-top:8px"><a class="btn small" href="#/tickets">← 현재 티켓으로 돌아가기</a></div>`
         : '';
       const dpParts = [];
