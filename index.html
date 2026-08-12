@@ -1044,7 +1044,6 @@
     /* 점을 탭/클릭했을 때 그 점 바로 위에 뜨는 말풍선 */
     .tk-dot-tip {
       position: absolute;
-      transform: translate(-50%, -135%);
       background: #242d3f;
       color: #fff;
       padding: 6px 10px;
@@ -1055,7 +1054,19 @@
       z-index: 5;
       pointer-events: none;
       box-shadow: 0 4px 12px rgba(0, 0, 0, .3);
-      animation: fadeUp .15s ease
+      /* 위치는 JS가 픽셀로 직접 계산하므로, 애니메이션은 transform을 건드리지 않는
+         투명도 전용을 쓴다 (fadeUp은 transform을 덮어써서 위치 계산과 충돌) */
+      animation: tkTipFade .15s ease
+    }
+
+    @keyframes tkTipFade {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
     }
 
     /* 페이지 제목 우측의 티켓 현황 공유 버튼 — 하늘색 배경 + 파란 글자 알약 모양 */
@@ -6570,11 +6581,17 @@
       // 실명/식별정보가 아닌 익명 세션ID의 끝 4자리만 짧게 붙여서 서로 구분되게 한다
       // (예: 게스트 #a3f9). 세션ID 자체는 브라우저에 저장된 무작위 값이라 이것만으로 개인을
       // 특정할 수 없다.
-      const recentHTML = (stats.recentSessions || []).map(s => {
+      // 방문자 목록은 활동 횟수가 많은 사람부터 (횟수가 같으면 최근 활동 순)
+      const sortedSessions = (stats.recentSessions || []).slice().sort((a, b) =>
+        (b.events || 0) - (a.events || 0) || new Date(b.last_seen) - new Date(a.last_seen));
+      // 행을 클릭하면 그 방문자의 그날 활동 상세(어떤 페이지를 몇 번 봤는지 등)를 팝업으로 보여준다.
+      window.__fpVisitorLabels = {};
+      const recentHTML = sortedSessions.map(s => {
         const label = s.nickname === '게스트'
           ? `👻 게스트 #${esc(String(s.session_id || '').slice(-4) || '?')}`
           : '👤 ' + esc(s.nickname);
-        return `<div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid #f0f1f4"><span>${label}</span><span style="color:var(--dim)">${new Date(s.last_seen).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} · ${s.events}회 활동</span></div>`;
+        window.__fpVisitorLabels[s.session_id] = label;
+        return `<div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid #f0f1f4;cursor:pointer" title="누르면 활동 상세 보기" onclick="fpShowVisitorActivity('${esc(String(s.session_id))}')"><span>${label}</span><span style="color:var(--dim)">${new Date(s.last_seen).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} · ${s.events}회 활동</span></div>`;
       }).join('');
       // 방문자 목록 제목: 날짜를 달력으로 골라 오늘이 아닌 날도 볼 수 있다.
       const todayStr = fpKstToday();
@@ -6676,6 +6693,45 @@
     function fpChangeStatListDate(v) {
       __fpStatListDate = v || null;
       fpRenderSiteStats();
+    }
+    /* 방문자 목록에서 닉네임을 클릭하면 그 방문자(브라우저 세션)가 그날 어떤 페이지를
+       몇 번 봤고 어떤 활동을 했는지 상세 내역을 팝업으로 보여준다.
+       (방문통계_활동상세_패치.sql 실행 필요) */
+    async function fpShowVisitorActivity(sessionId) {
+      const label = (window.__fpVisitorLabels || {})[sessionId] || sessionId;
+      let res;
+      try {
+        res = await sb.rpc('admin_get_session_activity', { p_pass: adminPass(), p_session_id: sessionId, p_date: __fpStatListDate });
+      } catch (e) { res = { error: e }; }
+      if (res.error) {
+        if (/function|not find/i.test(res.error.message || '')) return toastMsg('⚠️ 방문통계_활동상세_패치.sql을 먼저 실행해 주세요.');
+        return toastMsg('⚠️ ' + cleanErr(res.error.message));
+      }
+      const d = res.data || {};
+      const fmtT = t => new Date(t).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+      const pagesHTML = (d.pages || []).map(p => `<div style="display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0"><span>${esc(fpPathLabel(p.path))}</span><span style="font-weight:800">${Number(p.cnt).toLocaleString()}회</span></div>`).join('');
+      const actionsHTML = (d.actions || []).map(a => `<div style="display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0"><span>${esc(FP_ACTION_LABELS[a.action] || a.action)}</span><span style="font-weight:800">${Number(a.cnt).toLocaleString()}회</span></div>`).join('');
+      const timelineHTML = (d.timeline || []).map(ev => {
+        const what = ev.event_type === 'action'
+          ? `<b>${esc(FP_ACTION_LABELS[ev.action] || ev.action || '활동')}</b>`
+          : esc(fpPathLabel(ev.path));
+        return `<div style="display:flex;gap:10px;font-size:12.5px;padding:3px 0;border-bottom:1px solid #f4f5f8"><span style="color:var(--dim);font-variant-numeric:tabular-nums;flex:none">${fmtT(ev.t)}</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${what}</span></div>`;
+      }).join('');
+      const ov = document.createElement('div');
+      ov.className = 'modal-ov';
+      ov.innerHTML = `<div class="modal">
+    <div class="modal-h"><span><b>${label}</b> <span class="badge rt" style="font-size:11.5px">${esc(d.date || '')}</span></span><button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-b">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--muted)">총 ${Number(d.total || 0).toLocaleString()}회 활동${d.firstSeen ? ` · ${fmtT(d.firstSeen)} ~ ${fmtT(d.lastSeen)}` : ''}</div>
+      <div class="sec-title" style="font-size:12.5px;margin-top:0">방문한 페이지</div>
+      ${pagesHTML || '<div class="empty" style="padding:4px 0">기록 없음</div>'}
+      <div class="sec-title" style="font-size:12.5px;margin-top:14px">주요 활동</div>
+      ${actionsHTML || '<div class="empty" style="padding:4px 0">기록 없음</div>'}
+      <div class="sec-title" style="font-size:12.5px;margin-top:14px">시간 흐름 <span style="color:var(--dim);font-size:11px;font-weight:700">${(d.timeline || []).length}건 · 스크롤</span></div>
+      <div style="max-height:220px;overflow-y:auto;overscroll-behavior:contain">${timelineHTML || '<div class="empty" style="padding:4px 0">기록 없음</div>'}</div>
+    </div></div>`;
+      ov.onclick = e => { if (e.target === ov) history.back(); };
+      pushModal(ov);
     }
     /* 일별 집계 전체 히스토리를 CSV로 다운로드 — 몇 년치가 쌓여도 언제든 엑셀로 보관/분석할 수 있는 백업용 */
     async function fpDownloadSiteStatsCSV(btn) {
@@ -7716,7 +7772,7 @@
         <div class="tk-trend-title">판매 추이(일별)</div>
         <div class="tk-day-chart tk-trend-plot">${barsHTML}</div>
         <div class="tk-trend-labels"><span>${firstLabel}</span>${bars.length > 1 ? `<span>${fmtDayLabel(last.day)} · ${signed(last.delta)}</span>` : ''}</div>
-        <div class="tk-rev-note">※ 연한 색 막대(${fmtDayLabel(first.day)})는 추적을 시작한 날까지의 누적 판매량이며, 그 이전에 팔린 수량은 포함되지 않습니다. 이후 막대부터는 전날 대비 순수 증가분입니다.${hasAnyNeg ? '<br>기준선 아래 빨간 막대는 취소·환불이 판매보다 많아 그날 판매 좌석이 오히려 줄어든 날입니다.' : ''}${hasAnyGap ? '<br>빗금 막대는 자동 기록이 하루 이상 통째로 누락되어 여러 날짜의 판매량이 합산된 값입니다(막대를 눌러 정확한 기간 확인).' : ''}</div>
+        <div class="tk-rev-note">※ 연한 색 막대(${fmtDayLabel(first.day)})는 추적을 시작한 날까지의 누적 판매량이며, 이후 막대부터는 전날 대비 순수 증가분입니다.${hasAnyNeg ? '<br>기준선 아래 빨간 막대는 취소·환불이 판매보다 많아 그날 판매 좌석이 오히려 줄어든 날입니다.' : ''}${hasAnyGap ? '<br>빗금 막대는 자동 기록이 하루 이상 통째로 누락되어 여러 날짜의 판매량이 합산된 값입니다(막대를 눌러 정확한 기간 확인).' : ''}</div>
       </div>`;
     }
     /* 추이 그래프의 점을 탭/클릭했을 때, 화면 하단 토스트 대신 그 점 바로 위에
@@ -7729,14 +7785,19 @@
       const tip = document.createElement('div');
       tip.className = 'tk-dot-tip';
       tip.textContent = text;
-      tip.style.left = dotEl.style.left;
-      tip.style.top = dotEl.style.top;
-      plot.appendChild(tip);
-      requestAnimationFrame(() => {
-        const pr = plot.getBoundingClientRect(), tr = tip.getBoundingClientRect();
-        if (tr.left < pr.left + 2) tip.style.transform = 'translate(0, -135%)';
-        else if (tr.right > pr.right - 2) tip.style.transform = 'translate(-100%, -135%)';
-      });
+      // 누른 요소의 실제 화면 좌표를 기준으로 말풍선 위치를 픽셀로 직접 계산한다.
+      // (시간별 차트의 점이든, 일별 차트의 막대든 동일하게 "누른 곳 바로 위"에 뜬다.
+      //  transform 정렬 대신 픽셀 계산을 쓰는 이유: 등장 애니메이션이 transform을 덮어써서
+      //  위치가 어긋나던 버그가 있었다)
+      plot.appendChild(tip); // 먼저 붙여야 말풍선 크기를 잴 수 있다
+      const pr = plot.getBoundingClientRect();
+      const dr = dotEl.getBoundingClientRect();
+      const anchorX = dr.left + dr.width / 2 - pr.left;                                      // 누른 요소의 가로 중앙
+      const anchorY = dr.top - pr.top + (dotEl.classList.contains('tk-day-col') ? 0 : dr.height / 2); // 점은 중심, 막대는 위쪽 끝
+      const tw = tip.offsetWidth, th = tip.offsetHeight;
+      // 가로: 중앙 정렬하되 차트 밖으로 잘리지 않게 안쪽으로 보정
+      tip.style.left = Math.max(-4, Math.min(anchorX - tw / 2, pr.width - tw + 4)) + 'px';
+      tip.style.top = (anchorY - th - 7) + 'px'; // 누른 지점 위 7px
       setTimeout(() => tip.remove(), 2500);
     }
     /* 티켓 페이지의 "수동 갱신(실시간 조회)"과 "카톡 공유"가 쓰는 화면 상태.
