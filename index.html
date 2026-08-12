@@ -907,6 +907,73 @@
       margin-bottom: 4px
     }
 
+    /* 등급별 판매 비율 도넛 차트 — 넓은 화면: 도넛 왼쪽 + 범례 오른쪽 */
+    .tk-pie-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px
+    }
+
+    .tk-pie-donut {
+      flex: none;
+      width: clamp(110px, 20vw, 170px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      position: relative
+    }
+
+    .tk-pie-hole {
+      position: absolute;
+      inset: 27%;
+      border-radius: 50%;
+      background: var(--card);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.15
+    }
+
+    .tk-pie-hole-label {
+      font-size: clamp(10px, 1.2vw, 12px);
+      color: var(--dim);
+      font-weight: 700
+    }
+
+    .tk-pie-hole-num {
+      font-size: clamp(12px, 1.5vw, 15px);
+      font-weight: 800
+    }
+
+    .tk-pie-legend {
+      flex: 1;
+      min-width: 0
+    }
+
+    /* 좁은 화면(모바일): 도넛을 위에 크게, 범례는 아래 전체 폭 — 등급명이 잘리지 않으면서 차트도 커진다 */
+    @media (max-width: 640px) {
+      .tk-pie-wrap {
+        flex-direction: column;
+        gap: 10px
+      }
+
+      .tk-pie-donut {
+        width: 150px
+      }
+
+      .tk-pie-hole-label {
+        font-size: 11px
+      }
+
+      .tk-pie-hole-num {
+        font-size: 14px
+      }
+
+      .tk-pie-legend {
+        width: 100%
+      }
+    }
+
     .tk-trend-plot {
       position: relative
     }
@@ -7375,16 +7442,18 @@
         </div>`;
       }).join('');
       // 카드 맨 위(요약 → 상세 흐름)에 놓이므로 위쪽 구분선 없이, 아래쪽에 구분선을 둔다.
+      // 좁은 화면(모바일)에서는 도넛을 위에 크게, 범례를 아래 전체 폭으로 배치해서
+      // 등급명이 말줄임/줄바꿈 없이 온전히 보이면서도 차트를 크게 볼 수 있다 (CSS .tk-pie-*).
       return `<div style="padding-bottom:10px;margin-bottom:12px;border-bottom:1px dashed var(--border)">
         <div class="tk-trend-title">등급별 판매 비율</div>
-        <div style="display:flex;align-items:center;gap:14px">
-          <div style="flex:none;width:clamp(96px, 20vw, 170px);aspect-ratio:1;border-radius:50%;background:conic-gradient(${segs});position:relative">
-            <div style="position:absolute;inset:27%;border-radius:50%;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15">
-              <span style="font-size:clamp(10px, 1.2vw, 12px);color:var(--dim);font-weight:700">판매</span>
-              <span style="font-size:clamp(12px, 1.5vw, 15px);font-weight:800">${soldSum.toLocaleString()}석</span>
+        <div class="tk-pie-wrap">
+          <div class="tk-pie-donut" style="background:conic-gradient(${segs})">
+            <div class="tk-pie-hole">
+              <span class="tk-pie-hole-label">판매</span>
+              <span class="tk-pie-hole-num">${soldSum.toLocaleString()}석</span>
             </div>
           </div>
-          <div style="flex:1;min-width:0">${legendHTML}</div>
+          <div class="tk-pie-legend">${legendHTML}</div>
         </div>
       </div>`;
     }
