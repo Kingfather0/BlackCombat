@@ -7363,13 +7363,19 @@
       }).join(', ');
       const legendHTML = parts.map((p, i) => {
         const pct = (p.sold / soldSum * 100);
-        return `<div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:2px 0">
+        // 등급 내 판매율: 그 등급 총원 중 몇 %가 팔렸는지 (전체 대비 비율과 별개의 정보)
+        const innerPct = totals[p.k] > 0 ? (p.sold / totals[p.k] * 100) : null;
+        return `<div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:2.5px 0">
           <span style="width:10px;height:10px;border-radius:3px;background:${TK_PIE_COLORS[i % TK_PIE_COLORS.length]};flex:none"></span>
           <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.k)}석</span>
-          <span style="font-weight:800;white-space:nowrap">${pct.toFixed(1)}% <span style="color:var(--dim);font-weight:600">(${p.sold.toLocaleString()}석)</span></span>
+          <span style="text-align:right;white-space:nowrap;line-height:1.25">
+            <span style="font-weight:800">${pct.toFixed(1)}% <span style="color:var(--dim);font-weight:600">(${p.sold.toLocaleString()}석)</span></span>
+            ${innerPct != null ? `<br><span style="font-size:10.5px;color:var(--dim);font-weight:600">등급 내 ${innerPct.toFixed(1)}% 판매</span>` : ''}
+          </span>
         </div>`;
       }).join('');
-      return `<div class="tk-trend">
+      // 카드 맨 위(요약 → 상세 흐름)에 놓이므로 위쪽 구분선 없이, 아래쪽에 구분선을 둔다.
+      return `<div style="padding-bottom:10px;margin-bottom:12px;border-bottom:1px dashed var(--border)">
         <div class="tk-trend-title">등급별 판매 비율</div>
         <div style="display:flex;align-items:center;gap:14px">
           <div style="flex:none;width:96px;height:96px;border-radius:50%;background:conic-gradient(${segs});position:relative">
@@ -7933,8 +7939,8 @@
         return `
       <div class="card tk-card">
         ${showRoundLabel && r.round_label ? `<div class="tk-round">${esc(r.round_label)}</div>` : ''}
-        ${gradeRowsHTML(r.grades, gradeTotals, gradePrices)}
         ${gradePieHTML(r.grades, gradeTotals)}
+        ${gradeRowsHTML(r.grades, gradeTotals, gradePrices)}
         ${revenueHTML}
       </div>`;
       }).join('');
