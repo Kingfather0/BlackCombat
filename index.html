@@ -531,24 +531,13 @@
       margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      position: relative
+      align-items: center
     }
 
-    /* 경기 카드 제목 줄 정가운데의 체급 표시 ("1경기 · [체급] · N명 참여" 배치) —
-       타이틀전(해당 체급 챔피언 출전)이면 "미들 👑" 형태로 왕관이 붙는다 */
-    .match-div {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      white-space: nowrap
-    }
-
-    /* "N명 참여" 배지는 왼쪽의 "N경기" 텍스트와 같은 크기/색/굵기로 맞춘다 (.no에서 그대로 상속) */
     .match-joined {
-      font-size: inherit;
-      font-weight: inherit;
-      color: inherit
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--dim)
     }
 
     .vs-row {
@@ -684,11 +673,7 @@
       font-weight: 800;
       font-size: 17px;
       margin-top: 4px;
-      color: var(--key-deep);
-      /* "· 잔여 N석"까지 붙어 길어져도 모바일에서 두 줄로 꺾이지 않게 — 넘치면
-         tkFitTotalLine()이 글자 크기를 조금씩 줄여서 한 줄에 맞춘다 */
-      white-space: nowrap;
-      overflow: hidden
+      color: var(--key-deep)
     }
 
     .tk-total-bar {
@@ -752,15 +737,9 @@
       background: var(--key)
     }
 
-    /* 등급별 바도 전체 좌석 바와 동일한 진한 파랑 그라데이션 (두께로만 구분) */
-    .tk-bar:not(.tk-total-bar) i {
-      background: linear-gradient(90deg, var(--key), var(--key-deep))
-    }
-
     .tk-pct {
-      font-size: 12px;
-      font-weight: 600;
-      color: #414c5c;
+      font-size: 11.5px;
+      color: var(--muted);
       margin-top: 3px
     }
 
@@ -770,47 +749,7 @@
     }
 
     .tk-pct-sub {
-      opacity: .85;
-      font-weight: 500
-    }
-
-    /* 등급 가격 기반 예상 매출 블록 (잔여 좌석 카드 하단) */
-    .tk-rev {
-      margin-top: 12px;
-      padding-top: 10px;
-      border-top: 1px dashed var(--border)
-    }
-
-    .tk-rev-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      font-size: 14px;
-      font-weight: 800
-    }
-
-    .tk-rev-sum {
-      color: var(--key-deep);
-      font-size: 15px
-    }
-
-    .tk-rev-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12.5px;
-      color: #414c5c;
-      margin-top: 4px
-    }
-
-    .tk-rev-note {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 8px;
-      line-height: 1.5
-    }
-
-    .tk-rev-body {
-      margin-top: 8px
+      opacity: .8
     }
 
     .tk-trend {
@@ -1222,45 +1161,7 @@
       padding: 10px 11px;
       color: var(--text);
       width: 100%;
-      outline: none;
-      min-width: 0
-    }
-
-    /* 대진 행 가운데의 체급 선택 — 좁은 모바일 화면에서도 번호·선수1·체급·선수2·▲▼✕가
-       전부 한 줄에 들어가도록 폭을 최소화한 콤팩트 드롭다운.
-       ※ "새 대회 만들기"의 #c-matches는 .field 안에 있어서 일반 폼용 .field select 규칙
-       (넓은 좌우 padding)이 끼어들면 목록 텍스트가 옆으로 밀려 보인다 — .field 안에서도
-       항상 이 콤팩트 스타일이 이기도록 선택자를 함께 걸어 양쪽 화면의 모양을 통일한다. */
-    .m-div,
-    .field select.m-div {
-      background: #fff;
-      border: 1.5px solid var(--border);
-      border-radius: 9px;
-      padding: 10px 2px;
-      color: var(--text);
-      font-size: 12px;
-      font-weight: 700;
-      width: 100%;
-      min-width: 0;
-      outline: none;
-      text-align: center;
-      appearance: none;
-      -webkit-appearance: none
-    }
-
-    .m-div option {
-      text-align: center
-    }
-
-    @media (max-width: 480px) {
-      .mrow {
-        gap: 4px
-      }
-
-      .mrow input {
-        padding: 10px 6px;
-        font-size: 13px
-      }
+      outline: none
     }
 
     .del-x {
@@ -6216,6 +6117,49 @@
     }
     function svrNow() { return new Date(Date.now() + timeOffset); }
 
+    /* ---------- 방문/활동 통계 (관리자 전용) ----------
+       - 로그인 여부와 무관하게 브라우저별 익명 세션ID(fp_sid, localStorage)로 방문을 구분한다.
+       - 닉네임으로 로그인되어 있으면 nickname도 함께 기록해 "누가" 왔는지 더 직관적으로 보이게 하고,
+         비로그인 방문자는 관리자 화면에서 "게스트"로 표시된다.
+       - 실명/IP는 전혀 저장하지 않는다. record_site_event()는 익명 insert만 허용하고,
+         조회는 admin_get_site_stats()를 통해 관리자 비밀번호가 있어야만 가능하다
+         (방문통계_패치.sql 실행 필요). */
+    function fpSessionId() {
+      try {
+        let id = localStorage.getItem('fp_sid');
+        if (!id) {
+          id = 'sid_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+          localStorage.setItem('fp_sid', id);
+        }
+        return id;
+      } catch (e) { return 'sid_temp_' + Math.random().toString(36).slice(2, 10); }
+    }
+    let __fpLastPath = null;
+    function fpTrack(eventType, path, detail) {
+      try {
+        if (window.__TEST_SB || !isConfigured()) return; // 테스트/미설정 상태에서는 전송하지 않음
+        const nickname = (typeof gmMyNick !== 'undefined' && gmMyNick) ? gmMyNick : null;
+        fetch(SUPABASE_URL + '/rest/v1/rpc/record_site_event', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
+          body: JSON.stringify({ p_session_id: fpSessionId(), p_nickname: nickname, p_event_type: eventType, p_path: path || null, p_detail: detail || null })
+        }).catch(() => { });
+      } catch (e) { }
+    }
+    function fpTrackPageView(path) {
+      if (path === __fpLastPath) return; // 같은 경로 중복 기록 방지 (렌더 재호출 등)
+      __fpLastPath = path;
+      fpTrack('page_view', path);
+    }
+    function fpTrackAction(action, detail) {
+      fpTrack('action', location.hash || '#/', Object.assign({ action }, detail || {}));
+    }
+    function fpPathLabel(path) {
+      const seg = String(path || '').replace(/^#\//, '').split('/');
+      const map = { '': '홈', fighters: '선수단', ranking: '랭킹', game: '미니게임', tickets: '티켓 현황', admin: '관리자', t: '대회 상세', player: '선수 상세' };
+      return map[seg[0]] || path;
+    }
+
     /* --- 실시간 접속자 수 (Supabase Realtime Presence) — 헤더에 항상 떠 있는 배지, 클릭하면
        현재 접속 중인 브라우저 탭 목록을 닉네임(미로그인은 Guest)으로 보여준다. DB 테이블/RPC를
        전혀 쓰지 않는 순수 웹소켓 pub/sub 기능이라 별도 SQL 실행 없이 바로 동작한다.
@@ -6343,13 +6287,10 @@
         cand.sort((a, b) => new Date(b.t || 0) - new Date(a.t || 0));
         FIGHTERS = cand[0].d;
         fightersUpdatedAt = cand[0].t;
-        buildFighterMap(); // 국기 되채움용 BASE_FLAGS도 이 안에서 함께 갱신된다
+        buildFighterMap();
+        const BASE_FLAGS = {};
+        Object.entries(FIGHTER_MAP).forEach(([k, f]) => { if (f.flag && f.flag !== 'kr') BASE_FLAGS[k] = f.flag; });
       }
-      // 선수 정보 보관함 불러오기 — 랭킹에서 사라진 선수의 국적/전적을 대진 카드에 계속 표시하기 위함
-      try {
-        const { data } = await sb.from('site_data').select('value').eq('key', 'fighter_archive').single();
-        if (data && data.value && typeof data.value === 'object') FIGHTER_ARCHIVE = data.value;
-      } catch (e) { }
       route();
     }
     window.addEventListener('hashchange', route);
@@ -6514,6 +6455,7 @@
       if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
       gmToken++; gmClear();
       const h = location.hash || '#/';
+      fpTrackPageView(h);
       const seg = h.replace(/^#\//, '').split('/');
       document.querySelectorAll('#nav a').forEach(a => a.classList.remove('on'));
       const mark = k => { const el = document.querySelector(`[data-nav="${k}"]`); if (el) el.classList.add('on'); };
@@ -6546,12 +6488,6 @@
     }
     function fmtDT(d) {
       return new Date(d).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit' });
-    }
-    // 경기 시작일 표시 — 시간까지 저장된 대회(event_at)는 "8월 29일 (토) 오후 05:00" 형태로,
-    // 날짜만 있는 예전 대회(event_date)는 기존처럼 날짜만 보여준다.
-    function fmtEventDT(t) {
-      if (t.event_at) return new Date(t.event_at).toLocaleString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit' });
-      return fmtDate(t.event_date);
     }
     function countdownText(deadline) {
       const ms = new Date(deadline).getTime() - svrNow().getTime();
@@ -6650,7 +6586,7 @@
         return `<a class="t-card ${tState(t)}" href="#/t/${t.id}">
       <div class="tt">${esc(t.title)} &nbsp;${stateBadge(t)}</div>
       <div class="meta">
-        ${(t.event_at || t.event_date) ? `<span>📅 ${fmtEventDT(t)}</span>` : ''}
+        ${t.event_date ? `<span>📅 ${fmtDate(t.event_date)}</span>` : ''}
         <span>👥 ${d.counts[t.id] || 0}명 참여</span>
         ${cd ? cdHTML(t.deadline) : `<span>🔒 ${fmtDT(t.deadline)} 마감</span>`}
       </div></a>`;
@@ -6712,7 +6648,7 @@
           ['C', '캡틴 코리아', '정한국', 14, 11, 2, 'kr'], [1, '수부타이', '난딘에르덴', 19, 11, 0, 'mn'], [2, '다게르', 'Ali Gadzhiev', 5, 0, 0, 'ru'],
           [3, '직쏘', '문기범', 14, 9, 0, 'kr'], [4, '영보스', '박어진', 10, 2, 1, 'kr'], [5, '사쿠라', '황도윤', 3, 6, 0, 'kr'],
           [6, '헌터', '박종헌', 7, 6, 0, 'kr'], [7, '곰주먹', '김정균', 4, 4, 0, 'kr'], [8, '영타이거', '이영훈', 8, 5, 1, 'kr'],
-          [9, '그루트', '정용완', 5, 2, 0, 'kr'], [10, '라이언킹', 'Chuka Willis', 17, 7, 0, 'us'], [11, '글래디에이터', 'Bruno Itamar', 5, 0, 0, 'br'],
+          [9, '그루트', '정용완', 5, 2, 0, 'kr'], [10, 'Lion King', 'Chuka Willis', 17, 7, 0, 'us'], [11, '글래디에이터', 'Bruno Itamar', 5, 0, 0, 'br'],
           [12, '워리어', '정영제', 6, 5, 0, 'kr'], [13, '그리즐리', 'Yamamoto Takuya', 11, 3, 1, 'jp'], [14, '파라오', 'Youssef Barakat', 9, 2, 0, 'eg'],
           [15, '몬스터', '오수환', 8, 2, 1, 'kr'], [16, '빅프린스', 'Deberson Batista', 14, 6, 2, 'br'], [17, '칠라운', 'Gantumur', 4, 1, 0, 'mn'],
           [18, '슬로스', '장근영', 3, 5, 0, 'kr'], [19, '맨티스', '윤다원', 5, 9, 1, 'kr'], [20, '더 마스터', '전현우', 2, 2, 0, 'kr'],
@@ -6764,15 +6700,6 @@
     let FIGHTER_MAP = {};
     let fightersUpdatedAt = null;
     let FIGHTER_NORM = {};
-    // 선수 정보 보관함 — 랭킹 갱신으로 공식 랭킹에서 사라진 선수(긴급 투입 등으로 직접
-    // 추가했던 선수)의 국적/전적을 승부예측 카드에서 계속 보여주기 위한 백업 (site_data에 저장)
-    let FIGHTER_ARCHIVE = {};
-    // 지금까지 알게 된 "한국 외 국기" 기록 — 공식 랭킹 페이지에는 국기 정보가 없어서,
-    // 랭킹 갱신 시 이 기록으로 국기를 되채운다 (예전엔 boot() 안 지역변수라 갱신 때 에러가 났었다)
-    // BASE_REALS는 같은 기록을 "실명" 기준으로도 남긴 것 — 공식 페이지에서 표기 이름이
-    // 바뀌어도(예: "Lion King" → "라이언킹") 실명(Chuka Willis)이 같으면 국기를 이어받는다.
-    let BASE_FLAGS = {};
-    let BASE_REALS = {};
     function normName(s) { return String(s).toLowerCase().replace(/\s+/g, ''); }
     function buildFighterMap() {
       FIGHTER_MAP = {};
@@ -6783,92 +6710,49 @@
         if (!FIGHTER_MAP[k]) FIGHTER_MAP[k] = { rank: f[0], nick: f[1], real: f[2], w: f[3], l: f[4], dr: f[5], flag: f[6], div: d.div };
         FIGHTER_NORM[normName(f[1])] = f[1];
       }));
-      Object.entries(FIGHTER_MAP).forEach(([k, f]) => {
-        if (f.flag && f.flag !== 'kr') {
-          BASE_FLAGS[k] = f.flag;
-          if (f.real) BASE_REALS[String(f.real).trim().toLowerCase()] = f.flag;
-        }
-      });
       const dl = document.getElementById('fighters-dl');
       if (dl) dl.innerHTML = Object.values(FIGHTER_MAP).map(f => `<option value="${f.nick}">`).join('');
     }
     buildFighterMap();
-    /* ── 대진 체급 ── 대진에 표시할 체급(짧은 표기). '계약'은 계약 체급(캐치웨이트)이라
-       챔피언 개념이 없다. 챔피언 판정은 현재 랭킹 데이터(FIGHTERS)를 그때그때 조회하므로,
-       타이틀전 후 챔피언이 바뀌어 랭킹이 갱신되면 왕관 표시도 자동으로 따라간다. */
-    const MATCH_DIVISIONS = ['플라이', '벤텀', '페더', '라이트', '웰터', '미들', '헤비', '계약'];
-    function champOf(shortDiv) {
-      if (!shortDiv) return null;
-      const d = FIGHTERS.find(x => x.div === shortDiv + '급');
-      if (!d) return null;
-      const c = d.list.find(f => f[0] === 'C' && f[1] && f[1] !== '공석');
-      return c ? c[1] : null;
-    }
-    // 이 선수가 "해당 체급의" 챔피언일 때만 왕관 — 같은 이름이 다른 체급에도 있을 수 있으므로
-    // (예: 미들급 챔피언 킹콩 vs 웰터급 3위 킹콩) 반드시 경기에 선택된 체급 기준으로만 판정한다.
-    function isChampOfDiv(name, shortDiv) {
-      const c = champOf(shortDiv);
-      return !!c && normName(c) === normName(name);
-    }
-    function matchDivHTML(m) {
-      if (!m.division) return '';
-      const title = isChampOfDiv(m.fighter_a, m.division) || isChampOfDiv(m.fighter_b, m.division);
-      return `<span class="match-div">${esc(m.division)}${title ? ' 👑' : ''}</span>`;
-    }
-    // 국기는 선수 "이름 왼쪽"에 표시한다 (전적 줄에서 이동)
-    function fflagHTML(name) {
-      const key = String(name).trim().toLowerCase();
-      const f = FIGHTER_MAP[key];
-      if (f && f.flag) return flagImg(f.flag) + ' ';
-      const a = FIGHTER_ARCHIVE[key];
-      if (a && a.flag) return flagImg(a.flag) + ' ';
-      return '';
-    }
     function fmeta(name) {
-      const key = String(name).trim().toLowerCase();
-      const f = FIGHTER_MAP[key];
-      if (f) return `<span class="fmeta">${f.rank === 'C' ? '챔피언' : '랭킹 ' + f.rank + '위'} · ${f.w}승 ${f.l}패${f.dr ? ' ' + f.dr + '무' : ''}</span>`;
-      // 랭킹 갱신으로 목록에서 사라진 선수라도 보관함에 정보가 남아 있으면 전적은 계속
-      // 보여준다 (공식 랭킹에 없는 선수이므로 "랭킹 N위"는 표시하지 않는다).
-      const a = FIGHTER_ARCHIVE[key];
-      if (!a) return '';
-      return `<span class="fmeta">${a.w || 0}승 ${a.l || 0}패${a.dr ? ' ' + a.dr + '무' : ''}</span>`;
+      const f = FIGHTER_MAP[String(name).trim().toLowerCase()];
+      if (!f) return '';
+      return `<span class="fmeta">${flagImg(f.flag)} ${f.rank === 'C' ? '챔피언' : '랭킹 ' + f.rank + '위'} · ${f.w}승 ${f.l}패${f.dr ? ' ' + f.dr + '무' : ''}</span>`;
     }
     /* ── 티켓 판매 현황 ──
        깃허브 액션(auto/scripts/ticket-watch.js)이 주기적으로 예매 페이지를 확인해
        ticket_snapshots 테이블에 기록하면, 이 페이지가 그 기록을 읽어서 보여준다.
        TICKET_EVENT_KEY는 깃허브 저장소 Variables의 EVENT_KEY 값과 반드시 동일해야 함. */
     const TICKET_EVENT_KEY = 'bc_2026_0726'; // ★ 실제 행사에 맞게 필요 시 수정 (깃허브 EVENT_KEY와 동일해야 함)
-    // 자동 추출이 실패한 항목의 대체값. 이전에는 UI 확인용으로 뮤지컬 〈엘리자벳〉 정보가
-    // 들어 있었지만, 다른 행사(로드FC 등)에 엘리자벳 정보가 잘못 표시되는 문제가 있어 전부 비웠다 —
-    // 이제 자동 추출(또는 북마클릿 기록)에 값이 있는 항목만 화면에 표시된다.
+    // 아래 값들은 이제 "기본값(fallback)"이다 — 깃허브 액션이 예매 페이지에서 제목/장소/기간/
+    // 오픈안내를 자동으로 읽어와 기록하면(스냅샷의 meta) 그 값을 우선 사용하고, 못 읽어온
+    // 항목만 여기 값으로 대신 채운다. buyUrl은 자동 추출 대상이 아니라 항상 이 값을 쓴다.
+    // ※ 실제 블랙컴뱃 티켓이 오픈되기 전까지, UI 확인/개선 작업용으로 실제 판매 중인
+    //   뮤지컬 〈엘리자벳〉 정보를 임시로 넣어둔 상태입니다. 블랙컴뱃 티켓 오픈 일정이
+    //   정해지면 이 값들을 실제 블랙컴뱃 정보로 되돌려야 합니다.
     const TICKET_INFO = {
-      title: null,
-      eventDateText: null,
-      place: null,
-      openText: null,
-      buyUrl: null
+      title: '뮤지컬 〈엘리자벳〉',
+      eventDateText: '2026.08.16(일) 7:00 PM',
+      place: '블루스퀘어 우리은행홀',
+      openText: '3차 8월 20일(목) 오전 11시',
+      buyUrl: 'https://nol.yanolja.com/ticket/products/26009314'
     };
     function mergedTicketMeta(rows) {
       // 최신 기록부터 훑으면서 필드별로 값이 있는 걸 채운다(과거 기록에만 남아있을 수도 있음).
       const m = {};
       for (const r of rows) {
         if (!r.meta) continue;
-        // 제목은 자동 기록(상품 페이지에서 추출)만 신뢰한다. 북마클릿 캡처(meta에
-        // layoutType이 있음)는 좌석맵 화면에서 실행되는데, 그 화면 상단 텍스트가
-        // "마이페이지" 같은 메뉴 문구라 제목이 엉터리로 잡히는 경우가 있기 때문.
-        if (m.title == null && r.meta.title && !r.meta.layoutType) m.title = r.meta.title;
+        if (m.title == null && r.meta.title) m.title = r.meta.title;
         if (m.dateText == null && r.meta.dateText) m.dateText = r.meta.dateText;
         if (m.place == null && r.meta.place) m.place = r.meta.place;
         if (m.openText == null && r.meta.openText) m.openText = r.meta.openText;
-        if (m.buyUrl == null && r.meta.buyUrl) m.buyUrl = r.meta.buyUrl;
       }
       return {
         title: m.title || TICKET_INFO.title,
         eventDateText: m.dateText || TICKET_INFO.eventDateText,
         place: m.place || TICKET_INFO.place,
         openText: m.openText || TICKET_INFO.openText,
-        buyUrl: m.buyUrl || TICKET_INFO.buyUrl
+        buyUrl: TICKET_INFO.buyUrl
       };
     }
     async function fetchTicketSnapshots(eventKey) {
@@ -6902,19 +6786,6 @@
     function fmtSnapTime(d) {
       return new Date(d).toLocaleString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false });
     }
-    /* "전체 좌석" 숫자 줄("총 N석 중 N석 판매 (N%) · 잔여 N석")이 좁은 모바일 화면에서
-       두 줄로 꺾이지 않게, 칸을 넘치면 글자 크기를 조금씩 줄여 한 줄에 맞춘다. */
-    function tkFitTotalLine() {
-      const el = document.querySelector('.tk-total-num');
-      if (!el) return;
-      el.style.fontSize = '';
-      let size = parseFloat(getComputedStyle(el).fontSize) || 17;
-      let guard = 24; // 무한 루프 방지용 안전장치
-      while (el.scrollWidth > el.clientWidth && size > 11 && guard-- > 0) {
-        size -= 0.5;
-        el.style.fontSize = size + 'px';
-      }
-    }
     // 등급은 매번 데이터에 저장된 순서(뒤죽박죽일 수 있음)가 아니라, 항상 비싼 등급 순으로
     // 고정해서 보여준다. 목록에 없는 새 등급명이 나오면 뒤쪽에 가나다순으로 붙는다.
     const GRADE_ORDER = ['VIP', 'R', 'S', 'A', 'B', 'C'];
@@ -6930,7 +6801,7 @@
     function gradeRowsHTML(grades, totals) {
       const keys = sortGradeKeys(Object.keys(grades || {}));
       if (!keys.length) return '<div class="empty" style="padding:8px 0">등급별 정보 없음</div>';
-      // 위쪽 "전체 좌석"과 표현을 통일: 항상 "남은 좌석 수"와 "판매율"을 같이 보여준다
+      // 위쪽 "전체 판매 현황"과 표현을 통일: 항상 "남은 좌석 수"와 "판매율"을 같이 보여준다
       // (총원을 몰라서 판매율을 계산 못 할 때만 "총원 미집계"로 대체).
       return keys.map(k => {
         const remain = grades[k] && grades[k].remain;
@@ -6981,10 +6852,10 @@
         .map(r => ({ t: r.captured_at, pct: computeRowSoldPct(r, roundOverall) }))
         .filter(p => p.pct != null);
       if (points.length < 2) return '';
-      // 기록이 많이 쌓이면 점이 수십~수백 개가 되어 (특히 모바일에서) 겹쳐버리므로,
-      // 그래프는 최대 10개 지점으로 고르게 솎아내서 그린다. 맨 처음과 맨 끝 지점은
+      // 기록이 아주 많이 쌓이면(5~10분마다 며칠씩) 점이 수백 개가 되어 겹쳐버리므로,
+      // 그래프는 최대 60개 지점으로 고르게 솎아내서 그린다. 맨 처음과 맨 끝 지점은
       // 항상 포함되고, 전체적인 추세 모양은 그대로 유지된다.
-      const MAX_POINTS = 10;
+      const MAX_POINTS = 60;
       if (points.length > MAX_POINTS) {
         const sampled = [];
         for (let i = 0; i < MAX_POINTS; i++) {
@@ -7094,14 +6965,6 @@
       }
       return Object.keys(remainByGrade).length ? remainByGrade : null;
     }
-    /* 예상 매출 접기/펼치기 (당첨 선물 배너의 "지급 방식 예시 보기"와 같은 방식) */
-    function toggleTkRevenue(btn) {
-      const box = btn.parentElement.querySelector('.tk-rev-body');
-      if (!box) return;
-      const open = box.style.display !== 'none';
-      box.style.display = open ? 'none' : '';
-      btn.textContent = open ? '💰 예상 매출 보기 ▾' : '💰 예상 매출 접기 ▴';
-    }
     /* 수동 갱신 — 5분 자동 스케줄을 기다리지 않고, 예매 사이트의 잔여석을 즉석 조회해
        화면만 갱신한다. (기록으로 저장되지는 않는다 — 히스토리는 자동 기록이 계속 담당) */
     async function tkManualRefresh(btn) {
@@ -7120,14 +6983,14 @@
           remEl.textContent = remain === 0 ? '매진' : remain.toLocaleString() + '석 남음';
           remEl.classList.toggle('sold-out', remain === 0);
         });
-        // 전체 좌석 카드 갱신 (총원을 아는 경우에만)
+        // 전체 판매 현황 카드 갱신 (총원을 아는 경우에만)
         const sumRemain = Object.values(remainByGrade).reduce((s, v) => s + (v || 0), 0);
         if (tkLive.overallTotal) {
           const sold = tkLive.overallTotal - sumRemain;
           const pct = (sold / tkLive.overallTotal * 100).toFixed(1);
           const numEl = document.querySelector('.tk-total-num');
           const barEl = document.querySelector('.tk-total-bar i');
-          if (numEl) { numEl.textContent = `총 ${tkLive.overallTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%) · 잔여 ${sumRemain.toLocaleString()}석`; tkFitTotalLine(); }
+          if (numEl) numEl.textContent = `총 ${tkLive.overallTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%)`;
           if (barEl) barEl.style.width = Math.min(100, Math.max(0, pct)) + '%';
         }
         const upEl = document.getElementById('tk-updated');
@@ -7209,21 +7072,11 @@
         if (pv) pv.innerHTML = esc(tkLive.shareText).replace(/\n/g, '<br>');
       }).catch(() => { });
     }
-    // 지금까지 기록된 모든 티켓(경기)의 목록 — "지난 티켓" 섹션용.
-    // 패치를 아직 안 돌렸거나 실패하면 빈 목록(섹션 숨김)으로 조용히 대체된다.
-    async function fetchTicketEvents() {
-      try {
-        const { data, error } = await sb.rpc('get_ticket_events');
-        if (error) return [];
-        return data || [];
-      } catch (e) { return []; }
-    }
-    function fmtSnapDate(d) {
-      return new Date(d).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
-    }
     async function viewTickets(previewKey) {
       // 모든 방문자에게 공개된 페이지다.
-      // #/tickets/아무키 로 들어오면 그 키로 기록된 데이터(지난 티켓/테스트)를 볼 수 있다.
+      // #/tickets/아무키 로 들어오면, 실제 행사 데이터 대신 그 키로 기록된 테스트 데이터를 미리 볼 수 있다.
+      // (자동 기록 스크립트를 실제 행사와 무관한 테스트용 event_key로 한 번 돌려보고, 화면에 잘 나오는지
+      // 확인할 때 쓰는 용도 — 실제 판매 현황 데이터는 전혀 건드리지 않는다.)
       const isPreview = !!previewKey;
       loading();
       // "지금 추적 중인 event_key"를 Supabase에서 물어본다 — 새 경기를 추적하기 시작할 때
@@ -7233,70 +7086,24 @@
       const eventKey = previewKey || (await fetchCurrentTicketEventKey()) || TICKET_EVENT_KEY;
       let rows; try { rows = await fetchTicketSnapshots(eventKey); } catch (e) { return fail(e); }
 
-      // 경기 "기간"이 지난 티켓은 새 티켓 등록을 기다리지 않고 자동으로 "지난 티켓"으로
-      // 내려보낸다. 예) 기간이 2026.07.26(하루짜리 경기)이면 7/27 00:00부터,
-      // "2026.08.16 ~ 2026.11.15" 같은 기간형이면 마지막 날짜 다음날 00:00부터.
-      // 기간을 자동 인식하지 못한 티켓은 안전망으로 "마지막 기록이 1시간 넘게 멈춤"을 종료로 본다.
-      const metaDateText = ((rows.find(r => r.meta && r.meta.dateText) || {}).meta || {}).dateText || '';
-      let periodEnd = null;
-      [...String(metaDateText).matchAll(/(\d{4})[.\-\/]\s*(\d{1,2})[.\-\/]\s*(\d{1,2})/g)].forEach(dm => {
-        const d = new Date(+dm[1], +dm[2] - 1, +dm[3]);
-        if (!periodEnd || d > periodEnd) periodEnd = d;
-      });
-      const TK_STALE_MS = 60 * 60 * 1000;
-      const trackingEnded = !isPreview && rows.length > 0 && (
-        periodEnd
-          ? (Date.now() >= periodEnd.getTime() + 86400000)
-          : (Date.now() - new Date(rows[0].captured_at).getTime() > TK_STALE_MS));
-
-      // 지난 티켓 목록 — 현재 화면(메인)에서만 보여준다. 추적이 종료된 상태면
-      // 지금까지 보던 티켓도 이 목록에 포함시킨다.
-      let pastHTML = '';
-      if (!isPreview) {
-        const events = await fetchTicketEvents();
-        const past = events.filter(e => trackingEnded || e.event_key !== eventKey);
-        if (past.length) {
-          pastHTML = `
-      <div class="sec-title" style="margin-top:24px">🏁 지난 티켓 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최신순 · 총 ${past.length}개</span></div>
-      ${past.map(e => `
-      <a class="card tk-past" href="#/tickets/${encodeURIComponent(e.event_key)}" style="display:block;padding:13px 16px;text-decoration:none;color:inherit">
-        <div style="font-weight:800;font-size:14.5px">${esc(e.title || e.event_key)}</div>
-        <div class="sub" style="margin-top:3px">📅 ${fmtSnapDate(e.first_at)} ~ ${fmtSnapDate(e.last_at)} · 기록 ${Number(e.snap_count).toLocaleString()}건</div>
-      </a>`).join('')}`;
-        }
-      }
-
-      if (trackingEnded) {
-        $app.innerHTML = `
-      <h1 class="page">티켓 판매 현황</h1>
-      <div class="empty" style="margin-top:14px">지금 판매 추적 중인 티켓이 없습니다.<br>새 경기 티켓 추적이 시작되면 자동으로 여기에 표시됩니다.</div>
-      ${pastHTML}`;
-        return;
-      }
-
       const meta = mergedTicketMeta(rows);
       const previewBanner = isPreview
-        ? `<div class="badge wait" style="margin-top:10px">🏁 지난 티켓 기록 보기 — ${esc(eventKey)}</div>
-       <div style="margin-top:8px"><a class="btn small" href="#/tickets">← 현재 티켓으로 돌아가기</a></div>`
+        ? `<div class="badge wait" style="margin-top:10px">🧪 테스트 미리보기 — event_key: ${esc(eventKey)} (실제 판매 현황이 아닙니다)</div>`
         : '';
-      const dpParts = [];
-      if (meta.eventDateText) dpParts.push('📅 ' + esc(meta.eventDateText));
-      if (meta.place) dpParts.push('📍 ' + esc(meta.place));
       const infoCard = `
     <div class="card" style="padding:14px 16px">
-      <div style="font-weight:800;font-size:15.5px">${esc(meta.title || '행사 정보 수집 중...')}</div>
-      ${dpParts.length ? `<div class="sub" style="margin-top:4px">${dpParts.join(' · ')}</div>` : ''}
-      ${meta.openText ? `<div class="sub" style="margin-top:2px">🎟️ 티켓 오픈: ${esc(meta.openText)}</div>` : ''}
+      <div style="font-weight:800;font-size:15.5px">${esc(meta.title)}</div>
+      <div class="sub" style="margin-top:4px">📅 ${esc(meta.eventDateText)} · 📍 ${esc(meta.place)}</div>
+      <div class="sub" style="margin-top:2px">🎟️ 티켓 오픈: ${esc(meta.openText)}</div>
       ${previewBanner}
-      ${isPreview || !meta.buyUrl ? '' : `<a class="btn primary small" style="margin-top:10px" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">예매하러 가기</a>`}
+      <a class="btn primary small" style="margin-top:10px" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">예매하러 가기</a>
     </div>`;
 
       if (!rows.length) {
         $app.innerHTML = `
       <h1 class="page">티켓 판매 현황</h1>
       ${infoCard}
-      <div class="empty" style="margin-top:14px">아직 판매 현황 기록이 없습니다.<br>티켓이 오픈되면${meta.openText ? `(${esc(meta.openText)})` : ''} 자동으로 여기에 표시됩니다.</div>
-      ${pastHTML}`;
+      <div class="empty" style="margin-top:14px">아직 판매 현황 기록이 없습니다.<br>티켓이 오픈되면(${esc(meta.openText)}) 자동으로 여기에 표시됩니다.</div>`;
         return;
       }
 
@@ -7318,17 +7125,6 @@
         if (!overallByRound.has(key) && r.meta && r.meta.overallTotal != null) overallByRound.set(key, r.meta.overallTotal);
       });
 
-      // 등급별 총원(totals)과 등급별 가격(meta.gradePrices)도 같은 방식으로 이어서 쓴다.
-      // 이 값들은 북마클릿 캡처에만 담기고 자동 기록에는 없으므로, 최신 자동 기록을
-      // 보여줄 때도 과거 캡처에서 알아낸 총원/가격을 계속 활용해야 판매율/매출이 유지된다.
-      const totalsByRound = new Map();
-      const pricesByRound = new Map();
-      rows.forEach(r => {
-        const key = r.round_label || '__default__';
-        if (!totalsByRound.has(key) && r.totals && Object.keys(r.totals).length) totalsByRound.set(key, r.totals);
-        if (!pricesByRound.has(key) && r.meta && r.meta.gradePrices && Object.keys(r.meta.gradePrices).length) pricesByRound.set(key, r.meta.gradePrices);
-      });
-
       // 전체(모든 회차 합산) 판매 현황.
       // meta.overallTotal(북마클릿으로 실제 좌석맵을 세어 얻은 정확한 총원)이 있으면 그걸 우선 사용하고,
       // 없는 회차는 기존처럼 등급별 총원(totals) 추정치를 합산한다.
@@ -7347,17 +7143,17 @@
           if (total != null && remain != null) { sumTotal += total; sumRemainForTotal += remain; hasTotal = true; }
         });
       });
-      // "전체 좌석"도 "잔여 좌석"과 동일하게 카드 밖 섹션 제목으로 배치하고,
+      // "전체 판매 현황"도 "잔여 좌석"과 동일하게 카드 밖 섹션 제목으로 배치하고,
       // 자동 갱신 시각 배지를 제목 줄 우측에 표시한다.
       const totalTitleHTML = `
-      <div class="sec-title" style="justify-content:space-between">전체 좌석
+      <div class="sec-title" style="justify-content:space-between">전체 판매 현황
         <span id="tk-updated" class="tk-updated-badge">🔄 자동 갱신 ${fmtSnapTime(newestAt)}</span></div>`;
       const totalBarHTML = totalTitleHTML + ((hasTotal && sumTotal > 0) ? (() => {
         const sold = sumTotal - sumRemainForTotal;
         const pct = (sold / sumTotal * 100).toFixed(1);
         return `
       <div class="card tk-total-card">
-        <div class="tk-total-num">총 ${sumTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%) · 잔여 ${sumRemainForTotal.toLocaleString()}석</div>
+        <div class="tk-total-num">총 ${sumTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%)</div>
         <div class="tk-bar tk-total-bar"><i style="width:${Math.min(100, Math.max(0, pct))}%"></i></div>
       </div>`;
       })() : `
@@ -7371,40 +7167,10 @@
       const currentHTML = latestRows.map(r => {
         const roundKey = r.round_label || '__default__';
         const roundRows = rows.filter(x => (x.round_label || '__default__') === roundKey);
-        // 최신 기록에 totals가 없으면(자동 기록) 같은 회차의 캡처에서 알아낸 총원을 대신 사용
-        const gradeTotals = (r.totals && Object.keys(r.totals).length) ? r.totals : (totalsByRound.get(roundKey) || null);
-        // 예상 매출: 등급별 (총원 - 잔여) × 정가. 총원과 가격을 모두 아는 등급만 합산한다.
-        const gradePrices = pricesByRound.get(roundKey) || null;
-        let revenueHTML = '';
-        if (gradeTotals && gradePrices) {
-          let revSum = 0; const revRows = []; let skipped = false;
-          sortGradeKeys(Object.keys(gradeTotals)).forEach(k => {
-            const total = gradeTotals[k];
-            const remain = r.grades && r.grades[k] ? r.grades[k].remain : null;
-            const price = gradePrices[k];
-            if (total == null || remain == null || price == null) { skipped = true; return; }
-            const sold = Math.max(0, total - remain);
-            const amt = sold * price;
-            revSum += amt;
-            revRows.push(`<div class="tk-rev-row"><span>${esc(k)}석 ${sold.toLocaleString()}석 × ${price.toLocaleString()}원</span><span>${amt.toLocaleString()}원</span></div>`);
-          });
-          if (revRows.length) {
-            revenueHTML = `
-        <div class="tk-rev">
-          <button type="button" class="btn xs" onclick="toggleTkRevenue(this)">💰 예상 매출 보기 ▾</button>
-          <div class="tk-rev-body" style="display:none">
-            <div class="tk-rev-top"><span>💰 예상 매출</span><span class="tk-rev-sum">${revSum.toLocaleString()}원</span></div>
-            ${revRows.join('')}
-            <div class="tk-rev-note">※ 초대권·이벤트 티켓은 구분되지 않으므로, 좌석 등급별 정가 × 판매 수량 기준으로 계산한 추정 매출입니다.${skipped ? ' (총원/가격 정보가 없는 등급은 제외)' : ''}</div>
-          </div>
-        </div>`;
-          }
-        }
         return `
       <div class="card tk-card">
         ${showRoundLabel && r.round_label ? `<div class="tk-round">${esc(r.round_label)}</div>` : ''}
-        ${gradeRowsHTML(r.grades, gradeTotals)}
-        ${revenueHTML}
+        ${gradeRowsHTML(r.grades, r.totals)}
         ${trendChartHTML(roundRows)}
       </div>`;
       }).join('');
@@ -7455,38 +7221,9 @@
       ${currentHTML}
       <div class="sec-title">판매 히스토리 <span style="color:var(--dim);font-size:12.5px;font-weight:700">전체 ${rows.length.toLocaleString()}건</span></div>
       <div class="card tk-hist-scroll" style="padding:0">${histHTML}</div>
-      <div class="note">이 페이지는 예매 사이트 화면을 주기적으로 자동 확인해 기록한 값으로, 실제 판매 시점과 몇 분 정도 오차가 있을 수 있습니다.</div>
-      ${pastHTML}`;
-      tkFitTotalLine();
+      <div class="note">이 페이지는 예매 사이트 화면을 주기적으로 자동 확인해 기록한 값으로, 실제 판매 시점과 몇 분 정도 오차가 있을 수 있습니다.</div>`;
     }
 
-    /* ── 선수 정보 보관함 저장 ── 랭킹 갱신은 공식 랭킹 페이지 기준으로 목록을 통째로
-       교체하므로, 직접 추가했던 선수(긴급 투입 등)는 랭킹 페이지에서 사라진다 — 이건 정상.
-       다만 승부예측 카드에서는 그 선수의 국적/전적이 계속 보여야 하므로, 선수를 추가하거나
-       대진에 등록할 때마다 "그 시점에 알던 선수 정보"를 별도 보관함에 저장해 두고,
-       랭킹에 없는 선수는 카드에서 보관함 정보로 대신 표시한다(fmeta의 fallback). */
-    async function saveFighterArchive(entries) {
-      if (!entries || !Object.keys(entries).length || !adminPass()) return;
-      try {
-        let cur = {};
-        try {
-          const { data } = await sb.from('site_data').select('value').eq('key', 'fighter_archive').single();
-          if (data && data.value && typeof data.value === 'object') cur = data.value;
-        } catch (e) { }
-        Object.assign(cur, entries);
-        const { error } = await sb.rpc('admin_save_data', { p_pass: adminPass(), p_key: 'fighter_archive', p_value: cur });
-        if (!error) FIGHTER_ARCHIVE = cur;
-      } catch (e) { /* 보관함 저장 실패는 치명적이지 않으므로 조용히 넘어간다 */ }
-    }
-    function archiveFightersByName(names) {
-      const entries = {};
-      (names || []).forEach(n => {
-        const k = String(n).trim().toLowerCase();
-        const f = FIGHTER_MAP[k];
-        if (f) entries[k] = { nick: f.nick, real: f.real, w: f.w, l: f.l, dr: f.dr, flag: f.flag, div: f.div };
-      });
-      return saveFighterArchive(entries);
-    }
     /* ── 선수 랭킹 자동 갱신 (관리자) ── */
     async function refreshFighters(btn) {
       btn.disabled = true; btn.textContent = '갱신 중...';
@@ -7512,9 +7249,6 @@
           if (/function|not find/i.test(error.message || '')) throw new Error('랭킹갱신_패치.sql을 먼저 실행해 주세요.');
           throw new Error(cleanErr(error.message));
         }
-        // 교체 전에, 지금 알고 있는 모든 선수 정보를 보관함에 남긴다 — 공식 랭킹에서 빠지는
-        // 선수(직접 추가한 긴급 투입 선수 등)의 국적/전적을 승부예측 카드에서 계속 쓰기 위함.
-        await archiveFightersByName(Object.keys(FIGHTER_MAP));
         FIGHTERS = parsed; fightersUpdatedAt = new Date().toISOString();
         buildFighterMap(); seasonCache = null;
         toastMsg(`✅ 선수 랭킹이 갱신되었습니다. (${parsed.length}개 체급 · ${total}명)`);
@@ -7575,9 +7309,6 @@
       }
       fightersUpdatedAt = new Date().toISOString();
       buildFighterMap(); seasonCache = null;
-      // 방금 추가한 선수를 보관함에도 저장 — 나중에 랭킹 갱신으로 목록에서 빠져도
-      // 승부예측 카드의 국적/전적 표시는 유지된다.
-      await saveFighterArchive({ [nick.toLowerCase()]: { nick, real, w, l, dr, flag, div: divSel } });
       toastMsg(`✅ ${nick} 선수가 ${divSel}에 추가되었습니다.`);
       viewFighters();
     }
@@ -7593,14 +7324,10 @@
       }
       const DIVS = ['플라이급', '벤텀급', '페더급', '라이트급', '웰터급', '미들급', '헤비급', '언더그라운드', '여성부'];
       const recRe = /^(\d{1,3})\s*\/\s*(\d{1,3})\s*\/\s*(\d{1,3})$/;
-      // 국기 결정: 현재 알고 있는 국기 → 이름 기록(BASE_FLAGS) → 실명 기록(BASE_REALS) 순.
-      // 실명 기록 덕분에 공식 페이지에서 표기 이름이 바뀌어도(예: "Lion King" → "라이언킹")
-      // 실명(Chuka Willis)이 같으면 국기가 한국(kr)으로 초기화되지 않고 그대로 이어진다.
-      const flagOf = (n, real) => {
+      const flagOf = n => {
         const k = String(n).trim().toLowerCase();
         const cur = (FIGHTER_MAP[k] || {}).flag;
-        if (cur && cur !== 'kr') return cur;
-        return BASE_FLAGS[k] || (real && BASE_REALS[String(real).trim().toLowerCase()]) || cur || 'kr';
+        return (cur && cur !== 'kr') ? cur : (BASE_FLAGS[k] || cur || 'kr');
       };
       const out = [];
       let cur = null, pend = [], pendRank = null, pendBadge = '', pendMove = 0;
@@ -7623,7 +7350,7 @@
           if (pend.length) {
             const nick = pend[0], real = pend[1] || '';
             const rank = pendRank != null ? pendRank : 'C';
-            cur.list.push([rank, nick, real, +m[1], +m[2], +m[3], flagOf(nick, real), pendBadge, pendMove]);
+            cur.list.push([rank, nick, real, +m[1], +m[2], +m[3], flagOf(nick), pendBadge, pendMove]);
           }
           pend = []; pendRank = null; pendBadge = ''; pendMove = 0; continue;
         }
@@ -7694,9 +7421,9 @@
     }
     /* ── 선수 랭킹 페이지 ── */
     const frow = f => f[1] === '공석'
-      ? `<div class="frow"><span class="frk c">👑</span><span class="fnm" style="color:var(--dim)">공석</span></div>`
+      ? `<div class="frow"><span class="frk c">C</span><span class="fnm" style="color:var(--dim)">공석</span></div>`
       : `<div class="frow" style="cursor:pointer" onclick="openFighterStats('${f[1].replace(/'/g, "\\'")}')" title="${esc(f[2])} · ${f[3]}승 ${f[4]}패${f[5] ? ' ' + f[5] + '무' : ''} · 누르면 우리 방 승부예측 기록이 보입니다">
-  <span class="frk ${f[0] === 'C' ? 'c' : ''}">${f[0] === 'C' ? '👑' : f[0]}</span>
+  <span class="frk ${f[0] === 'C' ? 'c' : ''}">${f[0] === 'C' ? 'C' : f[0]}</span>
   ${flagImg(f[6])}<b class="fnm">${esc(f[1])}${f[7] ? ` <span class="fbadge ${f[7] === 'HOT' ? 'hot' : 'new'}">${f[7] === 'HOT' ? '🔥HOT' : 'NEW'}</span>` : ''}${f[8] ? ` <span class="fmove ${f[8] > 0 ? 'up' : 'down'}">${f[8] > 0 ? '▲' + f[8] : '▼' + (-f[8])}</span>` : ''}</b>
   <span class="frec">${f[3]}-${f[4]}${f[5] ? '-' + f[5] : ''}</span>
 </div>`;
@@ -7755,26 +7482,33 @@
       let html = `
     <h1 class="page">${esc(t.title)} ${stateBadge(t)}</h1>
     <div class="sub">
-      ${(t.event_at || t.event_date) ? `📅 경기일 ${fmtEventDT(t)} &nbsp;·&nbsp; ` : ''}
+      ${t.event_date ? `📅 경기일 ${fmtDate(t.event_date)} &nbsp;·&nbsp; ` : ''}
       🚫 ${fmtDT(t.deadline)} 마감
       ${cd ? ` &nbsp;·&nbsp; ${cdHTML(t.deadline)}` : ''}
       &nbsp;·&nbsp; 👥 ${parts.length}명 참여
+      &nbsp;·&nbsp; <button style="color:var(--muted);font-size:inherit;font-weight:inherit;font-family:inherit;padding:0;vertical-align:baseline" onclick="copyLink()">🔗 링크복사</button>
     </div>`;
 
-      // 선물에는 등수 이름표(1등 선물/2등 선물)를 붙이지 않는다 — 밀어내기 방식에서는 1등이
-      // 두 번째 선물을 받을 수도 있어서, 등수를 붙이면 오히려 오해를 만든다. 좋은 순서대로
-      // 나열된 선물 목록 + 짧은 규칙 두 줄 + (접혀 있는) 동적 예시로 구성한다.
-      const bannerTiers = giftTiers(t).filter(g => g.desc && (g.max || 0) > 0);
+      const bannerTiers = giftTiers(t).filter(g => g.desc);
       if ((st === 'open' || st === 'wait') && bannerTiers.length) {
-        const totalWinners = bannerTiers.reduce((s, g) => s + g.max, 0);
-        const listLine = bannerTiers.map(g => `<b>${esc(g.desc)} ${g.max}명</b>`).join(' → ');
+        const totalWinners = bannerTiers.reduce((s, g) => s + (g.max || 0), 0);
+        const medal = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : `<b>${r}등</b>`;
+        // 밀어내기(순위 높은 사람부터 좋은 선물 순서) 방식을 예시로 풀어준다 — 선물이 3개 이상일 때만
+        const ex = bannerTiers.length >= 3 ? `
+        <div style="margin-top:8px;font-size:12.5px">💡 예) 공동 1등이 ${bannerTiers[0].max + bannerTiers[1].max + 1}명이라면?<br>
+          · ${bannerTiers[0].max}명 → ${esc(bannerTiers[0].desc)} 🎉<br>
+          · ${bannerTiers[1].max}명 → ${esc(bannerTiers[1].desc)} (2등보다 먼저!)<br>
+          · 1명 → ${esc(bannerTiers[2].desc)} 1순위</div>` : '';
         html += `
     <div class="card gift-banner" style="margin-top:16px">
       <b>🎁 당첨 선물</b> <b style="color:#8a6a12">— 총 ${totalWinners}명</b>
       <div class="note" style="margin-top:6px;color:#57503a">
-        <div style="font-size:13.5px;color:var(--key-deep)">${listLine}</div>
-        <div style="margin-top:6px">많이 맞힌 순서대로 ${totalWinners}명을 뽑아, 앞의 선물부터 차례로 드려요.<br>동점자끼리는 순서를 랜덤 추첨으로 정해요.</div>
-        ${giftExampleHTML(bannerTiers)}
+        ${bannerTiers.map(g => `<div>${medal(g.rank)} <span class="gift-name">${esc(g.desc)}</span> · <b>${g.max}명</b></div>`).join('')}
+        <div style="margin-top:8px"><b>지급 방식</b><br>
+          ① 적중 순위가 높은 사람부터, 좋은 선물부터 차례로 받아갑니다.<br>
+          ② 공동 순위가 남은 자리보다 많으면 → 그 안에서 랜덤 추첨!<br>
+          ③ 추첨에서 아깝게 떨어져도 끝이 아닙니다 → 다음 선물 1순위로 자동 이동!</div>
+        ${ex}
       </div>
     </div>`;
       }
@@ -10730,7 +10464,7 @@
       '시라소니': '덤비는 건 좋은데, 수준부터 맞춰라😑',
       '캡틴 코리아': '햄버거 먹고 와도 너는 잡겠다🍔',
       'Godfather': '내가 만든 판에서 내가 지는 그림은 없어🎩',
-      '킹콩': '뭐노? 내로남불이노?🦍',
+      '킹콩': '하바스 킹콩은 2.0이다🦍',
     };
     // 가위바위보형 3각 상성: 타격은 방어를 이기고, 방어는 태클을 이기고, 태클은 타격을 이긴다.
     const BB_MOVES = [
@@ -12851,7 +12585,7 @@
       const identityBlock = gmMyNick
         ? `<div class="home-login-id" style="margin:0">👤 <b>${esc(gmMyNick)}</b> 님으로 투표합니다</div>
        <div class="note" style="margin-top:8px">💡 마감 전까지 수정 가능합니다. · 게이지를 누르면 <b>투표자 목록</b>이 보입니다.</div>`
-        : `<div class="empty" style="padding:10px 0;color:var(--red)"><b>투표하려면 먼저 닉네임을 등록해 주세요.</b></div>`;
+        : `<div class="empty" style="padding:10px 0;color:var(--red)">투표하려면 먼저 닉네임을 등록해 주세요.</div>`;
       return `
     <div class="sec-title" style="justify-content:space-between">승부 예측 · 실시간 현황
       <button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button>
@@ -12868,13 +12602,13 @@
     function voteCardsHTML(matches, parts) {
       const rows = matches.map(m => `
     <div class="match">
-      <div class="no"><span>${m.seq}경기</span>${matchDivHTML(m)}<span class="match-joined" id="joined-${m.id}">${pickStats(m, parts).tot}명 참여</span></div>
+      <div class="no"><span>${m.seq}경기</span><span class="match-joined" id="joined-${m.id}">${pickStats(m, parts).tot}명 참여</span></div>
       <div class="vs-row">
         <button class="corner red ${voteSel[m.id] === 'A' ? 'sel' : ''}" data-mid="${m.id}" data-side="A" onclick="pick(this)">
-          ${fflagHTML(m.fighter_a)}${esc(m.fighter_a)}${isChampOfDiv(m.fighter_a, m.division) ? ' 👑' : ''}${fmeta(m.fighter_a)}</button>
+          ${esc(m.fighter_a)}${fmeta(m.fighter_a)}</button>
         <div class="vs">VS</div>
         <button class="corner blue ${voteSel[m.id] === 'B' ? 'sel' : ''}" data-mid="${m.id}" data-side="B" onclick="pick(this)">
-          ${fflagHTML(m.fighter_b)}${esc(m.fighter_b)}${isChampOfDiv(m.fighter_b, m.division) ? ' 👑' : ''}${fmeta(m.fighter_b)}</button>
+          ${esc(m.fighter_b)}${fmeta(m.fighter_b)}</button>
       </div>
       <div class="split" id="split-${m.id}" onclick="openMatchVoters('${m.id}')" style="cursor:pointer" title="누가 투표했는지 보기">${splitInner(m, parts, false, true)}</div>
     </div>`).join('');
@@ -12904,6 +12638,7 @@
         const { data, error } = await sb.rpc('submit_picks', { p_tournament: tid, p_nickname: gmMyNick, p_pin: gmMyPin, p_picks: voteSel });
         if (error) return show('err', cleanErr(error.message));
         if (data && data.ok === false) return show('err', data.error);
+        fpTrackAction('submit_vote', { tid, isNew: !!(data && data.is_new) });
         show('ok', data.is_new ? `✅ ${data.nickname}님의 투표가 등록되었습니다!` : `✅ ${data.nickname}님의 투표가 수정되었습니다!`);
         setTimeout(() => viewTournament(tid), 900);
       } finally { btn.disabled = false; }
@@ -12919,7 +12654,7 @@
       const second = ranked.filter(r => r.rank === 2);
       const chip = rankChips(ranked);
       // 선물 수령 기한: 경기일(없으면 마감일) 다음날
-      const baseD = t.event_at ? new Date(t.event_at) : (t.event_date ? new Date(t.event_date + 'T00:00:00') : new Date(t.deadline));
+      const baseD = t.event_date ? new Date(t.event_date + 'T00:00:00') : new Date(t.deadline);
       const nextD = new Date(baseD.getTime() + 86400000);
       const nextStr = nextD.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' });
       const GIFT = 'https://open.kakao.com/o/su9HLAuh';
@@ -12941,15 +12676,11 @@
         ${t.gift_winners ? `
           ${(t.gift_winners.mode === 'waterfall' && Array.isArray(t.gift_winners.tiers)) ? `
           <div style="font-weight:800;font-size:14px">🎲 선물 추첨 결과</div>
-          ${t.gift_winners.tiers.map((g, i) => {
-            // 닉네임 옆에 그 사람의 적중 순위를 괄호로 표시한다 (1~3등은 메달 이모지)
-            const winners = Array.isArray(g.winners) ? g.winners : (g.names || []).map(n => ({ n }));
-            const rankTag = r => r == null ? '' : `(${r <= 3 ? ['🥇', '🥈', '🥉'][r - 1] : r + '등'})`;
-            return `
-            <div style="margin-top:6px"><b style="color:var(--key-deep)">${esc(g.desc || (i + 1) + '순위 선물')} →</b>
-              ${winners.map(w => `<span class="gift-name">${esc(w.n)}${rankTag(w.r)}</span>`).join('') || '-'}
-            </div>`;
-          }).join('')}
+          ${t.gift_winners.tiers.map((g, i) => `
+            <div style="margin-top:6px">${['🥇', '🥈', '🥉'][i] || `<b>${i + 1}.</b>`} <b>${esc(g.desc || (i + 1) + '순위 선물')}</b><br>
+              → ${(g.names || []).map(n => `<span class="gift-name">${esc(n)}</span>`).join('') || '-'}
+              ${g.note ? `<span style="color:#8a6a12;font-size:12px">(${esc(g.note)})</span>` : ''}
+            </div>`).join('')}
           <div style="margin-top:8px"></div>` : `
           ${giftTiers(t).map(g => {
             const winners = giftWinnersFor(t.gift_winners, g.rank);
@@ -13362,6 +13093,38 @@
         }).join('') || '<div class="empty">데이터가 없습니다.</div>'}
       <div class="note" style="margin-top:8px">막대 = 참여 인원 · <span style="color:var(--green)">+N</span> = 처음 참여한 닉네임 수<br><span style="color:var(--red)">+N</span>, <span style="color:var(--blue)">-N</span> = 직전 경기 대비 참여 증감 수</div></div>`;
       } catch (e) { }
+      // 방문/활동 통계 (방문통계_패치.sql 미실행 시 조용히 스킵)
+      let siteStatsHTML = '';
+      try {
+        const { data: stats, error: statsErr } = await sb.rpc('admin_get_site_stats', { p_pass: adminPass(), p_days: 14 });
+        if (!statsErr && stats) {
+          const daily = stats.daily || [];
+          const maxUV = Math.max(1, ...daily.map(d => d.uv || 0));
+          const barsHTML = daily.map(d => `
+        <div style="display:flex;align-items:center;gap:10px;padding:3px 0">
+          <span style="width:60px;font-size:11.5px;color:var(--dim);white-space:nowrap">${esc(String(d.d || '').slice(5))}</span>
+          <span style="flex:1;background:#eef1f6;border-radius:99px;height:12px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round((d.uv || 0) / maxUV * 100)}%;background:var(--key);border-radius:99px"></span></span>
+          <span style="font-size:12px;font-weight:800;white-space:nowrap;width:78px;text-align:right">${d.uv || 0}명 · ${d.pv || 0}뷰</span>
+        </div>`).join('');
+          const topPathsHTML = (stats.topPaths || []).map(p => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(fpPathLabel(p.path))}</span><span style="font-weight:700">${p.cnt}회</span></div>`).join('');
+          const topActionsHTML = (stats.topActions || []).map(a => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(a.action)}</span><span style="font-weight:700">${a.cnt}회</span></div>`).join('');
+          const recentHTML = (stats.recentSessions || []).slice(0, 25).map(s => `<div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid #f0f1f4"><span>${s.nickname === '게스트' ? '👻 게스트' : '👤 ' + esc(s.nickname)}</span><span style="color:var(--dim)">${new Date(s.last_seen).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} · ${s.events}회 활동</span></div>`).join('');
+          siteStatsHTML = `
+    <div class="sec-title">📊 방문 통계 <span style="color:var(--dim);font-size:12px;font-weight:700">관리자만 볼 수 있음</span></div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:800;margin-bottom:8px">오늘 방문자 ${stats.todayUniqueVisitors || 0}명 · 페이지 조회 ${stats.todayPageViews || 0}회</div>
+      <div class="sec-title" style="font-size:12.5px;margin-top:10px">최근 14일 추이</div>
+      ${barsHTML || '<div class="empty">데이터 없음</div>'}
+      <div class="sec-title" style="font-size:12.5px;margin-top:14px">인기 페이지 (최근 7일)</div>
+      ${topPathsHTML || '<div class="empty" style="padding:4px 0">데이터 없음</div>'}
+      <div class="sec-title" style="font-size:12.5px;margin-top:14px">주요 활동 (최근 7일)</div>
+      ${topActionsHTML || '<div class="empty" style="padding:4px 0">데이터 없음</div>'}
+      <div class="sec-title" style="font-size:12.5px;margin-top:14px">오늘 방문자 목록</div>
+      ${recentHTML || '<div class="empty" style="padding:4px 0">오늘 방문자가 없습니다.</div>'}
+      <div class="note" style="margin-top:8px">※ 로그인하지 않은 방문자는 브라우저별 익명 ID로만 구분되며(게스트), 실명·IP는 저장하지 않습니다.</div>
+    </div>`;
+        }
+      } catch (e) { }
       $app.innerHTML = `
     <h1 class="page">🛠️ 관리자
       <button class="btn small ghost" onclick="sessionStorage.removeItem('fp_admin');route()" style="color:#c62828">로그아웃</button></h1>
@@ -13370,9 +13133,9 @@
       <div class="field"><label>대회명</label><input id="c-title" placeholder="예: 블랙컴뱃 넘버링"></div>
       <div class="field"><label>경기 날짜</label><input id="c-date" type="datetime-local"></div>
       <div class="field"><label>투표 마감 시각 (자동 마감)</label><input id="c-deadline" type="datetime-local"></div>
-      <div class="field gift-tiers-wrap"><label>선물 목록 (선택) — 좋은 선물부터 순서대로, 3순위부터는 [+ 선물 추가]로 자유롭게 추가/삭제</label>
+      <div class="field gift-tiers-wrap"><label>등수별 선물 (선택) — 3등 이상은 [+ 등수 추가]로 자유롭게 추가/삭제</label>
         <div class="gift-tiers" id="c-gift-tiers"></div>
-        <button type="button" class="btn small" style="margin-top:8px" onclick="giftTierAdd(this)">+ 선물 추가</button>
+        <button type="button" class="btn small" style="margin-top:8px" onclick="giftTierAdd(this)">+ 등수 추가</button>
       </div>
       <div class="field"><label>랭킹 선수 빠른 입력 (누르면 아래 빈 칸에 자동 입력)</label>
         <select id="fp-div" onchange="renderFighterPick()" style="margin-bottom:4px"></select>
@@ -13388,6 +13151,7 @@
     <div class="sec-title">📋 대회 관리</div>
     ${rows.join('') || '<div class="empty">대회가 없습니다.</div>'}
     ${statsHTML}
+    ${siteStatsHTML}
     <div class="sec-title">유저 관리 <span style="color:var(--dim);font-size:12px;font-weight:700">오픈톡방 유저만 신규 등록 가능</span></div>
     <div class="card" style="max-width:420px">
       <div style="display:flex;gap:8px;align-items:flex-end">
@@ -13396,10 +13160,7 @@
       </div>
       <div class="msg" id="wl-msg"></div>
       <div class="field"><label>닉네임 검색</label><input id="wl-search" placeholder="닉네임 입력" oninput="renderWhitelist()"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px">
-        <div style="font-size:12px;color:var(--muted);font-weight:700" id="wl-count">불러오는 중…</div>
-        <button class="btn xs" id="wl-csv-btn" onclick="downloadWhitelistCSV()">📥 CSV 다운로드</button>
-      </div>
+      <div style="font-size:12px;color:var(--muted);font-weight:700;margin-top:12px" id="wl-count">불러오는 중…</div>
       <div id="wl-list" style="max-height:340px;overflow-y:auto;margin-top:6px"></div>
     </div>
     <div class="sec-title">⚙️ 관리자 비밀번호 변경</div>
@@ -13441,26 +13202,6 @@
         <button class="btn xs" style="color:#c62828" data-nick="${esc(n)}" onclick="removeWhitelistUser(this)">제거</button>
       </span>
     </div><div id="wlgames-${i}" style="display:none;padding:0 2px"></div>`).join('') || '<div class="empty" style="padding:10px 0">일치하는 닉네임이 없습니다.</div>';
-    }
-    /* 유저 관리 목록 CSV 다운로드 — 카톡방 신규 인원과 대조할 때 일일이 스크롤하지 않도록,
-       등록된 전체 닉네임을 CSV 파일(엑셀에서 바로 열림)로 내려받는다. */
-    function downloadWhitelistCSV() {
-      if (!__whitelistCache.length) return toastMsg('⚠️ 아직 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
-      const escCsv = v => /[",\n]/.test(v) ? '"' + String(v).replace(/"/g, '""') + '"' : v;
-      // 맨 앞의 ﻿(BOM)는 엑셀이 한글을 깨지지 않게 읽도록 하는 표식
-      const csv = '\uFEFF' + '닉네임\n' + __whitelistCache.map(escCsv).join('\n') + '\n';
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const d = new Date();
-      const pad = n => String(n).padStart(2, '0');
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `잡담방_유저목록_${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${__whitelistCache.length}명.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      toastMsg(`📥 총 ${__whitelistCache.length}명의 닉네임을 CSV로 내려받았습니다.`);
     }
     async function addWhitelistNick() {
       const inp = document.getElementById('wl-add');
@@ -13636,45 +13377,13 @@
       <button type="button" class="del-x" onclick="${delOnclick}">✕</button>
     </span>`;
     }
-    // 선수 1 · 선수 2 사이의 체급 선택 드롭다운 (선택 안 하면 카드에 체급 표시 없음)
-    // 대진 행 공용 열 구성 — 번호·선수1·체급·선수2·▲▼✕ 가 모바일에서도 한 줄에 들어간다
-    const MROW_COLS = '24px minmax(0,1fr) 56px minmax(0,1fr) auto';
-    /* 관리자 대진 편집 전용 — 체급별 구분 색 (빨·주·노·초·파·남·보 + 계약은 회색).
-       경기가 많을 때 어떤 체급을 골랐는지 한눈에 보이도록, 선택 전 드롭다운 목록과
-       선택 후 박스 배경 양쪽에 칠한다. 승부예측 카드 표시에는 영향이 없다. */
-    const DIV_COLORS = {
-      '플라이': ['#ffcdd2', '#b71c1c'], // 빨
-      '벤텀': ['#ffe0b2', '#e65100'],   // 주
-      '페더': ['#fff59d', '#795b00'],   // 노
-      '라이트': ['#c8e6c9', '#1b5e20'], // 초
-      '웰터': ['#bbdefb', '#0d47a1'],   // 파
-      '미들': ['#c5cae9', '#283593'],   // 남
-      '헤비': ['#e1bee7', '#6a1b9a'],   // 보
-      '계약': ['#e6eaf0', '#525d6b']    // 회색
-    };
-    function mDivColor(sel) {
-      const c = DIV_COLORS[sel.value];
-      sel.style.background = c ? c[0] : '#fff';
-      sel.style.color = c ? c[1] : '';
-      sel.style.borderColor = c ? c[1] + '66' : '';
-      sel.style.fontWeight = c ? '800' : '';
-    }
-    function divSelectHTML(val, orig) {
-      const c = DIV_COLORS[val];
-      const selStyle = c ? ` style="background:${c[0]};color:${c[1]};border-color:${c[1]}66;font-weight:800"` : '';
-      return `<select class="m-div" title="체급" onchange="mDivColor(this)"${orig !== undefined ? ` data-orig="${esc(orig)}"` : ''}${selStyle}>
-      <option value="">체급</option>
-      ${MATCH_DIVISIONS.map(d => { const cc = DIV_COLORS[d] || ['#fff', '']; return `<option value="${d}" style="background:${cc[0]};color:${cc[1]};font-weight:800"${val === d ? ' selected' : ''}>${d}</option>`; }).join('')}
-    </select>`;
-    }
-    function addMatchRow(a = '', b = '', division = '') {
+    function addMatchRow(a = '', b = '') {
       const box = document.getElementById('c-matches');
       const div = document.createElement('div');
       div.className = 'mrow';
-      div.style.gridTemplateColumns = MROW_COLS;
+      div.style.gridTemplateColumns = '24px 1fr 1fr auto';
       div.innerHTML = `<span class="mrow-num" style="color:var(--dim);font-size:12px;font-weight:700"></span>
     <input placeholder="선수 1" value="${esc(a)}" list="fighters-dl" onblur="fixFighterInput(this)">
-    ${divSelectHTML(division)}
     <input placeholder="선수 2" value="${esc(b)}" list="fighters-dl" onblur="fixFighterInput(this)">
     ${matchRowActionsHTML("this.closest('.mrow').remove();renumberMrows(document.getElementById('c-matches'))")}`;
       box.appendChild(div);
@@ -13689,8 +13398,7 @@
       const show = (c, s) => { msg.className = 'msg ' + c; msg.textContent = s; };
       const ms = [...document.querySelectorAll('#c-matches .mrow')].map(r => {
         const [a, b] = r.querySelectorAll('input');
-        const dv = r.querySelector('.m-div');
-        return { a: a.value.trim(), b: b.value.trim(), division: dv ? dv.value : '' };
+        return { a: a.value.trim(), b: b.value.trim() };
       }).filter(m => m.a || m.b);
       if (!title) return show('err', '대회명을 입력해 주세요.');
       if (!dl) return show('err', '투표 마감 시각을 입력해 주세요.');
@@ -13712,14 +13420,6 @@
       // 1·2등은 위에서 이미 저장됐으므로 — 3등 이상이 있을 때만 안내한다.
       const { error: tErr } = await sb.rpc('admin_set_gift_tiers', { p_pass: adminPass(), p_tid: data, p_tiers: tiers });
       if (tErr && tiers.length > 2) toastMsg('⚠️ 3등 이상 선물 저장에는 선물_등수확장_패치.sql 실행이 필요합니다.');
-      // 경기 시작 "시간"까지 저장 (경기일 입력값에 시간이 포함돼 있으므로 그대로 보존)
-      if (dateRaw) {
-        const { error: atErr } = await sb.rpc('admin_set_event_at', { p_pass: adminPass(), p_tid: data, p_event_at: new Date(dateRaw).toISOString() });
-        if (atErr && !/function|not find/i.test(atErr.message || '')) toastMsg('⚠️ 경기 시작 시간 저장 실패: ' + cleanErr(atErr.message));
-        else if (atErr && dateRaw.length > 10 && !/T00:00$/.test(dateRaw)) toastMsg('⚠️ 경기 시작 "시간" 저장에는 경기시작시간_패치.sql 실행이 필요합니다.');
-      }
-      // 대진에 등장한 선수들을 보관함에 기록 — 랭킹 갱신 후에도 카드의 국적/전적 유지용
-      await archiveFightersByName(ms.flatMap(m => [m.a, m.b]));
       toastMsg('대회가 개설되었습니다!');
       location.hash = `#/t/${data}`;
     }
@@ -13763,40 +13463,6 @@
         { rank: 2, desc: t.gift2_desc || '', max: t.gift2_max ?? 5 }
       ];
     }
-    /* 당첨 선물 배너의 "지급 방식 예시" — 고정 문장이 아니라, 그 대회에 실제로 설정된
-       선물 이름/개수로 그때그때 자동 계산되는 시나리오다. (1등을 첫 선물 정원보다 1명,
-       2등을 남은 자리보다 많게 잡아서 밀어내기가 눈에 보이는 상황을 만든다)
-       선물이 1개뿐이면 예시가 성립하지 않으므로 버튼 자체를 숨긴다. */
-    function giftExampleHTML(tiers) {
-      if (tiers.length < 2) return '';
-      const [t1, t2, t3] = tiers;
-      const n1 = t1.max + 1;
-      const n2 = t2.max + 2;
-      const slot2Left = t2.max - 1; // 첫 선물에서 1명이 내려와 차지한 뒤 남는 자리
-      const lines = [`· 1등 ${n1}명 → 랜덤으로 ${t1.max}명 ${esc(t1.desc)}, 남은 1명은 ${esc(t2.desc)}`];
-      if (slot2Left <= 0) {
-        lines.push(`· 2등 ${n2}명 → ${t3 ? `모두 ${esc(t3.desc)} 순서로!` : '아쉽지만 다음 기회에…'}`);
-      } else if (t3) {
-        const down2 = n2 - slot2Left;
-        lines.push(`· 2등 ${n2}명 → 랜덤으로 ${slot2Left}명 ${esc(t2.desc)}, 남은 ${down2}명은 ${esc(t3.desc)}`);
-        const left3 = t3.max - down2;
-        if (left3 > 0) lines.push(`· 남은 ${esc(t3.desc)} ${left3}개는 3등 몫!`);
-      } else {
-        lines.push(`· 2등 ${n2}명 → 랜덤으로 ${slot2Left}명 ${esc(t2.desc)} (나머지는 다음 기회에…)`);
-      }
-      return `
-      <button type="button" class="btn xs" style="margin-top:8px" onclick="toggleGiftExample(this)">💡 지급 방식 예시 보기 ▾</button>
-      <div class="gift-example" style="display:none;margin-top:6px;font-size:12.5px">
-        예) 1등 ${n1}명, 2등 ${n2}명이라면?<br>${lines.join('<br>')}
-      </div>`;
-    }
-    function toggleGiftExample(btn) {
-      const box = btn.nextElementSibling;
-      if (!box) return;
-      const open = box.style.display !== 'none';
-      box.style.display = open ? 'none' : '';
-      btn.textContent = open ? '💡 지급 방식 예시 보기 ▾' : '💡 지급 방식 예시 접기 ▴';
-    }
     function giftWinnersFor(gw, rank) {
       if (!gw) return [];
       if (Array.isArray(gw[String(rank)])) return gw[String(rank)];
@@ -13809,7 +13475,7 @@
        중간 등수를 지우면 남은 줄이 자동으로 1,2,3… 순서로 다시 번호가 매겨진다. */
     function giftTierRowHTML(rank, desc, max) {
       return `<div class="gift-tier-row" style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap;font-size:14px;font-weight:700">
-      <span class="gt-rank" style="min-width:44px">${rank}순위</span>
+      <span class="gt-rank" style="min-width:32px">${rank}등</span>
       <input class="gt-desc" value="${esc(desc || '')}" placeholder="선물 내용 (선택)" style="width:150px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:7px 9px">
       최대 <input type="number" class="gt-max" value="${max}" min="0" max="99" style="width:60px;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:7px 8px;text-align:center">명
       ${rank > 2 ? `<button type="button" class="btn xs gt-del" style="color:#c62828" onclick="giftTierRemove(this)">✕</button>` : ''}
@@ -13862,12 +13528,11 @@
       let gi = 0;
       return tiers.map(tier => {
         let need = Math.max(0, tier.max || 0);
-        const names = [], winners = [], noteParts = [];
+        const names = [], noteParts = [];
         while (need > 0 && gi < queue.length) {
           const g = queue[gi];
           const taken = g.pool.splice(0, Math.min(need, g.pool.length));
           names.push(...taken); need -= taken.length;
-          winners.push(...taken.map(n => ({ n, r: g.rank }))); // 당첨자별 적중 순위도 함께 저장 (결과 표시용)
           const split = g.pool.length > 0; // 이 그룹이 다음 선물로도 이어짐 → 경계에 걸려 랜덤이 작동한 것
           const baseCount = g.consumedBefore ? (taken.length + g.pool.length) : g.total;
           if (g.consumedBefore && split) noteParts.push(`${g.rank}등에서 내려온 ${baseCount}명 중 랜덤 ${taken.length}명`);
@@ -13876,7 +13541,7 @@
           else noteParts.push(g.total > 1 ? `공동 ${g.rank}등 ${g.total}명` : `${g.rank}등`);
           if (g.pool.length === 0) gi++; else g.consumedBefore = true;
         }
-        return { desc: tier.desc || '', max: tier.max || 0, names, winners, note: noteParts.join(' + ') };
+        return { desc: tier.desc || '', max: tier.max || 0, names, note: noteParts.join(' + ') };
       });
     }
     async function drawGiftsFromResult(tid) {
@@ -13919,11 +13584,11 @@
       if (error) return toastMsg('⚠️ ' + cleanErr(error.message));
       box.innerHTML = `
     <hr class="sep">
-    <div style="font-size:13px;font-weight:700;color:var(--muted)">좋은 선물부터 순서대로 등록하세요 · 많이 맞힌 사람부터 앞 순위 선물을 받아갑니다 (동점자는 랜덤 추첨)</div>
+    <div style="font-size:13px;font-weight:700;color:var(--muted)">등수별 선물 지급 최대 인원 · 공동 인원이 초과되면 그 안에서 랜덤 추첨됩니다</div>
     <div class="gift-tiers-wrap">
       <div class="gift-tiers" id="gtiers-${tid}"></div>
       <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn small" onclick="giftTierAdd(this)">+ 선물 추가</button>
+        <button class="btn small" onclick="giftTierAdd(this)">+ 등수 추가</button>
         <button class="btn small primary" onclick="saveGiftTiers('${tid}')">저장</button>
       </div>
     </div>
@@ -13955,12 +13620,10 @@
     // 임시 상태 역할을 하므로 별도로 안 들고 있어도 된다. [전체 저장]을 누르기 전까지는
     // 서버에 아무 것도 반영되지 않는다.
     let matchEditPending = {};
-    function matchEditRowHTML(mid, aVal, bVal, divVal) {
-      const dv = divVal || '';
-      return `<div class="mrow" data-mid="${mid || ''}" style="grid-template-columns:${MROW_COLS}">
+    function matchEditRowHTML(mid, aVal, bVal) {
+      return `<div class="mrow" data-mid="${mid || ''}" style="grid-template-columns:24px 1fr 1fr auto">
       <span class="mrow-num" style="color:var(--dim);font-size:12px;font-weight:700"></span>
       <input value="${esc(aVal)}" data-orig="${esc(aVal)}" list="fighters-dl" onblur="fixFighterInput(this)">
-      ${divSelectHTML(dv, dv)}
       <input value="${esc(bVal)}" data-orig="${esc(bVal)}" list="fighters-dl" onblur="fixFighterInput(this)">
       ${matchRowActionsHTML(`removePendingMatch('${mid}', this)`)}
     </div>`;
@@ -13973,7 +13636,7 @@
       box.innerHTML = `<hr class="sep">
     <div style="font-size:13px;font-weight:700;color:var(--muted)">선수 이름을 수정하거나 ▲▼로 순서를 바꾸고, ✕로 경기를 지우거나 맨 아래에서 새 경기를 추가한 뒤 <b>맨 아래 [전체 저장]</b>을 눌러야 실제로 반영됩니다 (저장 전까지는 화면에서만 바뀝니다 · 투표 데이터는 유지됩니다)</div>
     <div id="mrows-${tid}">
-    ${(ms || []).map(m => matchEditRowHTML(m.id, m.fighter_a, m.fighter_b, m.division)).join('')}
+    ${(ms || []).map(m => matchEditRowHTML(m.id, m.fighter_a, m.fighter_b)).join('')}
     </div>
     <div class="mrow" style="grid-template-columns:24px 1fr 1fr 82px;margin-top:12px">
       <span style="color:var(--dim);font-size:14px;font-weight:800">+</span>
@@ -13996,7 +13659,7 @@
       const div = document.createElement('div');
       div.innerHTML = matchEditRowHTML('', ck.fixed[0], ck.fixed[1]);
       const row = div.firstElementChild;
-      row.querySelectorAll('input, .m-div').forEach(inp => { inp.dataset.orig = ''; }); // orig가 비어있어야 "새 행"으로 저장 시점에 add 처리됨
+      row.querySelectorAll('input').forEach(inp => { inp.dataset.orig = ''; }); // orig가 비어있어야 "새 행"으로 저장 시점에 add 처리됨
       wrap.appendChild(row);
       renumberMrows(wrap);
       naEl.value = ''; nbEl.value = '';
@@ -14023,16 +13686,11 @@
       const bad = [];
       for (const r of rows) {
         const [a, b] = r.querySelectorAll('input');
-        const dvEl = r.querySelector('.m-div');
         const av = a.value.trim(), bv = b.value.trim();
         if (!av || !bv) return toastMsg('⚠️ 선수 이름이 비어 있는 경기가 있습니다.');
         const ck = validateFighterNames([av, bv]);
         if (!ck.ok) bad.push(...ck.bad);
-        parsed.push({
-          row: r, mid: r.dataset.mid || '', a: ck.fixed[0], b: ck.fixed[1],
-          division: dvEl ? dvEl.value : '',
-          origA: a.dataset.orig, origB: b.dataset.orig, origDiv: dvEl ? (dvEl.dataset.orig || '') : ''
-        });
+        parsed.push({ row: r, mid: r.dataset.mid || '', a: ck.fixed[0], b: ck.fixed[1], origA: a.dataset.orig, origB: b.dataset.orig });
       }
       if (bad.length) return toastMsg(`⚠️ 랭킹에 없는 선수: ${[...new Set(bad)].join(', ')}`);
 
@@ -14045,15 +13703,15 @@
       }
       for (const p of parsed) {
         if (!p.mid) continue;
-        if (p.a !== p.origA || p.b !== p.origB || p.division !== p.origDiv) {
-          const { error } = await sb.rpc('admin_update_match', { p_pass: adminPass(), p_mid: p.mid, p_a: p.a, p_b: p.b, p_division: p.division });
+        if (p.a !== p.origA || p.b !== p.origB) {
+          const { error } = await sb.rpc('admin_update_match', { p_pass: adminPass(), p_mid: p.mid, p_a: p.a, p_b: p.b });
           if (error) return matchErr(error);
           updN++;
         }
       }
       for (const p of parsed) {
         if (p.mid) continue;
-        const { data, error } = await sb.rpc('admin_add_match', { p_pass: adminPass(), p_tid: tid, p_a: p.a, p_b: p.b, p_division: p.division });
+        const { data, error } = await sb.rpc('admin_add_match', { p_pass: adminPass(), p_tid: tid, p_a: p.a, p_b: p.b });
         if (error) return matchErr(error);
         p.mid = data;
         addN++;
@@ -14062,8 +13720,6 @@
       const finalIds = parsed.map(p => p.mid);
       const { error: reorderErr } = await sb.rpc('admin_reorder_matches', { p_pass: adminPass(), p_tid: tid, p_ids: finalIds });
       if (reorderErr) return matchErr(reorderErr);
-      // 저장된 대진에 등장한 선수들을 보관함에 기록 — 랭킹 갱신 후에도 카드의 국적/전적 유지용
-      await archiveFightersByName(parsed.flatMap(p => [p.a, p.b]));
 
       toastMsg(`✅ 저장되었습니다 (추가 ${addN} · 수정 ${updN} · 삭제 ${delN})`);
       matchEditRefresh(tid);
@@ -14076,7 +13732,7 @@
     function matchErr(error) {
       const m = cleanErr(error.message);
       if (/function|찾을 수 없|not find/i.test(error.message || ''))
-        return toastMsg('⚠️ 대진_체급_패치.sql (및 대진관리_패치.sql · 대진순서변경_패치.sql)을 Supabase에서 먼저 실행해 주세요.');
+        return toastMsg('⚠️ 대진관리_패치.sql · 대진순서변경_패치.sql을 Supabase에서 먼저 실행해 주세요.');
       toastMsg('⚠️ ' + m);
     }
     async function openMembers(tid) {
@@ -14150,7 +13806,7 @@
       document.getElementById('c-title').value = d.t.title;
       renderGiftTierRows(document.getElementById('c-gift-tiers'), giftTiers(d.t));
       const cm = document.getElementById('c-matches'); cm.innerHTML = '';
-      d.matches.forEach(m => addMatchRow(m.fighter_a, m.fighter_b, m.division || ''));
+      d.matches.forEach(m => addMatchRow(m.fighter_a, m.fighter_b));
       window.scrollTo({ top: 0, behavior: 'smooth' });
       toastMsg('대진·선물이 복사되었습니다. 날짜와 마감 시각만 설정하세요!');
     }
@@ -14194,7 +13850,7 @@
       box.innerHTML = `<hr class="sep">
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <span style="font-size:13px;font-weight:700;color:var(--muted)">경기 시작일</span>
-      <input type="datetime-local" id="evi-${tid}" value="${t.event_at ? (() => { const e = new Date(t.event_at); return `${e.getFullYear()}-${pad(e.getMonth() + 1)}-${pad(e.getDate())}T${pad(e.getHours())}:${pad(e.getMinutes())}`; })() : (t.event_date ? t.event_date + 'T00:00' : '')}" style="background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:9px 11px;font-size:15px;color:var(--text)">
+      <input type="datetime-local" id="evi-${tid}" value="${t.event_date ? t.event_date + 'T00:00' : ''}" style="background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:9px 11px;font-size:15px;color:var(--text)">
       <span style="font-size:13px;font-weight:700;color:var(--muted)">투표 마감</span>
       <input type="datetime-local" id="dli-${tid}" value="${dlVal}" style="background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:9px 11px;font-size:15px;color:var(--text)">
       <button class="btn primary small" onclick="saveDeadline('${tid}')">저장</button>
@@ -14208,9 +13864,6 @@
         p_pass: adminPass(), p_tid: tid, p_title: null, p_event_date: ev ? ev.slice(0, 10) : null, p_deadline: new Date(v).toISOString()
       });
       if (error) return toastMsg('⚠️ ' + cleanErr(error.message));
-      // 경기 시작 "시간"까지 함께 저장 (비워두면 시간 표시도 지운다)
-      const { error: atErr } = await sb.rpc('admin_set_event_at', { p_pass: adminPass(), p_tid: tid, p_event_at: ev ? new Date(ev).toISOString() : null });
-      if (atErr && ev && ev.length > 10 && !/function|not find/i.test(atErr.message || '')) toastMsg('⚠️ 경기 시작 시간 저장 실패: ' + cleanErr(atErr.message));
       toastMsg('일정이 변경되었습니다.');
       route();
       setTimeout(() => flashEl(document.getElementById('dls-' + tid)), 900);
