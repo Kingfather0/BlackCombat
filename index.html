@@ -961,10 +961,20 @@
     /* 좁은 화면에서 버튼/뱃지 여러 개가 한 줄에 나란히 있을 때, 텍스트가 줄바꿈되어 2줄로
        깨지는 대신 폰트 크기를 자동으로 조금씩 줄여서 항상 한 줄로 보이게 한다.
        (JS의 fitRowOneLine()이 이 클래스를 가진 요소를 찾아서 처리한다) */
+    /* fit-row 자신도, 그 자식들도 flex 기본 최소폭(min-width:auto) 때문에 내용보다 작아지지
+       못하면 화면을 옆으로 뚫고 나가므로, min-width:0으로 축소를 허용해야 자동 폰트 축소
+       로직이 "넘침"을 감지할 수 있다. */
+    .fit-row {
+      min-width: 0;
+      max-width: 100%
+    }
+
     .fit-row > * {
       white-space: nowrap;
       overflow: hidden;
-      text-overflow: ellipsis
+      text-overflow: ellipsis;
+      min-width: 0;
+      flex-shrink: 1
     }
 
     .tk-trend-labels {
@@ -6284,18 +6294,25 @@
        보이게 한다. $app 안에서 화면이 다시 그려질 때마다(MutationObserver) 자동으로 다시
        계산되므로, 어떤 화면이든 .fit-row 클래스만 붙이면 이 처리가 자동 적용된다. */
     function fitRowOneLine(rowEl) {
-      Array.from(rowEl.children).forEach(item => {
-        item.style.fontSize = '';
-        let size = parseFloat(getComputedStyle(item).fontSize);
-        if (!size) return;
-        const minSize = size * 0.72; // 너무 작아지지 않도록 하한선(원래 크기의 72%)
-        let guard = 0;
-        while (item.scrollWidth > item.clientWidth + 1 && size > minSize && guard < 16) {
-          size -= 0.5;
-          item.style.fontSize = size + 'px';
-          guard++;
-        }
-      });
+      const kids = Array.from(rowEl.children);
+      if (!kids.length) return;
+      kids.forEach(k => { k.style.fontSize = ''; });
+      // "줄 전체가 컨테이너를 넘침" 또는 "자식 내부에서 텍스트가 잘림(넘침)" 두 경우 모두
+      // 모든 자식의 폰트를 함께 0.5px씩 줄여가며 한 줄에 들어갈 때까지 반복한다.
+      // (자식별로 따로 줄이면 버튼끼리 글자 크기가 제각각이 되어 오히려 지저분해진다)
+      const overflowing = () =>
+        rowEl.scrollWidth > rowEl.clientWidth + 1 ||
+        kids.some(k => k.scrollWidth > k.clientWidth + 1);
+      let guard = 0;
+      while (overflowing() && guard < 20) {
+        let shrunk = false;
+        kids.forEach(k => {
+          const size = parseFloat(getComputedStyle(k).fontSize);
+          if (size > 9) { k.style.fontSize = (size - 0.5) + 'px'; shrunk = true; } // 9px = 하한선
+        });
+        if (!shrunk) break; // 전부 하한선에 닿았으면 중단 (남는 부분은 말줄임표로 처리됨)
+        guard++;
+      }
     }
     let __fitRowTimer = null;
     function initFitRowObserver() {
@@ -6357,6 +6374,113 @@
       }
       const map = { '': '홈', fighters: '선수단', ranking: '랭킹', game: '미니게임', tickets: '티켓 현황', admin: '관리자', t: '대회 상세', player: '선수 상세' };
       return map[seg[0]] || path;
+    }
+    /* --- 관리자 방문 통계: 기간 선택 + 자동 롤업 ---
+       원본 기록(site_events)은 삭제 없이 영구 보존되고, 여기서는 "보여주는 기간/단위"만 바꾼다.
+       짧은 기간은 일별로, 90일은 주별로, 전체는 월별로 자동으로 묶어서(롤업) 몇 년치가
+       쌓여도 화면 길이가 거의 늘어나지 않는다. 방문자 수는 각 구간의 고유 방문자를 서버에서
+       정확히 다시 세므로(단순 합산 아님) 어떤 단위로 봐도 정확하다. */
+    const FP_STAT_PRESETS = [
+      { label: '14일', days: 14, bucket: 'day', unit: '일별' },
+      { label: '30일', days: 30, bucket: 'day', unit: '일별' },
+      { label: '90일', days: 90, bucket: 'week', unit: '주별' },
+      { label: '전체', days: null, bucket: 'month', unit: '월별' },
+    ];
+    let __fpStatPreset = 0;
+    // 활동 코드(영문) -> 사람이 읽기 좋은 한글 이름. 새 활동 추적을 추가하면 여기에도 이름을 등록한다.
+    const FP_ACTION_LABELS = { submit_vote: '🗳️ 승부 예측 제출' };
+    function fpStatBucketLabel(d, bucket) {
+      if (bucket === 'month') return String(d || '').replace('-', '년 ') + '월';
+      if (bucket === 'week') return String(d || '').slice(5) + '주~';
+      return String(d || '').slice(5);
+    }
+    function fpSiteStatsBodyHTML(stats, preset) {
+      const daily = stats.daily || [];
+      const maxUV = Math.max(1, ...daily.map(d => d.uv || 0));
+      const barsHTML = daily.map(d => `
+        <div style="display:flex;align-items:center;gap:10px;padding:3px 0">
+          <span style="width:60px;font-size:11.5px;color:var(--dim);white-space:nowrap">${esc(fpStatBucketLabel(d.d, preset.bucket))}</span>
+          <span style="flex:1;background:#eef1f6;border-radius:99px;height:12px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round((d.uv || 0) / maxUV * 100)}%;background:var(--key);border-radius:99px"></span></span>
+          <span style="font-size:12px;font-weight:800;white-space:nowrap;width:78px;text-align:right">${d.uv || 0}명 · ${d.pv || 0}뷰</span>
+        </div>`).join('');
+      const periodLabel = preset.days ? `최근 ${preset.days}일` : '전체 기간';
+      const topPathsHTML = (stats.topPaths || []).map(p => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(fpPathLabel(p.path))}</span><span style="font-weight:700">${Number(p.cnt).toLocaleString()}회</span></div>`).join('');
+      const topActionsHTML = (stats.topActions || []).map(a => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(FP_ACTION_LABELS[a.action] || a.action)}</span><span style="font-weight:700">${Number(a.cnt).toLocaleString()}회</span></div>`).join('');
+      // 게스트(닉네임 없는 방문자)는 전부 "게스트"로 뭉뚱그려지면 몇 명인지 구분이 안 되므로,
+      // 실명/식별정보가 아닌 익명 세션ID의 끝 4자리만 짧게 붙여서 서로 구분되게 한다
+      // (예: 게스트 #a3f9). 세션ID 자체는 브라우저에 저장된 무작위 값이라 이것만으로 개인을
+      // 특정할 수 없다.
+      const recentHTML = (stats.recentSessions || []).map(s => {
+        const label = s.nickname === '게스트'
+          ? `👻 게스트 #${esc(String(s.session_id || '').slice(-4) || '?')}`
+          : '👤 ' + esc(s.nickname);
+        return `<div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid #f0f1f4"><span>${label}</span><span style="color:var(--dim)">${new Date(s.last_seen).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} · ${s.events}회 활동</span></div>`;
+      }).join('');
+      return `
+      <div style="font-size:14px;font-weight:800;margin-bottom:8px">오늘 방문자 ${stats.todayUniqueVisitors || 0}명 · 페이지 조회 ${stats.todayPageViews || 0}회</div>
+      <div class="sec-title" style="font-size:12.5px;margin-top:10px">${esc(periodLabel)} 추이 (${esc(preset.unit)})</div>
+      ${barsHTML || '<div class="empty" style="padding:4px 0">데이터 없음</div>'}
+      <div class="sec-title" style="font-size:12.5px;margin-top:14px">인기 페이지 (${esc(periodLabel)})</div>
+      ${topPathsHTML || '<div class="empty" style="padding:4px 0">데이터 없음</div>'}
+      <div class="sec-title" style="font-size:12.5px;margin-top:14px">주요 활동 (${esc(periodLabel)})</div>
+      ${topActionsHTML || '<div class="empty" style="padding:4px 0">데이터 없음</div>'}
+      <div class="sec-title" style="font-size:12.5px;margin-top:14px">오늘 방문자 목록 <span style="color:var(--dim);font-size:11px;font-weight:700">${(stats.recentSessions || []).length}명 · 스크롤</span></div>
+      <div style="max-height:240px;overflow-y:auto;overscroll-behavior:contain">${recentHTML || '<div class="empty" style="padding:4px 0">오늘 방문자가 없습니다.</div>'}</div>
+      <div class="note" style="margin-top:8px">※ 로그인하지 않은 방문자는 브라우저별 익명 ID로만 구분되며(게스트), 실명·IP는 저장하지 않습니다.<br>※ 원본 기록은 기간과 무관하게 계속 쌓입니다 — 여기서는 보여주는 범위만 바뀝니다.</div>`;
+    }
+    async function fpLoadSiteStats(idx) {
+      __fpStatPreset = idx;
+      const body = document.getElementById('site-stats-body');
+      if (!body) return;
+      document.querySelectorAll('.stat-period-btn').forEach((b, i) => b.classList.toggle('primary', i === idx));
+      body.innerHTML = '<div class="empty" style="padding:10px 0">불러오는 중…</div>';
+      const preset = FP_STAT_PRESETS[idx];
+      try {
+        let res = await sb.rpc('admin_get_site_stats', { p_pass: adminPass(), p_days: preset.days, p_bucket: preset.bucket });
+        if (res.error && /function|not find|unique/i.test(res.error.message || '')) {
+          // 기간확장 패치가 아직 안 깔린 경우: 일별 14/30일은 구버전 함수로도 동작한다
+          if (preset.bucket === 'day' && preset.days != null) {
+            res = await sb.rpc('admin_get_site_stats', { p_pass: adminPass(), p_days: preset.days });
+          } else {
+            body.innerHTML = '<div class="empty" style="padding:10px 0">⚠️ 주별/월별 보기는 방문통계_기간확장_패치.sql을 먼저 실행해야 사용할 수 있습니다.</div>';
+            return;
+          }
+        }
+        if (res.error) throw res.error;
+        body.innerHTML = fpSiteStatsBodyHTML(res.data || {}, preset);
+      } catch (e) {
+        body.innerHTML = '<div class="empty" style="padding:10px 0">⚠️ ' + esc(cleanErr(e && e.message)) + '</div>';
+      }
+    }
+    /* 일별 집계 전체 히스토리를 CSV로 다운로드 — 몇 년치가 쌓여도 언제든 엑셀로 보관/분석할 수 있는 백업용 */
+    async function fpDownloadSiteStatsCSV(btn) {
+      if (btn) { btn.disabled = true; btn.textContent = '준비 중…'; }
+      try {
+        let res = await sb.rpc('admin_get_site_stats', { p_pass: adminPass(), p_days: null, p_bucket: 'day' });
+        if (res.error && /function|not find|unique/i.test(res.error.message || '')) {
+          res = await sb.rpc('admin_get_site_stats', { p_pass: adminPass(), p_days: 3650 }); // 구버전 함수 대비 (10년치)
+        }
+        if (res.error) throw res.error;
+        const daily = (res.data && res.data.daily) || [];
+        if (!daily.length) { toastMsg('⚠️ 아직 내려받을 기록이 없습니다.'); return; }
+        const csv = '﻿' + '날짜,방문자수,페이지조회수\n' + daily.map(d => `${d.d},${d.uv || 0},${d.pv || 0}`).join('\n') + '\n';
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const now = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `방문통계_일별전체_${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        toastMsg(`📥 일별 방문 통계 ${daily.length}일치를 CSV로 내려받았습니다.`);
+      } catch (e) {
+        toastMsg('⚠️ ' + cleanErr(e && e.message));
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '📥 CSV'; }
+      }
     }
 
     /* --- 실시간 접속자 수 (Supabase Realtime Presence) — 헤더에 항상 떠 있는 배지, 클릭하면
@@ -13602,45 +13726,24 @@
       <div class="note" style="margin-top:8px">막대 = 참여 인원 · <span style="color:var(--green)">+N</span> = 처음 참여한 닉네임 수<br><span style="color:var(--red)">+N</span>, <span style="color:var(--blue)">-N</span> = 직전 경기 대비 참여 증감 수</div></div>`;
       } catch (e) { }
       // 방문/활동 통계 (방문통계_패치.sql 미실행 시 조용히 스킵)
+      // 실제 내용은 페이지가 그려진 뒤 fpLoadSiteStats()가 채운다 — 기간 버튼을 눌러도
+      // 이 부분만 다시 그려지므로 화면 길이가 항상 일정하게 유지된다.
       let siteStatsHTML = '';
       try {
-        const { data: stats, error: statsErr } = await sb.rpc('admin_get_site_stats', { p_pass: adminPass(), p_days: 14 });
-        if (!statsErr && stats) {
-          const daily = stats.daily || [];
-          const maxUV = Math.max(1, ...daily.map(d => d.uv || 0));
-          const barsHTML = daily.map(d => `
-        <div style="display:flex;align-items:center;gap:10px;padding:3px 0">
-          <span style="width:60px;font-size:11.5px;color:var(--dim);white-space:nowrap">${esc(String(d.d || '').slice(5))}</span>
-          <span style="flex:1;background:#eef1f6;border-radius:99px;height:12px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round((d.uv || 0) / maxUV * 100)}%;background:var(--key);border-radius:99px"></span></span>
-          <span style="font-size:12px;font-weight:800;white-space:nowrap;width:78px;text-align:right">${d.uv || 0}명 · ${d.pv || 0}뷰</span>
-        </div>`).join('');
-          const topPathsHTML = (stats.topPaths || []).map(p => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(fpPathLabel(p.path))}</span><span style="font-weight:700">${p.cnt}회</span></div>`).join('');
-          // 활동 코드(영문) -> 사람이 읽기 좋은 한글 이름. 새 활동 추적을 추가하면 여기에도 이름을 등록한다.
-          const ACTION_LABELS = { submit_vote: '🗳️ 승부 예측 제출' };
-          const topActionsHTML = (stats.topActions || []).map(a => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(ACTION_LABELS[a.action] || a.action)}</span><span style="font-weight:700">${a.cnt}회</span></div>`).join('');
-          // 게스트(닉네임 없는 방문자)는 전부 "게스트"로 뭉뚱그려지면 몇 명인지 구분이 안 되므로,
-          // 실명/식별정보가 아닌 익명 세션ID의 끝 4자리만 짧게 붙여서 서로 구분되게 한다
-          // (예: 게스트 #a3f9). 세션ID 자체는 브라우저에 저장된 무작위 값이라 이것만으로 개인을
-          // 특정할 수 없다.
-          const recentHTML = (stats.recentSessions || []).slice(0, 25).map(s => {
-            const label = s.nickname === '게스트'
-              ? `👻 게스트 #${esc(String(s.session_id || '').slice(-4) || '?')}`
-              : '👤 ' + esc(s.nickname);
-            return `<div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid #f0f1f4"><span>${label}</span><span style="color:var(--dim)">${new Date(s.last_seen).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} · ${s.events}회 활동</span></div>`;
-          }).join('');
+        // 패치 설치 여부만 가볍게 확인 (미설치면 섹션 자체를 숨김 — 기존 동작 유지)
+        const probe = await sb.rpc('admin_get_site_stats', { p_pass: adminPass(), p_days: 1, p_bucket: 'day' })
+          .then(r => r.error && /function|not find|unique/i.test(r.error.message || '')
+            ? sb.rpc('admin_get_site_stats', { p_pass: adminPass(), p_days: 1 })
+            : r);
+        if (!probe.error && probe.data) {
           siteStatsHTML = `
     <div class="sec-title">📊 방문 통계 <span style="color:var(--dim);font-size:12px;font-weight:700">관리자만 볼 수 있음</span></div>
     <div class="card">
-      <div style="font-size:14px;font-weight:800;margin-bottom:8px">오늘 방문자 ${stats.todayUniqueVisitors || 0}명 · 페이지 조회 ${stats.todayPageViews || 0}회</div>
-      <div class="sec-title" style="font-size:12.5px;margin-top:10px">최근 14일 추이</div>
-      ${barsHTML || '<div class="empty">데이터 없음</div>'}
-      <div class="sec-title" style="font-size:12.5px;margin-top:14px">인기 페이지 (최근 7일)</div>
-      ${topPathsHTML || '<div class="empty" style="padding:4px 0">데이터 없음</div>'}
-      <div class="sec-title" style="font-size:12.5px;margin-top:14px">주요 활동 (최근 7일)</div>
-      ${topActionsHTML || '<div class="empty" style="padding:4px 0">데이터 없음</div>'}
-      <div class="sec-title" style="font-size:12.5px;margin-top:14px">오늘 방문자 목록</div>
-      ${recentHTML || '<div class="empty" style="padding:4px 0">오늘 방문자가 없습니다.</div>'}
-      <div class="note" style="margin-top:8px">※ 로그인하지 않은 방문자는 브라우저별 익명 ID로만 구분되며(게스트), 실명·IP는 저장하지 않습니다.</div>
+      <div class="fit-row" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        ${FP_STAT_PRESETS.map((p, i) => `<button class="btn xs stat-period-btn${i === __fpStatPreset ? ' primary' : ''}" onclick="fpLoadSiteStats(${i})">${p.label}</button>`).join('')}
+        <button class="btn xs" style="margin-left:auto" onclick="fpDownloadSiteStatsCSV(this)">📥 CSV</button>
+      </div>
+      <div id="site-stats-body" style="margin-top:8px"><div class="empty" style="padding:10px 0">불러오는 중…</div></div>
     </div>`;
         }
       } catch (e) { }
@@ -13693,6 +13796,7 @@
       for (let i = 0; i < 15; i++) addMatchRow();
       initFighterPick();
       loadWhitelist();
+      if (document.getElementById('site-stats-body')) fpLoadSiteStats(__fpStatPreset);
     }
     /* --- 닉네임 화이트리스트 관리(관리자) --- */
     let __whitelistCache = [];
