@@ -7723,7 +7723,8 @@
         return {
           day: p.day, pct: p.pct, isStart, spanDays,
           prevDay: isStart ? null : dayPoints[i - 1].day,
-          delta: isStart ? p.sold : p.sold - dayPoints[i - 1].sold
+          delta: isStart ? p.sold : p.sold - dayPoints[i - 1].sold,
+          cum: p.sold // 그날까지의 누적 판매 좌석 수
         };
       });
       // 판매 기간이 아주 길어지면 막대가 너무 얇아지므로 최근 30일만 보여준다.
@@ -7739,9 +7740,10 @@
       const tipOf = b => {
         const hasGap = !b.isStart && b.spanDays > 1;
         const deltaText = `${b.delta >= 0 ? '+' : ''}${b.delta.toLocaleString()}석`;
-        if (b.isStart) return `${fmtDayLabel(b.day)} · 추적 시작 시점까지 누적 ${b.delta.toLocaleString()}석 (누적 ${b.pct.toFixed(1)}%)`;
-        if (hasGap) return `⚠️ ${fmtDayLabel(b.prevDay)}~${fmtDayLabel(b.day)} (기록 누락으로 ${b.spanDays}일치 합산) · ${deltaText} ${b.delta < 0 ? '(취소가 더 많음)' : '판매'} (누적 ${b.pct.toFixed(1)}%)`;
-        return `${fmtDayLabel(b.day)} · ${deltaText} ${b.delta < 0 ? '(취소가 더 많음)' : '판매'} (누적 ${b.pct.toFixed(1)}%)`;
+        const cumText = `(누적 ${b.cum.toLocaleString()}석 · ${b.pct.toFixed(1)}%)`; // 그날까지 총 몇 석이 팔렸는지 + 판매율
+        if (b.isStart) return `${fmtDayLabel(b.day)} · 추적 시작 시점까지 누적 ${b.delta.toLocaleString()}석 (${b.pct.toFixed(1)}%)`;
+        if (hasGap) return `⚠️ ${fmtDayLabel(b.prevDay)}~${fmtDayLabel(b.day)} (기록 누락으로 ${b.spanDays}일치 합산) · ${deltaText} ${b.delta < 0 ? '(취소가 더 많음)' : '판매'} ${cumText}`;
+        return `${fmtDayLabel(b.day)} · ${deltaText} ${b.delta < 0 ? '(취소가 더 많음)' : '판매'} ${cumText}`;
       };
       const barsHTML = bars.map(b => {
         const hasGap = !b.isStart && b.spanDays > 1;
@@ -7771,7 +7773,7 @@
       return `<div class="tk-trend">
         <div class="tk-trend-title">판매 추이(일별)</div>
         <div class="tk-day-chart tk-trend-plot">${barsHTML}</div>
-        <div class="tk-trend-labels"><span>${firstLabel}</span>${bars.length > 1 ? `<span>${fmtDayLabel(last.day)} · ${signed(last.delta)}</span>` : ''}</div>
+        <div class="tk-trend-labels"><span>${firstLabel}</span>${bars.length > 1 ? `<span>${fmtDayLabel(last.day)} · ${signed(last.delta)} · 누적 ${last.cum.toLocaleString()}석</span>` : ''}</div>
         <div class="tk-rev-note">※ 연한 색 막대(${fmtDayLabel(first.day)})는 추적을 시작한 날까지의 누적 판매량이며, 이후 막대부터는 전날 대비 순수 증가분입니다.${hasAnyNeg ? '<br>기준선 아래 빨간 막대는 취소·환불이 판매보다 많아 그날 판매 좌석이 오히려 줄어든 날입니다.' : ''}${hasAnyGap ? '<br>빗금 막대는 자동 기록이 하루 이상 통째로 누락되어 여러 날짜의 판매량이 합산된 값입니다(막대를 눌러 정확한 기간 확인).' : ''}</div>
       </div>`;
     }
