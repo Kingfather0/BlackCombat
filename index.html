@@ -7318,26 +7318,69 @@
         return ia - ib;
       });
     }
-    function gradeRowsHTML(grades, totals) {
+    function gradeRowsHTML(grades, totals, prices) {
       const keys = sortGradeKeys(Object.keys(grades || {}));
       if (!keys.length) return '<div class="empty" style="padding:8px 0">등급별 정보 없음</div>';
       // 위쪽 "전체 좌석"과 표현을 통일: 항상 "남은 좌석 수"와 "판매율"을 같이 보여준다
       // (총원을 몰라서 판매율을 계산 못 할 때만 "총원 미집계"로 대체).
+      // prices(등급별 정가)를 알면 등급명 옆에 1석 가격도 함께 보여준다.
       return keys.map(k => {
         const remain = grades[k] && grades[k].remain;
         const total = totals && totals[k];
+        const price = prices && prices[k];
         const soldPct = (total && remain != null) ? Math.min(100, Math.max(0, Math.round((total - remain) / total * 100))) : null;
         const remainText = remain === 0 ? '매진' : (remain != null ? esc(remain.toLocaleString()) + '석 남음' : '-');
+        const priceText = price != null ? `<span style="font-size:11.5px;color:var(--dim);font-weight:600;margin-left:6px">${price.toLocaleString()}원</span>` : '';
         // 등급별 총원을 모르는 경우엔 별도 안내 없이 잔여석만 깔끔하게 보여준다.
         const statusLine = soldPct != null
           ? `<div class="tk-bar"><i style="width:${soldPct}%"></i></div><div class="tk-pct">${soldPct}% 판매 <span class="tk-pct-sub">(총 ${total.toLocaleString()}석 중 ${(total - remain).toLocaleString()}석)</span></div>`
           : '';
         return `<div class="tk-grade">
-        <div class="tk-grade-top"><span class="tk-grade-name">${esc(k)}석</span>
+        <div class="tk-grade-top"><span class="tk-grade-name">${esc(k)}석${priceText}</span>
           <span class="tk-grade-remain${remain === 0 ? ' sold-out' : ''}">${remainText}</span></div>
         ${statusLine}
       </div>`;
       }).join('');
+    }
+    // 등급별 "판매된 좌석"이 전체 판매량에서 차지하는 비율을 도넛(원형) 그래프로 그린다.
+    // 어떤 등급이 많이 팔렸는지 한눈에 비교하는 용도. 판매량이 0이면 표시하지 않는다.
+    const TK_PIE_COLORS = ['#2563eb', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#0ea5e9', '#ec4899', '#84cc16'];
+    function gradePieHTML(grades, totals) {
+      if (!grades || !totals) return '';
+      const keys = sortGradeKeys(Object.keys(grades)).filter(k => totals[k] != null && grades[k] && grades[k].remain != null);
+      const parts = keys
+        .map(k => ({ k, sold: Math.max(0, totals[k] - grades[k].remain) }))
+        .filter(p => p.sold > 0);
+      const soldSum = parts.reduce((s, p) => s + p.sold, 0);
+      if (!soldSum || parts.length < 2) return ''; // 등급이 1개뿐이면 원형 그래프가 의미 없음
+      // conic-gradient로 도넛 차트를 그린다 (외부 라이브러리 없이 CSS만으로)
+      let acc = 0;
+      const segs = parts.map((p, i) => {
+        const from = acc / soldSum * 360;
+        acc += p.sold;
+        const to = acc / soldSum * 360;
+        return `${TK_PIE_COLORS[i % TK_PIE_COLORS.length]} ${from.toFixed(1)}deg ${to.toFixed(1)}deg`;
+      }).join(', ');
+      const legendHTML = parts.map((p, i) => {
+        const pct = (p.sold / soldSum * 100);
+        return `<div style="display:flex;align-items:center;gap:6px;font-size:12px;padding:2px 0">
+          <span style="width:10px;height:10px;border-radius:3px;background:${TK_PIE_COLORS[i % TK_PIE_COLORS.length]};flex:none"></span>
+          <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.k)}석</span>
+          <span style="font-weight:800;white-space:nowrap">${pct.toFixed(1)}% <span style="color:var(--dim);font-weight:600">(${p.sold.toLocaleString()}석)</span></span>
+        </div>`;
+      }).join('');
+      return `<div class="tk-trend">
+        <div class="tk-trend-title">등급별 판매 비율</div>
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="flex:none;width:96px;height:96px;border-radius:50%;background:conic-gradient(${segs});position:relative">
+            <div style="position:absolute;inset:26px;border-radius:50%;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15">
+              <span style="font-size:10px;color:var(--dim);font-weight:700">판매</span>
+              <span style="font-size:12px;font-weight:800">${soldSum.toLocaleString()}석</span>
+            </div>
+          </div>
+          <div style="flex:1;min-width:0">${legendHTML}</div>
+        </div>
+      </div>`;
     }
     // 회차 하나의 시간대별 판매율 기록으로 아주 단순한 추이(꺾은선) 그래프를 그린다.
     // 기록이 2개 미만이면(선을 그릴 수 없으므로) 아무것도 표시하지 않는다.
@@ -7501,7 +7544,7 @@
         <div class="tk-trend-title">판매 추이(일별)</div>
         <div class="tk-day-chart tk-trend-plot">${barsHTML}</div>
         <div class="tk-trend-labels"><span>${firstLabel}</span>${bars.length > 1 ? `<span>${fmtDayLabel(last.day)} · ${signed(last.delta)}</span>` : ''}</div>
-        <div class="tk-rev-note">※ 연한 색 막대(${fmtDayLabel(first.day)})는 추적을 시작한 날까지의 누적 판매량이며, 그 이전에 팔린 수량은 포함되지 않습니다. 이후 막대부터는 전날 대비 순수 증가분입니다.${hasAnyNeg ? ' 기준선 아래 빨간 막대는 취소·환불이 판매보다 많아 그날 판매 좌석이 오히려 줄어든 날입니다.' : ''}${hasAnyGap ? ' 빗금 막대는 자동 기록이 하루 이상 통째로 누락되어 여러 날짜의 판매량이 합산된 값입니다(막대를 눌러 정확한 기간 확인).' : ''}</div>
+        <div class="tk-rev-note">※ 연한 색 막대(${fmtDayLabel(first.day)})는 추적을 시작한 날까지의 누적 판매량이며, 그 이전에 팔린 수량은 포함되지 않습니다. 이후 막대부터는 전날 대비 순수 증가분입니다.${hasAnyNeg ? '<br>기준선 아래 빨간 막대는 취소·환불이 판매보다 많아 그날 판매 좌석이 오히려 줄어든 날입니다.' : ''}${hasAnyGap ? '<br>빗금 막대는 자동 기록이 하루 이상 통째로 누락되어 여러 날짜의 판매량이 합산된 값입니다(막대를 눌러 정확한 기간 확인).' : ''}</div>
       </div>`;
     }
     /* 추이 그래프의 점을 탭/클릭했을 때, 화면 하단 토스트 대신 그 점 바로 위에
@@ -7890,7 +7933,8 @@
         return `
       <div class="card tk-card">
         ${showRoundLabel && r.round_label ? `<div class="tk-round">${esc(r.round_label)}</div>` : ''}
-        ${gradeRowsHTML(r.grades, gradeTotals)}
+        ${gradeRowsHTML(r.grades, gradeTotals, gradePrices)}
+        ${gradePieHTML(r.grades, gradeTotals)}
         ${revenueHTML}
       </div>`;
       }).join('');
