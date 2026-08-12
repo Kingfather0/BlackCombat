@@ -859,6 +859,19 @@
       background: linear-gradient(180deg, var(--key), var(--key-deep))
     }
 
+    /* 추적 시작일(첫 막대) — "그날 하루"가 아니라 "그때까지의 누적"이라 성격이 달라서
+       옅은 색으로 구분해 다른 막대와 헷갈리지 않게 한다 */
+    .tk-day-start .tk-day-fill {
+      background: linear-gradient(180deg, #c3d3ef, #a9bfe6)
+    }
+
+    /* 자동 기록이 하루 이상 통째로 누락돼 여러 날짜가 한 막대에 합산된 경우 — 빗금으로 경고 표시 */
+    .tk-day-gap .tk-day-fill {
+      background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, .35) 0 4px, transparent 4px 8px),
+        linear-gradient(180deg, var(--key), var(--key-deep))
+    }
+
     .tk-trend-title {
       font-size: 11.5px;
       font-weight: 800;
@@ -7111,7 +7124,7 @@
     // 시간별 추이(trendChartHTML)와 같은 기록을 날짜(한국시간 기준)별로 묶어, "전날 대비 그날
     // 새로 판매된 좌석 수"를 막대그래프로 그린다. 시간별 차트는 누적 판매율(%)의 흐름을 선으로
     // 보여주고, 이 차트는 하루하루의 판매 "속도"(그날 몇 석이 팔렸는지)를 보여줘서 서로 보완된다.
-    // 날짜가 2개 미만이면(증분을 계산할 전날이 없으므로) 아무것도 표시하지 않는다.
+    // 기록된 날짜가 하나도 없으면 아무것도 표시하지 않는다.
     function dailyTrendChartHTML(roundRows) {
       const ovRow = roundRows.find(x => x.meta && x.meta.overallTotal != null);
       const roundOverall = ovRow ? ovRow.meta.overallTotal : null;
@@ -7129,9 +7142,25 @@
         byDay.set(key, p);
       });
       const dayPoints = [...byDay.entries()].map(([day, p]) => ({ day, sold: p.sold, pct: p.pct }));
-      if (dayPoints.length < 2) return '';
-      // 전날 대비 증분(그날 새로 팔린 좌석 수). 첫째 날은 비교할 전날이 없어 막대에서 제외된다.
-      let bars = dayPoints.slice(1).map((p, i) => ({ day: p.day, delta: p.sold - dayPoints[i].sold, pct: p.pct }));
+      if (!dayPoints.length) return '';
+      // 첫째 날은 비교할 "전날" 기록이 없다 — 추적을 그날부터 시작했기 때문이다(티켓 오픈일과
+      // 추적 시작일이 다를 수 있다). 이 경우 추적 시작 이전을 0석으로 보고, 그날까지의 누적
+      // 판매량을 그대로 첫 막대로 보여준다. 단 이 값은 "그날 하루"가 아니라 "추적 시작 시점까지
+      // 누적된" 수치라 성격이 달라서, isStart로 표시해 다른 색/문구로 구분한다.
+      // spanDays: 자동 기록이 어느 날 통째로 실패하면(사이트 오류/봇 차단 등) 그 날짜는 byDay에
+      // 아예 안 잡히고 건너뛰어진다. 이 경우 바로 다음 막대는 "하루치"가 아니라 "며칠치 합산"이
+      // 되므로, 전날과의 날짜 차이를 계산해 spanDays로 남겨 툴팁에서 정직하게 밝힌다.
+      let bars = dayPoints.map((p, i) => {
+        const isStart = i === 0;
+        const spanDays = isStart ? 1 : Math.max(1, Math.round(
+          (new Date(p.day + 'T00:00:00') - new Date(dayPoints[i - 1].day + 'T00:00:00')) / 86400000
+        ));
+        return {
+          day: p.day, pct: p.pct, isStart, spanDays,
+          prevDay: isStart ? null : dayPoints[i - 1].day,
+          delta: isStart ? p.sold : p.sold - dayPoints[i - 1].sold
+        };
+      });
       // 판매 기간이 아주 길어지면 막대가 너무 얇아지므로 최근 30일만 보여준다.
       // (시간별 차트처럼 중간을 솎아내면 "그날 판매량"이라는 막대의 의미가 왜곡되기 때문)
       const MAX_BARS = 30;
@@ -7139,16 +7168,26 @@
       const maxDelta = Math.max(1, ...bars.map(b => Math.max(0, b.delta)));
       const barsHTML = bars.map(b => {
         const h = Math.max(0, b.delta) / maxDelta * 100;
-        const tip = `${fmtDayLabel(b.day)} · ${b.delta >= 0 ? '+' : ''}${b.delta.toLocaleString()}석 판매 (누적 ${b.pct.toFixed(1)}%)`;
-        return `<div class="tk-day-col" title="${esc(tip)}" onclick="tkDotTip(this, '${esc(tip)}')">
+        const hasGap = !b.isStart && b.spanDays > 1;
+        const tip = b.isStart
+          ? `${fmtDayLabel(b.day)} · 추적 시작 시점까지 누적 ${b.delta.toLocaleString()}석 (누적 ${b.pct.toFixed(1)}%)`
+          : hasGap
+            ? `⚠️ ${fmtDayLabel(b.prevDay)}~${fmtDayLabel(b.day)} (기록 누락으로 ${b.spanDays}일치 합산) · ${b.delta >= 0 ? '+' : ''}${b.delta.toLocaleString()}석 판매 (누적 ${b.pct.toFixed(1)}%)`
+            : `${fmtDayLabel(b.day)} · ${b.delta >= 0 ? '+' : ''}${b.delta.toLocaleString()}석 판매 (누적 ${b.pct.toFixed(1)}%)`;
+        return `<div class="tk-day-col${b.isStart ? ' tk-day-start' : ''}${hasGap ? ' tk-day-gap' : ''}" title="${esc(tip)}" onclick="tkDotTip(this, '${esc(tip)}')">
           <i class="tk-day-fill" style="height:${Math.max(h, b.delta > 0 ? 3 : 0).toFixed(1)}%"></i>
         </div>`;
       }).join('');
       const first = bars[0], last = bars[bars.length - 1];
+      const firstLabel = first.isStart
+        ? `${fmtDayLabel(first.day)} · 누적 ${first.delta.toLocaleString()}석`
+        : `${fmtDayLabel(first.day)} · +${Math.max(0, first.delta).toLocaleString()}석`;
+      const hasAnyGap = bars.some(b => !b.isStart && b.spanDays > 1);
       return `<div class="tk-trend">
         <div class="tk-trend-title">판매 추이(일별)</div>
         <div class="tk-day-chart tk-trend-plot">${barsHTML}</div>
-        <div class="tk-trend-labels"><span>${fmtDayLabel(first.day)} · +${Math.max(0, first.delta).toLocaleString()}석</span><span>${fmtDayLabel(last.day)} · +${Math.max(0, last.delta).toLocaleString()}석</span></div>
+        <div class="tk-trend-labels"><span>${firstLabel}</span>${bars.length > 1 ? `<span>${fmtDayLabel(last.day)} · +${Math.max(0, last.delta).toLocaleString()}석</span>` : ''}</div>
+        <div class="tk-rev-note">※ 연한 색 막대(${fmtDayLabel(first.day)})는 추적을 시작한 날까지의 누적 판매량이며, 그 이전에 팔린 수량은 포함되지 않았을 수 있습니다. 이후 막대부터는 전날 대비 순수 증가분입니다.${hasAnyGap ? ' 빗금 막대는 자동 기록이 하루 이상 통째로 누락되어 여러 날짜의 판매량이 합산된 값입니다(막대를 눌러 정확한 기간 확인).' : ''}</div>
       </div>`;
     }
     /* 추이 그래프의 점을 탭/클릭했을 때, 화면 하단 토스트 대신 그 점 바로 위에
