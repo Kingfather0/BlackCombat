@@ -7421,8 +7421,22 @@
         return ia - ib;
       });
     }
+    // 가격 정보가 있으면 가격 오름차순(싼 것부터), 가격이 같으면 이름 가나다순으로 정렬한다.
+    // 가격을 모르는 등급은 맨 뒤에 이름순으로 붙는다. 가격 정보가 아예 없으면 기존 방식 유지.
+    // 도넛 차트와 상세 좌석 목록, 예상 매출이 모두 이 순서를 함께 쓴다.
+    function sortGradeKeysByPrice(keys, prices) {
+      if (!prices || !Object.keys(prices).length) return sortGradeKeys(keys);
+      return [...keys].sort((a, b) => {
+        const pa = prices[a], pb = prices[b];
+        if (pa == null && pb == null) return a.localeCompare(b, 'ko');
+        if (pa == null) return 1;
+        if (pb == null) return -1;
+        if (pa !== pb) return pa - pb;
+        return a.localeCompare(b, 'ko');
+      });
+    }
     function gradeRowsHTML(grades, totals, prices) {
-      const keys = sortGradeKeys(Object.keys(grades || {}));
+      const keys = sortGradeKeysByPrice(Object.keys(grades || {}), prices);
       if (!keys.length) return '<div class="empty" style="padding:8px 0">등급별 정보 없음</div>';
       // 위쪽 "전체 좌석"과 표현을 통일: 항상 "남은 좌석 수"와 "판매율"을 같이 보여준다
       // (총원을 몰라서 판매율을 계산 못 할 때만 "총원 미집계"로 대체).
@@ -7449,9 +7463,9 @@
     // 어떤 등급이 많이 팔렸는지 한눈에 비교하는 용도. 판매량이 0이면 표시하지 않는다.
     // 색상은 색약(색맹) 시뮬레이션·명도 균형 검증을 통과한 8색 팔레트를 고정 순서로 사용한다.
     const TK_PIE_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'];
-    function gradePieHTML(grades, totals) {
+    function gradePieHTML(grades, totals, prices) {
       if (!grades || !totals) return '';
-      const keys = sortGradeKeys(Object.keys(grades)).filter(k => totals[k] != null && grades[k] && grades[k].remain != null);
+      const keys = sortGradeKeysByPrice(Object.keys(grades), prices).filter(k => totals[k] != null && grades[k] && grades[k].remain != null);
       const parts = keys
         .map(k => ({ k, sold: Math.max(0, totals[k] - grades[k].remain) }))
         .filter(p => p.sold > 0);
@@ -8066,7 +8080,7 @@
         let revenueHTML = '';
         if (gradeTotals && gradePrices) {
           let revSum = 0; const revRows = []; let skipped = false;
-          sortGradeKeys(Object.keys(gradeTotals)).forEach(k => {
+          sortGradeKeysByPrice(Object.keys(gradeTotals), gradePrices).forEach(k => {
             const total = gradeTotals[k];
             const remain = r.grades && r.grades[k] ? r.grades[k].remain : null;
             const price = gradePrices[k];
@@ -8091,7 +8105,7 @@
         return `
       <div class="card tk-card">
         ${showRoundLabel && r.round_label ? `<div class="tk-round">${esc(r.round_label)}</div>` : ''}
-        ${gradePieHTML(r.grades, gradeTotals)}
+        ${gradePieHTML(r.grades, gradeTotals, gradePrices)}
         ${gradeRowsHTML(r.grades, gradeTotals, gradePrices)}
         ${revenueHTML}
       </div>`;
