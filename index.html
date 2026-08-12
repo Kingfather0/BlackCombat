@@ -7893,7 +7893,7 @@
           if (barEl) barEl.style.width = Math.min(100, Math.max(0, pct)) + '%';
         }
         const upEl = document.getElementById('tk-updated');
-        if (upEl) upEl.textContent = '🔄 실시간 조회 ' + fmtSnapTime(new Date().toISOString());
+        if (upEl) { upEl.textContent = '🔄 실시간 조회 ' + fmtSnapTime(new Date().toISOString()); upEl.style.display = ''; }
         tkBuildShareText(remainByGrade, new Date().toISOString()); // 공유 문구도 방금 조회한 최신값으로 교체
         toastMsg('✅ 예매 사이트에서 방금 직접 조회한 값입니다.');
       } catch (e) { toastMsg('⚠️ ' + (e.message || '실시간 조회에 실패했습니다.')); }
@@ -8110,11 +8110,12 @@
           if (total != null && remain != null) { sumTotal += total; sumRemainForTotal += remain; hasTotal = true; }
         });
       });
-      // "전체 좌석"도 "잔여 좌석"과 동일하게 카드 밖 섹션 제목으로 배치하고,
-      // 자동 갱신 시각 배지를 제목 줄 우측에 표시한다.
+      // "전체 좌석"도 "잔여 좌석"과 동일하게 카드 밖 섹션 제목으로 배치한다.
+      // (예전엔 "🔄 자동 갱신 시각" 배지를 우측에 표시했지만, 상단 행사 정보 카드의 출처 줄에
+      //  자동 갱신 안내가 이미 있어 중복이라 제거 — 수동 갱신 때만 "실시간 조회" 배지가 잠깐 뜬다)
       const totalTitleHTML = `
       <div class="sec-title fit-row" style="justify-content:space-between">전체 좌석
-        <span id="tk-updated" class="tk-updated-badge">🔄 자동 갱신 ${fmtSnapTime(newestAt)}</span></div>`;
+        <span id="tk-updated" class="tk-updated-badge" style="display:none"></span></div>`;
       const totalBarHTML = totalTitleHTML + ((hasTotal && sumTotal > 0) ? (() => {
         const sold = sumTotal - sumRemainForTotal;
         const pct = (sold / sumTotal * 100).toFixed(1);
