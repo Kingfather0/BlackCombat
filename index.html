@@ -6117,49 +6117,6 @@
     }
     function svrNow() { return new Date(Date.now() + timeOffset); }
 
-    /* ---------- 방문/활동 통계 (관리자 전용) ----------
-       - 로그인 여부와 무관하게 브라우저별 익명 세션ID(fp_sid, localStorage)로 방문을 구분한다.
-       - 닉네임으로 로그인되어 있으면 nickname도 함께 기록해 "누가" 왔는지 더 직관적으로 보이게 하고,
-         비로그인 방문자는 관리자 화면에서 "게스트"로 표시된다.
-       - 실명/IP는 전혀 저장하지 않는다. record_site_event()는 익명 insert만 허용하고,
-         조회는 admin_get_site_stats()를 통해 관리자 비밀번호가 있어야만 가능하다
-         (방문통계_패치.sql 실행 필요). */
-    function fpSessionId() {
-      try {
-        let id = localStorage.getItem('fp_sid');
-        if (!id) {
-          id = 'sid_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
-          localStorage.setItem('fp_sid', id);
-        }
-        return id;
-      } catch (e) { return 'sid_temp_' + Math.random().toString(36).slice(2, 10); }
-    }
-    let __fpLastPath = null;
-    function fpTrack(eventType, path, detail) {
-      try {
-        if (window.__TEST_SB || !isConfigured()) return; // 테스트/미설정 상태에서는 전송하지 않음
-        const nickname = (typeof gmMyNick !== 'undefined' && gmMyNick) ? gmMyNick : null;
-        fetch(SUPABASE_URL + '/rest/v1/rpc/record_site_event', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY },
-          body: JSON.stringify({ p_session_id: fpSessionId(), p_nickname: nickname, p_event_type: eventType, p_path: path || null, p_detail: detail || null })
-        }).catch(() => { });
-      } catch (e) { }
-    }
-    function fpTrackPageView(path) {
-      if (path === __fpLastPath) return; // 같은 경로 중복 기록 방지 (렌더 재호출 등)
-      __fpLastPath = path;
-      fpTrack('page_view', path);
-    }
-    function fpTrackAction(action, detail) {
-      fpTrack('action', location.hash || '#/', Object.assign({ action }, detail || {}));
-    }
-    function fpPathLabel(path) {
-      const seg = String(path || '').replace(/^#\//, '').split('/');
-      const map = { '': '홈', fighters: '선수단', ranking: '랭킹', game: '미니게임', tickets: '티켓 현황', admin: '관리자', t: '대회 상세', player: '선수 상세' };
-      return map[seg[0]] || path;
-    }
-
     /* --- 실시간 접속자 수 (Supabase Realtime Presence) — 헤더에 항상 떠 있는 배지, 클릭하면
        현재 접속 중인 브라우저 탭 목록을 닉네임(미로그인은 Guest)으로 보여준다. DB 테이블/RPC를
        전혀 쓰지 않는 순수 웹소켓 pub/sub 기능이라 별도 SQL 실행 없이 바로 동작한다.
@@ -6455,7 +6412,6 @@
       if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
       gmToken++; gmClear();
       const h = location.hash || '#/';
-      fpTrackPageView(h);
       const seg = h.replace(/^#\//, '').split('/');
       document.querySelectorAll('#nav a').forEach(a => a.classList.remove('on'));
       const mark = k => { const el = document.querySelector(`[data-nav="${k}"]`); if (el) el.classList.add('on'); };
@@ -6889,6 +6845,61 @@
         <div class="tk-trend-labels"><span>${fmtSnapTime(first.t)} · ${first.pct.toFixed(1)}%</span><span>${fmtSnapTime(last.t)} · ${last.pct.toFixed(1)}%</span></div>
       </div>`;
     }
+    // 시간별 추이(trendChartHTML)와 같은 기록을, 날짜(Asia/Seoul 기준)별로 그날 마지막
+    // (=가장 늦은) 기록 1개씩만 뽑아 다시 그린 "일별" 보조 차트. 시간별 그래프는 오래
+    // 쌓일수록 점이 너무 많아져 하루 단위 흐름을 읽기 어려우므로, 날짜만 굵게 짚어보고
+    // 싶을 때 이 차트를 같이 보여준다. 날짜가 2개 미만이면(선을 그릴 수 없으므로) 표시 안 함.
+    function fmtDayLabel(dateKey) {
+      const [y, m, d] = dateKey.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric', weekday: 'short' });
+    }
+    function dailyTrendChartHTML(roundRows) {
+      const ovRow = roundRows.find(x => x.meta && x.meta.overallTotal != null);
+      const roundOverall = ovRow ? ovRow.meta.overallTotal : null;
+      const allPoints = roundRows
+        .slice()
+        .sort((a, b) => new Date(a.captured_at) - new Date(b.captured_at))
+        .map(r => ({ t: r.captured_at, pct: computeRowSoldPct(r, roundOverall) }))
+        .filter(p => p.pct != null);
+      if (!allPoints.length) return '';
+      // 날짜별로 묶어서 그날의 마지막(가장 늦은) 기록만 대표값으로 쓴다. allPoints가 이미
+      // 시간순 정렬돼 있으므로, 같은 날짜 키에 계속 덮어써도 결국 그날 최신값이 남는다.
+      const byDay = new Map();
+      allPoints.forEach(p => {
+        const key = new Date(p.t).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+        byDay.set(key, p);
+      });
+      let points = [...byDay.entries()].map(([day, p]) => ({ day, t: p.t, pct: p.pct }));
+      if (points.length < 2) return '';
+      const MAX_POINTS = 60;
+      if (points.length > MAX_POINTS) {
+        const sampled = [];
+        for (let i = 0; i < MAX_POINTS; i++) {
+          sampled.push(points[Math.round(i * (points.length - 1) / (MAX_POINTS - 1))]);
+        }
+        points = sampled;
+      }
+      const W = 100, H = 30, PAD = 2;
+      const n = points.length;
+      const xAt = i => PAD + (i / (n - 1)) * (W - PAD * 2);
+      const yAt = pct => H - PAD - (pct / 100) * (H - PAD * 2);
+      const linePts = points.map((p, i) => `${xAt(i).toFixed(1)},${yAt(p.pct).toFixed(1)}`).join(' ');
+      const dotsHTML = points.map((p, i) => {
+        const tip = `${fmtDayLabel(p.day)} · ${p.pct.toFixed(1)}% 판매`;
+        return `<i class="tk-trend-dot" style="left:${xAt(i).toFixed(1)}%;top:${(yAt(p.pct) / H * 100).toFixed(1)}%" title="${esc(tip)}" onclick="tkDotTip(this, '${esc(tip)}')"></i>`;
+      }).join('');
+      const first = points[0], last = points[points.length - 1];
+      return `<div class="tk-trend">
+        <div class="tk-trend-title">일별 판매 추이</div>
+        <div class="tk-trend-plot">
+          <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="tk-trend-svg">
+            <polyline points="${linePts}" fill="none" stroke="currentColor" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          ${dotsHTML}
+        </div>
+        <div class="tk-trend-labels"><span>${fmtDayLabel(first.day)} · ${first.pct.toFixed(1)}%</span><span>${fmtDayLabel(last.day)} · ${last.pct.toFixed(1)}%</span></div>
+      </div>`;
+    }
     /* 추이 그래프의 점을 탭/클릭했을 때, 화면 하단 토스트 대신 그 점 바로 위에
        작은 말풍선을 띄운다. 2.5초 뒤 자동으로 사라지고, 다른 점을 누르면 즉시 교체된다.
        그래프 가장자리의 점은 말풍선이 카드 밖으로 잘리지 않도록 안쪽으로 붙여서 보정한다. */
@@ -7172,6 +7183,7 @@
         ${showRoundLabel && r.round_label ? `<div class="tk-round">${esc(r.round_label)}</div>` : ''}
         ${gradeRowsHTML(r.grades, r.totals)}
         ${trendChartHTML(roundRows)}
+        ${dailyTrendChartHTML(roundRows)}
       </div>`;
       }).join('');
 
@@ -12638,7 +12650,6 @@
         const { data, error } = await sb.rpc('submit_picks', { p_tournament: tid, p_nickname: gmMyNick, p_pin: gmMyPin, p_picks: voteSel });
         if (error) return show('err', cleanErr(error.message));
         if (data && data.ok === false) return show('err', data.error);
-        fpTrackAction('submit_vote', { tid, isNew: !!(data && data.is_new) });
         show('ok', data.is_new ? `✅ ${data.nickname}님의 투표가 등록되었습니다!` : `✅ ${data.nickname}님의 투표가 수정되었습니다!`);
         setTimeout(() => viewTournament(tid), 900);
       } finally { btn.disabled = false; }
@@ -13093,38 +13104,6 @@
         }).join('') || '<div class="empty">데이터가 없습니다.</div>'}
       <div class="note" style="margin-top:8px">막대 = 참여 인원 · <span style="color:var(--green)">+N</span> = 처음 참여한 닉네임 수<br><span style="color:var(--red)">+N</span>, <span style="color:var(--blue)">-N</span> = 직전 경기 대비 참여 증감 수</div></div>`;
       } catch (e) { }
-      // 방문/활동 통계 (방문통계_패치.sql 미실행 시 조용히 스킵)
-      let siteStatsHTML = '';
-      try {
-        const { data: stats, error: statsErr } = await sb.rpc('admin_get_site_stats', { p_pass: adminPass(), p_days: 14 });
-        if (!statsErr && stats) {
-          const daily = stats.daily || [];
-          const maxUV = Math.max(1, ...daily.map(d => d.uv || 0));
-          const barsHTML = daily.map(d => `
-        <div style="display:flex;align-items:center;gap:10px;padding:3px 0">
-          <span style="width:60px;font-size:11.5px;color:var(--dim);white-space:nowrap">${esc(String(d.d || '').slice(5))}</span>
-          <span style="flex:1;background:#eef1f6;border-radius:99px;height:12px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round((d.uv || 0) / maxUV * 100)}%;background:var(--key);border-radius:99px"></span></span>
-          <span style="font-size:12px;font-weight:800;white-space:nowrap;width:78px;text-align:right">${d.uv || 0}명 · ${d.pv || 0}뷰</span>
-        </div>`).join('');
-          const topPathsHTML = (stats.topPaths || []).map(p => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(fpPathLabel(p.path))}</span><span style="font-weight:700">${p.cnt}회</span></div>`).join('');
-          const topActionsHTML = (stats.topActions || []).map(a => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(a.action)}</span><span style="font-weight:700">${a.cnt}회</span></div>`).join('');
-          const recentHTML = (stats.recentSessions || []).slice(0, 25).map(s => `<div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid #f0f1f4"><span>${s.nickname === '게스트' ? '👻 게스트' : '👤 ' + esc(s.nickname)}</span><span style="color:var(--dim)">${new Date(s.last_seen).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} · ${s.events}회 활동</span></div>`).join('');
-          siteStatsHTML = `
-    <div class="sec-title">📊 방문 통계 <span style="color:var(--dim);font-size:12px;font-weight:700">관리자만 볼 수 있음</span></div>
-    <div class="card">
-      <div style="font-size:14px;font-weight:800;margin-bottom:8px">오늘 방문자 ${stats.todayUniqueVisitors || 0}명 · 페이지 조회 ${stats.todayPageViews || 0}회</div>
-      <div class="sec-title" style="font-size:12.5px;margin-top:10px">최근 14일 추이</div>
-      ${barsHTML || '<div class="empty">데이터 없음</div>'}
-      <div class="sec-title" style="font-size:12.5px;margin-top:14px">인기 페이지 (최근 7일)</div>
-      ${topPathsHTML || '<div class="empty" style="padding:4px 0">데이터 없음</div>'}
-      <div class="sec-title" style="font-size:12.5px;margin-top:14px">주요 활동 (최근 7일)</div>
-      ${topActionsHTML || '<div class="empty" style="padding:4px 0">데이터 없음</div>'}
-      <div class="sec-title" style="font-size:12.5px;margin-top:14px">오늘 방문자 목록</div>
-      ${recentHTML || '<div class="empty" style="padding:4px 0">오늘 방문자가 없습니다.</div>'}
-      <div class="note" style="margin-top:8px">※ 로그인하지 않은 방문자는 브라우저별 익명 ID로만 구분되며(게스트), 실명·IP는 저장하지 않습니다.</div>
-    </div>`;
-        }
-      } catch (e) { }
       $app.innerHTML = `
     <h1 class="page">🛠️ 관리자
       <button class="btn small ghost" onclick="sessionStorage.removeItem('fp_admin');route()" style="color:#c62828">로그아웃</button></h1>
@@ -13151,7 +13130,6 @@
     <div class="sec-title">📋 대회 관리</div>
     ${rows.join('') || '<div class="empty">대회가 없습니다.</div>'}
     ${statsHTML}
-    ${siteStatsHTML}
     <div class="sec-title">유저 관리 <span style="color:var(--dim);font-size:12px;font-weight:700">오픈톡방 유저만 신규 등록 가능</span></div>
     <div class="card" style="max-width:420px">
       <div style="display:flex;gap:8px;align-items:flex-end">
