@@ -994,11 +994,12 @@
     }
 
     /* 텍스트 칸을 고정 폭으로 — "5.2%"든 "100.0%"든 글자 수와 무관하게
-       앞의 미니바 시작 위치가 모든 줄에서 정확히 일치한다 */
+       앞의 미니바 시작 위치가 모든 줄에서 정확히 일치한다.
+       칸 안에서는 왼쪽 정렬이라 "등급 내" 글자 시작 위치도 모든 줄이 똑같다 */
     .tk-pie-sub-txt {
       display: inline-block;
       width: 76px;
-      text-align: right;
+      text-align: left;
       font-variant-numeric: tabular-nums;
       flex: none
     }
