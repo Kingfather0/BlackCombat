@@ -9044,6 +9044,11 @@
       else pushModal(ov);
     }
     /* ── 선수 랭킹 페이지 ── */
+    // 랭킹 ↔ 기록실 전환 탭 (두 페이지 상단 공용)
+    const rankTabsHTML = act => `<span style="display:inline-flex;gap:7px">
+      <a class="btn small ${act === 'fighters' ? 'primary' : ''}" href="#/fighters">랭킹</a>
+      <a class="btn small ${act === 'records' ? 'primary' : ''}" href="#/records">🏆 기록실</a>
+    </span>`;
     const frow = f => f[1] === '공석'
       ? `<div class="frow"><span class="frk c">👑</span><span class="fnm" style="color:var(--dim)">공석</span></div>`
       : `<div class="frow" style="cursor:pointer" onclick="openFighterStats('${f[1].replace(/'/g, "\\'")}')" title="${esc(f[2])} · ${f[3]}승 ${f[4]}패${f[5] ? ' ' + f[5] + '무' : ''} · 누르면 공식 전적과 우리 방 승부예측 기록이 보입니다">
@@ -9059,15 +9064,14 @@
     }
     function viewFighters() {
       $app.innerHTML = `
-    <h1 class="page" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-      <span>블랙컴뱃 선수 랭킹</span>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
+      ${rankTabsHTML('fighters')}
       <span class="fit-row" style="display:inline-flex;gap:8px;align-items:center">
         ${fightersUpdatedAt ? `<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${fmtDT(fightersUpdatedAt)} 갱신</span>` : ''}
-        <a class="btn small" href="#/records">🏆 기록실</a>
         ${adminPass() ? `<button class="btn small" onclick="toggleAddFighterForm()">➕ 선수 추가</button>` : ''}
         ${adminPass() ? `<button class="btn primary small" onclick="refreshFighters(this)">🔄 수동 갱신</button>` : ''}
       </span>
-    </h1>
+    </div>
     <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 매일 새벽 자동 갱신</div>
     <div id="afx"></div>
     <div class="fgrid">
@@ -9153,7 +9157,7 @@
       await loadRecords();
       const stats = rhComputeStats();
       if (!stats || !stats.length) {
-        $app.innerHTML = `<h1 class="page">🏆 블랙컴뱃 기록실</h1>
+        $app.innerHTML = `<div style="margin-top:6px">${rankTabsHTML('records')}</div>
       <div class="empty" style="margin-top:14px">아직 전적 데이터가 준비되지 않았습니다.<br>매일 새벽 자동 수집이 완료되면 표시됩니다.</div>`;
         return;
       }
@@ -9181,13 +9185,12 @@
 
       const updated = recordsCache.data.updated_at ? fmtDT(recordsCache.data.updated_at) : '';
       $app.innerHTML = `
-    <h1 class="page" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-      <span>🏆 블랙컴뱃 기록실</span>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
+      ${rankTabsHTML('records')}
       <span class="fit-row" style="display:inline-flex;gap:8px;align-items:center">
         ${updated ? `<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${updated} 갱신</span>` : ''}
-        <a class="btn small" href="#/fighters">← 랭킹으로</a>
       </span>
-    </h1>
+    </div>
     <div class="sub" style="font-size:11px;color:var(--dim)">공식 홈페이지에 등재된 경기 기준 · 매일 새벽 자동 갱신 · 선수를 누르면 상세 기록이 보입니다</div>
     <div class="fgrid">
       ${rhCardHTML('🔥 최다 연승 (역대)', '', mk(stats, s => s.maxStreak, '연승'))}
