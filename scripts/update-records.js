@@ -63,9 +63,12 @@ function parseMatches(html) {
     const infoFrag = b.slice(infoIdx);
     // 대회명: game_name 안의 첫 텍스트
     const ev = stripTags((gameFrag.match(/<span[^>]*>([\s\S]*?)<\/span>/) || [, ''])[1]);
-    // 승/패 배지 — 이 페이지 "주인공 선수" 기준의 결과다
+    // 승/패 배지 — 이 페이지 "주인공 선수" 기준의 결과다.
+    // 노 컨테스트(무효 경기)는 배지가 아예 없고 본문에 "No Contest"라고만 적혀 있으므로
+    // 별도 결과값 'N'으로 저장한다 (무승부 'D'와는 다른 값).
     const badge = (infoFrag.match(/>\s*(Win|Loss|Draw)\s*</i) || [])[1];
-    const res = badge ? badge[0].toUpperCase() : ''; // W / L / D
+    let res = badge ? badge[0].toUpperCase() : ''; // W / L / D / N
+    if (!res && /no\s*contest/i.test(infoFrag)) res = 'N';
     // 양쪽 선수: fighter/<seq> 링크 순서대로 (왼쪽 → 오른쪽)
     const fighters = [];
     const aRe = /<a[^>]*fighter\/(\d+)[^>]*>([\s\S]*?)<\/a>/g;
