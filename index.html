@@ -6445,7 +6445,7 @@
       <nav id="nav">
         <a href="#/" data-nav="home">홈</a>
         <a href="#/tickets" data-nav="tickets">티켓</a>
-        <a href="#/fighters" data-nav="fighters">랭킹</a>
+        <a href="#/fighters" data-nav="fighters">선수</a>
         <a href="#/ranking" data-nav="ranking">격잘알</a>
         <a href="#/game" data-nav="game">게임</a>
       </nav>
@@ -6590,10 +6590,10 @@
       const map = {
         '': '홈',
         tickets: '티켓',
-        fighters: '랭킹',            // 상단 메뉴 "랭킹" = 선수 랭킹 페이지
+        fighters: '선수',            // 상단 메뉴 "선수" = 선수 랭킹 페이지
         ranking: '격잘알',           // 상단 메뉴 "격잘알" = 예측 적중 랭킹 페이지
         game: '게임',
-        records: '기록실',           // 랭킹 페이지의 🏆 기록실
+        records: '업적',             // 선수 페이지의 업적 탭
         t: '승부예측 상세',          // 홈의 승부예측 카드를 눌러 들어가는 대회 상세 화면
         player: '선수 기록',         // 랭킹에서 선수를 눌러 보는 개인 기록 화면
         admin: '관리자'
@@ -9044,10 +9044,13 @@
       else pushModal(ov);
     }
     /* ── 선수 랭킹 페이지 ── */
-    // 랭킹 ↔ 기록실 전환 탭 (두 페이지 상단 공용)
+    // 랭킹 ↔ 업적 전환 탭 (두 페이지 상단 공용) — 비활성 탭은 회색 칩, 활성 탭은 파란 채움
+    const rankTab = (on, href, label) => on
+      ? `<a class="btn small primary" href="${href}">${label}</a>`
+      : `<a class="btn small" style="background:#eef1f6;border-color:#eef1f6" href="${href}">${label}</a>`;
     const rankTabsHTML = act => `<span style="display:inline-flex;gap:7px">
-      <a class="btn small ${act === 'fighters' ? 'primary' : ''}" href="#/fighters">랭킹</a>
-      <a class="btn small ${act === 'records' ? 'primary' : ''}" href="#/records">🏆 기록실</a>
+      ${rankTab(act === 'fighters', '#/fighters', '랭킹')}
+      ${rankTab(act === 'records', '#/records', '업적')}
     </span>`;
     const frow = f => f[1] === '공석'
       ? `<div class="frow"><span class="frk c">👑</span><span class="fnm" style="color:var(--dim)">공석</span></div>`
@@ -9072,7 +9075,7 @@
         ${adminPass() ? `<button class="btn primary small" onclick="refreshFighters(this)">🔄 수동 갱신</button>` : ''}
       </span>
     </div>
-    <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 매일 새벽 자동 갱신</div>
+    <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 선수 선택 시 상세 기록 · 매일 새벽 자동 갱신</div>
     <div id="afx"></div>
     <div class="fgrid">
       ${FIGHTERS.map((d, di) => {
@@ -9191,7 +9194,7 @@
         ${updated ? `<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${updated} 갱신</span>` : ''}
       </span>
     </div>
-    <div class="sub" style="font-size:11px;color:var(--dim)">공식 홈페이지에 등재된 경기 기준 · 매일 새벽 자동 갱신 · 선수를 누르면 상세 기록이 보입니다</div>
+    <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 선수 선택 시 상세 기록 · 매일 새벽 자동 갱신</div>
     <div class="fgrid">
       ${rhCardHTML('🔥 최다 연승 (역대)', '', mk(stats, s => s.maxStreak, '연승'))}
       ${rhCardHTML('📈 현재 연승 중', '', mk(stats, s => s.curStreak, '연승'))}
