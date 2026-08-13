@@ -8717,12 +8717,29 @@
       return out.filter(d => d.list.filter(f => f[1] !== '공석').length >= 2);
     }
 
-    /* ── 선수별 커뮤니티 승부예측 기록 ── */
+    /* ── 선수별 커뮤니티 승부예측 기록 + 블랙컴뱃 공식 전적 ── */
     let seasonCache = null;
+    // 공식 전적(records.json) — GitHub Actions(records-bot)가 매일 새벽 공식 홈페이지의
+    // 선수별 상세 페이지(LATEST MATCHES)를 긁어 갱신한다. 아직 파일이 없거나(첫 실행 전)
+    // 불러오기에 실패하면 공식 전적 섹션만 조용히 생략된다.
+    let recordsCache = null;
+    async function loadRecords() {
+      if (recordsCache !== null) return recordsCache;
+      try {
+        const r = await fetch('records.json?ts=' + Date.now(), { cache: 'no-store' });
+        if (!r.ok) throw 0;
+        const j = await r.json();
+        const nickToSeq = {};
+        Object.entries(j.nicks || {}).forEach(([seq, n]) => { nickToSeq[String(n).trim().toLowerCase()] = seq; });
+        recordsCache = { data: j, nickToSeq };
+      } catch (e) { recordsCache = { data: null, nickToSeq: {} }; }
+      return recordsCache;
+    }
     async function openFighterStats(nick) {
       if (!seasonCache) {
         try { seasonCache = await fetchSeasonData(); } catch (e) { return toastMsg('⚠️ 데이터를 불러오지 못했습니다.'); }
       }
+      const rec = await loadRecords();
       const d = seasonCache, rows = [];
       let totVotes = 0, corrVotes = 0;
       d.finals.forEach(t => {
@@ -8739,37 +8756,74 @@
           });
         });
       });
-      if (!rows.length) return toastMsg(`'${nick}' 선수의 승부예측 기록이 아직 없습니다.`);
+      // 공식 전적: 닉네임 → 선수 페이지 번호(seq) → 경기 이력
+      const mySeq = rec.nickToSeq[String(nick).trim().toLowerCase()];
+      const official = (mySeq && rec.data && rec.data.records && rec.data.records[mySeq]) || [];
+      // 승부예측 기록도, 공식 전적도 없을 때만 팝업 대신 안내 메시지
+      if (!rows.length && !official.length) return toastMsg(`'${nick}' 선수의 기록이 아직 없습니다.`);
       const rate = totVotes ? Math.round(corrVotes / totVotes * 100) : 0;
-      const ov = document.createElement('div');
-      ov.className = 'modal-ov';
-      ov.innerHTML = `<div class="modal">
-    <div class="modal-h"><span><b>${esc(nick)}</b> <span style="color:var(--dim);font-size:13px;font-weight:600">우리 방 승부예측 기록</span></span>
-      <button class="modal-x" onclick="history.back()">✕</button></div>
-    <div class="modal-b">
+      const W = '<span class="badge" style="background:#e3edfd;color:#1d4ed8;font-size:11px">승</span>';
+      const L = '<span class="badge" style="background:#fdecec;color:#a51c1c;font-size:11px">패</span>';
+      const DR = '<span class="badge" style="background:#eef1f6;color:#525d6b;font-size:11px">무</span>';
+      // ── 섹션 1: 우리 방 승부예측 기록 (있을 때만) ──
+      const predHTML = !rows.length ? '' : `
       <div class="stat-tiles" style="grid-template-columns:repeat(2,1fr)">
         <div class="tile"><div class="v">${rows.length}경기</div><div class="k">예측 대상 경기</div></div>
         <div class="tile"><div class="v">${rate}%</div><div class="k">우리 방 적중률</div></div>
       </div>
-      ${rows.map(r => {
-        const W = '<span class="badge" style="background:#e3edfd;color:#1d4ed8;font-size:11px">승</span>';
-        const L = '<span class="badge" style="background:#fdecec;color:#a51c1c;font-size:11px">패</span>';
-        return `<div class="pcard" style="padding:11px 14px">
+      ${rows.map(r => `<div class="pcard" style="padding:11px 14px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
           <span style="font-weight:800;font-size:14px">${esc(nick)} ${r.won ? W : L} <span style="color:var(--dim);font-weight:700">vs</span> ${esc(r.opp)} ${r.won ? L : W}</span>
           <span style="color:var(--muted);font-size:13px;font-weight:700">우리 방 픽 ${r.pct}%</span>
         </div>
         <div style="font-size:12px;margin-top:2px"><a href="#/t/${r.tid}" onclick="this.closest('.modal-ov').remove()" style="color:var(--dim);font-weight:700">${esc(r.title)}</a></div>
+      </div>`).join('')}`;
+      // ── 섹션 2: 블랙컴뱃 공식 전적 (있을 때만) ──
+      // 상대는 랭킹표의 닉네임으로 표시하고, 닉네임이 있으면 눌러서 그 선수의 기록으로 이동한다.
+      // 랭킹에 없는 상대(은퇴/미등록)는 공식 표기 이름 그대로, 클릭 없이 보여준다.
+      const fmInfo = FIGHTER_MAP[String(nick).trim().toLowerCase()];
+      const recTxt = fmInfo ? `${fmInfo.w}승 ${fmInfo.l}패${fmInfo.dr ? ' ' + fmInfo.dr + '무' : ''}` : '';
+      const officialHTML = !official.length ? '' : `
+      <div class="sec-title" style="font-size:12.5px;margin-top:${rows.length ? 16 : 0}px;display:flex;justify-content:space-between;gap:8px;align-items:baseline">
+        <span>블랙컴뱃 공식 전적${recTxt ? ` <span style="color:var(--dim);font-size:11px;font-weight:700">${recTxt}</span>` : ''}</span>
+        <span style="color:var(--dim);font-size:11px;font-weight:700">출처: 공식 홈페이지</span>
+      </div>
+      ${official.map(m => {
+        const meFirst = m.a[0] === mySeq;
+        const opp = meFirst ? m.b : m.a;
+        const oppNick = (rec.data.nicks || {})[opp[0]];
+        const myBadge = m.res === 'W' ? W : m.res === 'L' ? L : DR;
+        const oppBadge = m.res === 'W' ? L : m.res === 'L' ? W : DR;
+        const oppHTML = oppNick
+          ? `<span style="color:#1d4ed8;text-decoration:underline;cursor:pointer" onclick="openFighterStats('${String(oppNick).replace(/'/g, "\\'")}')" title="누르면 ${esc(oppNick)} 선수의 기록이 보입니다">${esc(oppNick)}</span>`
+          : `<span>${esc(opp[1])}</span>`;
+        return `<div class="pcard" style="padding:11px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-weight:800;font-size:14px">${esc(nick)} ${myBadge} <span style="color:var(--dim);font-weight:700">vs</span> ${oppHTML} ${oppBadge}</span>
+        </div>
+        <div style="font-size:12px;margin-top:2px;color:var(--dim);font-weight:700">${esc(m.ev)}${m.m ? ` · ${esc(m.m)}` : ''}</div>
       </div>`;
-      }).join('')}
+      }).join('')}`;
+      const ov = document.createElement('div');
+      ov.className = 'modal-ov';
+      ov.innerHTML = `<div class="modal">
+    <div class="modal-h"><span><b>${esc(nick)}</b> <span style="color:var(--dim);font-size:13px;font-weight:600">${rows.length ? '우리 방 승부예측 기록' : '선수 기록'}</span></span>
+      <button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-b">
+      ${predHTML}
+      ${officialHTML}
     </div></div>`;
       ov.onclick = e => { if (e.target === ov) history.back(); };
-      pushModal(ov);
+      // 상대 선수를 눌러 다른 선수 기록으로 "이동"하는 경우: 이미 떠 있는 팝업만 갈아끼우고
+      // history는 추가로 쌓지 않는다 → 뒤로가기 한 번이면 어느 선수에서든 팝업이 닫힌다.
+      const prevOv = document.querySelector('.modal-ov');
+      if (prevOv) { prevOv.remove(); document.body.append(ov); }
+      else pushModal(ov);
     }
     /* ── 선수 랭킹 페이지 ── */
     const frow = f => f[1] === '공석'
       ? `<div class="frow"><span class="frk c">👑</span><span class="fnm" style="color:var(--dim)">공석</span></div>`
-      : `<div class="frow" style="cursor:pointer" onclick="openFighterStats('${f[1].replace(/'/g, "\\'")}')" title="${esc(f[2])} · ${f[3]}승 ${f[4]}패${f[5] ? ' ' + f[5] + '무' : ''} · 누르면 우리 방 승부예측 기록이 보입니다">
+      : `<div class="frow" style="cursor:pointer" onclick="openFighterStats('${f[1].replace(/'/g, "\\'")}')" title="${esc(f[2])} · ${f[3]}승 ${f[4]}패${f[5] ? ' ' + f[5] + '무' : ''} · 누르면 공식 전적과 우리 방 승부예측 기록이 보입니다">
   <span class="frk ${f[0] === 'C' ? 'c' : ''}">${f[0] === 'C' ? '👑' : f[0]}</span>
   ${flagImg(f[6])}<b class="fnm">${esc(f[1])}${f[7] ? ` <span class="fbadge ${f[7] === 'HOT' ? 'hot' : 'new'}">${f[7] === 'HOT' ? '🔥HOT' : 'NEW'}</span>` : ''}${f[8] ? ` <span class="fmove ${f[8] > 0 ? 'up' : 'down'}">${f[8] > 0 ? '▲' + f[8] : '▼' + (-f[8])}</span>` : ''}</b>
   <span class="frec">${f[3]}-${f[4]}${f[5] ? '-' + f[5] : ''}</span>
