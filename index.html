@@ -8523,9 +8523,11 @@
         </div>
         ${fcParts.map(p => `<div style="font-size:13.5px;line-height:1.55">${latestRows.length > 1 && p.label ? `<span style="color:var(--dim);font-weight:700">${esc(p.label)}</span> · ` : ''}${p.line}</div>`).join('<hr class="sep" style="margin:8px 0">')}
         <div id="tk-fc-info" style="display:none;background:#f4f6fa;border-radius:9px;padding:9px 12px;margin-top:9px;font-size:11.5px;color:var(--muted);line-height:1.8">
-          <div>· 잔여석 ÷ 하루 판매량(최근 3일 회귀 추세선)으로 계산합니다.</div>
-          <div>· ⚡ 일괄 발권은 잔여석에만 반영, 판매량에는 미포함(일회성).</div>
-          <div>· 단순 추세 추정 — 매시간 자동 재계산됩니다.</div>
+          <div>· 매진 예상일은 현재 잔여석 ÷ 하루 판매 속도로 계산</div>
+          <div>· 판매 속도는 최근 3일 회귀 추세선 기준</div>
+          <div>· 일괄 발권(이벤트표 등)은 잔여석에만 반영, 판매 속도엔 미포함</div>
+          <div>· 기록이 24시간 미만이면 표시 안 함</div>
+          <div>· 현재 페이스 기준 추정 — 기록 갱신 때마다 재계산</div>
         </div>
       </div>` : '';
 
@@ -8846,8 +8848,10 @@
       return recordsCache;
     }
     /* 선수 팝업용 "전적 흐름" 미니 그래프 (SVG) — 공식 전적을 시간 순서(과거 → 최근)로 돌려서
-       이기면 한 칸 오르고 지면 한 칸 내려가는 누적 승패 계단선을 그린다. 연승은 산, 연패는
+       이기면 한 칸 오르고 지면 한 칸 내려가는 누적 승패 선을 그린다. 연승은 산, 연패는
        골짜기로 보여 기세의 흐름이 한눈에 들어온다. 승 지점은 파랑, 패는 빨강, 무는 회색 점.
+       값은 경기 순간에만 바뀌지만(각 지점의 점이 그 사실을 표현), 선은 읽기 편하도록
+       지점 사이를 직선으로 잇는다 — 작은 차트에서 계단식보다 흐름이 깔끔하게 보인다.
        공식 경기 데이터는 날짜가 없어 가로축은 경기 순서다. 2경기 미만이면 생략. */
     function recFlowChartHTML(nick, official) {
       if (!official || official.length < 2) return '';
@@ -8882,9 +8886,9 @@
       [mMax, mMin].forEach(v => {
         if (v !== 0) grid += `<text x="${padL - 4}" y="${y(v) + 3}" text-anchor="end" font-size="9" fill="#8a93a3">${v > 0 ? '+' + v : v}</text>`;
       });
-      // 계단선: 각 경기 지점 사이를 ㄴ자로 잇는다
+      // 직선: 각 경기 지점을 곧게 잇는다
       let path = `M ${x(0).toFixed(1)} ${y(0).toFixed(1)}`;
-      for (let i = 1; i < pts.length; i++) path += ` L ${x(i).toFixed(1)} ${y(pts[i - 1].m).toFixed(1)} L ${x(i).toFixed(1)} ${y(pts[i].m).toFixed(1)}`;
+      for (let i = 1; i < pts.length; i++) path += ` L ${x(i).toFixed(1)} ${y(pts[i].m).toFixed(1)}`;
       const dots = pts.slice(1).map(p => {
         const c = p.res === 'W' ? '#2563eb' : p.res === 'L' ? '#dc2626' : '#9aa3b2';
         return `<circle cx="${x(p.i).toFixed(1)}" cy="${y(p.m).toFixed(1)}" r="3" fill="${c}"><title>${esc(p.ev)} ${p.res === 'W' ? '승' : p.res === 'L' ? '패' : '무'}</title></circle>`;
