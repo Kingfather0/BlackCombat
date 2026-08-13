@@ -6541,6 +6541,7 @@
     const FP_STAT_PRESETS = [
       { label: '오늘', today: true, bucket: 'day', unit: '일별' },
       { label: '7일', days: 7, bucket: 'day', unit: '일별' },
+      { label: '한달', days: 30, bucket: 'day', unit: '일별' },
       { label: '전체', days: null, bucket: 'month', unit: '월별' },
     ];
     let __fpStatPreset = 1; // 기본은 7일 보기 (그 이상 기간은 아래 달력으로 직접 조회)
@@ -6559,6 +6560,14 @@
         return { from, to: today };
       }
       return { from: null, to: today }; // 전체 기간
+    }
+    // {from,to} 기간을 "언제부터 언제까지"인지 사람이 읽을 수 있는 텍스트로 바꿔준다.
+    // 하루면 그 날짜만, from이 없으면(전체 기간) "~ 종료일"만 보여준다.
+    function fpRangeLabel(range) {
+      if (!range) return '';
+      if (!range.from) return `(~ ${range.to})`;
+      if (range.from === range.to) return `(${range.to})`;
+      return `(${range.from} ~ ${range.to})`;
     }
     // 활동 코드(영문) -> 사람이 읽기 좋은 한글 이름. 새 활동 추적을 추가하면 여기에도 이름을 등록한다.
     const FP_ACTION_LABELS = { submit_vote: '🗳️ 승부 예측 제출' };
@@ -6585,7 +6594,10 @@
           <span style="flex:1;background:#eef1f6;border-radius:99px;height:12px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round((d.uv || 0) / maxUV * 100)}%;background:var(--key);border-radius:99px"></span></span>
           <span style="font-size:12px;font-weight:800;white-space:nowrap;width:78px;text-align:right">${d.uv || 0}명 · ${d.pv || 0}뷰</span>
         </div>`).join('');
-      const periodLabel = preset.customLabel || (preset.days ? `최근 ${preset.days}일` : '전체 기간');
+      const baseLabel = preset.customLabel || (preset.days ? `최근 ${preset.days}일` : '전체 기간');
+      // 프리셋(오늘/7일/한달/전체) 버튼을 쓸 때도 실제로 조회 중인 날짜 범위를 함께 보여준다.
+      // (달력 직접 선택 시엔 customLabel 자체가 이미 정확한 날짜라서 중복 표시하지 않는다.)
+      const periodLabel = preset.rangeText ? `${baseLabel} ${preset.rangeText}` : baseLabel;
       const topPathsHTML = (stats.topPaths || []).map(p => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(fpPathLabel(p.path))}</span><span style="font-weight:700">${Number(p.cnt).toLocaleString()}회</span></div>`).join('');
       const topActionsHTML = (stats.topActions || []).map(a => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0"><span>${esc(FP_ACTION_LABELS[a.action] || a.action)}</span><span style="font-weight:700">${Number(a.cnt).toLocaleString()}회</span></div>`).join('');
       // 게스트(닉네임 없는 방문자)는 전부 "게스트"로 뭉뚱그려지면 몇 명인지 구분이 안 되므로,
@@ -6653,6 +6665,15 @@
       if (!body) return;
       document.querySelectorAll('.stat-period-btn').forEach((b, i) => b.classList.toggle('primary', !__fpStatCustom && i === __fpStatPreset));
       body.innerHTML = '<div class="empty" style="padding:10px 0">불러오는 중…</div>';
+      // 지금 실제로 조회 중인 기간(YYYY-MM-DD ~ YYYY-MM-DD) — 방문자 목록/제목/달력에 공통으로 쓴다.
+      const range = fpCurrentStatRange();
+      // 프리셋(오늘/7일/한달/전체) 버튼을 쓸 때도 달력 입력칸에 그 기간이 그대로 보이도록 자동으로
+      // 채워준다 — 달력을 직접 만졌을 때(커스텀 모드)는 사용자가 고른 값을 건드리지 않는다.
+      if (!__fpStatCustom) {
+        const f = document.getElementById('stat-from'), t = document.getElementById('stat-to');
+        if (f) f.value = range.from || '';
+        if (t) t.value = range.to || '';
+      }
       try {
         let preset, res;
         if (__fpStatCustom) {
@@ -6662,10 +6683,10 @@
         } else if (FP_STAT_PRESETS[__fpStatPreset].today) {
           // "오늘" 버튼: 한국 시간 기준 오늘 하루만 조회
           const t = fpKstToday();
-          preset = { days: null, bucket: 'day', unit: '일별', customLabel: '오늘' };
+          preset = { days: null, bucket: 'day', unit: '일별', customLabel: '오늘', rangeText: fpRangeLabel(range) };
           res = await fpFetchSiteStats(null, 'day', t, t);
         } else {
-          preset = FP_STAT_PRESETS[__fpStatPreset];
+          preset = Object.assign({}, FP_STAT_PRESETS[__fpStatPreset], { rangeText: fpRangeLabel(range) });
           res = await fpFetchSiteStats(preset.days, preset.bucket);
         }
         if (res.error && res.error.message === '__NEED_PATCH__') {
@@ -6677,7 +6698,6 @@
         // 방문자 목록은 위쪽 추이/인기페이지와 같은 기간 전체를 합산해서 보여준다
         // (예전엔 항상 "오늘"만 보였음). 이 함수가 아직 패치 전이면 원래 값(오늘치)을 그대로 둔다.
         try {
-          const range = fpCurrentStatRange();
           const vRes = await fpFetchStatVisitors(range.from, range.to);
           if (!vRes.error) data.recentSessions = vRes.data || [];
         } catch (e) { /* 방문자 목록만 실패해도 나머지 통계는 그대로 보여준다 */ }
@@ -6689,10 +6709,7 @@
     function fpLoadSiteStats(idx) {
       __fpStatPreset = idx;
       __fpStatCustom = null;   // 프리셋 버튼을 누르면 달력 선택 해제
-      // 달력 입력칸도 공란으로 되돌린다 (남아있으면 아직 그 기간을 보는 걸로 오해하기 쉬움)
-      const f = document.getElementById('stat-from'), t = document.getElementById('stat-to');
-      if (f) f.value = '';
-      if (t) t.value = '';
+      // 달력 입력칸은 fpRenderSiteStats()가 이 프리셋의 실제 조회 기간으로 자동 채워준다.
       fpRenderSiteStats();
     }
     function fpApplyStatRange() {
