@@ -8901,7 +8901,10 @@
         else if (r === streakRes) streak++;
         else break;
       }
-      const streakTxt = streak >= 2 ? ` · 최근 ${streak}${streakRes === 'W' ? '연승' : '연패'}` : '';
+      // 2연승 이상은 파랑, 2연패 이상은 빨강으로 강조 (승/패 배지와 같은 색 계열)
+      const streakTxt = streak >= 2
+        ? ` · <span style="color:${streakRes === 'W' ? '#1d4ed8' : '#a51c1c'}">최근 ${streak}${streakRes === 'W' ? '연승' : '연패'}</span>`
+        : '';
       // PC 팝업에서 확대되어도 글자가 커지지 않게: 그릴 폭을 크게(480) 잡고 max-width로 고정
       const W = 480, H = 96, padL = 30, padR = 14, padT = 12, padB = 18;
       const mMin = Math.min(...pts.map(p => p.m)), mMax = Math.max(...pts.map(p => p.m));
