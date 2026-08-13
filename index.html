@@ -8273,10 +8273,16 @@
           if (!ks.length) return null;
           return { t: +new Date(r.captured_at), remain: ks.reduce((s, k) => s + g[k].remain, 0) };
         }).filter(Boolean);
-      if (snaps.length < 5) return null;
+      if (!snaps.length) return null;
       const nowT = snaps[snaps.length - 1].t;
       const remainNow = snaps[snaps.length - 1].remain;
-      if (remainNow <= 0) return { status: 'soldout' };
+      if (remainNow <= 0) {
+        // 매진: 첫 기록(오픈)부터 잔여석이 0이 된 첫 기록까지 며칠 걸렸는지 계산
+        const hit = snaps.find(s => s.remain <= 0);
+        const soldoutDays = Math.max(1, Math.ceil(((hit ? hit.t : nowT) - snaps[0].t) / 86400000));
+        return { status: 'soldout', soldoutDays };
+      }
+      if (snaps.length < 5) return null;
       // 일괄 발권 의심 구간을 뺀 "실구매 누적" 시계열 만들기.
       // ⚡ 감지 결과(bulkEvents)를 우선 쓰되, 총원 정보가 없어 ⚡ 감지가 못 도는 경우를 대비해
       // 같은 기준(30석↑ & 평소 속도 10배↑, 오픈 3시간·6시간 공백 제외)으로 자체 감지도 병행한다.
@@ -8319,20 +8325,38 @@
       return { status: 'ok', eta: new Date(nowT + etaDays * 86400000), etaDays, perDay, sold24, remainNow };
     }
     // 예측 결과 1건 → 사람이 읽는 문구
-    function tkForecastLine(fc, eventEnd) {
+    /* 예측 결과 1건 → 사람이 읽는 문구.
+       - 본문은 상황별 색(초록=순항 · 호박=경기일까지 부족 · 주황=한참 느림 · 빨강=멈춤 · 파랑=매진)
+       - 본문은 .tk-fc-line 으로 감싸 한 줄 고정(white-space:nowrap) — 좁은 화면에서는
+         tkFitForecastLines()가 글자를 조금씩 줄여 항상 한 줄에 맞춘다
+       - 잔여석은 본문 대신 아래 회색 근거 줄에 표시해 본문을 짧게 유지한다 */
+    function tkForecastLine(fc, eventEnd, total, labelHTML) {
       if (!fc || fc.status === 'insufficient') return '';
-      if (fc.status === 'soldout') return `<b>🎉 전석 매진!</b>`;
-      const hourWord = h => h < 6 ? '새벽' : h < 12 ? '오전' : h < 18 ? '오후' : h < 22 ? '저녁' : '밤';
-      const sub = `<div class="sub" style="margin-top:4px;font-size:11.5px;color:var(--dim)">최근 24시간 +${Math.round(fc.sold24).toLocaleString()}석 · 최근 3일 추세 하루 +${Math.max(0, fc.perDay).toFixed(1)}석 (이벤트표 등 일괄 발권 제외)</div>`;
-      if (fc.status === 'stalled') return `<b>💀 최근 판매가 거의 멈춰 있어,</b> 현 추세로는 매진이 어려워 보입니다.${sub}`;
-      if (fc.status === 'far') return `<b>🐢 현 추세라면 매진까지 약 ${Math.round(fc.etaDays)}일</b> — 사실상 매진은 어려워 보입니다.${sub}`;
+      const wrap = (color, txt) => `<div class="tk-fc-line" style="font-size:13.5px;line-height:1.6;white-space:nowrap;overflow:hidden">${labelHTML || ''}<b style="color:${color}">${txt}</b></div>`;
+      if (fc.status === 'soldout')
+        return wrap('#2563eb', `🎉 전석 매진! ${total != null ? `총 ${Number(total).toLocaleString()}석, ` : ''}티켓 오픈 ${fc.soldoutDays}일 만에 완판됐습니다 👏`);
+      const sub = `<div class="sub" style="margin-top:4px;font-size:11.5px;color:var(--dim)">잔여 ${fc.remainNow.toLocaleString()}석 · 최근 24시간 +${Math.round(fc.sold24).toLocaleString()}석 · 최근 3일 추세 하루 +${Math.max(0, fc.perDay).toFixed(1)}석 (이벤트표 등 일괄 발권 제외)</div>`;
+      if (fc.status === 'stalled') return wrap('#dc2626', '💀 판매가 거의 멈춤 — 매진은 어려워 보입니다') + sub;
+      if (fc.status === 'far') return wrap('#ea580c', `🐢 매진까지 약 ${Math.round(fc.etaDays)}일 걸리는 추세 — 매진은 어려워 보입니다`) + sub;
       // status === 'ok'
       if (eventEnd && fc.eta.getTime() > eventEnd.getTime() + 86400000)
-        return `<b>⏳ 현 추세라면 경기일까지 매진되지 않을 것으로 보입니다.</b> (잔여 ${fc.remainNow.toLocaleString()}석)${sub}`;
+        return wrap('#d97706', '⏳ 현 추세라면 경기일까지 매진은 어려워 보입니다') + sub;
       const d = fc.eta;
-      const dateStr = d.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric', weekday: 'short' });
+      const hourWord = h => h < 6 ? '새벽' : h < 12 ? '오전' : h < 18 ? '오후' : h < 22 ? '저녁' : '밤';
+      const dateStr = `${d.getMonth() + 1}/${d.getDate()}(${'일월화수목금토'[d.getDay()]})`;
       const dday = Math.max(0, Math.ceil((d.getTime() - Date.now()) / 86400000));
-      return `<b>🔥 이 추세라면 ${dateStr} ${hourWord(d.getHours())}쯤 매진 예상</b> — ${dday === 0 ? '오늘 안에!' : `약 ${dday}일 남음`} (잔여 ${fc.remainNow.toLocaleString()}석)${sub}`;
+      return wrap('#16a34a', `🔥 이 추세라면 ${dateStr} ${hourWord(d.getHours())}쯤 매진 예상 — ${dday === 0 ? '오늘 안에!' : `약 ${dday}일 남음`}`) + sub;
+    }
+    // 예측 본문(.tk-fc-line)이 좁은 화면에서 두 줄로 꺾이지 않게 글자를 조금씩 줄여 맞춘다
+    function tkFitForecastLines() {
+      document.querySelectorAll('.tk-fc-line').forEach(el => {
+        el.style.fontSize = '13.5px';
+        let size = 13.5, guard = 20;
+        while (el.scrollWidth > el.clientWidth + 0.5 && size > 9 && guard-- > 0) {
+          size -= 0.5;
+          el.style.fontSize = size + 'px';
+        }
+      });
     }
     async function viewTickets(previewKey) {
       // 모든 방문자에게 공개된 페이지다.
@@ -8511,8 +8535,11 @@
       latestRows.forEach(r => {
         const key = r.round_label || '__default__';
         const fc = tkSelloutForecast(rows.filter(x => (x.round_label || '__default__') === key), bulkByRound.get(key) || []);
-        const line = tkForecastLine(fc, periodEnd);
-        if (line) fcParts.push({ label: r.round_label, line });
+        // 매진 문구용 총 좌석수 — 정확한 총원(overallTotal)이 있을 때만 숫자를 보여준다
+        const fcTotal = overallByRound.has(key) ? overallByRound.get(key) : null;
+        const labelHTML = latestRows.length > 1 && r.round_label ? `<span style="color:var(--dim);font-weight:700">${esc(r.round_label)}</span> · ` : '';
+        const line = tkForecastLine(fc, periodEnd, fcTotal, labelHTML);
+        if (line) fcParts.push(line);
       });
       const forecastHTML = fcParts.length ? `
       <div class="card tk-total-card" style="margin-top:10px">
@@ -8521,7 +8548,7 @@
           <button type="button" onclick="const b=document.getElementById('tk-fc-info');b.style.display=b.style.display==='none'?'block':'none'"
             style="border:none;background:none;padding:0;cursor:pointer;font-size:11px;color:var(--dim);font-weight:700;text-decoration:underline">ⓘ 예측 기준</button>
         </div>
-        ${fcParts.map(p => `<div style="font-size:13.5px;line-height:1.55">${latestRows.length > 1 && p.label ? `<span style="color:var(--dim);font-weight:700">${esc(p.label)}</span> · ` : ''}${p.line}</div>`).join('<hr class="sep" style="margin:8px 0">')}
+        ${fcParts.join('<hr class="sep" style="margin:8px 0">')}
         <div id="tk-fc-info" style="display:none;background:#f4f6fa;border-radius:9px;padding:9px 12px;margin-top:9px;font-size:11.5px;color:var(--muted);line-height:1.8">
           <div>· 매진 예상일은 현재 잔여석 ÷ 하루 판매 속도로 계산</div>
           <div>· 판매 속도는 최근 3일 회귀 추세선 기준</div>
@@ -8643,6 +8670,7 @@
       <div class="note">이 페이지는 예매 사이트 화면을 주기적으로 자동 확인해 기록한 값으로, 실제 판매 시점과 몇 분 정도 오차가 있을 수 있습니다.</div>
       ${pastHTML}`;
       tkFitTotalLine();
+      tkFitForecastLines();
       tkFitPies();
     }
 
