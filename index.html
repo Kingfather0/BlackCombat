@@ -6540,16 +6540,26 @@
        정확히 다시 세므로(단순 합산 아님) 어떤 단위로 봐도 정확하다. */
     const FP_STAT_PRESETS = [
       { label: '오늘', today: true, bucket: 'day', unit: '일별' },
-      { label: '14일', days: 14, bucket: 'day', unit: '일별' },
-      { label: '30일', days: 30, bucket: 'day', unit: '일별' },
-      { label: '90일', days: 90, bucket: 'week', unit: '주별' },
+      { label: '7일', days: 7, bucket: 'day', unit: '일별' },
       { label: '전체', days: null, bucket: 'month', unit: '월별' },
     ];
-    let __fpStatPreset = 1; // 기본은 14일 보기
+    let __fpStatPreset = 1; // 기본은 7일 보기 (그 이상 기간은 아래 달력으로 직접 조회)
     // 한국 시간 기준 오늘 날짜(YYYY-MM-DD)
     function fpKstToday() { return new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10); }
     let __fpStatCustom = null;   // 달력으로 직접 고른 {from:'YYYY-MM-DD', to:'YYYY-MM-DD'} (null = 프리셋 버튼 사용)
-    let __fpStatListDate = null; // 방문자 목록 날짜 (null = 오늘)
+    // 지금 화면에 보이는 기간(오늘/7일/전체/달력 범위)을 {from,to}로 계산 — 방문자 목록을
+    // 위쪽 추이/인기페이지와 항상 같은 기간으로 맞추기 위해 쓴다. from이 null이면 "전체 기간".
+    function fpCurrentStatRange() {
+      const today = fpKstToday();
+      if (__fpStatCustom) return { from: __fpStatCustom.from, to: __fpStatCustom.to };
+      const preset = FP_STAT_PRESETS[__fpStatPreset];
+      if (preset.today) return { from: today, to: today };
+      if (preset.days) {
+        const from = new Date(Date.now() + 9 * 3600 * 1000 - (preset.days - 1) * 86400000).toISOString().slice(0, 10);
+        return { from, to: today };
+      }
+      return { from: null, to: today }; // 전체 기간
+    }
     // 활동 코드(영문) -> 사람이 읽기 좋은 한글 이름. 새 활동 추적을 추가하면 여기에도 이름을 등록한다.
     const FP_ACTION_LABELS = { submit_vote: '🗳️ 승부 예측 제출' };
     // 달력으로 고른 기간의 길이에 따라 집계 단위를 자동 결정 — 한 달 이내는 일별,
@@ -6568,7 +6578,8 @@
     function fpSiteStatsBodyHTML(stats, preset) {
       const daily = stats.daily || [];
       const maxUV = Math.max(1, ...daily.map(d => d.uv || 0));
-      const barsHTML = daily.map(d => `
+      // 화면에는 최근 날짜가 위로 오도록 뒤집어서 보여준다 (CSV/집계용 daily 원본 순서는 그대로 유지)
+      const barsHTML = daily.slice().reverse().map(d => `
         <div style="display:flex;align-items:center;gap:10px;padding:3px 0">
           <span style="width:60px;font-size:11.5px;color:var(--dim);white-space:nowrap">${esc(fpStatBucketLabel(d.d, preset.bucket))}</span>
           <span style="flex:1;background:#eef1f6;border-radius:99px;height:12px;overflow:hidden"><span style="display:block;height:100%;width:${Math.round((d.uv || 0) / maxUV * 100)}%;background:var(--key);border-radius:99px"></span></span>
@@ -6593,10 +6604,6 @@
         window.__fpVisitorLabels[s.session_id] = label;
         return `<div style="display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 0;border-bottom:1px solid #f0f1f4;cursor:pointer" title="누르면 활동 상세 보기" onclick="fpShowVisitorActivity('${esc(String(s.session_id))}')"><span>${label}</span><span style="color:var(--dim)">${new Date(s.last_seen).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })} · ${s.events}회 활동</span></div>`;
       }).join('');
-      // 방문자 목록 제목: 날짜를 달력으로 골라 오늘이 아닌 날도 볼 수 있다.
-      const todayStr = fpKstToday();
-      const listDate = stats.listDate || __fpStatListDate || todayStr;
-      const listIsToday = listDate === todayStr;
       // 요약 줄: 항상 "지금 보고 있는 기간"의 합계를 보여준다. (예전에는 어떤 기간을 골라도
       // "오늘" 수치가 고정으로 떠서 헷갈렸음.) 구버전 SQL(합계 미지원)이면 오늘 수치로 대체.
       const sumHTML = stats.rangeUniqueVisitors != null
@@ -6611,11 +6618,9 @@
       <div class="sec-title" style="font-size:12.5px;margin-top:14px">주요 활동 (${esc(periodLabel)})</div>
       ${topActionsHTML || '<div class="empty" style="padding:4px 0">데이터 없음</div>'}
       <div class="sec-title fit-row" style="font-size:12.5px;margin-top:14px;justify-content:space-between;gap:6px">
-        <span>${listIsToday ? '오늘' : ''} 방문자 목록 <span style="color:var(--dim);font-size:11px;font-weight:700">${(stats.recentSessions || []).length}명 · 스크롤</span></span>
-        <input type="date" value="${esc(listDate)}" max="${todayStr}" onchange="fpChangeStatListDate(this.value)"
-          style="border:1.5px solid var(--border);border-radius:8px;padding:2px 6px;font-size:11.5px;font-weight:700;color:var(--text);background:var(--card)">
+        <span>방문자 목록 (${esc(periodLabel)}) <span style="color:var(--dim);font-size:11px;font-weight:700">${(stats.recentSessions || []).length}명 · 스크롤</span></span>
       </div>
-      <div style="max-height:240px;overflow-y:auto;overscroll-behavior:contain">${recentHTML || `<div class="empty" style="padding:4px 0">${listIsToday ? '오늘' : esc(listDate)} 방문자가 없습니다.</div>`}</div>
+      <div style="max-height:240px;overflow-y:auto;overscroll-behavior:contain">${recentHTML || `<div class="empty" style="padding:4px 0">${esc(periodLabel)} 방문자가 없습니다.</div>`}</div>
       <div class="note" style="margin-top:8px">※ 로그인하지 않은 방문자는 브라우저별 익명 ID로만 구분되며(게스트), 실명·IP는 저장하지 않습니다.<br>※ 원본 기록은 기간과 무관하게 계속 쌓입니다 — 여기서는 보여주는 범위만 바뀝니다.</div>`;
     }
     // 프리셋/달력 어느 쪽이든 공통으로 쓰는 조회 함수. 신버전(날짜선택 패치) 함수를 먼저
@@ -6623,10 +6628,9 @@
     async function fpFetchSiteStats(days, bucket, from, to) {
       const args = { p_pass: adminPass(), p_days: days, p_bucket: bucket };
       if (from) { args.p_from = from; args.p_to = to; }
-      if (__fpStatListDate) args.p_list_date = __fpStatListDate;
       let res = await sb.rpc('admin_get_site_stats', args);
       if (res.error && /function|not find|unique/i.test(res.error.message || '')) {
-        if (from || __fpStatListDate) return { error: { message: '__NEED_PATCH__' } };
+        if (from) return { error: { message: '__NEED_PATCH__' } };
         // 신 패치 전: 3인자(기간확장) → 2인자(최초) 순서로 시도
         res = await sb.rpc('admin_get_site_stats', { p_pass: adminPass(), p_days: days, p_bucket: bucket });
         if (res.error && /function|not find|unique/i.test(res.error.message || '')) {
@@ -6638,6 +6642,11 @@
         }
       }
       return res;
+    }
+    // 방문자 목록 전용 조회 — 위 추이/인기페이지와 동일한 기간(from~to) 전체를 세션별로
+    // 합산해서 돌려준다 (방문자목록_기간연동_패치.sql 실행 필요, 미실행이면 기존 방식으로 대체).
+    async function fpFetchStatVisitors(from, to) {
+      return await sb.rpc('admin_get_stat_visitors', { p_pass: adminPass(), p_from: from, p_to: to });
     }
     async function fpRenderSiteStats() {
       const body = document.getElementById('site-stats-body');
@@ -6664,7 +6673,15 @@
           return;
         }
         if (res.error) throw res.error;
-        body.innerHTML = fpSiteStatsBodyHTML(res.data || {}, preset);
+        const data = res.data || {};
+        // 방문자 목록은 위쪽 추이/인기페이지와 같은 기간 전체를 합산해서 보여준다
+        // (예전엔 항상 "오늘"만 보였음). 이 함수가 아직 패치 전이면 원래 값(오늘치)을 그대로 둔다.
+        try {
+          const range = fpCurrentStatRange();
+          const vRes = await fpFetchStatVisitors(range.from, range.to);
+          if (!vRes.error) data.recentSessions = vRes.data || [];
+        } catch (e) { /* 방문자 목록만 실패해도 나머지 통계는 그대로 보여준다 */ }
+        body.innerHTML = fpSiteStatsBodyHTML(data, preset);
       } catch (e) {
         body.innerHTML = '<div class="empty" style="padding:10px 0">⚠️ ' + esc(cleanErr(e && e.message)) + '</div>';
       }
@@ -6672,7 +6689,6 @@
     function fpLoadSiteStats(idx) {
       __fpStatPreset = idx;
       __fpStatCustom = null;   // 프리셋 버튼을 누르면 달력 선택 해제
-      __fpStatListDate = null; // 방문자 목록도 오늘로 리셋
       // 달력 입력칸도 공란으로 되돌린다 (남아있으면 아직 그 기간을 보는 걸로 오해하기 쉬움)
       const f = document.getElementById('stat-from'), t = document.getElementById('stat-to');
       if (f) f.value = '';
@@ -6685,23 +6701,21 @@
       if (!from || !to) return toastMsg('⚠️ 시작일과 종료일을 모두 선택해 주세요.');
       if (from > to) return toastMsg('⚠️ 시작일이 종료일보다 늦을 수 없습니다.');
       __fpStatCustom = { from, to };
-      // 방문자 목록도 선택한 기간의 마지막 날(미래면 오늘)로 맞춰서 함께 이동한다
-      const today = fpKstToday();
-      __fpStatListDate = to > today ? today : to;
       fpRenderSiteStats();
     }
-    function fpChangeStatListDate(v) {
-      __fpStatListDate = v || null;
-      fpRenderSiteStats();
-    }
-    /* 방문자 목록에서 닉네임을 클릭하면 그 방문자(브라우저 세션)가 그날 어떤 페이지를
-       몇 번 봤고 어떤 활동을 했는지 상세 내역을 팝업으로 보여준다.
-       (방문통계_활동상세_패치.sql 실행 필요) */
+    /* 방문자 목록에서 닉네임을 클릭하면 그 방문자(브라우저 세션)가 지금 보고 있는 기간 동안
+       어떤 페이지를 몇 번 봤고 어떤 활동을 했는지 상세 내역을 팝업으로 보여준다.
+       (방문통계_활동상세_패치.sql + 방문자목록_기간연동_패치.sql 실행 필요) */
     async function fpShowVisitorActivity(sessionId) {
       const label = (window.__fpVisitorLabels || {})[sessionId] || sessionId;
+      const range = fpCurrentStatRange();
       let res;
       try {
-        res = await sb.rpc('admin_get_session_activity', { p_pass: adminPass(), p_session_id: sessionId, p_date: __fpStatListDate });
+        res = await sb.rpc('admin_get_session_activity_range', { p_pass: adminPass(), p_session_id: sessionId, p_from: range.from, p_to: range.to });
+        if (res.error && /function|not find|unique/i.test(res.error.message || '')) {
+          // 구버전 패치만 있는 경우: 지금 보고 있는 기간의 마지막 날짜 하루치만 보여준다
+          res = await sb.rpc('admin_get_session_activity', { p_pass: adminPass(), p_session_id: sessionId, p_date: range.to });
+        }
       } catch (e) { res = { error: e }; }
       if (res.error) {
         if (/function|not find/i.test(res.error.message || '')) return toastMsg('⚠️ 방문통계_활동상세_패치.sql을 먼저 실행해 주세요.');
@@ -7501,12 +7515,12 @@
         const remain = grades[k] && grades[k].remain;
         const total = totals && totals[k];
         const price = prices && prices[k];
-        const soldPct = (total && remain != null) ? Math.min(100, Math.max(0, Math.round((total - remain) / total * 100))) : null;
+        const soldPct = (total && remain != null) ? Math.min(100, Math.max(0, (total - remain) / total * 100)).toFixed(1) : null;
         const remainText = remain === 0 ? '매진' : (remain != null ? esc(remain.toLocaleString()) + '석 남음' : '-');
         const priceText = price != null ? `<span style="font-size:11.5px;color:var(--dim);font-weight:600;margin-left:6px">${price.toLocaleString()}원</span>` : '';
         // 등급별 총원을 모르는 경우엔 별도 안내 없이 잔여석만 깔끔하게 보여준다.
         const statusLine = soldPct != null
-          ? `<div class="tk-bar"><i style="width:${soldPct}%"></i></div><div class="tk-pct">${soldPct}% 판매 <span class="tk-pct-sub">(총 ${total.toLocaleString()}석 중 ${(total - remain).toLocaleString()}석)</span></div>`
+          ? `<div class="tk-bar"><i style="width:${soldPct}%"></i></div><div class="tk-pct">${soldPct}% 판매 <span class="tk-pct-sub">(총 ${total.toLocaleString()}석 중 ${(total - remain).toLocaleString()}석 판매)</span></div>`
           : '';
         return `<div class="tk-grade">
         <div class="tk-grade-top"><span class="tk-grade-name">${esc(k)}석${priceText}</span>
@@ -7743,7 +7757,7 @@
         const cumText = `(누적 ${b.cum.toLocaleString()}석 · ${b.pct.toFixed(1)}%)`; // 그날까지 총 몇 석이 팔렸는지 + 판매율
         if (b.isStart) return `${fmtDayLabel(b.day)} · 추적 시작 시점까지 누적 ${b.delta.toLocaleString()}석 (${b.pct.toFixed(1)}%)`;
         if (hasGap) return `⚠️ ${fmtDayLabel(b.prevDay)}~${fmtDayLabel(b.day)} (기록 누락으로 ${b.spanDays}일치 합산) · ${deltaText} ${b.delta < 0 ? '(취소가 더 많음)' : '판매'} ${cumText}`;
-        return `${fmtDayLabel(b.day)} · ${deltaText} ${b.delta < 0 ? '(취소가 더 많음)' : '판매'} ${cumText}`;
+        return `${fmtDayLabel(b.day)} ${deltaText} ${b.delta < 0 ? '(취소가 더 많음)' : '판매'} ${cumText}`;
       };
       const barsHTML = bars.map(b => {
         const hasGap = !b.isStart && b.spanDays > 1;
@@ -8501,7 +8515,7 @@
         ${adminPass() ? `<button class="btn primary small" onclick="refreshFighters(this)">🔄 수동 갱신</button>` : ''}
       </span>
     </h1>
-    <div class="sub">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 매일 새벽 자동 갱신</div>
+    <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 매일 새벽 자동 갱신</div>
     <div id="afx"></div>
     <div class="fgrid">
       ${FIGHTERS.map((d, di) => {
@@ -11551,7 +11565,7 @@
     const BB_MAX_HP = 100;
     const BB_HIT_DMG = 20;        // 라운드를 이기면 상대에게 들어가는 고정 대미지
     const BB_TOTAL_ROUNDS = 5;    // 총 5번의 공방으로 승부를 가린다
-    const BB_ROUND_TIME = 5000;   // 결과 확인 후 자동으로 다음 라운드로 넘어가기까지의 시간(ms) — 항상 고정
+    const BB_ROUND_TIME = 4000;   // 결과 확인 후 자동으로 다음 라운드로 넘어가기까지의 시간(ms) — 항상 고정
     // BB_PICK_TIME(기술 선택 제한시간, 10초 고정)은 CPU 대결 로직에서 이미 선언되어 있는 상수를
     // PvP 카운트다운(bbPvpStartDeadlineCountdown)에서도 그대로 재사용한다 — 값도 동일(10초)이라 중복 선언 불필요.
     const BB_FINISH_TIME = 2500;  // 마지막 결정타 연출 시간(ms)
@@ -13635,7 +13649,7 @@
     function voteFormHTML(t, matches, parts) {
       const identityBlock = gmMyNick
         ? `<div class="home-login-id" style="margin:0">👤 <b>${esc(gmMyNick)}</b> 님으로 투표합니다</div>
-       <div class="note" style="margin-top:8px">💡 마감 전까지 수정 가능합니다. · 게이지를 누르면 <b>투표자 목록</b>이 보입니다.</div>`
+       <div class="note" style="margin-top:8px">💡 마감 전까지 수정 가능하고, 게이지를 누르면 <b>투표자 목록</b>이 보입니다.</div>`
         : `<div class="empty" style="padding:10px 0;color:var(--red)"><b>투표하려면 먼저 닉네임을 등록해 주세요.</b></div>`;
       return `
     <div class="sec-title" style="justify-content:space-between">승부 예측 · 실시간 현황
@@ -14809,9 +14823,10 @@
     <div id="mrows-${tid}">
     ${(ms || []).map(m => matchEditRowHTML(m.id, m.fighter_a, m.fighter_b, m.division)).join('')}
     </div>
-    <div class="mrow" style="grid-template-columns:24px 1fr 1fr 82px;margin-top:12px">
+    <div class="mrow" id="addrow-${tid}" style="grid-template-columns:${MROW_COLS};margin-top:12px">
       <span style="color:var(--dim);font-size:14px;font-weight:800">+</span>
       <input id="na-${tid}" placeholder="선수 1" list="fighters-dl" onblur="fixFighterInput(this)">
+      ${divSelectHTML('')}
       <input id="nb-${tid}" placeholder="선수 2" list="fighters-dl" onblur="fixFighterInput(this)">
       <button class="btn xs" onclick="addPendingMatch('${tid}')">경기 추가</button>
     </div>
@@ -14822,18 +14837,21 @@
     // 추가해 두고 실제 저장은 [전체 저장]을 눌렀을 때 한 번에 처리한다.
     function addPendingMatch(tid) {
       const naEl = document.getElementById('na-' + tid), nbEl = document.getElementById('nb-' + tid);
+      const ndEl = document.querySelector('#addrow-' + tid + ' .m-div');
       const a = naEl.value.trim(), b = nbEl.value.trim();
       if (!a || !b) return toastMsg('⚠️ 선수 이름을 입력해 주세요.');
       const ck = validateFighterNames([a, b]);
       if (!ck.ok) return toastMsg(`⚠️ 랭킹에 없는 선수: ${ck.bad.join(', ')}`);
+      const division = ndEl ? ndEl.value : '';
       const wrap = document.getElementById('mrows-' + tid);
       const div = document.createElement('div');
-      div.innerHTML = matchEditRowHTML('', ck.fixed[0], ck.fixed[1]);
+      div.innerHTML = matchEditRowHTML('', ck.fixed[0], ck.fixed[1], division);
       const row = div.firstElementChild;
       row.querySelectorAll('input, .m-div').forEach(inp => { inp.dataset.orig = ''; }); // orig가 비어있어야 "새 행"으로 저장 시점에 add 처리됨
       wrap.appendChild(row);
       renumberMrows(wrap);
       naEl.value = ''; nbEl.value = '';
+      if (ndEl) { ndEl.value = ''; mDivColor(ndEl); }
       naEl.focus();
     }
     // ✕ — 기존(서버에 있던) 경기면 삭제 대기 목록에 올려두고, 새로 추가했던(아직 저장 전) 행이면
