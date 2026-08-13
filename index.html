@@ -8312,7 +8312,10 @@
       const perDay = (num / den) * 86400000;
       if (perDay < 2) return { status: 'stalled', perDay, sold24, remainNow };
       const etaDays = remainNow / perDay;
-      if (etaDays > 90) return { status: 'far', perDay, sold24, remainNow, etaDays };
+      // 격투기 티켓은 보통 경기 1~3주 전에 열려 판매 기간이 길어야 한 달 남짓이다.
+      // 경기일을 아는 경우는 아래 eventEnd 비교가 판정하고, 여기는 경기일 인식에
+      // 실패했을 때의 안전망 — 추정 매진일이 30일 밖이면 사실상 어렵다고 본다.
+      if (etaDays > 30) return { status: 'far', perDay, sold24, remainNow, etaDays };
       return { status: 'ok', eta: new Date(nowT + etaDays * 86400000), etaDays, perDay, sold24, remainNow };
     }
     // 예측 결과 1건 → 사람이 읽는 문구
@@ -8513,8 +8516,17 @@
       });
       const forecastHTML = fcParts.length ? `
       <div class="card tk-total-card" style="margin-top:10px">
-        <div style="font-weight:800;font-size:13px;margin-bottom:6px">🔮 매진 예측</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px">
+          <span style="font-weight:800;font-size:13px">🎟️ 매진 예측 시뮬레이션</span>
+          <button type="button" onclick="const b=document.getElementById('tk-fc-info');b.style.display=b.style.display==='none'?'block':'none'"
+            style="border:none;background:none;padding:0;cursor:pointer;font-size:11px;color:var(--dim);font-weight:700;text-decoration:underline">ⓘ 예측 기준</button>
+        </div>
         ${fcParts.map(p => `<div style="font-size:13.5px;line-height:1.55">${latestRows.length > 1 && p.label ? `<span style="color:var(--dim);font-weight:700">${esc(p.label)}</span> · ` : ''}${p.line}</div>`).join('<hr class="sep" style="margin:8px 0">')}
+        <div id="tk-fc-info" style="display:none;background:#f4f6fa;border-radius:9px;padding:9px 12px;margin-top:9px;font-size:11.5px;color:var(--muted);line-height:1.8">
+          <div>· 잔여석 ÷ 하루 판매량(최근 3일 회귀 추세선)으로 계산합니다.</div>
+          <div>· ⚡ 일괄 발권은 잔여석에만 반영, 판매량에는 미포함(일회성).</div>
+          <div>· 단순 추세 추정 — 매시간 자동 재계산됩니다.</div>
+        </div>
       </div>` : '';
 
       // 회차(공연 시간) 제목은 회차가 여러 개일 때만 표시한다 — 회차가 하나뿐이면(블랙컴뱃처럼
@@ -8833,64 +8845,63 @@
       } catch (e) { recordsCache = { data: null, nickToSeq: {} }; }
       return recordsCache;
     }
-    // 랭킹 변동 이력(rankhist.json) — 랭킹 봇이 매일 만들어 두는 날짜별 순위 스냅샷.
-    // 아직 파일이 없거나 실패하면 그래프 섹션만 조용히 생략된다.
-    let rankHistCache = null;
-    async function loadRankHist() {
-      if (rankHistCache !== null) return rankHistCache;
-      try {
-        const r = await fetch('rankhist.json?ts=' + Date.now(), { cache: 'no-store' });
-        if (!r.ok) throw 0;
-        rankHistCache = { data: await r.json() };
-      } catch (e) { rankHistCache = { data: null }; }
-      return rankHistCache;
-    }
-    /* 선수 팝업용 랭킹 변동 미니 그래프 (SVG) — 순위는 낮을수록 좋으니 위가 1위가 되도록 뒤집는다.
-       챔피언은 0으로 저장돼 있어 맨 위 눈금이 👑 로 표시된다. 데이터 2일치 미만이면 생략. */
-    function rankChartHTML(nick) {
-      const rh = rankHistCache && rankHistCache.data;
-      if (!rh || !rh.fighters) return '';
-      const f = rh.fighters[nick];
-      if (!f) return '';
-      const pts = [];
-      (rh.dates || []).forEach((d, i) => {
-        const r = f.ranks[i];
-        if (r !== null && r !== undefined) pts.push({ t: new Date(d + 'T00:00:00+09:00').getTime(), d, r });
+    /* 선수 팝업용 "전적 흐름" 미니 그래프 (SVG) — 공식 전적을 시간 순서(과거 → 최근)로 돌려서
+       이기면 한 칸 오르고 지면 한 칸 내려가는 누적 승패 계단선을 그린다. 연승은 산, 연패는
+       골짜기로 보여 기세의 흐름이 한눈에 들어온다. 승 지점은 파랑, 패는 빨강, 무는 회색 점.
+       공식 경기 데이터는 날짜가 없어 가로축은 경기 순서다. 2경기 미만이면 생략. */
+    function recFlowChartHTML(nick, official) {
+      if (!official || official.length < 2) return '';
+      const seq = official.slice().reverse(); // 최신순 → 시간순
+      let margin = 0, w = 0, l = 0, dr = 0;
+      const pts = [{ i: 0, m: 0 }]; // 데뷔 전 0에서 시작
+      seq.forEach((mch, i) => {
+        if (mch.res === 'W') { margin++; w++; }
+        else if (mch.res === 'L') { margin--; l++; }
+        else dr++;
+        pts.push({ i: i + 1, m: margin, res: mch.res, ev: mch.ev });
       });
-      if (pts.length < 2) return '';
-      const use = pts.slice(-90); // 최근 90일까지만
-      const W = 320, H = 116, padL = 38, padR = 14, padT = 14, padB = 20;
-      const t0 = use[0].t, t1 = use[use.length - 1].t;
-      const rMin = Math.min(...use.map(p => p.r)), rMax = Math.max(...use.map(p => p.r));
-      const lo = Math.max(0, rMin - 1), hi = rMax + 1;
-      const x = t => padL + (W - padL - padR) * (t1 === t0 ? 0.5 : (t - t0) / (t1 - t0));
-      const y = r => padT + (H - padT - padB) * ((r - lo) / ((hi - lo) || 1));
-      const rankLabel = r => r === 0 ? '👑' : r + '위';
-      // 가로 눈금: 정수 순위 기준 최대 5개
-      const step = Math.max(1, Math.ceil((hi - lo) / 4));
-      let grid = '';
-      for (let r = lo; r <= hi; r += step) {
-        grid += `<line x1="${padL}" y1="${y(r)}" x2="${W - padR}" y2="${y(r)}" stroke="#eef1f6" stroke-width="1"/>
-        <text x="${padL - 5}" y="${y(r) + 3.5}" text-anchor="end" font-size="9.5" fill="#8a93a3">${rankLabel(r)}</text>`;
+      // 최근 연승/연패 계산 (무승부는 흐름 유지로 보고 건너뜀)
+      let streak = 0, streakRes = null;
+      for (let i = seq.length - 1; i >= 0; i--) {
+        const r = seq[i].res;
+        if (r === 'D') continue;
+        if (!streakRes) { streakRes = r; streak = 1; }
+        else if (r === streakRes) streak++;
+        else break;
       }
-      const line = use.map(p => `${x(p.t).toFixed(1)},${y(p.r).toFixed(1)}`).join(' ');
-      const area = `${padL},${H - padB} ${line} ${x(t1).toFixed(1)},${H - padB}`;
-      const last = use[use.length - 1];
-      const fmtMD = d => `${+d.slice(5, 7)}/${+d.slice(8, 10)}`;
-      const days = Math.round((t1 - t0) / 86400000) + 1;
+      const streakTxt = streak >= 2 ? ` · 최근 ${streak}${streakRes === 'W' ? '연승' : '연패'}` : '';
+      // PC 팝업에서 확대되어도 글자가 커지지 않게: 그릴 폭을 크게(480) 잡고 max-width로 고정
+      const W = 480, H = 96, padL = 30, padR = 14, padT = 12, padB = 18;
+      const mMin = Math.min(...pts.map(p => p.m)), mMax = Math.max(...pts.map(p => p.m));
+      const lo = Math.min(0, mMin) - 0.5, hi = Math.max(0, mMax) + 0.5;
+      const x = i => padL + (W - padL - padR) * (i / (pts.length - 1));
+      const y = m => padT + (H - padT - padB) * ((hi - m) / ((hi - lo) || 1));
+      // 0선(승패 균형선) + 눈금
+      let grid = `<line x1="${padL}" y1="${y(0)}" x2="${W - padR}" y2="${y(0)}" stroke="#dfe4ec" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="${padL - 4}" y="${y(0) + 3}" text-anchor="end" font-size="9" fill="#8a93a3">0</text>`;
+      [mMax, mMin].forEach(v => {
+        if (v !== 0) grid += `<text x="${padL - 4}" y="${y(v) + 3}" text-anchor="end" font-size="9" fill="#8a93a3">${v > 0 ? '+' + v : v}</text>`;
+      });
+      // 계단선: 각 경기 지점 사이를 ㄴ자로 잇는다
+      let path = `M ${x(0).toFixed(1)} ${y(0).toFixed(1)}`;
+      for (let i = 1; i < pts.length; i++) path += ` L ${x(i).toFixed(1)} ${y(pts[i - 1].m).toFixed(1)} L ${x(i).toFixed(1)} ${y(pts[i].m).toFixed(1)}`;
+      const dots = pts.slice(1).map(p => {
+        const c = p.res === 'W' ? '#2563eb' : p.res === 'L' ? '#dc2626' : '#9aa3b2';
+        return `<circle cx="${x(p.i).toFixed(1)}" cy="${y(p.m).toFixed(1)}" r="3" fill="${c}"><title>${esc(p.ev)} ${p.res === 'W' ? '승' : p.res === 'L' ? '패' : '무'}</title></circle>`;
+      }).join('');
+      const evShort = s => { s = String(s); return s.length > 9 ? s.slice(0, 9) + '…' : s; };
       return `
       <div class="sec-title" style="font-size:12.5px;margin-top:16px;display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap">
-        <span>랭킹 변동 <span style="color:var(--dim);font-size:11px;font-weight:700">최근 ${days}일 · ${esc(f.div)}</span></span>
-        <span style="color:var(--dim);font-size:11px;font-weight:700">현재 ${last.r === 0 ? '👑 챔피언' : last.r + '위'}</span>
+        <span>전적 흐름 <span style="color:var(--dim);font-size:11px;font-weight:700">블랙컴뱃 ${seq.length}경기</span></span>
+        <span style="color:var(--dim);font-size:11px;font-weight:700">${w}승 ${l}패${dr ? ' ' + dr + '무' : ''}${streakTxt}</span>
       </div>
       <div class="pcard" style="padding:8px 10px">
-        <svg viewBox="0 0 ${W} ${H}" style="width:100%;display:block" role="img" aria-label="${esc(nick)} 랭킹 변동 그래프">
+        <svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:480px;display:block;margin:0 auto" role="img" aria-label="${esc(nick)} 전적 흐름 그래프">
           ${grid}
-          <polygon points="${area}" fill="#2563eb14"/>
-          <polyline points="${line}" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-          <circle cx="${x(last.t).toFixed(1)}" cy="${y(last.r).toFixed(1)}" r="3.4" fill="#2563eb"/>
-          <text x="${padL}" y="${H - 6}" font-size="9.5" fill="#8a93a3">${fmtMD(use[0].d)}</text>
-          <text x="${W - padR}" y="${H - 6}" text-anchor="end" font-size="9.5" fill="#8a93a3">${fmtMD(last.d)}</text>
+          <path d="${path}" fill="none" stroke="#94a8cc" stroke-width="1.6" stroke-linejoin="round"/>
+          ${dots}
+          <text x="${padL}" y="${H - 5}" font-size="9" fill="#8a93a3">${esc(evShort(seq[0].ev))}</text>
+          <text x="${W - padR}" y="${H - 5}" text-anchor="end" font-size="9" fill="#8a93a3">${esc(evShort(seq[seq.length - 1].ev))}</text>
         </svg>
       </div>`;
     }
@@ -8898,7 +8909,7 @@
       if (!seasonCache) {
         try { seasonCache = await fetchSeasonData(); } catch (e) { return toastMsg('⚠️ 데이터를 불러오지 못했습니다.'); }
       }
-      const [rec] = await Promise.all([loadRecords(), loadRankHist()]);
+      const rec = await loadRecords();
       const d = seasonCache, rows = [];
       let totVotes = 0, corrVotes = 0;
       d.finals.forEach(t => {
@@ -8944,7 +8955,7 @@
       const fmInfo = FIGHTER_MAP[String(nick).trim().toLowerCase()];
       const recTxt = fmInfo ? `${fmInfo.w}승 ${fmInfo.l}패${fmInfo.dr ? ' ' + fmInfo.dr + '무' : ''}` : '';
       const officialHTML = !official.length ? '' : `
-      <div class="sec-title" style="font-size:12.5px;margin-top:${rows.length ? 16 : 0}px;display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap">
+      <div class="sec-title" style="font-size:12.5px;margin-top:${(rows.length || official.length >= 2) ? 16 : 0}px;display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap">
         <span>공식 전적${recTxt ? ` <span style="color:var(--dim);font-size:11px;font-weight:700">${recTxt}</span>` : ''}</span>
         ${sdUrl ? `<a href="${esc(sdUrl)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--dim);font-weight:700;text-decoration:underline">셔독에서 전체 전적 보기</a>` : ''}
       </div>
@@ -8972,8 +8983,8 @@
       <button class="modal-x" onclick="history.back()">✕</button></div>
     <div class="modal-b">
       ${predHTML}
+      ${recFlowChartHTML(nick, official)}
       ${officialHTML}
-      ${rankChartHTML(nick)}
     </div></div>`;
       ov.onclick = e => { if (e.target === ov) history.back(); };
       // 상대 선수를 눌러 다른 선수 기록으로 "이동"하는 경우: 이미 떠 있는 팝업만 갈아끼우고
@@ -14171,11 +14182,9 @@
         // res는 "그 페이지 주인공(seqA)" 기준의 결과다
         if (m.res === 'W') wa++; else if (m.res === 'L') wb++; else dr++;
       });
-      const evs = meets.map(m => m.ev).join(' · ');
       return `<div style="margin-top:7px;padding:6px 10px;background:#fff7ed;border:1px solid #fed7aa;border-radius:9px;font-size:12px;font-weight:700;color:#9a3412;display:flex;gap:6px;align-items:baseline;flex-wrap:wrap">
         <span>⚔️ ${meets.length >= 2 ? '과거 맞대결 ' + meets.length + '회' : '리매치'}</span>
         <span style="font-weight:800">${esc(nickA)} ${wa}승 : ${esc(nickB)} ${wb}승${dr ? ` · 무 ${dr}` : ''}</span>
-        <span style="color:#c2740f;font-weight:600">(${esc(evs)})</span>
       </div>`;
     }
     // 카드 그리드 마크업
