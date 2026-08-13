@@ -1,5 +1,5 @@
 {
- "updated_at": "2026-08-13T14:55:35.785Z",
+ "updated_at": "2026-08-13T18:12:35.191Z",
  "nicks": {
   "11198227": "블랙맘바",
   "11539850": "무칼리",
@@ -2375,6 +2375,19 @@
      "Adilet Nurmatov"
     ],
     "m": "3R Unanimous Decision"
+   },
+   {
+    "ev": "블랙컴뱃 15",
+    "res": "N",
+    "a": [
+     "98660587",
+     "김재웅"
+    ],
+    "b": [
+     "37050120",
+     "Adilet Nurmatov"
+    ],
+    "m": "No Contest(Missed Weight), 2R 0:22 KO, Adilet Nurmatov"
    }
   ],
   "37418531": [
@@ -2650,6 +2663,19 @@
      "김연균"
     ],
     "m": "3R Unanimous Decision"
+   },
+   {
+    "ev": "라이즈 8",
+    "res": "N",
+    "a": [
+     "40677542",
+     "Sander Silva"
+    ],
+    "b": [
+     "60298370",
+     "뷰렌저릭"
+    ],
+    "m": "No Contest (Doctor Stoppage)"
    },
    {
     "ev": "C.L 02 - #12",
@@ -2993,7 +3019,21 @@
     "m": "3R 2:00 TKO"
    }
   ],
-  "43145922": [],
+  "43145922": [
+   {
+    "ev": "브라질 vs 일본",
+    "res": "N",
+    "a": [
+     "51523231",
+     "Lucas Marques"
+    ],
+    "b": [
+     "43145922",
+     "Tanaka Yu"
+    ],
+    "m": "No Contest(Missed Weight), 1R 1:40 TKO, Lucas Marques"
+   }
+  ],
   "43483071": [
    {
     "ev": "C.L 02 - #13",
@@ -3486,7 +3526,21 @@
     "m": "1R 0:26 KO"
    }
   ],
-  "51523231": [],
+  "51523231": [
+   {
+    "ev": "브라질 vs 일본",
+    "res": "N",
+    "a": [
+     "51523231",
+     "Lucas Marques"
+    ],
+    "b": [
+     "43145922",
+     "Tanaka Yu"
+    ],
+    "m": "No Contest(Missed Weight), 1R 1:40 TKO, Lucas Marques"
+   }
+  ],
   "51533588": [
    {
     "ev": "라이즈 9",
@@ -4245,6 +4299,19 @@
      "뷰렌저릭"
     ],
     "m": "1R 3:40 Arm Triangle Choke"
+   },
+   {
+    "ev": "라이즈 8",
+    "res": "N",
+    "a": [
+     "40677542",
+     "Sander Silva"
+    ],
+    "b": [
+     "60298370",
+     "뷰렌저릭"
+    ],
+    "m": "No Contest (Doctor Stoppage)"
    }
   ],
   "60922090": [
@@ -5480,7 +5547,21 @@
     "m": "3R 1:02 TKO"
    }
   ],
-  "73185034": [],
+  "73185034": [
+   {
+    "ev": "브라질 vs 일본",
+    "res": "N",
+    "a": [
+     "77842475",
+     "Victor Hugo"
+    ],
+    "b": [
+     "73185034",
+     "Toma Mitsuhiro"
+    ],
+    "m": "No Contest(Missed Weight), 1R 0:11 KO, Victor Hugo"
+   }
+  ],
   "73557323": [
    {
     "ev": "라이즈 9",
@@ -5874,6 +5955,19 @@
      "Victor Hugo"
     ],
     "m": "1R 1:48 Gogoplata"
+   },
+   {
+    "ev": "브라질 vs 일본",
+    "res": "N",
+    "a": [
+     "77842475",
+     "Victor Hugo"
+    ],
+    "b": [
+     "73185034",
+     "Toma Mitsuhiro"
+    ],
+    "m": "No Contest(Missed Weight), 1R 0:11 KO, Victor Hugo"
    }
   ],
   "77881844": [
@@ -6069,6 +6163,19 @@
    }
   ],
   "80166879": [
+   {
+    "ev": "C.L 02 - #12",
+    "res": "N",
+    "a": [
+     "77920653",
+     "윤성욱"
+    ],
+    "b": [
+     "80166879",
+     "이환현"
+    ],
+    "m": "No Contest(Missed Weight)"
+   },
    {
     "ev": "C.L 02- #10",
     "res": "L",
@@ -7304,6 +7411,19 @@
      "타케나카 다이치"
     ],
     "m": "2R 4:05 TKO"
+   },
+   {
+    "ev": "블랙컴뱃 15",
+    "res": "N",
+    "a": [
+     "98660587",
+     "김재웅"
+    ],
+    "b": [
+     "37050120",
+     "Adilet Nurmatov"
+    ],
+    "m": "No Contest(Missed Weight), 2R 0:22 KO, Adilet Nurmatov"
    },
    {
     "ev": "블랙컴뱃 13",
