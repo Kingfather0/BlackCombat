@@ -104,6 +104,7 @@ function parseMatches(html) {
     const nicks = { ...(prev.nicks || {}) };
     const reals = { ...(prev.reals || {}) };
     const records = { ...(prev.records || {}) };
+    const sherdog = { ...(prev.sherdog || {}) }; // seq → 셔독(전체 전적 사이트) 프로필 링크
     roster.forEach(f => { nicks[f.seq] = f.nick; reals[f.seq] = f.real; });
 
     let ok = 0, fail = 0;
@@ -112,6 +113,9 @@ function parseMatches(html) {
         const page = await fetchHtml(BASE + '/fighter/' + f.seq);
         const matches = parseMatches(page);
         records[f.seq] = matches;
+        // 상세 페이지의 "CERTIFIED BY SHERDOG" 링크 (없는 선수도 있으므로 있을 때만 저장)
+        const sd = (page.match(/href="(https?:\/\/(?:www\.)?sherdog\.com\/fighter\/[^"]+)"/i) || [])[1];
+        if (sd) sherdog[f.seq] = sd;
         ok++;
       } catch (e) {
         fail++;
@@ -119,10 +123,10 @@ function parseMatches(html) {
       }
       await sleep(250); // 공식 서버에 부담 주지 않도록 간격을 둔다
     }
-    console.log(`전적 수집 완료: 성공 ${ok}명 · 실패 ${fail}명`);
+    console.log(`전적 수집 완료: 성공 ${ok}명 · 실패 ${fail}명 · 셔독 링크 ${Object.keys(sherdog).length}명`);
     if (ok < 30) throw new Error('수집 성공 수가 너무 적습니다 (' + ok + '명). 기존 데이터를 유지합니다.');
 
-    fs.writeFileSync(OUT, JSON.stringify({ updated_at: new Date().toISOString(), nicks, reals, records }, null, 1));
+    fs.writeFileSync(OUT, JSON.stringify({ updated_at: new Date().toISOString(), nicks, reals, records, sherdog }, null, 1));
     console.log('records.json 갱신 완료');
   } catch (e) {
     console.error('갱신 실패:', e.message);
