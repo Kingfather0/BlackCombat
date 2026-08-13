@@ -8901,19 +8901,20 @@
     function recFlowChartHTML(nick, official) {
       if (!official || official.length < 2) return '';
       const seq = official.slice().reverse(); // 최신순 → 시간순
-      let margin = 0, w = 0, l = 0, dr = 0;
+      let margin = 0, w = 0, l = 0, dr = 0, nc = 0;
       const pts = [{ i: 0, m: 0 }]; // 데뷔 전 0에서 시작
       seq.forEach((mch, i) => {
         if (mch.res === 'W') { margin++; w++; }
         else if (mch.res === 'L') { margin--; l++; }
+        else if (mch.res === 'N') nc++; // 노 컨테스트(무효) — 승패에 안 센다
         else dr++;
         pts.push({ i: i + 1, m: margin, res: mch.res, ev: mch.ev });
       });
-      // 최근 연승/연패 계산 (무승부는 흐름 유지로 보고 건너뜀)
+      // 최근 연승/연패 계산 (무승부·무효는 흐름 유지로 보고 건너뜀)
       let streak = 0, streakRes = null;
       for (let i = seq.length - 1; i >= 0; i--) {
         const r = seq[i].res;
-        if (r === 'D') continue;
+        if (r === 'D' || r === 'N') continue;
         if (!streakRes) { streakRes = r; streak = 1; }
         else if (r === streakRes) streak++;
         else break;
@@ -8939,13 +8940,13 @@
       for (let i = 1; i < pts.length; i++) path += ` L ${x(i).toFixed(1)} ${y(pts[i].m).toFixed(1)}`;
       const dots = pts.slice(1).map(p => {
         const c = p.res === 'W' ? '#2563eb' : p.res === 'L' ? '#dc2626' : '#9aa3b2';
-        return `<circle cx="${x(p.i).toFixed(1)}" cy="${y(p.m).toFixed(1)}" r="3" fill="${c}"><title>${esc(p.ev)} ${p.res === 'W' ? '승' : p.res === 'L' ? '패' : '무'}</title></circle>`;
+        return `<circle cx="${x(p.i).toFixed(1)}" cy="${y(p.m).toFixed(1)}" r="3" fill="${c}"><title>${esc(p.ev)} ${p.res === 'W' ? '승' : p.res === 'L' ? '패' : p.res === 'N' ? '무효' : '무'}</title></circle>`;
       }).join('');
       const evShort = s => { s = String(s); return s.length > 16 ? s.slice(0, 16) + '…' : s; };
       return `
       <div class="sec-title" style="font-size:12.5px;margin-top:16px;display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap">
         <span>전적 흐름 <span style="color:var(--dim);font-size:11px;font-weight:700">블랙컴뱃 ${seq.length}경기</span></span>
-        <span style="color:var(--dim);font-size:11px;font-weight:700">${w}승 ${l}패${dr ? ' ' + dr + '무' : ''}${streakTxt}</span>
+        <span style="color:var(--dim);font-size:11px;font-weight:700">${w}승 ${l}패${dr ? ' ' + dr + '무' : ''}${nc ? ` · 무효 ${nc}` : ''}${streakTxt}</span>
       </div>
       <div class="pcard" style="padding:8px 10px">
         <svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:480px;display:block;margin:0 auto" role="img" aria-label="${esc(nick)} 전적 흐름 그래프">
@@ -9015,8 +9016,9 @@
         const meFirst = m.a[0] === mySeq;
         const opp = meFirst ? m.b : m.a;
         const oppNick = (rec.data.nicks || {})[opp[0]];
-        const myBadge = m.res === 'W' ? W : m.res === 'L' ? L : DR;
-        const oppBadge = m.res === 'W' ? L : m.res === 'L' ? W : DR;
+        const NCB = '<span class="badge" style="background:#eef1f6;color:#525d6b;font-size:11px">무효</span>';
+        const myBadge = m.res === 'W' ? W : m.res === 'L' ? L : m.res === 'N' ? NCB : DR;
+        const oppBadge = m.res === 'W' ? L : m.res === 'L' ? W : m.res === 'N' ? NCB : DR;
         const oppHTML = oppNick
           ? `<span style="cursor:pointer;background:#eef1f6;border-radius:8px;padding:2px 8px" onclick="openFighterStats('${String(oppNick).replace(/'/g, "\\'")}')" title="누르면 ${esc(oppNick)} 선수의 기록이 보입니다">${fflagHTML(oppNick)}${esc(oppNick)}</span>`
           : `<span>${fflagHTML(opp[1])}${esc(opp[1])}</span>`;
@@ -9117,7 +9119,8 @@
                 st.fast = { r: key[0], s: key[1], m: m.m, ev: m.ev };
             }
           } else if (m.res === 'L') { st.l++; streak = 0; }
-          else st.dr++;
+          else if (m.res === 'D') st.dr++;
+          // 'N'(노 컨테스트)은 승·패·무 어디에도 안 세고 연승도 끊지 않는다 (출전 수에는 포함)
         });
         st.curStreak = streak;
         out.push(st);
@@ -14349,14 +14352,14 @@
       const meets = (rd.records[seqA] || []).filter(m =>
         (m.a[0] === seqA && m.b[0] === seqB) || (m.a[0] === seqB && m.b[0] === seqA));
       if (!meets.length) return '';
-      let wa = 0, wb = 0, dr = 0;
+      let wa = 0, wb = 0, dr = 0, nc = 0;
       meets.forEach(m => {
-        // res는 "그 페이지 주인공(seqA)" 기준의 결과다
-        if (m.res === 'W') wa++; else if (m.res === 'L') wb++; else dr++;
+        // res는 "그 페이지 주인공(seqA)" 기준의 결과다. 'N'(노 컨테스트)은 승패에 안 센다.
+        if (m.res === 'W') wa++; else if (m.res === 'L') wb++; else if (m.res === 'N') nc++; else dr++;
       });
       return `<div style="margin-top:7px;padding:6px 10px;background:#fff7ed;border:1px solid #fed7aa;border-radius:9px;font-size:12px;font-weight:700;color:#9a3412;display:flex;gap:6px;align-items:baseline;flex-wrap:wrap">
         <span>⚔️ ${meets.length >= 2 ? '과거 맞대결 ' + meets.length + '회' : '리매치'}</span>
-        <span style="font-weight:800">${esc(nickA)} ${wa}승 : ${esc(nickB)} ${wb}승${dr ? ` · 무 ${dr}` : ''}</span>
+        <span style="font-weight:800">${esc(nickA)} ${wa}승 : ${esc(nickB)} ${wb}승${dr ? ` · 무 ${dr}` : ''}${nc ? ` · 무효 ${nc}` : ''}</span>
       </div>`;
     }
     // 카드 그리드 마크업
