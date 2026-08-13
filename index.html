@@ -7858,18 +7858,20 @@
         const hasGap = !b.isStart && b.spanDays > 1;
         const tip = tipOf(b);
         const cls = `${b.isStart ? ' tk-day-start' : ''}${hasGap ? ' tk-day-gap' : ''}`;
+        // 값이 있는 막대는 비율상 1픽셀 미만이 되어도 최소 4px는 보이게 한다
+        // (예: 최대 감소일이 -15일 때 -1석인 날은 비율로만 그리면 1px도 안 돼 안 보였음)
         if (negFrac === 0) {
           // 마이너스 날이 없으면 기존과 동일한 단순 막대
           const h = Math.max(0, b.delta) / maxPos * 100;
           return `<div class="tk-day-col${cls}"${tkTipAttrs(tip)}>
-          <i class="tk-day-fill" style="height:${Math.max(h, b.delta > 0 ? 3 : 0).toFixed(1)}%"></i>
+          <i class="tk-day-fill" style="height:${Math.max(h, b.delta > 0 ? 3 : 0).toFixed(1)}%${b.delta > 0 ? ';min-height:4px' : ''}"></i>
         </div>`;
         }
         const hPos = b.delta > 0 ? Math.max(b.delta / maxPos * 100, 3) : 0;
         const hNeg = b.delta < 0 ? Math.max(-b.delta / maxNeg * 100, 3) : 0;
         return `<div class="tk-day-col tk-day-col2${cls}"${tkTipAttrs(tip)}>
-          <span class="tk-day-pos" style="height:${(posFrac * 100).toFixed(1)}%"><i class="tk-day-fill" style="height:${hPos.toFixed(1)}%"></i></span>
-          <span class="tk-day-neg" style="height:${(negFrac * 100).toFixed(1)}%"><i class="tk-day-fill tk-day-fill-neg" style="height:${hNeg.toFixed(1)}%"></i></span>
+          <span class="tk-day-pos" style="height:${(posFrac * 100).toFixed(1)}%"><i class="tk-day-fill" style="height:${hPos.toFixed(1)}%${b.delta > 0 ? ';min-height:4px' : ''}"></i></span>
+          <span class="tk-day-neg" style="height:${(negFrac * 100).toFixed(1)}%"><i class="tk-day-fill tk-day-fill-neg" style="height:${hNeg.toFixed(1)}%${b.delta < 0 ? ';min-height:4px' : ''}"></i></span>
         </div>`;
       }).join('');
       const first = bars[0], last = bars[bars.length - 1];
