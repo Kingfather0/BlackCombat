@@ -912,7 +912,9 @@
     .tk-pie-wrap {
       display: flex;
       align-items: center;
-      gap: 12px
+      gap: 12px;
+      position: relative
+      /* 도넛 조각 말풍선(.tk-dot-tip)의 위치 기준 */
     }
 
     .tk-pie-donut {
@@ -921,6 +923,7 @@
       aspect-ratio: 1;
       border-radius: 50%;
       position: relative;
+      cursor: pointer;
       box-shadow: 0 3px 10px rgba(29, 78, 216, .10), inset 0 0 0 1px rgba(11, 11, 11, .04)
     }
 
@@ -1067,6 +1070,50 @@
       to {
         opacity: 1
       }
+    }
+
+    /* 여러 줄 말풍선(⚡ 급감 상세 등) — \n 줄바꿈을 그대로 표시 */
+    .tk-dot-tip.multi {
+      white-space: pre-line;
+      text-align: left;
+      max-width: 260px;
+      font-weight: 600;
+      line-height: 1.5
+    }
+
+    /* ⚡ 급감 감지 지점(시간별 차트) — 주황 점 + 항상 보이는 ⚡ 표시 */
+    .tk-trend-dot.tk-alert {
+      background: #f59e0b;
+      box-shadow: 0 0 0 1px rgba(180, 83, 9, .4)
+    }
+
+    .tk-trend-dot.tk-alert::after {
+      content: '⚡';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      top: -15px;
+      font-size: 11px;
+      line-height: 1;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, .15)
+    }
+
+    /* 상단 "전체 좌석" 카드 안의 일괄 발권 의심 알림 */
+    .tk-bulk-alert {
+      margin-top: 9px;
+      background: #fff7e8;
+      border: 1.5px solid #f0d296;
+      border-radius: 10px;
+      padding: 8px 11px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #7a4d09;
+      font-weight: 600;
+      white-space: pre-line
+    }
+
+    .tk-bulk-alert+.tk-bulk-alert {
+      margin-top: 6px
     }
 
     /* 페이지 제목 우측의 티켓 현황 공유 버튼 — 하늘색 배경 + 파란 글자 알약 모양 */
@@ -7559,13 +7606,27 @@
       const soldSum = parts.reduce((s, p) => s + p.sold, 0);
       if (!soldSum || parts.length < 2) return ''; // 등급이 1개뿐이면 원형 그래프가 의미 없음
       // conic-gradient로 도넛 차트를 그린다 (외부 라이브러리 없이 CSS만으로)
+      // 조각별 각도/값은 __tkPieData에 저장해 두고, 도넛 위에 마우스를 올리거나 탭하면
+      // 좌표→각도 계산으로 어느 조각인지 찾아 말풍선을 띄운다 (tkPieHover).
       let acc = 0;
+      const segData = [];
       const segs = parts.map((p, i) => {
         const from = acc / soldSum * 360;
         acc += p.sold;
         const to = acc / soldSum * 360;
+        segData.push({
+          from, to,
+          label: /석/.test(p.k) ? p.k : p.k + '석',
+          sold: p.sold,
+          pct: p.sold / soldSum * 100,
+          inner: totals[p.k] > 0 ? (p.sold / totals[p.k] * 100) : null
+        });
         return `${TK_PIE_COLORS[i % TK_PIE_COLORS.length]} ${from.toFixed(1)}deg ${to.toFixed(1)}deg`;
       }).join(', ');
+      window.__tkPieData = window.__tkPieData || {};
+      window.__tkPieSeq = (window.__tkPieSeq || 0) + 1;
+      const pieId = 'tk-pie-' + window.__tkPieSeq;
+      window.__tkPieData[pieId] = segData;
       const legendHTML = parts.map((p, i) => {
         const pct = (p.sold / soldSum * 100);
         // 등급 내 판매율: 그 등급 총원 중 몇 %가 팔렸는지 (전체 대비 비율과 별개의 정보)
@@ -7589,7 +7650,8 @@
       return `<div style="padding-bottom:10px;margin-bottom:12px;border-bottom:1px dashed var(--border)">
         <div class="tk-trend-title">등급별 판매 비율</div>
         <div class="tk-pie-wrap">
-          <div class="tk-pie-donut" style="background:conic-gradient(${segs})">
+          <div class="tk-pie-donut" id="${pieId}" style="background:conic-gradient(${segs})"
+            onmousemove="tkPieHover(event, this)" onmouseleave="tkPieLeave(this)" onclick="tkPieHover(event, this, 1)">
             <div class="tk-pie-hole">
               <span class="tk-pie-hole-label">판매</span>
               <span class="tk-pie-hole-num">${soldSum.toLocaleString()}석</span>
@@ -7665,17 +7727,21 @@
       const sold = total - remain;
       return { pct: Math.max(0, Math.min(100, sold / total * 100)), sold, total };
     }
-    function trendChartHTML(roundRows) {
+    function trendChartHTML(roundRows, bulkEvents) {
       // 이 회차에서 가장 최근에 알아낸 정확한 전체 총원(meta.overallTotal)을 찾아, 총원이 없는
       // 다른 기록에도 같은 기준으로 적용한다. (roundRows는 최신순 정렬이므로 첫 매칭 = 최신값)
       const ovRow = roundRows.find(x => x.meta && x.meta.overallTotal != null);
       const roundOverall = ovRow ? ovRow.meta.overallTotal : null;
-      let points = roundRows
+      const allPoints = roundRows
         .slice()
         .sort((a, b) => new Date(a.captured_at) - new Date(b.captured_at))
         .map(r => { const d = computeRowSoldPct(r, roundOverall); return { t: r.captured_at, pct: d ? d.pct : null }; })
         .filter(p => p.pct != null);
-      if (points.length < 2) return '';
+      if (allPoints.length < 2) return '';
+      // ⚡ 급감 감지 지점: 솎아내기에서 빠지지 않도록 항상 포함하고, 다른 색+⚡로 표시한다
+      const alertByT = new Map();
+      (bulkEvents || []).forEach(ev => alertByT.set(String(ev.tCur), ev));
+      let points = allPoints;
       // 기록이 많이 쌓이면 점이 수십~수백 개가 되어 (특히 모바일에서) 겹쳐버리므로,
       // 그래프는 최대 10개 지점으로 고르게 솎아내서 그린다. 맨 처음과 맨 끝 지점은
       // 항상 포함되고, 전체적인 추세 모양은 그대로 유지된다.
@@ -7685,6 +7751,11 @@
         for (let i = 0; i < MAX_POINTS; i++) {
           sampled.push(points[Math.round(i * (points.length - 1) / (MAX_POINTS - 1))]);
         }
+        // ⚡ 지점이 솎아내기에서 빠졌으면 다시 끼워넣는다 (시간순 유지)
+        allPoints.forEach(p => {
+          if (alertByT.has(String(p.t)) && !sampled.includes(p)) sampled.push(p);
+        });
+        sampled.sort((a, b) => new Date(a.t) - new Date(b.t));
         points = sampled;
       }
       const W = 100, H = 30, PAD = 2;
@@ -7692,16 +7763,22 @@
       const xAt = i => PAD + (i / (n - 1)) * (W - PAD * 2);
       const yAt = pct => H - PAD - (pct / 100) * (H - PAD * 2);
       const linePts = points.map((p, i) => `${xAt(i).toFixed(1)},${yAt(p.pct).toFixed(1)}`).join(' ');
-      // 각 기록 지점에 동그라미 점을 얹는다 — 마우스를 올리면(title 속성) 그 시점의
-      // 날짜/시간과 판매율이 뜬다. SVG는 가로로 늘려 그리는(preserveAspectRatio=none)
+      // 각 기록 지점에 동그라미 점을 얹는다. SVG는 가로로 늘려 그리는(preserveAspectRatio=none)
       // 구조라 원이 찌그러지므로, 점은 SVG 밖에서 %좌표로 겹쳐 배치한다.
-      // title 속성은 PC에서 마우스를 올렸을 때만 뜨므로, 점을 탭/클릭하면 같은 내용을
-      // 그 점 바로 위에 작은 말풍선으로 띄운다 (모바일/PC 공통).
+      // 점에 마우스를 올리거나(PC) 탭하면(모바일) 그 지점 바로 위에 말풍선이 뜬다.
+      // ⚡ 급감 지점은 주황 점으로 표시되고, 말풍선에 등급별 상세가 함께 나온다.
       const dotsHTML = points.map((p, i) => {
-        const tip = `${fmtSnapTime(p.t)} · ${p.pct.toFixed(1)}% 판매`;
-        return `<i class="tk-trend-dot" style="left:${xAt(i).toFixed(1)}%;top:${(yAt(p.pct) / H * 100).toFixed(1)}%" title="${esc(tip)}" onclick="tkDotTip(this, '${esc(tip)}')"></i>`;
+        const ev = alertByT.get(String(p.t));
+        const tip = ev
+          ? `${tkBulkAlertText(ev)}\n(${fmtSnapTime(p.t)} 기준 누적 ${p.pct.toFixed(1)}% 판매)`
+          : `${fmtSnapTime(p.t)} · ${p.pct.toFixed(1)}% 판매`;
+        return `<i class="tk-trend-dot${ev ? ' tk-alert' : ''}" style="left:${xAt(i).toFixed(1)}%;top:${(yAt(p.pct) / H * 100).toFixed(1)}%"${tkTipAttrs(tip)}></i>`;
       }).join('');
       const first = points[0], last = points[points.length - 1];
+      // ⚡가 있으면 차트 아래에도 항상 보이는 요약 한 줄씩 남긴다 (놓치지 않도록)
+      const alertNoteHTML = (bulkEvents && bulkEvents.length)
+        ? `<div class="tk-rev-note" style="color:#b45309;font-weight:700">${bulkEvents.map(ev => esc(tkBulkAlertText(ev, true))).join('<br>')}<br><span style="font-weight:600">— 주황 ⚡ 점을 누르면 등급별 상세가 보입니다.</span></div>`
+        : '';
       return `<div class="tk-trend">
         <div class="tk-trend-title">판매 추이(시간별)</div>
         <div class="tk-trend-plot">
@@ -7711,6 +7788,7 @@
           ${dotsHTML}
         </div>
         <div class="tk-trend-labels"><span>${fmtSnapTime(first.t)} · ${first.pct.toFixed(1)}%</span><span>${fmtSnapTime(last.t)} · ${last.pct.toFixed(1)}%</span></div>
+        ${alertNoteHTML}
       </div>`;
     }
     function fmtDayLabel(dateKey) {
@@ -7783,13 +7861,13 @@
         if (negFrac === 0) {
           // 마이너스 날이 없으면 기존과 동일한 단순 막대
           const h = Math.max(0, b.delta) / maxPos * 100;
-          return `<div class="tk-day-col${cls}" title="${esc(tip)}" onclick="tkDotTip(this, '${esc(tip)}')">
+          return `<div class="tk-day-col${cls}"${tkTipAttrs(tip)}>
           <i class="tk-day-fill" style="height:${Math.max(h, b.delta > 0 ? 3 : 0).toFixed(1)}%"></i>
         </div>`;
         }
         const hPos = b.delta > 0 ? Math.max(b.delta / maxPos * 100, 3) : 0;
         const hNeg = b.delta < 0 ? Math.max(-b.delta / maxNeg * 100, 3) : 0;
-        return `<div class="tk-day-col tk-day-col2${cls}" title="${esc(tip)}" onclick="tkDotTip(this, '${esc(tip)}')">
+        return `<div class="tk-day-col tk-day-col2${cls}"${tkTipAttrs(tip)}>
           <span class="tk-day-pos" style="height:${(posFrac * 100).toFixed(1)}%"><i class="tk-day-fill" style="height:${hPos.toFixed(1)}%"></i></span>
           <span class="tk-day-neg" style="height:${(negFrac * 100).toFixed(1)}%"><i class="tk-day-fill tk-day-fill-neg" style="height:${hNeg.toFixed(1)}%"></i></span>
         </div>`;
@@ -7808,15 +7886,24 @@
         <div class="tk-rev-note">※ 연한 색 막대(${fmtDayLabel(first.day)})는 추적을 시작한 날까지의 누적 판매량이며, 이후 막대부터는 전날 대비 순수 증가분입니다.${hasAnyNeg ? '<br>기준선 아래 빨간 막대는 취소·환불이 판매보다 많아 그날 판매 좌석이 오히려 줄어든 날입니다.' : ''}${hasAnyGap ? '<br>빗금 막대는 자동 기록이 하루 이상 통째로 누락되어 여러 날짜의 판매량이 합산된 값입니다(막대를 눌러 정확한 기간 확인).' : ''}</div>
       </div>`;
     }
-    /* 추이 그래프의 점을 탭/클릭했을 때, 화면 하단 토스트 대신 그 점 바로 위에
-       작은 말풍선을 띄운다. 2.5초 뒤 자동으로 사라지고, 다른 점을 누르면 즉시 교체된다.
-       그래프 가장자리의 점은 말풍선이 카드 밖으로 잘리지 않도록 안쪽으로 붙여서 보정한다. */
-    function tkDotTip(dotEl, text) {
+    /* 추이 그래프의 점·막대에 마우스를 올리거나 탭/클릭했을 때 그 지점 바로 위에 작은
+       말풍선을 띄운다. 클릭이면 2.5초 뒤 자동으로 사라지고(모바일용), 마우스 오버면
+       벗어날 때까지 유지된다. 말풍선 문구는 HTML 속성 안에 직접 넣지 않고 저장소
+       (__tkTipStore)에 번호로 보관한다 — 여러 줄(⚡ 급감 상세) 문구도 안전하게 쓰기 위함. */
+    let __tkTipStore = [];
+    function tkTipAttrs(text) {
+      __tkTipStore.push(text);
+      const id = __tkTipStore.length - 1;
+      return ` data-tip="${id}" onclick="tkTipShow(this)" onmouseenter="tkTipShow(this,1)" onmouseleave="tkTipHide(this)"`;
+    }
+    function tkTipShow(dotEl, hover) {
       const plot = dotEl.parentElement;
-      if (!plot) return;
+      const text = __tkTipStore[+dotEl.dataset.tip];
+      if (!plot || text == null) return;
       plot.querySelectorAll('.tk-dot-tip').forEach(t => t.remove());
       const tip = document.createElement('div');
-      tip.className = 'tk-dot-tip';
+      tip.className = 'tk-dot-tip' + (text.includes('\n') ? ' multi' : '');
+      if (hover) tip.dataset.hover = '1';
       tip.textContent = text;
       // 누른 요소의 실제 화면 좌표를 기준으로 말풍선 위치를 픽셀로 직접 계산한다.
       // (시간별 차트의 점이든, 일별 차트의 막대든 동일하게 "누른 곳 바로 위"에 뜬다.
@@ -7825,13 +7912,99 @@
       plot.appendChild(tip); // 먼저 붙여야 말풍선 크기를 잴 수 있다
       const pr = plot.getBoundingClientRect();
       const dr = dotEl.getBoundingClientRect();
-      const anchorX = dr.left + dr.width / 2 - pr.left;                                      // 누른 요소의 가로 중앙
+      const anchorX = dr.left + dr.width / 2 - pr.left;                                      // 요소의 가로 중앙
       const anchorY = dr.top - pr.top + (dotEl.classList.contains('tk-day-col') ? 0 : dr.height / 2); // 점은 중심, 막대는 위쪽 끝
       const tw = tip.offsetWidth, th = tip.offsetHeight;
       // 가로: 중앙 정렬하되 차트 밖으로 잘리지 않게 안쪽으로 보정
       tip.style.left = Math.max(-4, Math.min(anchorX - tw / 2, pr.width - tw + 4)) + 'px';
-      tip.style.top = (anchorY - th - 7) + 'px'; // 누른 지점 위 7px
-      setTimeout(() => tip.remove(), 2500);
+      tip.style.top = (anchorY - th - 7) + 'px'; // 지점 위 7px
+      if (!hover) setTimeout(() => tip.remove(), 2500); // 클릭(탭)이면 자동으로 사라짐
+    }
+    function tkTipHide(dotEl) {
+      const plot = dotEl.parentElement;
+      if (plot) plot.querySelectorAll('.tk-dot-tip[data-hover="1"]').forEach(t => t.remove());
+    }
+    /* --- 일괄 발권(이벤트표/단체석) 의심 급감 감지 ---
+       시간별 스냅샷에서 연속 두 기록 사이에 잔여석이 한 번에 크게 줄어든 구간을 찾는다.
+       조건: (1) 한 구간에 30석 이상 감소, (2) 그 시점까지의 평균 판매 속도의 10배 이상.
+       오픈 직후 3시간은 원래 폭주하는 게 정상이라 감지에서 제외하고, 기록이 6시간 넘게
+       끊겼던 구간은 원인 시점을 특정할 수 없어 제외한다.
+       ※ 데이터상 유료/무료를 구분할 방법은 없으므로 "의심"까지만 표시한다. */
+    function tkDetectBulkDrops(roundRows) {
+      const ovRow = roundRows.find(x => x.meta && x.meta.overallTotal != null);
+      const roundOverall = ovRow ? ovRow.meta.overallTotal : null;
+      const snaps = roundRows.slice()
+        .sort((a, b) => new Date(a.captured_at) - new Date(b.captured_at))
+        .map(r => { const d = computeRowSoldPct(r, roundOverall); return d ? { t: +new Date(r.captured_at), iso: r.captured_at, sold: d.sold, grades: r.grades || {} } : null; })
+        .filter(Boolean);
+      if (snaps.length < 3) return [];
+      const first = snaps[0];
+      const events = [];
+      for (let i = 1; i < snaps.length; i++) {
+        const prev = snaps[i - 1], cur = snaps[i];
+        const hoursSinceStart = (prev.t - first.t) / 3600000;
+        if (hoursSinceStart < 3) continue;                    // 오픈 직후 러시 제외
+        const intervalH = (cur.t - prev.t) / 3600000;
+        if (intervalH <= 0 || intervalH > 6) continue;        // 기록 누락 구간 제외
+        const drop = cur.sold - prev.sold;
+        if (drop < 30) continue;
+        const avgPerHour = (prev.sold - first.sold) / Math.max(1, hoursSinceStart);
+        if (drop < 10 * Math.max(1, avgPerHour * intervalH)) continue;
+        // 등급별로 어디서 얼마나 빠졌는지 분해 (감소량 큰 순)
+        const gradeDrops = [];
+        Object.keys(prev.grades).forEach(k => {
+          const a = prev.grades[k] && prev.grades[k].remain;
+          const b = cur.grades[k] && cur.grades[k].remain;
+          if (a != null && b != null && a - b > 0) gradeDrops.push({ k, n: a - b });
+        });
+        gradeDrops.sort((x, y) => y.n - x.n);
+        events.push({ tPrev: prev.iso, tCur: cur.iso, drop, intervalH, avgPerHour, multiple: drop / Math.max(1, avgPerHour * intervalH), gradeDrops });
+      }
+      return events;
+    }
+    // 감지된 급감 1건을 사람이 읽는 3줄 문구로 만든다 (상단 알림/차트 말풍선/참고 문구 공용)
+    function tkBulkAlertText(ev, brief) {
+      const dateStr = new Date(ev.tCur).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric', weekday: 'short' });
+      const hm = t => new Date(t).toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
+      const durStr = ev.intervalH <= 1.05 ? '1시간' : `${Math.round(ev.intervalH)}시간`;
+      const l1 = `⚡ ${dateStr} ${hm(ev.tPrev)}~${hm(ev.tCur)} · ${durStr} 새 ${ev.drop.toLocaleString()}석 급감 — 일괄 발권 의심`;
+      if (brief) return l1;
+      const gLabel = k => /석/.test(k) ? k : k + '석';
+      const l2 = ev.gradeDrops.length ? `· ${ev.gradeDrops.map(g => `${gLabel(g.k)} -${g.n.toLocaleString()}석`).join(', ')}` : '';
+      const avg = ev.avgPerHour;
+      const l3 = `· 평소 판매 속도(시간당 평균 ${avg >= 10 ? Math.round(avg).toLocaleString() : avg.toFixed(1)}석)의 약 ${Math.round(ev.multiple).toLocaleString()}배`;
+      return [l1, l2, l3].filter(Boolean).join('\n');
+    }
+    /* --- 도넛 차트 조각 말풍선 (마우스 오버 + 탭/클릭 공용) ---
+       도넛은 conic-gradient 한 덩어리라 조각별 요소가 없다. 대신 마우스/탭 좌표를
+       중심 기준 각도로 바꿔서 어느 조각 위인지 계산한다. 가운데 구멍/바깥은 무시. */
+    function tkPieHover(ev, el, isClick) {
+      const data = (window.__tkPieData || {})[el.id];
+      if (!data) return;
+      const rect = el.getBoundingClientRect();
+      const dx = ev.clientX - (rect.left + rect.width / 2);
+      const dy = ev.clientY - (rect.top + rect.height / 2);
+      const dist = Math.hypot(dx, dy), R = rect.width / 2;
+      const hole = el.querySelector('.tk-pie-hole');
+      const holeR = hole ? hole.offsetWidth / 2 : R * 0.4;
+      if (dist > R + 2 || dist < holeR) { tkPieLeave(el); return; }
+      let ang = Math.atan2(dx, -dy) * 180 / Math.PI; // 12시 방향 0도, 시계 방향
+      if (ang < 0) ang += 360;
+      const seg = data.find(s => ang >= s.from && ang < s.to) || data[data.length - 1];
+      if (!seg) return;
+      const wrap = el.parentElement; // .tk-pie-wrap (position:relative)
+      let tip = wrap.querySelector('.tk-dot-tip');
+      if (!tip) { tip = document.createElement('div'); tip.className = 'tk-dot-tip'; wrap.appendChild(tip); }
+      tip.textContent = `${seg.label} · ${seg.sold.toLocaleString()}석 판매 · 전체의 ${seg.pct.toFixed(1)}%${seg.inner != null ? ` · 등급 내 ${seg.inner.toFixed(1)}%` : ''}`;
+      const wr = wrap.getBoundingClientRect();
+      const tw = tip.offsetWidth, th = tip.offsetHeight;
+      tip.style.left = Math.max(-4, Math.min(ev.clientX - wr.left - tw / 2, wr.width - tw + 4)) + 'px';
+      tip.style.top = (ev.clientY - wr.top - th - 12) + 'px';
+      if (isClick) { clearTimeout(tip.__t); tip.__t = setTimeout(() => tip.remove(), 2500); }
+    }
+    function tkPieLeave(el) {
+      const wrap = el.parentElement;
+      if (wrap) wrap.querySelectorAll('.tk-dot-tip').forEach(t => { if (!t.__t) t.remove(); });
     }
     /* 티켓 페이지의 "수동 갱신(실시간 조회)"과 "카톡 공유"가 쓰는 화면 상태.
        viewTickets()가 렌더링할 때마다 새로 채워진다. */
@@ -8096,6 +8269,11 @@
         return;
       }
 
+      // 말풍선/도넛 조각 데이터 저장소는 렌더링할 때마다 새로 채운다 (무한히 쌓이지 않게)
+      __tkTipStore = [];
+      window.__tkPieData = {};
+      window.__tkPieSeq = 0;
+
       // round_label(회차)별로 가장 최근 기록 1개씩 뽑아서 "현재 판매 현황"으로 보여준다.
       const latestByRound = new Map();
       rows.forEach(r => {
@@ -8104,6 +8282,16 @@
       });
       const latestRows = [...latestByRound.values()].sort((a, b) => String(a.round_label || '').localeCompare(String(b.round_label || '')));
       const newestAt = rows[0].captured_at;
+
+      // ⚡ 일괄 발권(이벤트표/단체석) 의심 급감 감지 — 회차별로 미리 계산해서
+      // 상단 알림 카드와 시간별 차트(주황 점 + 참고 문구)가 함께 쓴다.
+      const bulkByRound = new Map();
+      latestRows.forEach(r => {
+        const key = r.round_label || '__default__';
+        bulkByRound.set(key, tkDetectBulkDrops(rows.filter(x => (x.round_label || '__default__') === key)));
+      });
+      const allBulkEvents = [...bulkByRound.values()].flat()
+        .sort((a, b) => new Date(a.tCur) - new Date(b.tCur));
 
       // 회차별로 "가장 최근에 알아낸 정확한 전체 총원(meta.overallTotal)"을 미리 찾아둔다.
       // 최신 기록 자체에는 총원이 없어도(예: 자동 기록), 같은 회차의 과거 기록(예: 북마클릿
@@ -8149,6 +8337,14 @@
       const totalTitleHTML = `
       <div class="sec-title fit-row" style="justify-content:space-between">전체 좌석
         <span id="tk-updated" class="tk-updated-badge" style="display:none"></span></div>`;
+      // ⚡ 급감이 감지된 적 있으면 페이지 최상단(전체 좌석 게이지 바로 아래)에서 바로 보이게
+      // 알림 카드를 붙인다 — 최신 2건까지 상세로, 그보다 오래된 건 건수만 요약.
+      const bulkTopHTML = allBulkEvents.length ? (() => {
+        const recent = allBulkEvents.slice(-2);
+        const olderCnt = allBulkEvents.length - recent.length;
+        return recent.map(ev => `<div class="tk-bulk-alert">${esc(tkBulkAlertText(ev))}</div>`).join('')
+          + (olderCnt > 0 ? `<div class="sub" style="margin-top:5px;font-size:11px;color:var(--dim)">이 외 급감 의심 ${olderCnt}건 — 아래 판매 추이(시간별)의 ⚡ 점에서 확인할 수 있습니다.</div>` : '');
+      })() : '';
       const totalBarHTML = totalTitleHTML + ((hasTotal && sumTotal > 0) ? (() => {
         const sold = sumTotal - sumRemainForTotal;
         const pct = (sold / sumTotal * 100).toFixed(1);
@@ -8156,10 +8352,12 @@
       <div class="card tk-total-card">
         <div class="tk-total-num">총 ${sumTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%) · 잔여 ${sumRemainForTotal.toLocaleString()}석</div>
         <div class="tk-bar tk-total-bar"><i style="width:${Math.min(100, Math.max(0, pct))}%"></i></div>
+        ${bulkTopHTML}
       </div>`;
       })() : `
       <div class="card tk-total-card">
         <div class="sub">총 좌석수가 아직 집계되지 않았습니다. (오픈 시점 기록이 쌓이면 자동으로 표시됩니다)</div>
+        ${bulkTopHTML}
       </div>`);
 
       // 회차(공연 시간) 제목은 회차가 여러 개일 때만 표시한다 — 회차가 하나뿐이면(블랙컴뱃처럼
@@ -8212,7 +8410,7 @@
         const roundKey = r.round_label || '__default__';
         const roundRows = rows.filter(x => (x.round_label || '__default__') === roundKey);
         const daily = dailyTrendChartHTML(roundRows);
-        const hourly = trendChartHTML(roundRows);
+        const hourly = trendChartHTML(roundRows, bulkByRound.get(roundKey) || []);
         if (!daily && !hourly) return '';
         return `
       <div class="card tk-card">
