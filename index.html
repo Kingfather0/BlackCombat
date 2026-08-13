@@ -8893,7 +8893,7 @@
         const c = p.res === 'W' ? '#2563eb' : p.res === 'L' ? '#dc2626' : '#9aa3b2';
         return `<circle cx="${x(p.i).toFixed(1)}" cy="${y(p.m).toFixed(1)}" r="3" fill="${c}"><title>${esc(p.ev)} ${p.res === 'W' ? '승' : p.res === 'L' ? '패' : '무'}</title></circle>`;
       }).join('');
-      const evShort = s => { s = String(s); return s.length > 9 ? s.slice(0, 9) + '…' : s; };
+      const evShort = s => { s = String(s); return s.length > 16 ? s.slice(0, 16) + '…' : s; };
       return `
       <div class="sec-title" style="font-size:12.5px;margin-top:16px;display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap">
         <span>전적 흐름 <span style="color:var(--dim);font-size:11px;font-weight:700">블랙컴뱃 ${seq.length}경기</span></span>
