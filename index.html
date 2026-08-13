@@ -6219,7 +6219,15 @@
 
     .modal-b {
       overflow-y: auto;
+      overscroll-behavior: contain;
       padding: 0 14px 24px
+    }
+
+    /* 팝업이 떠 있는 동안 뒤 배경 페이지가 함께 스크롤되지 않도록 잠근다.
+       (팝업 열림/닫힘 경로가 여러 곳이라 JS 대신 CSS :has로 한 번에 처리 —
+        :has 미지원 구형 브라우저에서는 기존과 동일하게 동작할 뿐 깨지지 않는다) */
+    body:has(.modal-ov) {
+      overflow: hidden;
     }
 
     /* --- 브라우저 기본 confirm()을 대체하는 작은 중앙 확인 팝업(기권 등 위험한 동작 확인용) ---
