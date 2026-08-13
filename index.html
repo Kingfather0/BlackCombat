@@ -6428,7 +6428,7 @@
 
     /* 메뉴 6개 + 로고가 한 줄에 안 들어가는 아주 좁은 화면 — 로고 "텍스트"만 숨긴다.
        사자·카카오 아이콘과 오픈톡 링크는 유지되므로 기능 손실은 없다. */
-    @media(max-width:460px) {
+    @media(max-width:400px) {
       .logo .logo-text {
         display: none
       }
@@ -6446,7 +6446,6 @@
         <a href="#/" data-nav="home">홈</a>
         <a href="#/tickets" data-nav="tickets">티켓</a>
         <a href="#/fighters" data-nav="fighters">랭킹</a>
-        <a href="#/records" data-nav="records">업적</a>
         <a href="#/ranking" data-nav="ranking">격잘알</a>
         <a href="#/game" data-nav="game">게임</a>
       </nav>
@@ -6594,7 +6593,7 @@
         fighters: '랭킹',            // 상단 메뉴 "랭킹" = 선수 랭킹 페이지
         ranking: '격잘알',           // 상단 메뉴 "격잘알" = 예측 적중 랭킹 페이지
         game: '게임',
-        records: '업적',             // 상단 메뉴 "업적" = 블랙컴뱃 기록실
+        records: '기록실',           // 랭킹 페이지의 🏆 기록실
         t: '승부예측 상세',          // 홈의 승부예측 카드를 눌러 들어가는 대회 상세 화면
         player: '선수 기록',         // 랭킹에서 선수를 눌러 보는 개인 기록 화면
         admin: '관리자'
@@ -7230,14 +7229,11 @@
       // 티켓 판매 현황 — 모든 방문자에게 공개.
       const navTickets = document.querySelector('[data-nav="tickets"]');
       if (navTickets) navTickets.style.display = '';
-      // 업적(기록실) — 아직 공개 전이라 관리자 로그인 상태에서만 메뉴가 보인다.
-      // 공개하려면 아래 한 줄과 viewRecordsHall() 안의 관리자 확인만 지우면 된다.
-      const navRecords = document.querySelector('[data-nav="records"]');
-      if (navRecords) navRecords.style.display = adminPass() ? '' : 'none';
+
       if (seg[0] === '') { mark('home'); viewHome(); }
       else if (seg[0] === 't') { viewTournament(decodeURIComponent(seg[1] || '')); }
       else if (seg[0] === 'fighters') { mark('fighters'); viewFighters(); }
-      else if (seg[0] === 'records') { mark('records'); viewRecordsHall(); }
+      else if (seg[0] === 'records') { mark('fighters'); viewRecordsHall(); }
       else if (seg[0] === 'ranking') { mark('ranking'); viewRanking(); }
       else if (seg[0] === 'game') { mark('game'); viewGame(seg[1] || ''); }
       else if (seg[0] === 'tickets') { mark('tickets'); viewTickets(decodeURIComponent(seg[1] || '')); }
@@ -9067,6 +9063,7 @@
       <span>블랙컴뱃 선수 랭킹</span>
       <span class="fit-row" style="display:inline-flex;gap:8px;align-items:center">
         ${fightersUpdatedAt ? `<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${fmtDT(fightersUpdatedAt)} 갱신</span>` : ''}
+        <a class="btn small" href="#/records">🏆 기록실</a>
         ${adminPass() ? `<button class="btn small" onclick="toggleAddFighterForm()">➕ 선수 추가</button>` : ''}
         ${adminPass() ? `<button class="btn primary small" onclick="refreshFighters(this)">🔄 수동 갱신</button>` : ''}
       </span>
@@ -9131,14 +9128,14 @@
     let __rhCardSeq = 0;
     function rhCardHTML(title, note, rows, showN) {
       if (!rows.length) return '';
-      showN = showN || 5;
+      showN = showN || 10; // 랭킹표처럼 기본 10명 표시, 그 이상은 더보기
       let lastVal = null, lastRank = 0;
       const lines = rows.map((r, i) => {
         const rank = (lastVal !== null && r.val === lastVal) ? lastRank : i + 1;
         lastVal = r.val; lastRank = rank;
         return `<div class="frow" style="cursor:pointer" onclick="openFighterStats('${String(r.nick).replace(/'/g, "\\'")}')" title="누르면 ${esc(r.nick)} 선수의 기록이 보입니다">
         <span class="frk">${rank}</span>
-        ${fflagHTML(r.nick)}<b class="fnm">${esc(r.nick)}</b>
+        ${fflagHTML(r.nick)}<b class="fnm" style="min-width:0;word-break:normal;overflow-wrap:anywhere">${esc(r.nick)}</b>
         <span class="frec">${r.valText}</span>
       </div>${r.subText ? `<div style="font-size:11px;color:var(--dim);margin:-4px 0 4px 34px">${esc(r.subText)}</div>` : ''}`;
       });
@@ -9152,22 +9149,16 @@
     </div>`;
     }
     async function viewRecordsHall() {
-      // 공개 전 — 관리자만 미리보기 가능. 공개 시 이 블록을 지우면 된다.
-      if (!adminPass()) {
-        $app.innerHTML = `<h1 class="page">🏆 블랙컴뱃 업적</h1>
-      <div class="empty" style="margin-top:14px">준비 중인 페이지입니다.</div>`;
-        return;
-      }
       loading();
       await loadRecords();
       const stats = rhComputeStats();
       if (!stats || !stats.length) {
-        $app.innerHTML = `<h1 class="page">🏆 블랙컴뱃 업적</h1>
+        $app.innerHTML = `<h1 class="page">🏆 블랙컴뱃 기록실</h1>
       <div class="empty" style="margin-top:14px">아직 전적 데이터가 준비되지 않았습니다.<br>매일 새벽 자동 수집이 완료되면 표시됩니다.</div>`;
         return;
       }
       __rhCardSeq = 0;
-      const MAX = 15; // 더보기까지 포함해 카드당 최대 표시 인원
+      const MAX = 20; // 더보기까지 포함해 카드당 최대 표시 인원
       const desc = (arr, key) => arr.filter(s => key(s) > 0).sort((a, b) => key(b) - key(a) || b.w - a.w).slice(0, MAX);
       const mk = (arr, key, unit) => desc(arr, key).map(s => ({ nick: s.nick, val: key(s), valText: key(s).toLocaleString() + unit }));
 
@@ -9191,8 +9182,11 @@
       const updated = recordsCache.data.updated_at ? fmtDT(recordsCache.data.updated_at) : '';
       $app.innerHTML = `
     <h1 class="page" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-      <span>🏆 블랙컴뱃 업적</span>
-      ${updated ? `<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${updated} 갱신</span>` : ''}
+      <span>🏆 블랙컴뱃 기록실</span>
+      <span class="fit-row" style="display:inline-flex;gap:8px;align-items:center">
+        ${updated ? `<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${updated} 갱신</span>` : ''}
+        <a class="btn small" href="#/fighters">← 랭킹으로</a>
+      </span>
     </h1>
     <div class="sub" style="font-size:11px;color:var(--dim)">공식 홈페이지에 등재된 경기 기준 · 매일 새벽 자동 갱신 · 선수를 누르면 상세 기록이 보입니다</div>
     <div class="fgrid">
