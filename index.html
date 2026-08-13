@@ -6446,7 +6446,7 @@
       <nav id="nav">
         <a href="#/" data-nav="home">홈</a>
         <a href="#/tickets" data-nav="tickets">티켓</a>
-        <a href="#/fighters" data-nav="fighters">선수</a>
+        <a href="#/records" data-nav="fighters">선수</a>
         <a href="#/ranking" data-nav="ranking">격잘알</a>
         <a href="#/game" data-nav="game">게임</a>
       </nav>
@@ -9056,8 +9056,8 @@
       ? `<a href="${href}" style="padding:5px 15px;background:var(--key);color:#fff;font-weight:800;font-size:13.5px;text-decoration:none">${label}</a>`
       : `<a href="${href}" style="padding:5px 15px;background:#fff;color:var(--muted);font-weight:700;font-size:13.5px;text-decoration:none">${label}</a>`;
     const rankTabsHTML = act => `<span style="display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;flex-shrink:0">
-      ${rankTab(act === 'fighters', '#/fighters', '랭킹')}
       ${rankTab(act === 'records', '#/records', '업적')}
+      ${rankTab(act === 'fighters', '#/fighters', '랭킹')}
     </span>`;
     const frow = f => f[1] === '공석'
       ? `<div class="frow"><span class="frk c">👑</span><span class="fnm" style="color:var(--dim)">공석</span></div>`
