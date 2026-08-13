@@ -9189,10 +9189,10 @@
 
       // 피니시율: 5승 이상, (KO+서브미션)/승
       const finRows = stats.filter(s => s.w >= 5)
-        .map(s => ({ nick: s.nick, val: Math.round((s.ko + s.sub) / s.w * 100), w: s.w }))
+        .map(s => ({ nick: s.nick, val: Math.round((s.ko + s.sub) / s.w * 100), w: s.w, fin: s.ko + s.sub }))
         .filter(r => r.val > 0) // 피니시가 하나도 없는(0%) 선수는 제외
         .sort((a, b) => b.val - a.val || b.w - a.w).slice(0, MAX)
-        .map(r => ({ nick: r.nick, val: r.val, valText: `${r.val}% (${r.w}승)` }));
+        .map(r => ({ nick: r.nick, val: r.val, valText: `${r.val}% · ${r.fin}/${r.w}` })); // 예: 40% · 2/5 = 5승 중 피니시 2회
 
       const updated = recordsCache.data.updated_at ? fmtDT(recordsCache.data.updated_at) : '';
       $app.innerHTML = `
@@ -9206,12 +9206,12 @@
     <div class="fgrid">
       ${rhCardHTML('🔥 최다 연승 (역대)', '', mk(stats, s => s.maxStreak, '연승'))}
       ${rhCardHTML('📈 현재 연승 중', '', mk(stats, s => s.curStreak, '연승'))}
-      ${rhCardHTML('🛡️ 무패', '3경기 이상', undefeatedRows)}
+      ${rhCardHTML('🛡️ 무패', '3전↑', undefeatedRows)}
       ${rhCardHTML('🥇 최다 승', '', mk(stats, s => s.w, '승'))}
       ${rhCardHTML('👊 최다 KO/TKO승', '', mk(stats, s => s.ko, '회'))}
       ${rhCardHTML('🥋 최다 서브미션승', '', mk(stats, s => s.sub, '회'))}
       ${rhCardHTML('⚡ 최단 피니시', '빠른 순', fastRows)}
-      ${rhCardHTML('🎯 피니시율', '5승 이상 · KO+서브미션 비율', finRows)}
+      ${rhCardHTML('🎯 피니시율', '피니시/승', finRows)}
       ${rhCardHTML('🏟️ 최다 출전', '', mk(stats, s => s.n, '경기'))}
     </div>`;
     }
