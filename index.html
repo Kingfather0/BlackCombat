@@ -6465,6 +6465,9 @@
     // 6.99: 닉네임 등록 안내문구/비밀번호 잠김 안내에서 공통으로 쓰는 "킹빠더" 문의 링크(밑줄 + 카카오톡 오픈채팅 연결)
     const GM_KKO_URL = 'https://open.kakao.com/o/su9HLAuh';
     const GM_KKO_LINK = `<a href="${GM_KKO_URL}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">킹빠더</a>`;
+    // 닉네임 등록 안내문의 "잡담방" 입장 링크 (블랙컴뱃 잡담방 오픈채팅)
+    const GM_ROOM_URL = 'https://open.kakao.com/o/guJ1LAuh';
+    const GM_ROOM_LINK = `<a href="${GM_ROOM_URL}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">잡담방</a>`;
 
     /* ---------- 초기화 ---------- */
     const $app = document.getElementById('app');
@@ -9386,7 +9389,7 @@
       ${isRegister ? `<input id="gmn-pin2" inputmode="numeric" maxlength="4" placeholder="비밀번호 확인" type="password">` : ''}
       <div class="msg" id="gmn-msg"></div>
       <button class="btn primary wide" style="margin-top:14px" id="gmnGo">${isRegister ? '등록' : '로그인'}</button>
-      <div class="gl-d" style="color:${isRegister ? 'var(--red)' : '#8a94a6'};text-shadow:none;font-weight:600;margin-top:12px">${isRegister ? `잡담방 닉네임을 입력하면 목록이 나옵니다.<br>본인 닉네임을 선택한 후 비밀번호를 입력해 주세요.<br>본인 닉네임이 없거나, 이미 사용 중인 경우<br>${GM_KKO_LINK}에게 문의하세요.` : '오픈톡방 닉네임을 입력하면 목록이 나옵니다.<br>본인 닉네임을 선택한 후 비밀번호를 입력해 주세요.<br>아직 등록 전인 경우 닉네임 등록을 먼저 진행해 주세요.'}</div>
+      <div class="gl-d" style="color:${isRegister ? 'var(--red)' : '#8a94a6'};text-shadow:none;font-weight:600;margin-top:12px">${isRegister ? `잡담방 닉네임을 입력하면 목록이 나옵니다.<br>본인 닉네임을 선택한 후 비밀번호를 입력해 주세요.<br>닉네임이 없거나 이미 사용 중이라면<br>${GM_ROOM_LINK}에 입장해 킹빠더에게 문의해 주세요.` : '오픈톡방 닉네임을 입력하면 목록이 나옵니다.<br>본인 닉네임을 선택한 후 비밀번호를 입력해 주세요.<br>아직 등록 전인 경우 닉네임 등록을 먼저 진행해 주세요.'}</div>
       ${wasLoggedIn ? `<div style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:10px">
         <button type="button" class="gmn-pinlink" style="margin-top:0" id="gmnPinLink">비밀번호 변경하기</button>
         <button type="button" class="gmn-pinlink" style="margin-top:0;color:#b42318" id="gmnLogoutLink">로그아웃</button>
@@ -13805,7 +13808,7 @@
       <span class="arr">▾ 펼치기</span>
     </button>
     <div class="rules-b" style="display:none;padding:0 15px 12px;border-top:1px solid #eef1f6">
-      <div class="rule"><b>당첨 기준</b> — 1·2등은 승부 예측 <b>적중 수가 높은 순</b>으로 선정됩니다. 공동 인원이 지급 정원을 초과하면 그 안에서 <b>랜덤 추첨</b>합니다.</div>
+      <div class="rule"><b>당첨 기준</b> — <b>적중 수가 높은 순</b>으로 선정합니다. 공동 순위로 정원이 넘치면 <b>랜덤 추첨</b>하며, 밀린 분은 다음 등수 상품을 받습니다.</div>
       <div class="rule"><b>계체 실패 경기</b> — 계체 실패 선수가 승리하면 실제 결과는 무효(NC)라도, 승부 예측에서는 <b>그 선수의 승리로 처리</b>합니다.<br>
         <span style="color:var(--dim);font-size:12.5px">예) 붉은매(통과) vs 티알지(실패) → 티알지가 이기면 티알지 승</span></div>
       <div class="rule"><b>닉네임 일치</b> — 투표 닉네임이 <b>잡담방 닉네임과 다르면</b> 선물 당첨에서 제외됩니다.</div>
