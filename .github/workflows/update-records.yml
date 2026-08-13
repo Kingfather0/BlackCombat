@@ -20,7 +20,8 @@ jobs:
         run: node scripts/update-records.js
       - name: 변경 시 커밋
         run: |
-          if git diff --quiet records.json 2>/dev/null && [ -f records.json ]; then
+          # git status --porcelain은 "새로 생긴 파일"도 잡아낸다 (git diff는 못 잡음 — 첫 실행 버그 수정)
+          if [ -z "$(git status --porcelain records.json)" ]; then
             echo "변경 없음 - 커밋 생략"
           else
             git config user.name "records-bot"
