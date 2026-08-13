@@ -1263,7 +1263,8 @@
       padding: 3px 8px;
       border-radius: 7px;
       font-weight: 800;
-      font-size: 13.5px
+      font-size: 13.5px;
+      text-align: center
     }
 
     .pick-chip.A {
@@ -9052,9 +9053,9 @@
     // 한 단계 진한 회색 "받침(트레이)" 안에 두 탭을 넣어 전환 컨트롤임이 한눈에 보이게 한다.
     // 활성 탭 = 파란 채움, 비활성 탭 = 트레이 위 투명 버튼.
     const rankTab = (on, href, label) => on
-      ? `<a class="btn small primary" style="border-color:transparent" href="${href}">${label}</a>`
-      : `<a class="btn small" style="background:transparent;border-color:transparent;color:var(--muted)" href="${href}">${label}</a>`;
-    const rankTabsHTML = act => `<span style="display:inline-flex;gap:3px;background:#e2e8f0;border:1px solid #d5dce6;padding:3px;border-radius:12px">
+      ? `<a href="${href}" style="padding:5px 15px;background:var(--key);color:#fff;font-weight:800;font-size:13.5px;text-decoration:none">${label}</a>`
+      : `<a href="${href}" style="padding:5px 15px;background:#fff;color:var(--muted);font-weight:700;font-size:13.5px;text-decoration:none">${label}</a>`;
+    const rankTabsHTML = act => `<span style="display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;flex-shrink:0">
       ${rankTab(act === 'fighters', '#/fighters', '랭킹')}
       ${rankTab(act === 'records', '#/records', '업적')}
     </span>`;
