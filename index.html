@@ -8773,7 +8773,7 @@
       </div>
       ${rows.map(r => `<div class="pcard" style="padding:11px 14px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-weight:800;font-size:14px">${esc(nick)} ${r.won ? W : L} <span style="color:var(--dim);font-weight:700">vs</span> <span style="cursor:pointer" onclick="openFighterStats('${String(r.opp).replace(/'/g, "\\'")}')" title="누르면 ${esc(r.opp)} 선수의 기록이 보입니다">${esc(r.opp)}</span> ${r.won ? L : W}</span>
+          <span style="font-weight:800;font-size:14px">${esc(nick)} ${r.won ? W : L} <span style="color:var(--dim);font-weight:700">vs</span> <span style="cursor:pointer;background:#eef1f6;border-radius:8px;padding:2px 8px" onclick="openFighterStats('${String(r.opp).replace(/'/g, "\\'")}')" title="누르면 ${esc(r.opp)} 선수의 기록이 보입니다">${esc(r.opp)}</span> ${r.won ? L : W}</span>
           <span style="color:var(--muted);font-size:13px;font-weight:700">우리 방 픽 ${r.pct}%</span>
         </div>
         <div style="font-size:12px;margin-top:2px"><a href="#/t/${r.tid}" onclick="this.closest('.modal-ov').remove()" style="color:var(--dim);font-weight:700">${esc(r.title)}</a></div>
@@ -8781,12 +8781,10 @@
       // ── 섹션 2: 블랙컴뱃 공식 전적 (있을 때만) ──
       // 상대는 랭킹표의 닉네임으로 표시하고, 닉네임이 있으면 눌러서 그 선수의 기록으로 이동한다.
       // 랭킹에 없는 상대(은퇴/미등록)는 공식 표기 이름 그대로, 클릭 없이 보여준다.
-      const fmInfo = FIGHTER_MAP[String(nick).trim().toLowerCase()];
-      const recTxt = fmInfo ? `${fmInfo.w}승 ${fmInfo.l}패${fmInfo.dr ? ' ' + fmInfo.dr + '무' : ''}` : '';
       const officialHTML = !official.length ? '' : `
       <div class="sec-title" style="font-size:12.5px;margin-top:${rows.length ? 16 : 0}px;display:flex;justify-content:space-between;gap:8px;align-items:baseline">
-        <span>블랙컴뱃 전적${recTxt ? ` <span style="color:var(--dim);font-size:11px;font-weight:700">${recTxt}</span>` : ''}</span>
-        <span style="color:var(--dim);font-size:11px;font-weight:700">출처: 공식 홈페이지</span>
+        <span>공식 전적</span>
+        <span style="color:var(--dim);font-size:11px;font-weight:700">출처: 블랙컴뱃 공식 홈페이지</span>
       </div>
       ${official.map(m => {
         const meFirst = m.a[0] === mySeq;
@@ -8795,7 +8793,7 @@
         const myBadge = m.res === 'W' ? W : m.res === 'L' ? L : DR;
         const oppBadge = m.res === 'W' ? L : m.res === 'L' ? W : DR;
         const oppHTML = oppNick
-          ? `<span style="cursor:pointer" onclick="openFighterStats('${String(oppNick).replace(/'/g, "\\'")}')" title="누르면 ${esc(oppNick)} 선수의 기록이 보입니다">${esc(oppNick)}</span>`
+          ? `<span style="cursor:pointer;background:#eef1f6;border-radius:8px;padding:2px 8px" onclick="openFighterStats('${String(oppNick).replace(/'/g, "\\'")}')" title="누르면 ${esc(oppNick)} 선수의 기록이 보입니다">${esc(oppNick)}</span>`
           : `<span>${esc(opp[1])}</span>`;
         return `<div class="pcard" style="padding:11px 14px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
