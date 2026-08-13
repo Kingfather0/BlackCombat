@@ -8784,8 +8784,8 @@
       const sdUrl = (rec.data.sherdog || {})[mySeq];
       const officialHTML = !official.length ? '' : `
       <div class="sec-title" style="font-size:12.5px;margin-top:${rows.length ? 16 : 0}px;display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap">
-        <span>공식 전적${sdUrl ? ` <a href="${esc(sdUrl)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--dim);font-weight:700;text-decoration:underline;margin-left:4px">셔독 전적 보기</a>` : ''}</span>
-        <span style="color:var(--dim);font-size:11px;font-weight:400">출처: 블랙컴뱃 공식 홈페이지</span>
+        <span>공식 전적</span>
+        ${sdUrl ? `<a href="${esc(sdUrl)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--dim);font-weight:700;text-decoration:underline">셔독 전적 보기</a>` : ''}
       </div>
       ${official.map(m => {
         const meFirst = m.a[0] === mySeq;
