@@ -9018,11 +9018,15 @@
         const oppHTML = oppNick
           ? `<span style="cursor:pointer;background:#eef1f6;border-radius:8px;padding:2px 8px" onclick="openFighterStats('${String(oppNick).replace(/'/g, "\\'")}')" title="누르면 ${esc(oppNick)} 선수의 기록이 보입니다">${fflagHTML(oppNick)}${esc(oppNick)}</span>`
           : `<span>${fflagHTML(opp[1])}${esc(opp[1])}</span>`;
+        // 피니시(KO/TKO/서브미션)로 끝난 경기는 마무리 방법을 강조 — 이겼으면 파랑, 졌으면 빨강.
+        // 판정·무효 등은 기존 회색 유지. (rhClassify는 업적 페이지와 같은 분류 기준을 공유)
+        const mCls = rhClassify(m.m);
+        const mColor = (mCls === 'KO' || mCls === 'SUB') ? (m.res === 'W' ? '#1d4ed8' : m.res === 'L' ? '#a51c1c' : null) : null;
         return `<div class="pcard" style="padding:11px 14px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
           <span style="font-weight:800;font-size:14px">${fflagHTML(nick)}${esc(nick)} ${myBadge} <span style="color:var(--dim);font-weight:700">vs</span> ${oppHTML} ${oppBadge}</span>
         </div>
-        <div style="font-size:12px;margin-top:2px;color:var(--dim);font-weight:700">${esc(m.ev)}${m.m ? ` · ${esc(m.m)}` : ''}</div>
+        <div style="font-size:12px;margin-top:2px;color:var(--dim);font-weight:700">${esc(m.ev)}${m.m ? ` · <span${mColor ? ` style="color:${mColor}"` : ''}>${esc(m.m)}</span>` : ''}</div>
       </div>`;
       }).join('')}
       `;
@@ -9044,11 +9048,13 @@
       else pushModal(ov);
     }
     /* ── 선수 랭킹 페이지 ── */
-    // 랭킹 ↔ 업적 전환 탭 (두 페이지 상단 공용) — 비활성 탭은 회색 칩, 활성 탭은 파란 채움
+    // 랭킹 ↔ 업적 전환 탭 (두 페이지 상단 공용) — 페이지 배경이 연회색이라 칩만 두면 묻히므로,
+    // 한 단계 진한 회색 "받침(트레이)" 안에 두 탭을 넣어 전환 컨트롤임이 한눈에 보이게 한다.
+    // 활성 탭 = 파란 채움, 비활성 탭 = 트레이 위 투명 버튼.
     const rankTab = (on, href, label) => on
-      ? `<a class="btn small primary" href="${href}">${label}</a>`
-      : `<a class="btn small" style="background:#eef1f6;border-color:#eef1f6" href="${href}">${label}</a>`;
-    const rankTabsHTML = act => `<span style="display:inline-flex;gap:7px">
+      ? `<a class="btn small primary" style="border-color:transparent" href="${href}">${label}</a>`
+      : `<a class="btn small" style="background:transparent;border-color:transparent;color:var(--muted)" href="${href}">${label}</a>`;
+    const rankTabsHTML = act => `<span style="display:inline-flex;gap:3px;background:#e2e8f0;border:1px solid #d5dce6;padding:3px;border-radius:12px">
       ${rankTab(act === 'fighters', '#/fighters', '랭킹')}
       ${rankTab(act === 'records', '#/records', '업적')}
     </span>`;
@@ -9172,7 +9178,7 @@
       // 최단 피니시: 라운드 → 시간 순 (라운드 길이를 가정하지 않아 정확)
       const fastRows = stats.filter(s => s.fast)
         .sort((a, b) => a.fast.r - b.fast.r || a.fast.s - b.fast.s).slice(0, MAX)
-        .map(s => ({ nick: s.nick, val: s.fast.r * 10000 + s.fast.s, valText: `${s.fast.r}R ${Math.floor(s.fast.s / 60)}:${String(s.fast.s % 60).padStart(2, '0')}`, subText: `${s.fast.m} · ${s.fast.ev}` }));
+        .map(s => ({ nick: s.nick, val: s.fast.r * 10000 + s.fast.s, valText: `${s.fast.r}R ${Math.floor(s.fast.s / 60)}:${String(s.fast.s % 60).padStart(2, '0')}` }));
       // 최단 피니시의 공동 순위는 (라운드,시간)이 같을 때만 — val을 그 값으로 썼으므로 자동 처리됨
 
       // 무패: 패·무 없이 3경기 이상 — 승수 내림차순
@@ -9183,6 +9189,7 @@
       // 피니시율: 5승 이상, (KO+서브미션)/승
       const finRows = stats.filter(s => s.w >= 5)
         .map(s => ({ nick: s.nick, val: Math.round((s.ko + s.sub) / s.w * 100), w: s.w }))
+        .filter(r => r.val > 0) // 피니시가 하나도 없는(0%) 선수는 제외
         .sort((a, b) => b.val - a.val || b.w - a.w).slice(0, MAX)
         .map(r => ({ nick: r.nick, val: r.val, valText: `${r.val}% (${r.w}승)` }));
 
