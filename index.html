@@ -8773,7 +8773,7 @@
       </div>
       ${rows.map(r => `<div class="pcard" style="padding:11px 14px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-weight:800;font-size:14px">${esc(nick)} ${r.won ? W : L} <span style="color:var(--dim);font-weight:700">vs</span> <span style="cursor:pointer;background:#eef1f6;border-radius:8px;padding:2px 8px" onclick="openFighterStats('${String(r.opp).replace(/'/g, "\\'")}')" title="누르면 ${esc(r.opp)} 선수의 기록이 보입니다">${esc(r.opp)}</span> ${r.won ? L : W}</span>
+          <span style="font-weight:800;font-size:14px">${fflagHTML(nick)}${esc(nick)} ${r.won ? W : L} <span style="color:var(--dim);font-weight:700">vs</span> <span style="cursor:pointer;background:#eef1f6;border-radius:8px;padding:2px 8px" onclick="openFighterStats('${String(r.opp).replace(/'/g, "\\'")}')" title="누르면 ${esc(r.opp)} 선수의 기록이 보입니다">${fflagHTML(r.opp)}${esc(r.opp)}</span> ${r.won ? L : W}</span>
           <span style="color:var(--muted);font-size:13px;font-weight:700">우리 방 픽 ${r.pct}%</span>
         </div>
         <div style="font-size:12px;margin-top:2px"><a href="#/t/${r.tid}" onclick="this.closest('.modal-ov').remove()" style="color:var(--dim);font-weight:700">${esc(r.title)}</a></div>
@@ -8781,9 +8781,10 @@
       // ── 섹션 2: 블랙컴뱃 공식 전적 (있을 때만) ──
       // 상대는 랭킹표의 닉네임으로 표시하고, 닉네임이 있으면 눌러서 그 선수의 기록으로 이동한다.
       // 랭킹에 없는 상대(은퇴/미등록)는 공식 표기 이름 그대로, 클릭 없이 보여준다.
+      const sdUrl = (rec.data.sherdog || {})[mySeq];
       const officialHTML = !official.length ? '' : `
-      <div class="sec-title" style="font-size:12.5px;margin-top:${rows.length ? 16 : 0}px;display:flex;justify-content:space-between;gap:8px;align-items:baseline">
-        <span>공식 전적</span>
+      <div class="sec-title" style="font-size:12.5px;margin-top:${rows.length ? 16 : 0}px;display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap">
+        <span>공식 전적${sdUrl ? ` <a href="${esc(sdUrl)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--dim);font-weight:700;text-decoration:underline;margin-left:4px">셔독 전적 보기</a>` : ''}</span>
         <span style="color:var(--dim);font-size:11px;font-weight:400">출처: 블랙컴뱃 공식 홈페이지</span>
       </div>
       ${official.map(m => {
@@ -8793,16 +8794,16 @@
         const myBadge = m.res === 'W' ? W : m.res === 'L' ? L : DR;
         const oppBadge = m.res === 'W' ? L : m.res === 'L' ? W : DR;
         const oppHTML = oppNick
-          ? `<span style="cursor:pointer;background:#eef1f6;border-radius:8px;padding:2px 8px" onclick="openFighterStats('${String(oppNick).replace(/'/g, "\\'")}')" title="누르면 ${esc(oppNick)} 선수의 기록이 보입니다">${esc(oppNick)}</span>`
-          : `<span>${esc(opp[1])}</span>`;
+          ? `<span style="cursor:pointer;background:#eef1f6;border-radius:8px;padding:2px 8px" onclick="openFighterStats('${String(oppNick).replace(/'/g, "\\'")}')" title="누르면 ${esc(oppNick)} 선수의 기록이 보입니다">${fflagHTML(oppNick)}${esc(oppNick)}</span>`
+          : `<span>${fflagHTML(opp[1])}${esc(opp[1])}</span>`;
         return `<div class="pcard" style="padding:11px 14px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-weight:800;font-size:14px">${esc(nick)} ${myBadge} <span style="color:var(--dim);font-weight:700">vs</span> ${oppHTML} ${oppBadge}</span>
+          <span style="font-weight:800;font-size:14px">${fflagHTML(nick)}${esc(nick)} ${myBadge} <span style="color:var(--dim);font-weight:700">vs</span> ${oppHTML} ${oppBadge}</span>
         </div>
         <div style="font-size:12px;margin-top:2px;color:var(--dim);font-weight:700">${esc(m.ev)}${m.m ? ` · ${esc(m.m)}` : ''}</div>
       </div>`;
       }).join('')}
-      ${(rec.data.sherdog || {})[mySeq] ? `<div style="text-align:right;margin-top:8px"><a href="${esc((rec.data.sherdog || {})[mySeq])}" target="_blank" rel="noopener" style="font-size:12px;color:var(--dim);font-weight:700;text-decoration:underline">셔독(Sherdog)에서 전체 전적 보기 ↗</a></div>` : ''}`;
+      `;
       const ov = document.createElement('div');
       ov.className = 'modal-ov';
       ov.innerHTML = `<div class="modal">
