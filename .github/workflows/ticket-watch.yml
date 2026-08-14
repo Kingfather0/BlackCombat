@@ -38,6 +38,25 @@ jobs:
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
           TICKET_BOT_SECRET: ${{ secrets.TICKET_BOT_SECRET }}
         run: node scripts/ticket-watch.js
+      # ── 보조 대회 기록 (선택) ──────────────────────────────────────────
+      # 대회 두 개를 동시에 추적할 때 사용합니다. 저장소 Variables에
+      #   TICKET_URL_2 / TICKET_TARGET_DATE_2 / TICKET_EVENT_KEY_2
+      # 세 개를 채우면 매 실행마다 이 대회도 이어서 기록됩니다 (비워두면 그냥 건너뜀).
+      # SET_CURRENT=false 라서 사이트 메인 화면(판매 현황)은 위 메인 대회가 유지되고,
+      # 보조 대회 데이터는 "지난 티켓"에서 계속 갱신됩니다.
+      # 경기일(TICKET_TARGET_DATE_2)이 지나면 스크립트가 알아서 기록을 정지하므로
+      # 따로 꺼줄 필요 없습니다. 대회가 완전히 끝나면 _2 변수들을 비워두면 됩니다.
+      - name: (선택) 보조 대회 기록 — TICKET_URL_2 설정 시에만 실행
+        if: ${{ !cancelled() && vars.TICKET_URL_2 != '' }}
+        env:
+          TICKET_URL: ${{ vars.TICKET_URL_2 }}
+          TARGET_DATE: ${{ vars.TICKET_TARGET_DATE_2 }}
+          EVENT_KEY: ${{ vars.TICKET_EVENT_KEY_2 }}
+          SET_CURRENT: 'false'
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          TICKET_BOT_SECRET: ${{ secrets.TICKET_BOT_SECRET }}
+        run: node scripts/ticket-watch.js
       - name: 실패 시 디버그 스크린샷 저장
         if: failure()
         uses: actions/upload-artifact@v4
