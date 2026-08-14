@@ -8239,7 +8239,7 @@
         if (upEl) { upEl.textContent = '🔄 실시간 조회 ' + fmtSnapTime(new Date().toISOString()); upEl.style.display = ''; }
         // 좌석 카드 좌측 상단의 "기준 시각"도 방금 조회한 시각으로 갱신
         const asofEl = document.getElementById('tk-total-asof');
-        if (asofEl) asofEl.textContent = fmtSnapTime(new Date().toISOString()) + ' 기준';
+        if (asofEl) asofEl.textContent = fmtSnapTime(new Date().toISOString());
         tkBuildShareText(remainByGrade, new Date().toISOString()); // 공유 문구도 방금 조회한 최신값으로 교체
         toastMsg('✅ 예매 사이트에서 방금 직접 조회한 값입니다.');
       } catch (e) { toastMsg('⚠️ ' + (e.message || '실시간 조회에 실패했습니다.')); }
@@ -8634,7 +8634,7 @@
         return `
       <div class="card tk-total-card">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
-          <span class="tk-trend-title" style="margin-bottom:0" id="tk-total-asof">${fmtSnapTime(newestAt)} 기준</span>
+          <span class="tk-trend-title" style="margin-bottom:0" id="tk-total-asof">${fmtSnapTime(newestAt)}</span>
           ${totalInfoBtnHTML}
         </div>
         <div class="tk-total-num">총 ${sumTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%) · 잔여 ${sumRemainForTotal.toLocaleString()}석</div>
