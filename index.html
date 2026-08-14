@@ -6459,9 +6459,9 @@
     #jbx-back {
       border: 1px solid #39415a;
       background: #1d2230ee;
-      border-radius: 10px;
-      padding: 6px 13px;
-      font-size: 12.5px;
+      border-radius: 9px;
+      padding: 4px 10px;
+      font-size: 11.5px;
       font-weight: 800;
       color: #dfe5f2;
       cursor: pointer
@@ -9494,14 +9494,14 @@
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
       ${rankTabsHTML('jokbo')}
       <span style="display:inline-flex;gap:8px;align-items:center">
-        <span id="jbx-sub" style="font-size:12px;font-weight:800;background:#eef2f8;color:#39445a;padding:4px 11px;border-radius:99px">🥊 이기면 아버지</span>
+        <span id="jbx-sub" style="font-size:12px;font-weight:800;background:#eef2f8;color:#39445a;padding:4px 11px;border-radius:99px">😎 이기면 아버지</span>
       </span>
     </div>
     <div id="jbx-wrap">
       <canvas id="jbx-cv"></canvas>
       <div id="jbx-btns">
         <button id="jbx-back" type="button" style="display:none">전체</button>
-        <button id="jbx-full" type="button" title="전체화면으로 보기">⛶ 전체 화면</button>
+        <button id="jbx-full" type="button" title="전체화면으로 보기">⛶ 화면</button>
       </div>
       <div id="jbx-legend"></div>
       <div id="jbx-hint">체급 선택 = 확대 · 선수 선택 = 승패 강조 · 여백 탭/축소 = 뒤로</div>
@@ -9524,6 +9524,7 @@
       // ── 클러스터(체급) 배치: 사자를 중심으로 한 방사형 링 ──
       DIVS.forEach(d => {
         d.genGap = Math.min(96, 620 / Math.max(1, d.maxGen));
+        d.genGap0 = d.genGap; // 전체 화면용 기본 간격 (체급 확대 시 화면 비율에 맞춰 늘렸다가 복귀 시 원복)
         const h = d.maxGen * d.genGap + 280;
         const w = Math.sqrt(d.dnodes.length) * 150 + 160;
         d.Rc = Math.max(h, w) / 2 + 40;
@@ -9562,8 +9563,8 @@
           const lines = nameLines(n.nick);
           const r = Math.max(21 + t * 15, Math.max(...lines.map(l => l.length)) * 5.6 + 9);
           const node = { ...n, div: dix, lines, r,
-            x: d.cx + (Math.random() - .5) * 360,
-            y: d.cy + (n.gen - d.maxGen / 2) * d.genGap + (Math.random() - .5) * 40,
+            x: d.cx + (Math.random() - .5) * 130,
+            y: d.cy + (n.gen - d.maxGen / 2) * d.genGap + (Math.random() - .5) * 30,
             vx: 0, vy: 0, ph: Math.random() * 6.283, ph2: Math.random() * 6.283 };
           nodes.push(node); byId.set(n.id, node);
         });
@@ -9613,6 +9614,7 @@
       // ── 모드/카메라 ──
       let mode = 'overview', activeDiv = -1;
       let scale = 1, tx = 0, ty = 0, anim = null;
+      let followUntil = Date.now() + 2500;
       const toWorld = (px, py) => [(px - tx) / scale, (py - ty) / scale];
       function boundsOf(list, pad) {
         let x1 = 1e9, y1 = 1e9, x2 = -1e9, y2 = -1e9;
@@ -9645,18 +9647,33 @@
         if (selected) { backBtn.textContent = '해제'; backBtn.classList.add('sel'); }
         else { backBtn.textContent = '전체'; backBtn.classList.remove('sel'); }
       }
+      // 체급 확대 시: "전체화면"처럼 세로가 훨씬 긴 화면에서만 세대 간격을 늘려
+      // 동그라미들이 화면을 꽉 채우도록 세로로 펼친다. 일반 화면은 기본 배치 유지,
+      // 전체화면에서 나오면 자동 원복.
+      function fitDivisionShape(dix) {
+        const d = DIVS[dix];
+        if (document.fullscreenElement !== wrap) { d.genGap = d.genGap0; return; }
+        const estW = Math.sqrt(d.dnodes.length) * 150 + 160;
+        const availW = Math.max(200, W - 40), availH = Math.max(200, H - 120);
+        const desiredH = estW * availH / availW;
+        d.genGap = Math.max(d.genGap0, Math.min(190, (desiredH - 240) / Math.max(1, d.maxGen)));
+      }
       function enterDivision(dix) {
         mode = 'division'; activeDiv = dix;
         select(null);
-        if (subEl) subEl.textContent = '🥊 ' + DIVS[dix].name + ' · ' + parentWord(isFem(dix)) + ' → ' + childWord(isFem(dix));
+        fitDivisionShape(dix);
+        if (subEl) subEl.textContent = '😎 ' + DIVS[dix].name + ' · ' + parentWord(isFem(dix)) + ' → ' + childWord(isFem(dix));
         animToDivision(dix);
+        followUntil = Date.now() + 2400; // 펼쳐지는 동안 카메라가 부드럽게 따라간다
         updateBackBtn();
       }
       function exitToOverview() {
         mode = 'overview'; activeDiv = -1;
         select(null);
-        if (subEl) subEl.textContent = '🥊 이기면 아버지';
+        DIVS.forEach(d => { d.genGap = d.genGap0; });
+        if (subEl) subEl.textContent = '😎 이기면 아버지';
         animToOverview();
+        followUntil = Date.now() + 2400;
         updateBackBtn();
       }
 
@@ -9763,9 +9780,10 @@
         if (!n) return;
         if (mode !== 'division' || activeDiv !== n.div) {
           mode = 'division'; activeDiv = n.div;
-          if (subEl) subEl.textContent = '🥊 ' + DIVS[n.div].name + ' · ' + parentWord(isFem(n.div)) + ' → ' + childWord(isFem(n.div));
+          if (subEl) subEl.textContent = '😎 ' + DIVS[n.div].name + ' · ' + parentWord(isFem(n.div)) + ' → ' + childWord(isFem(n.div));
         }
         select(n);
+        followUntil = 0;
         animTo({ s: scale, x: W / 2 - n.x * scale, y: H * 0.38 - n.y * scale }, 420);
       };
 
@@ -10052,10 +10070,12 @@
           };
           const onFs = () => {
             if (token !== __jbxToken || !document.getElementById('jbx-cv')) { document.removeEventListener('fullscreenchange', onFs); return; }
-            fullBtn.textContent = document.fullscreenElement === wrap ? '✕ 닫기' : '⛶ 전체 화면';
+            fullBtn.textContent = document.fullscreenElement === wrap ? '✕ 닫기' : '⛶ 화면';
             fullBtn.title = document.fullscreenElement === wrap ? '전체화면 닫기' : '전체화면으로 보기';
             sizeCanvas();
+            if (mode === 'division') fitDivisionShape(activeDiv);
             if (mode === 'overview') animToOverview(250); else animToDivision(activeDiv, 250);
+            followUntil = Date.now() + 2400;
           };
           document.addEventListener('fullscreenchange', onFs);
         }
@@ -10066,20 +10086,32 @@
         if (mode === 'overview') animToOverview(300); else animToDivision(activeDiv, 300);
       };
       window.addEventListener('resize', onResize);
-      // 시작: 진입 후 2.5초 동안은 컨테이너 크기를 재측정하며 전체 화면 맞춤을 계속 수행한다.
-      // (첫 진입 때 레이아웃이 아직 안 잡힌 크기로 카메라를 한 번만 계산하면 화면이 작게
-      //  깨지는 문제가 있어서 — 사용자가 만지기 시작하면 즉시 중단)
-      let fitUntil = Date.now() + 2500;
-      cv.addEventListener('pointerdown', () => { fitUntil = 0; });
-      cv.addEventListener('wheel', () => { fitUntil = 0; }, { passive: true });
+      // 화면에 그리기 전에 물리를 미리 돌려서, 첫 프레임부터 자리 잡힌 배치로 시작한다
+      // (동그라미들이 바깥에서 서서히 모여드는 어색한 인트로 방지)
+      for (let i = 0; i < 160; i++) tick();
+      alpha = 0.12;
+      // 첫 화면을 자리 잡힌 배치에 딱 맞춰 시작
+      {
+        const c = camFor(boundsOf(nodes, 60), 56);
+        scale = c.s; tx = c.x; ty = c.y;
+      }
+      // followUntil 동안은 레이아웃 변화(첫 로딩 크기 변동, 체급 펼침/복귀)에 맞춰
+      // 카메라가 부드럽게 계속 따라간다 — 사용자가 만지기 시작하면 즉시 중단
+      cv.addEventListener('pointerdown', () => { followUntil = 0; });
+      cv.addEventListener('wheel', () => { followUntil = 0; }, { passive: true });
       (function loop() {
         if (token !== __jbxToken || !document.getElementById('jbx-cv')) return; // 페이지를 떠나면 루프 종료
         tick();
-        if (Date.now() < fitUntil) {
-          if (wrap.clientWidth !== W || wrap.clientHeight !== H) sizeCanvas();
-          if (mode === 'overview') { const c = camFor(boundsOf(nodes, 60), 56); scale = c.s; tx = c.x; ty = c.y; anim = null; }
-        }
         stepAnim();
+        if (Date.now() < followUntil && !dragNode && !anim) {
+          if (wrap.clientWidth !== W || wrap.clientHeight !== H) sizeCanvas();
+          const c = mode === 'overview'
+            ? camFor(boundsOf(nodes, 60), 56)
+            : camFor(boundsOf(nodesByDiv[activeDiv], 20), 56);
+          scale += (c.s - scale) * .1;
+          tx += (c.x - tx) * .1;
+          ty += (c.y - ty) * .1;
+        }
         draw();
         requestAnimationFrame(loop);
       })();
