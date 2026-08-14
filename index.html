@@ -6591,6 +6591,19 @@
       margin: 1px 0
     }
 
+    #jbx-info .cycbadge {
+      display: inline-block;
+      background: #3a2a14;
+      border: 1px solid #7a5c2e;
+      border-radius: 99px;
+      padding: 1px 10px;
+      font-weight: 800;
+      font-size: 11px;
+      color: #ffc46b;
+      margin-left: 4px;
+      cursor: default
+    }
+
     #jbx-info .kchip {
       display: inline-block;
       background: #1d2230;
@@ -9475,11 +9488,12 @@
             if (!inLeft.get(w)) q.push(w);
           }
         }
-        nodeIds.forEach(n => { if (!layer.has(n)) layer.set(n, 1); });
+        const cyc = new Set();
+        nodeIds.forEach(n => { if (!layer.has(n)) { layer.set(n, 1); cyc.add(n); } });
         const maxRank = Math.max(...nodeIds.map(sq => meta(sq).rank), 1);
         const dnodes = nodeIds.map(sq => {
           const m = meta(sq);
-          return { id: sq, nick: nickOf(sq), cc: m.cc, champ: m.champ, rank: m.rank, gen: layer.get(sq) || 0 };
+          return { id: sq, nick: nickOf(sq), cc: m.cc, champ: m.champ, rank: m.rank, gen: layer.get(sq) || 0, cyc: cyc.has(sq) };
         });
         divisions.push({ di, name: d.div, maxGen: Math.max(...dnodes.map(n => n.gen)), maxRank, dnodes, dedges: dEdges });
       });
@@ -9728,6 +9742,9 @@
         dirF = new Map(); dirS = new Map();
         if (!n) { infoEl.style.display = 'none'; anc = new Set(); desc = new Set(); updateBackBtn(); return; }
         anc = ancestorsOf(n.id); desc = descendantsOf(n.id);
+        // 순환(A→B→C→A)에 끼면 자기 자신이 자기 조상/자손 집합에 들어와 수가 1씩
+        // 부풀려지므로 제외한다 (강조 표시는 selected로 따로 처리돼 영향 없음)
+        anc.delete(n.id); desc.delete(n.id);
         (fathersOf.get(n.id) || []).forEach(e => dirF.set(e.f, e));
         (sonsOf.get(n.id) || []).forEach(e => dirS.set(e.s, e));
         ancDepth = new Map(); descDepth = new Map();
@@ -9772,6 +9789,7 @@
         infoBody.innerHTML = '<span class=nk style="cursor:pointer" onclick="openFighterStats(\'' + n.nick.replace(/'/g, "\\'") + '\')" title="누르면 전적 팝업이 열립니다">' +
           (n.cc ? flagImg(n.cc) + ' ' : '') + n.nick + (n.champ ? ' 👑' : '') + '</span> ' +
           '<span class=sub>' + (n.champ ? '챔피언' : n.rank + '위') + '</span>' +
+          (n.cyc ? '<span class="cycbadge" title="A→B→C→A처럼 서로 물고 물려서 위아래 세대를 나눌 수 없는 순환 관계예요">🐕 개족보</span>' : '') +
           '<span class="kchip' + (kinListMode === 'anc' ? ' on' : '') + '" onclick="jbxToggleKin(\'anc\')">조상 ' + anc.size + '</span>' +
           '<span class="kchip' + (kinListMode === 'desc' ? ' on2' : '') + '" onclick="jbxToggleKin(\'desc\')">자손 ' + desc.size + '</span>' +
           listHTML +
@@ -9911,6 +9929,7 @@
             else ctx.fillText(n.lines[0], nx, ny + n.r * .38);
           }
           if (n.champ && !inactive) { ctx.font = Math.round(n.r * .58) + 'px sans-serif'; ctx.textBaseline = 'middle'; ctx.fillText('👑', nx, ny - n.r - 9); }
+          if (n.cyc && !inactive) { ctx.font = Math.round(n.r * .5) + 'px sans-serif'; ctx.textBaseline = 'middle'; ctx.fillText('🐕', nx + n.r * .72, ny + n.r * .72); }
           if (tag && detail) {
             const tyy = ny - n.r - (n.champ ? 26 : 13);
             ctx.font = "800 11.5px -apple-system,'Malgun Gothic',sans-serif";
