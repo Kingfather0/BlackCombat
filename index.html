@@ -8465,7 +8465,12 @@
       let pastHTML = '';
       if (!isPreview) {
         const events = await fetchTicketEvents();
-        const past = events.filter(e => trackingEnded || e.event_key !== eventKey);
+        // 정렬: "대회 시작 기록(first_at)이 최근인 대회"가 위로. 마지막 기록 시각(최신순) 기준이면
+        // 두 대회를 동시에 추적하다 같은 날 끝났을 때(예: 로드FC·블랙컴뱃 둘 다 8/29) 보조로
+        // 기록되던 대회가 몇 분 차이로 메인 대회 위에 올라오는 어색한 순서가 될 수 있어서,
+        // "나중에 오픈한(=더 최신 대회) 티켓이 항상 위"가 되도록 시작 기록 기준으로 정렬한다.
+        const past = events.filter(e => trackingEnded || e.event_key !== eventKey)
+          .sort((a, b) => new Date(b.first_at) - new Date(a.first_at));
         if (past.length) {
           pastHTML = `
       <div class="sec-title" style="margin-top:24px">🎟️ 지난 티켓 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최신순 · 총 ${past.length}개</span></div>
