@@ -6447,10 +6447,24 @@
       touch-action: none
     }
 
-    #jbx-back {
+    #jbx-full {
       position: absolute;
       right: 10px;
       top: 10px;
+      border: 1px solid #39415a;
+      background: #1d2230ee;
+      border-radius: 10px;
+      padding: 6px 11px;
+      font-size: 13px;
+      font-weight: 800;
+      color: #dfe5f2;
+      cursor: pointer
+    }
+
+    #jbx-back {
+      position: absolute;
+      right: 10px;
+      top: 48px;
       border: 1px solid #39415a;
       background: #1d2230ee;
       border-radius: 10px;
@@ -6458,8 +6472,7 @@
       font-size: 12.5px;
       font-weight: 800;
       color: #dfe5f2;
-      cursor: pointer;
-      display: none
+      cursor: pointer
     }
 
     #jbx-back.sel {
@@ -6506,11 +6519,11 @@
       left: 10px;
       right: 10px;
       bottom: 24px;
-      background: #161a24;
-      border: 1px solid #2b3242;
+      background: #ffffff;
+      border: 1px solid #dfe5ef;
       border-radius: 13px;
       padding: 11px 14px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .45);
       font-size: 12.5px;
       line-height: 1.85;
       display: none;
@@ -6518,17 +6531,17 @@
       margin: 0 auto;
       max-height: 46%;
       overflow: auto;
-      color: #d7deea
+      color: #1e2430
     }
 
     #jbx-info .nk {
       font-size: 14.5px;
       font-weight: 800;
-      color: #f2f5fa
+      color: #1e2430
     }
 
     #jbx-info .sub {
-      color: #7f8aa0;
+      color: #8a94a6;
       font-weight: 700;
       font-size: 11.5px
     }
@@ -6564,50 +6577,50 @@
       border: none;
       background: none;
       font-size: 15px;
-      color: #6c7688;
+      color: #a6afbd;
       cursor: pointer
     }
 
     #jbx-info .lnk {
       display: inline-block;
-      background: #222939;
-      border: 1px solid #333c50;
+      background: #f1f4f9;
+      border: 1px solid #e2e8f1;
       border-radius: 8px;
       padding: 0 8px;
       cursor: pointer;
       font-weight: 800;
-      color: #dfe5f2;
+      color: #2c3547;
       line-height: 1.55;
       margin: 1px 0
     }
 
     #jbx-info .kchip {
       display: inline-block;
-      background: #1d2230;
-      border: 1px solid #333c50;
+      background: #eef2f8;
+      border: 1px solid #dfe5ef;
       border-radius: 99px;
       padding: 1px 10px;
       cursor: pointer;
       font-weight: 800;
       font-size: 11px;
-      color: #c3cbd9;
+      color: #39445a;
       margin-left: 4px
     }
 
     #jbx-info .kchip.on {
-      background: #3a1e1c;
-      border-color: #7a3c35;
-      color: #ff8577
+      background: #fde3e3;
+      border-color: #f3b8b3;
+      color: #b3362c
     }
 
     #jbx-info .kchip.on2 {
-      background: #182339;
-      border-color: #33507e;
-      color: #7fb0ff
+      background: #e3edfd;
+      border-color: #b9cff5;
+      color: #1d55c4
     }
 
     #jbx-info .kin {
-      color: #7f8aa0;
+      color: #8a94a6;
       font-size: 10.5px;
       font-weight: 700;
       margin-left: 1px
@@ -6664,7 +6677,7 @@
       <nav id="nav">
         <a href="#/" data-nav="home">홈</a>
         <a href="#/tickets" data-nav="tickets">티켓</a>
-        <a href="#/records" data-nav="fighters">선수</a>
+        <a href="#/jokbo" data-nav="fighters">선수</a>
         <a href="#/ranking" data-nav="ranking">격잘알</a>
         <a href="#/game" data-nav="game">게임</a>
       </nav>
@@ -9478,12 +9491,9 @@
     }
     let __jbxToken = 0; // 페이지를 떠나면 이전 애니메이션 루프가 스스로 멈추게 하는 토큰
     async function viewJokbo() {
-      // 아직 공개 전 — 관리자에게만 보인다.
-      if (!adminPass()) {
-        $app.innerHTML = `<div style="margin-top:6px">${rankTabsHTML('fighters')}</div>
-      <div class="empty" style="margin-top:14px">🚧 준비 중인 기능입니다.</div>`;
-        return;
-      }
+      // 아직 공개 전 — 관리자에게만 보인다. 일반 방문자가 (상단 메뉴 "선수"의 기본 진입 등으로)
+      // 들어오면 족보 대신 업적 페이지를 자연스럽게 보여준다. 공개 시 이 가드만 지우면 된다.
+      if (!adminPass()) { viewRecordsHall(); return; }
       loading();
       await loadRecords();
       const DIVS = (recordsCache && recordsCache.data) ? jbxBuildDivisions() : [];
@@ -9501,7 +9511,8 @@
     </div>
     <div id="jbx-wrap">
       <canvas id="jbx-cv"></canvas>
-      <button id="jbx-back" type="button">전체</button>
+      <button id="jbx-full" type="button" title="전체화면으로 보기">⛶</button>
+      <button id="jbx-back" type="button" style="display:none">전체</button>
       <div id="jbx-legend"></div>
       <div id="jbx-hint">체급 선택 = 확대 · 선수 선택 = 승패 강조 · 여백 탭/축소 = 뒤로</div>
       <div id="jbx-info"><button class="x" onclick="jbxClearSel()">✕</button><div id="jbx-infoBody"></div></div>
@@ -9640,7 +9651,7 @@
       }
       function updateBackBtn() {
         if (mode !== 'division') { backBtn.style.display = 'none'; return; }
-        backBtn.style.display = '';
+        backBtn.style.display = 'block';
         if (selected) { backBtn.textContent = '해제'; backBtn.classList.add('sel'); }
         else { backBtn.textContent = '전체'; backBtn.classList.remove('sel'); }
       }
@@ -9734,8 +9745,8 @@
       function renderInfo() {
         const n = selected; if (!n) return;
         const fem = isFem(n.div);
-        const faL = [...dirF.values()].map(e => nickLink(e.f) + (e.fw + e.sw > 1 ? ' <b style=color:#ff8577>' + recTxt(e.sw, e.fw, false) + '</b>' : ''));
-        const soL = [...dirS.values()].map(e => nickLink(e.s) + (e.fw + e.sw > 1 ? ' <b style=color:#7fb0ff>' + recTxt(e.fw, e.sw, true) + '</b>' : ''));
+        const faL = [...dirF.values()].map(e => nickLink(e.f) + (e.fw + e.sw > 1 ? ' <b style=color:#b42318>' + recTxt(e.sw, e.fw, false) + '</b>' : ''));
+        const soL = [...dirS.values()].map(e => nickLink(e.s) + (e.fw + e.sw > 1 ? ' <b style=color:#1d4ed8>' + recTxt(e.fw, e.sw, true) + '</b>' : ''));
         let listHTML = '';
         if (kinListMode === 'anc') {
           const items = [...ancDepth.entries()].sort((a, b) => a[1] - b[1])
@@ -9948,13 +9959,18 @@
       // ── 입력 ──
       let panStart = null, pinch = null, downAt = 0, downPos = null, moved = false;
       const pointers = new Map();
-      function nodeAt(px, py) {
+      // padPx: 화면 픽셀 기준 히트 여유 — 동그라미 바로 옆 배경을 눌러도 동그라미가 잡히게.
+      // 여러 노드가 여유 범위에 걸치면 가장 가까운 노드를 고른다.
+      function nodeAt(px, py, padPx) {
         const [wx, wy] = toWorld(px, py);
+        const pad = (padPx == null ? 14 : padPx) / Math.max(scale, .05);
+        let best = null, bestD = 1e18;
         for (let i = nodes.length - 1; i >= 0; i--) {
           const n = nodes[i];
-          if ((wx - (n.wx ?? n.x)) ** 2 + (wy - (n.wy ?? n.y)) ** 2 < (n.r + 8) ** 2) return n;
+          const dd = (wx - (n.wx ?? n.x)) ** 2 + (wy - (n.wy ?? n.y)) ** 2;
+          if (dd < (n.r + pad) ** 2 && dd < bestD) { bestD = dd; best = n; }
         }
-        return null;
+        return best;
       }
       function divisionAt(px, py) {
         const [wx, wy] = toWorld(px, py);
@@ -9982,7 +9998,7 @@
         anim = null;
         if (pointers.size === 2) { const ps = [...pointers.values()]; pinch = { d: Math.hypot(ps[0][0] - ps[1][0], ps[0][1] - ps[1][1]), s: scale }; dragNode = null; return; }
         downAt = Date.now(); downPos = [ev.offsetX, ev.offsetY]; moved = false;
-        dragNode = mode === 'division' ? nodeAt(ev.offsetX, ev.offsetY) : null;
+        dragNode = mode === 'division' ? nodeAt(ev.offsetX, ev.offsetY, 28) : null;
         if (dragNode && dragNode.div !== activeDiv) dragNode = null;
         if (!dragNode) panStart = { x: ev.offsetX - tx, y: ev.offsetY - ty };
       });
@@ -10014,7 +10030,7 @@
             const dix = divisionAt(ev.offsetX, ev.offsetY);
             if (dix >= 0) enterDivision(dix);
           } else {
-            const n = nodeAt(ev.offsetX, ev.offsetY);
+            const n = nodeAt(ev.offsetX, ev.offsetY, 18);
             if (n && n.div === activeDiv) select(n === selected ? null : n);
             else if (n && n.div !== activeDiv) enterDivision(n.div);
             else if (selected) select(null);   // 여백 한 번 = 선택 해제
@@ -10035,21 +10051,44 @@
         maybeAutoExit();
       }, { passive: false });
       backBtn.onclick = () => { if (selected) select(null); else exitToOverview(); };
+      // 전체화면 버튼 — 지원 안 되는 브라우저(iOS 사파리 등)에선 자동으로 숨긴다
+      const fullBtn = document.getElementById('jbx-full');
+      if (fullBtn) {
+        if (!wrap.requestFullscreen) fullBtn.style.display = 'none';
+        else {
+          fullBtn.onclick = () => {
+            if (document.fullscreenElement === wrap) document.exitFullscreen();
+            else wrap.requestFullscreen();
+          };
+          const onFs = () => {
+            if (token !== __jbxToken || !document.getElementById('jbx-cv')) { document.removeEventListener('fullscreenchange', onFs); return; }
+            fullBtn.textContent = document.fullscreenElement === wrap ? '✕' : '⛶';
+            fullBtn.title = document.fullscreenElement === wrap ? '전체화면 닫기' : '전체화면으로 보기';
+            sizeCanvas();
+            if (mode === 'overview') animToOverview(250); else animToDivision(activeDiv, 250);
+          };
+          document.addEventListener('fullscreenchange', onFs);
+        }
+      }
       const onResize = () => {
         if (token !== __jbxToken || !document.getElementById('jbx-cv')) { window.removeEventListener('resize', onResize); return; }
         sizeCanvas();
         if (mode === 'overview') animToOverview(300); else animToDivision(activeDiv, 300);
       };
       window.addEventListener('resize', onResize);
-      // 시작: 전체 오버뷰
-      {
-        const c = camFor(boundsOf(nodes, 60), 56);
-        scale = c.s; tx = c.x; ty = c.y;
-        setTimeout(() => { if (token === __jbxToken) animToOverview(500); }, 900);
-      }
+      // 시작: 진입 후 2.5초 동안은 컨테이너 크기를 재측정하며 전체 화면 맞춤을 계속 수행한다.
+      // (첫 진입 때 레이아웃이 아직 안 잡힌 크기로 카메라를 한 번만 계산하면 화면이 작게
+      //  깨지는 문제가 있어서 — 사용자가 만지기 시작하면 즉시 중단)
+      let fitUntil = Date.now() + 2500;
+      cv.addEventListener('pointerdown', () => { fitUntil = 0; });
+      cv.addEventListener('wheel', () => { fitUntil = 0; }, { passive: true });
       (function loop() {
         if (token !== __jbxToken || !document.getElementById('jbx-cv')) return; // 페이지를 떠나면 루프 종료
         tick();
+        if (Date.now() < fitUntil) {
+          if (wrap.clientWidth !== W || wrap.clientHeight !== H) sizeCanvas();
+          if (mode === 'overview') { const c = camFor(boundsOf(nodes, 60), 56); scale = c.s; tx = c.x; ty = c.y; anim = null; }
+        }
         stepAnim();
         draw();
         requestAnimationFrame(loop);
