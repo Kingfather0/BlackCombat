@@ -8099,6 +8099,21 @@
       const wrap = el.parentElement;
       if (wrap) wrap.querySelectorAll('.tk-dot-tip').forEach(t => { if (!t.__t) t.remove(); });
     }
+    /* "ⓘ 기준 안내"/"ⓘ 예측 기준" 안내 상자 — 클릭하면 고정으로 열리고(다시 클릭하면 닫힘),
+       마우스를 올리기만 해도 바로 보였다가 떼면 사라진다(도넛 차트 말풍선과 같은 감각).
+       클릭으로 고정해둔 상태에서는 마우스가 떠나도 닫히지 않는다.
+       (모바일은 hover가 없으므로 기존처럼 탭 = 열기/닫기 토글로만 동작) */
+    function tkInfoHover(id, show) {
+      const b = document.getElementById(id);
+      if (!b || b.dataset.pinned === '1') return;
+      b.style.display = show ? 'block' : 'none';
+    }
+    function tkInfoToggle(id) {
+      const b = document.getElementById(id);
+      if (!b) return;
+      if (b.dataset.pinned === '1') { b.dataset.pinned = ''; b.style.display = 'none'; }
+      else { b.dataset.pinned = '1'; b.style.display = 'block'; }
+    }
     /* 티켓 페이지의 "수동 갱신(실시간 조회)"과 "카톡 공유"가 쓰는 화면 상태.
        viewTickets()가 렌더링할 때마다 새로 채워진다. */
     let tkLive = null;
@@ -8571,7 +8586,7 @@
       // "ⓘ 기준 안내" 토글을 보여준다 — 둘이 같으면 안내할 차이가 없으므로 굳이 노출하지 않는다.
       const showTotalInfo = hasBreakdown && sumNoGradeForNote > 0;
       // 버튼은 카드 우측 상단("총 N석..." 숫자 줄과 같은 줄) — 매진 예측 카드의 "ⓘ 예측 기준"과 같은 자리 느낌
-      const totalInfoBtnHTML = showTotalInfo ? `<button type="button" onclick="const b=document.getElementById('tk-total-info');b.style.display=b.style.display==='none'?'block':'none'"
+      const totalInfoBtnHTML = showTotalInfo ? `<button type="button" onclick="tkInfoToggle('tk-total-info')" onmouseenter="tkInfoHover('tk-total-info',true)" onmouseleave="tkInfoHover('tk-total-info',false)"
             style="border:none;background:none;padding:0;cursor:pointer;font-size:11px;color:var(--dim);font-weight:700;text-decoration:underline;white-space:nowrap;flex-shrink:0">ⓘ 기준 안내</button>` : '';
       const totalInfoBoxHTML = showTotalInfo ? `
         <div id="tk-total-info" style="display:none;background:#f4f6fa;border-radius:9px;padding:9px 12px;margin-top:9px;font-size:11.5px;color:var(--muted);line-height:1.8">
@@ -8615,7 +8630,7 @@
       <div class="card tk-total-card" style="margin-top:10px">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px">
           <span class="tk-trend-title" style="margin-bottom:0">매진 예측 시뮬레이션</span>
-          <button type="button" onclick="const b=document.getElementById('tk-fc-info');b.style.display=b.style.display==='none'?'block':'none'"
+          <button type="button" onclick="tkInfoToggle('tk-fc-info')" onmouseenter="tkInfoHover('tk-fc-info',true)" onmouseleave="tkInfoHover('tk-fc-info',false)"
             style="border:none;background:none;padding:0;cursor:pointer;font-size:11px;color:var(--dim);font-weight:700;text-decoration:underline">ⓘ 예측 기준</button>
         </div>
         ${fcParts.join('<hr class="sep" style="margin:8px 0">')}
