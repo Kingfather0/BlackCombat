@@ -6447,28 +6447,20 @@
       touch-action: none
     }
 
-    #jbx-full {
+    #jbx-btns {
       position: absolute;
       right: 10px;
       top: 10px;
-      border: 1px solid #39415a;
-      background: #1d2230ee;
-      border-radius: 10px;
-      padding: 6px 11px;
-      font-size: 13px;
-      font-weight: 800;
-      color: #dfe5f2;
-      cursor: pointer
+      display: flex;
+      gap: 8px
     }
 
+    #jbx-full,
     #jbx-back {
-      position: absolute;
-      right: 10px;
-      top: 48px;
       border: 1px solid #39415a;
       background: #1d2230ee;
       border-radius: 10px;
-      padding: 6px 15px;
+      padding: 6px 13px;
       font-size: 12.5px;
       font-weight: 800;
       color: #dfe5f2;
@@ -6519,11 +6511,11 @@
       left: 10px;
       right: 10px;
       bottom: 24px;
-      background: #ffffff;
-      border: 1px solid #dfe5ef;
+      background: #161a24;
+      border: 1px solid #2b3242;
       border-radius: 13px;
       padding: 11px 14px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
       font-size: 12.5px;
       line-height: 1.85;
       display: none;
@@ -6531,17 +6523,17 @@
       margin: 0 auto;
       max-height: 46%;
       overflow: auto;
-      color: #1e2430
+      color: #d7deea
     }
 
     #jbx-info .nk {
       font-size: 14.5px;
       font-weight: 800;
-      color: #1e2430
+      color: #f2f5fa
     }
 
     #jbx-info .sub {
-      color: #8a94a6;
+      color: #7f8aa0;
       font-weight: 700;
       font-size: 11.5px
     }
@@ -6577,50 +6569,50 @@
       border: none;
       background: none;
       font-size: 15px;
-      color: #a6afbd;
+      color: #6c7688;
       cursor: pointer
     }
 
     #jbx-info .lnk {
       display: inline-block;
-      background: #f1f4f9;
-      border: 1px solid #e2e8f1;
+      background: #222939;
+      border: 1px solid #333c50;
       border-radius: 8px;
       padding: 0 8px;
       cursor: pointer;
       font-weight: 800;
-      color: #2c3547;
+      color: #dfe5f2;
       line-height: 1.55;
       margin: 1px 0
     }
 
     #jbx-info .kchip {
       display: inline-block;
-      background: #eef2f8;
-      border: 1px solid #dfe5ef;
+      background: #1d2230;
+      border: 1px solid #333c50;
       border-radius: 99px;
       padding: 1px 10px;
       cursor: pointer;
       font-weight: 800;
       font-size: 11px;
-      color: #39445a;
+      color: #c3cbd9;
       margin-left: 4px
     }
 
     #jbx-info .kchip.on {
-      background: #fde3e3;
-      border-color: #f3b8b3;
-      color: #b3362c
+      background: #3a1e1c;
+      border-color: #7a3c35;
+      color: #ff8577
     }
 
     #jbx-info .kchip.on2 {
-      background: #e3edfd;
-      border-color: #b9cff5;
-      color: #1d55c4
+      background: #182339;
+      border-color: #33507e;
+      color: #7fb0ff
     }
 
     #jbx-info .kin {
-      color: #8a94a6;
+      color: #7f8aa0;
       font-size: 10.5px;
       font-weight: 700;
       margin-left: 1px
@@ -9372,7 +9364,7 @@
       ? `<a href="${href}" style="padding:5px 15px;background:var(--key);color:#fff;font-weight:800;font-size:13.5px;text-decoration:none">${label}</a>`
       : `<a href="${href}" style="padding:5px 15px;background:#fff;color:var(--muted);font-weight:700;font-size:13.5px;text-decoration:none">${label}</a>`;
     const rankTabsHTML = act => `<span style="display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;flex-shrink:0">
-      ${adminPass() ? rankTab(act === 'jokbo', '#/jokbo', '족보') : ''}
+      ${rankTab(act === 'jokbo', '#/jokbo', '족보')}
       ${rankTab(act === 'records', '#/records', '업적')}
       ${rankTab(act === 'fighters', '#/fighters', '랭킹')}
     </span>`;
@@ -9414,13 +9406,12 @@
     </div>
 `;
     }
-    /* ── 족보 (노드 관계도) — 아직 공개 전, 관리자에게만 보임 ──
+    /* ── 족보 (노드 관계도) — 전체 공개 ──
        팬 문화: A가 B를 이기면 A는 B의 "아버지"(여성부는 어머니), 그 위는 할아버지/할머니.
        규칙(확정): 상대전적 다승자가 부모, 동률(1승1패 등)이면 관계 소멸("호적 정리").
        족보는 이력이 아니라 "현재 전적"으로 매번 새로 계산 — 전적 봇이 새벽에 갱신하면 자동 반영.
        화면: 사자 중심 방사형 전체 화면 → 체급 탭 = 확대 → 선수 탭 = 혈통 강조(빨강=나를 이김, 파랑=내가 이김).
-       공개하려면 viewJokbo의 adminPass() 가드와 rankTabsHTML의 adminPass() 조건만 지우면 된다.
-       (원한다면 상단 메뉴 "선수"의 href를 #/jokbo로 바꿔 기본 탭으로 만들 수 있다) */
+       상단 메뉴 "선수"의 기본 진입 탭이며(#/jokbo), 업적/랭킹 탭과 나란히 배치된다. */
     function jbComputeEdges() {
       const rd = recordsCache && recordsCache.data;
       if (!rd || !rd.records) return null;
@@ -9491,9 +9482,6 @@
     }
     let __jbxToken = 0; // 페이지를 떠나면 이전 애니메이션 루프가 스스로 멈추게 하는 토큰
     async function viewJokbo() {
-      // 아직 공개 전 — 관리자에게만 보인다. 일반 방문자가 (상단 메뉴 "선수"의 기본 진입 등으로)
-      // 들어오면 족보 대신 업적 페이지를 자연스럽게 보여준다. 공개 시 이 가드만 지우면 된다.
-      if (!adminPass()) { viewRecordsHall(); return; }
       loading();
       await loadRecords();
       const DIVS = (recordsCache && recordsCache.data) ? jbxBuildDivisions() : [];
@@ -9506,13 +9494,15 @@
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
       ${rankTabsHTML('jokbo')}
       <span style="display:inline-flex;gap:8px;align-items:center">
-        <span id="jbx-sub" style="font-size:12px;font-weight:800;background:#fdf3d7;color:#946200;padding:4px 11px;border-radius:99px">🔒 관리자 미리보기</span>
+        <span id="jbx-sub" style="font-size:12px;font-weight:800;background:#eef2f8;color:#39445a;padding:4px 11px;border-radius:99px">🥊 이기면 아버지</span>
       </span>
     </div>
     <div id="jbx-wrap">
       <canvas id="jbx-cv"></canvas>
-      <button id="jbx-full" type="button" title="전체화면으로 보기">⛶</button>
-      <button id="jbx-back" type="button" style="display:none">전체</button>
+      <div id="jbx-btns">
+        <button id="jbx-back" type="button" style="display:none">전체</button>
+        <button id="jbx-full" type="button" title="전체화면으로 보기">⛶ 전체 화면</button>
+      </div>
       <div id="jbx-legend"></div>
       <div id="jbx-hint">체급 선택 = 확대 · 선수 선택 = 승패 강조 · 여백 탭/축소 = 뒤로</div>
       <div id="jbx-info"><button class="x" onclick="jbxClearSel()">✕</button><div id="jbx-infoBody"></div></div>
@@ -9658,14 +9648,14 @@
       function enterDivision(dix) {
         mode = 'division'; activeDiv = dix;
         select(null);
-        if (subEl) subEl.textContent = '🔒 ' + DIVS[dix].name + ' · ' + parentWord(isFem(dix)) + ' → ' + childWord(isFem(dix));
+        if (subEl) subEl.textContent = '🥊 ' + DIVS[dix].name + ' · ' + parentWord(isFem(dix)) + ' → ' + childWord(isFem(dix));
         animToDivision(dix);
         updateBackBtn();
       }
       function exitToOverview() {
         mode = 'overview'; activeDiv = -1;
         select(null);
-        if (subEl) subEl.textContent = '🔒 관리자 미리보기';
+        if (subEl) subEl.textContent = '🥊 이기면 아버지';
         animToOverview();
         updateBackBtn();
       }
@@ -9745,8 +9735,8 @@
       function renderInfo() {
         const n = selected; if (!n) return;
         const fem = isFem(n.div);
-        const faL = [...dirF.values()].map(e => nickLink(e.f) + (e.fw + e.sw > 1 ? ' <b style=color:#b42318>' + recTxt(e.sw, e.fw, false) + '</b>' : ''));
-        const soL = [...dirS.values()].map(e => nickLink(e.s) + (e.fw + e.sw > 1 ? ' <b style=color:#1d4ed8>' + recTxt(e.fw, e.sw, true) + '</b>' : ''));
+        const faL = [...dirF.values()].map(e => nickLink(e.f) + (e.fw + e.sw > 1 ? ' <b style=color:#ff8577>' + recTxt(e.sw, e.fw, false) + '</b>' : ''));
+        const soL = [...dirS.values()].map(e => nickLink(e.s) + (e.fw + e.sw > 1 ? ' <b style=color:#7fb0ff>' + recTxt(e.fw, e.sw, true) + '</b>' : ''));
         let listHTML = '';
         if (kinListMode === 'anc') {
           const items = [...ancDepth.entries()].sort((a, b) => a[1] - b[1])
@@ -9773,7 +9763,7 @@
         if (!n) return;
         if (mode !== 'division' || activeDiv !== n.div) {
           mode = 'division'; activeDiv = n.div;
-          if (subEl) subEl.textContent = '🔒 ' + DIVS[n.div].name + ' · ' + parentWord(isFem(n.div)) + ' → ' + childWord(isFem(n.div));
+          if (subEl) subEl.textContent = '🥊 ' + DIVS[n.div].name + ' · ' + parentWord(isFem(n.div)) + ' → ' + childWord(isFem(n.div));
         }
         select(n);
         animTo({ s: scale, x: W / 2 - n.x * scale, y: H * 0.38 - n.y * scale }, 420);
@@ -10062,7 +10052,7 @@
           };
           const onFs = () => {
             if (token !== __jbxToken || !document.getElementById('jbx-cv')) { document.removeEventListener('fullscreenchange', onFs); return; }
-            fullBtn.textContent = document.fullscreenElement === wrap ? '✕' : '⛶';
+            fullBtn.textContent = document.fullscreenElement === wrap ? '✕ 닫기' : '⛶ 전체 화면';
             fullBtn.title = document.fullscreenElement === wrap ? '전체화면 닫기' : '전체화면으로 보기';
             sizeCanvas();
             if (mode === 'overview') animToOverview(250); else animToDivision(activeDiv, 250);
