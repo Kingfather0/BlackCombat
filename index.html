@@ -6427,6 +6427,192 @@
       }
     }
 
+    /* ── 족보 탭 (노드 관계도 · 다크) ── */
+    #jbx-wrap {
+      position: relative;
+      height: calc(100vh - 215px);
+      height: calc(100dvh - 215px);
+      min-height: 460px;
+      margin-top: 10px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #0d0d10;
+      border: 1px solid #23283a
+    }
+
+    #jbx-cv {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none
+    }
+
+    #jbx-back {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      border: 1px solid #39415a;
+      background: #1d2230ee;
+      border-radius: 10px;
+      padding: 6px 15px;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #dfe5f2;
+      cursor: pointer;
+      display: none
+    }
+
+    #jbx-back.sel {
+      border-color: #7a3c35;
+      color: #ff8577
+    }
+
+    #jbx-legend {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      background: #14171fe8;
+      border: 1px solid #2a3040;
+      border-radius: 10px;
+      padding: 7px 10px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #aeb7c6;
+      line-height: 1.65;
+      pointer-events: none
+    }
+
+    #jbx-legend .sw {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      vertical-align: -1px;
+      margin-right: 3px
+    }
+
+    #jbx-hint {
+      position: absolute;
+      left: 10px;
+      bottom: 7px;
+      font-size: 10.5px;
+      color: #5d6678;
+      font-weight: 600;
+      pointer-events: none
+    }
+
+    #jbx-info {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 24px;
+      background: #161a24;
+      border: 1px solid #2b3242;
+      border-radius: 13px;
+      padding: 11px 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
+      font-size: 12.5px;
+      line-height: 1.85;
+      display: none;
+      max-width: 500px;
+      margin: 0 auto;
+      max-height: 46%;
+      overflow: auto;
+      color: #d7deea
+    }
+
+    #jbx-info .nk {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #f2f5fa
+    }
+
+    #jbx-info .sub {
+      color: #7f8aa0;
+      font-weight: 700;
+      font-size: 11.5px
+    }
+
+    #jbx-info .row {
+      margin-top: 2px
+    }
+
+    #jbx-info .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      border-radius: 6px;
+      padding: 1px 8px;
+      margin-right: 6px;
+      vertical-align: 1px
+    }
+
+    #jbx-info .tag.w {
+      background: #2563eb;
+      color: #fff
+    }
+
+    #jbx-info .tag.l {
+      background: #dc2626;
+      color: #fff
+    }
+
+    #jbx-info .x {
+      position: absolute;
+      right: 9px;
+      top: 7px;
+      border: none;
+      background: none;
+      font-size: 15px;
+      color: #6c7688;
+      cursor: pointer
+    }
+
+    #jbx-info .lnk {
+      display: inline-block;
+      background: #222939;
+      border: 1px solid #333c50;
+      border-radius: 8px;
+      padding: 0 8px;
+      cursor: pointer;
+      font-weight: 800;
+      color: #dfe5f2;
+      line-height: 1.55;
+      margin: 1px 0
+    }
+
+    #jbx-info .kchip {
+      display: inline-block;
+      background: #1d2230;
+      border: 1px solid #333c50;
+      border-radius: 99px;
+      padding: 1px 10px;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 11px;
+      color: #c3cbd9;
+      margin-left: 4px
+    }
+
+    #jbx-info .kchip.on {
+      background: #3a1e1c;
+      border-color: #7a3c35;
+      color: #ff8577
+    }
+
+    #jbx-info .kchip.on2 {
+      background: #182339;
+      border-color: #33507e;
+      color: #7fb0ff
+    }
+
+    #jbx-info .kin {
+      color: #7f8aa0;
+      font-size: 10.5px;
+      font-weight: 700;
+      margin-left: 1px
+    }
+
     /* 메뉴 + 로고가 빠듯한 좁은 화면 — 예전엔 로고 "텍스트"를 통째로 숨겼지만,
        모바일에서도 "블랙컴뱃 잡담방"이 보이도록 글자 크기·여백을 줄여서 유지한다.
        메뉴 항목은 절대 줄바꿈/생략되지 않고(flex-shrink:0), 그래도 공간이 모자라는
@@ -7267,6 +7453,7 @@
       else if (seg[0] === 't') { viewTournament(decodeURIComponent(seg[1] || '')); }
       else if (seg[0] === 'fighters') { mark('fighters'); viewFighters(); }
       else if (seg[0] === 'records') { mark('fighters'); viewRecordsHall(); }
+      else if (seg[0] === 'jokbo') { mark('fighters'); viewJokbo(); }
       else if (seg[0] === 'ranking') { mark('ranking'); viewRanking(); }
       else if (seg[0] === 'game') { mark('game'); viewGame(seg[1] || ''); }
       else if (seg[0] === 'tickets') { mark('tickets'); viewTickets(decodeURIComponent(seg[1] || '')); }
@@ -9172,6 +9359,7 @@
       ? `<a href="${href}" style="padding:5px 15px;background:var(--key);color:#fff;font-weight:800;font-size:13.5px;text-decoration:none">${label}</a>`
       : `<a href="${href}" style="padding:5px 15px;background:#fff;color:var(--muted);font-weight:700;font-size:13.5px;text-decoration:none">${label}</a>`;
     const rankTabsHTML = act => `<span style="display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;flex-shrink:0">
+      ${adminPass() ? rankTab(act === 'jokbo', '#/jokbo', '족보') : ''}
       ${rankTab(act === 'records', '#/records', '업적')}
       ${rankTab(act === 'fighters', '#/fighters', '랭킹')}
     </span>`;
@@ -9212,6 +9400,660 @@
       }).join('')}
     </div>
 `;
+    }
+    /* ── 족보 (노드 관계도) — 아직 공개 전, 관리자에게만 보임 ──
+       팬 문화: A가 B를 이기면 A는 B의 "아버지"(여성부는 어머니), 그 위는 할아버지/할머니.
+       규칙(확정): 상대전적 다승자가 부모, 동률(1승1패 등)이면 관계 소멸("호적 정리").
+       족보는 이력이 아니라 "현재 전적"으로 매번 새로 계산 — 전적 봇이 새벽에 갱신하면 자동 반영.
+       화면: 사자 중심 방사형 전체 화면 → 체급 탭 = 확대 → 선수 탭 = 혈통 강조(빨강=나를 이김, 파랑=내가 이김).
+       공개하려면 viewJokbo의 adminPass() 가드와 rankTabsHTML의 adminPass() 조건만 지우면 된다.
+       (원한다면 상단 메뉴 "선수"의 href를 #/jokbo로 바꿔 기본 탭으로 만들 수 있다) */
+    function jbComputeEdges() {
+      const rd = recordsCache && recordsCache.data;
+      if (!rd || !rd.records) return null;
+      const wins = new Map(); // 'x|y' -> x가 y를 이긴 횟수
+      Object.entries(rd.records).forEach(([seq, matches]) => {
+        (matches || []).forEach(m => {
+          if (m.res !== 'W') return; // 승리만 집계 → 같은 경기가 두 번 세어지지 않는다
+          const opp = (m.a && m.a[0] === seq) ? m.b : m.a;
+          if (!opp || !opp[0] || !rd.nicks[opp[0]] || !rd.nicks[seq]) return; // 로스터끼리만
+          const k = seq + '|' + opp[0];
+          wins.set(k, (wins.get(k) || 0) + 1);
+        });
+      });
+      const edges = [];
+      const seen = new Set();
+      wins.forEach((w, k) => {
+        const [x, y] = k.split('|');
+        const pair = x < y ? x + '|' + y : y + '|' + x;
+        if (seen.has(pair)) return;
+        seen.add(pair);
+        const wx = wins.get(x + '|' + y) || 0, wy = wins.get(y + '|' + x) || 0;
+        if (wx > wy) edges.push({ f: x, s: y, fw: wx, sw: wy });
+        else if (wy > wx) edges.push({ f: y, s: x, fw: wy, sw: wx });
+        // 동률 → 호적 정리(관계 없음)
+      });
+      return edges;
+    }
+    // 체급별 노드/간선/세대 데이터 구성 (같은 체급 로스터끼리의 관계만)
+    function jbxBuildDivisions() {
+      const rd = recordsCache.data;
+      const edges = jbComputeEdges();
+      if (!edges || !edges.length) return [];
+      const nickOf = s => rd.nicks[s] || '';
+      const fl = new Map();
+      FIGHTERS.forEach((d, di) => d.list.forEach(f => { if (f[1] !== '공석') fl.set(String(f[1]).trim().toLowerCase(), { di, cc: f[6], champ: f[0] === 'C', rank: f[0] === 'C' ? 0 : Number(f[0]) }); }));
+      const meta = s => fl.get(String(nickOf(s)).trim().toLowerCase());
+      const divisions = [];
+      FIGHTERS.forEach((d, di) => {
+        const dEdges = edges.filter(e => { const a = meta(e.f), b = meta(e.s); return a && b && a.di === di && b.di === di; });
+        if (!dEdges.length) return;
+        const nodeIds = [...new Set(dEdges.flatMap(e => [e.f, e.s]))];
+        // 세대 = 조상으로부터의 최장 거리 (위상 정렬, 순환에 걸린 노드는 1세대 취급)
+        const inCnt = new Map(nodeIds.map(n => [n, 0]));
+        dEdges.forEach(e => inCnt.set(e.s, inCnt.get(e.s) + 1));
+        const layer = new Map();
+        const q = nodeIds.filter(n => !inCnt.get(n));
+        q.forEach(n => layer.set(n, 0));
+        const adj = new Map(nodeIds.map(n => [n, []]));
+        dEdges.forEach(e => adj.get(e.f).push(e.s));
+        const inLeft = new Map(inCnt);
+        while (q.length) {
+          const v = q.shift();
+          for (const w of adj.get(v)) {
+            layer.set(w, Math.max(layer.get(w) || 0, layer.get(v) + 1));
+            inLeft.set(w, inLeft.get(w) - 1);
+            if (!inLeft.get(w)) q.push(w);
+          }
+        }
+        nodeIds.forEach(n => { if (!layer.has(n)) layer.set(n, 1); });
+        const maxRank = Math.max(...nodeIds.map(sq => meta(sq).rank), 1);
+        const dnodes = nodeIds.map(sq => {
+          const m = meta(sq);
+          return { id: sq, nick: nickOf(sq), cc: m.cc, champ: m.champ, rank: m.rank, gen: layer.get(sq) || 0 };
+        });
+        divisions.push({ di, name: d.div, maxGen: Math.max(...dnodes.map(n => n.gen)), maxRank, dnodes, dedges: dEdges });
+      });
+      return divisions;
+    }
+    let __jbxToken = 0; // 페이지를 떠나면 이전 애니메이션 루프가 스스로 멈추게 하는 토큰
+    async function viewJokbo() {
+      // 아직 공개 전 — 관리자에게만 보인다.
+      if (!adminPass()) {
+        $app.innerHTML = `<div style="margin-top:6px">${rankTabsHTML('fighters')}</div>
+      <div class="empty" style="margin-top:14px">🚧 준비 중인 기능입니다.</div>`;
+        return;
+      }
+      loading();
+      await loadRecords();
+      const DIVS = (recordsCache && recordsCache.data) ? jbxBuildDivisions() : [];
+      if (!DIVS.length) {
+        $app.innerHTML = `<div style="margin-top:6px">${rankTabsHTML('jokbo')}</div>
+      <div class="empty" style="margin-top:14px">아직 족보를 만들 전적 데이터가 없습니다.</div>`;
+        return;
+      }
+      $app.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
+      ${rankTabsHTML('jokbo')}
+      <span style="display:inline-flex;gap:8px;align-items:center">
+        <span id="jbx-sub" style="font-size:12px;font-weight:800;background:#fdf3d7;color:#946200;padding:4px 11px;border-radius:99px">🔒 관리자 미리보기</span>
+      </span>
+    </div>
+    <div id="jbx-wrap">
+      <canvas id="jbx-cv"></canvas>
+      <button id="jbx-back" type="button">전체</button>
+      <div id="jbx-legend"></div>
+      <div id="jbx-hint">체급 선택 = 확대 · 선수 선택 = 승패 강조 · 여백 탭/축소 = 뒤로</div>
+      <div id="jbx-info"><button class="x" onclick="jbxClearSel()">✕</button><div id="jbx-infoBody"></div></div>
+    </div>`;
+      jbxStart(DIVS);
+    }
+    function jbxStart(DIVS) {
+      const token = ++__jbxToken;
+      const wrap = document.getElementById('jbx-wrap');
+      const cv = document.getElementById('jbx-cv'), ctx = cv.getContext('2d');
+      const infoEl = document.getElementById('jbx-info'), infoBody = document.getElementById('jbx-infoBody');
+      const backBtn = document.getElementById('jbx-back');
+      const subEl = document.getElementById('jbx-sub');
+      let W = 0, H = 0;
+      const DPR = Math.min(2, window.devicePixelRatio || 1);
+      function sizeCanvas() { W = wrap.clientWidth; H = wrap.clientHeight; cv.width = W * DPR; cv.height = H * DPR; }
+      sizeCanvas();
+
+      // ── 클러스터(체급) 배치: 사자를 중심으로 한 방사형 링 ──
+      DIVS.forEach(d => {
+        d.genGap = Math.min(96, 620 / Math.max(1, d.maxGen));
+        const h = d.maxGen * d.genGap + 280;
+        const w = Math.sqrt(d.dnodes.length) * 150 + 160;
+        d.Rc = Math.max(h, w) / 2 + 40;
+      });
+      {
+        const total = DIVS.reduce((sum, d) => sum + d.Rc * 2, 0);
+        const R = Math.max(1020, total / (2 * Math.PI));
+        let acc = 0;
+        DIVS.forEach(d => {
+          const th = -Math.PI / 2 + ((acc + d.Rc) / total) * 2 * Math.PI;
+          d.cx = Math.cos(th) * R;
+          d.cy = Math.sin(th) * R * 0.92;
+          acc += d.Rc * 2;
+        });
+      }
+
+      // ── 노드/간선 ──
+      const nameLines = nick => {
+        if (nick.length <= 4) return [nick];
+        if (nick.includes(' ')) { const i = nick.indexOf(' '); return [nick.slice(0, i), nick.slice(i + 1)]; }
+        const half = Math.ceil(nick.length / 2);
+        return [nick.slice(0, half), nick.slice(half)];
+      };
+      const tierOf = n => n.champ ? 0 : n.rank <= 4 ? 1 : n.rank <= 10 ? 2 : 3;
+      const TIERS = [
+        { light: '#ffe28a', dark: '#e29a00', text: '#5b3c00', label: '👑 챔피언' },
+        { light: '#c9a8ff', dark: '#7c3aed', text: '#ffffff', label: '1~4위' },
+        { light: '#8fdcc8', dark: '#0f9c85', text: '#ffffff', label: '5~10위' },
+        { light: '#d3dbe8', dark: '#93a3ba', text: '#39445a', label: '11위 밖' }
+      ];
+      const nodes = [], edges = [], byId = new Map();
+      DIVS.forEach((d, dix) => {
+        d.ix = dix;
+        d.dnodes.forEach(n => {
+          const t = 1 - (n.rank / (d.maxRank + 1));
+          const lines = nameLines(n.nick);
+          const r = Math.max(21 + t * 15, Math.max(...lines.map(l => l.length)) * 5.6 + 9);
+          const node = { ...n, div: dix, lines, r,
+            x: d.cx + (Math.random() - .5) * 360,
+            y: d.cy + (n.gen - d.maxGen / 2) * d.genGap + (Math.random() - .5) * 40,
+            vx: 0, vy: 0, ph: Math.random() * 6.283, ph2: Math.random() * 6.283 };
+          nodes.push(node); byId.set(n.id, node);
+        });
+      });
+      DIVS.forEach((d, dix) => d.dedges.forEach(e => edges.push({ ...e, div: dix, a: byId.get(e.f), b: byId.get(e.s) })));
+      const fathersOf = new Map(), sonsOf = new Map();
+      edges.forEach(e => {
+        if (!fathersOf.has(e.s)) fathersOf.set(e.s, []);
+        fathersOf.get(e.s).push(e);
+        if (!sonsOf.has(e.f)) sonsOf.set(e.f, []);
+        sonsOf.get(e.f).push(e);
+      });
+      function collect(id, mapRel, key, acc) {
+        (mapRel.get(id) || []).forEach(e => { const t = e[key]; if (!acc.has(t)) { acc.add(t); collect(t, mapRel, key, acc); } });
+        return acc;
+      }
+      const ancestorsOf = id => collect(id, fathersOf, 'f', new Set());
+      const descendantsOf = id => collect(id, sonsOf, 's', new Set());
+      const nodesByDiv = DIVS.map((d, i) => nodes.filter(n => n.div === i));
+      document.getElementById('jbx-legend').innerHTML =
+        '<div><b>크기·색 = 공식 랭킹</b></div><div>' +
+        TIERS.map(t => '<span class=sw style=background:' + t.dark + '></span>' + t.label).join('&nbsp; ') + '</div>' +
+        '<div><span class=sw style="background:#dc2626"></span>빨강 = 나를 이긴 상대 &nbsp;<span class=sw style="background:#2563eb"></span>파랑 = 내가 이긴 상대</div>';
+
+      // ── 중앙 사자 + 금빛 입자 ──
+      const LION = new Image();
+      LION.src = 'jokbo_lion.png?v=1'; // 저장소 루트에 함께 올리는 이미지 (없으면 조용히 생략)
+      const SPARKS = [];
+      for (let i = 0; i < 220; i++) {
+        const a = Math.random() * Math.PI * 2, rr = 300 + Math.random() * 2100;
+        SPARKS.push({ x: Math.cos(a) * rr, y: Math.sin(a) * rr * .95, s: .8 + Math.random() * 2.4, o: .12 + Math.random() * .5, ph: Math.random() * 6.28 });
+      }
+
+      // ── 호칭 (여성부는 어머니/딸) ──
+      const isFem = dix => DIVS[dix] && DIVS[dix].name.indexOf('여성') !== -1;
+      const kinshipName = (depth, isAnc, fem) => {
+        if (isAnc) return depth === 2 ? (fem ? '할머니' : '할아버지') : depth === 3 ? '증조' : depth === 4 ? '고조' : depth + '대조';
+        return depth === 2 ? (fem ? '손녀' : '손자') : depth === 3 ? (fem ? '증손녀' : '증손') : depth === 4 ? (fem ? '고손녀' : '고손') : depth + '대손';
+      };
+      const parentWord = fem => fem ? '어머니' : '아버지';
+      const childWord = fem => fem ? '딸' : '아들';
+      const recTxt = (win, lose, won) => {
+        if (won) return lose ? (win + '승 ' + lose + '패') : (win + '승');
+        return win ? (win + '승 ' + lose + '패') : (lose + '패');
+      };
+
+      // ── 모드/카메라 ──
+      let mode = 'overview', activeDiv = -1;
+      let scale = 1, tx = 0, ty = 0, anim = null;
+      const toWorld = (px, py) => [(px - tx) / scale, (py - ty) / scale];
+      function boundsOf(list, pad) {
+        let x1 = 1e9, y1 = 1e9, x2 = -1e9, y2 = -1e9;
+        list.forEach(n => { x1 = Math.min(x1, n.x - n.r - pad); y1 = Math.min(y1, n.y - n.r - 34); x2 = Math.max(x2, n.x + n.r + pad); y2 = Math.max(y2, n.y + n.r + 24); });
+        return { x1, y1, x2, y2 };
+      }
+      function camFor(b, padT) {
+        const pad = 16;
+        const s2 = Math.min(2, (W - pad * 2) / (b.x2 - b.x1), (H - padT - pad) / (b.y2 - b.y1));
+        return { s: s2,
+          x: (W - (b.x2 - b.x1) * s2) / 2 - b.x1 * s2,
+          y: padT + (H - padT - pad - (b.y2 - b.y1) * s2) / 2 - b.y1 * s2 };
+      }
+      function animTo(cam, dur) { anim = { t0: performance.now(), dur: dur || 620, from: { s: scale, x: tx, y: ty }, to: cam }; }
+      const animToOverview = dur => animTo(camFor(boundsOf(nodes, 60), 56), dur);
+      const animToDivision = (dix, dur) => animTo(camFor(boundsOf(nodesByDiv[dix], 20), 56), dur);
+      function stepAnim() {
+        if (!anim) return;
+        let p = (performance.now() - anim.t0) / anim.dur;
+        if (p >= 1) p = 1;
+        const e = 1 - Math.pow(1 - p, 3);
+        scale = anim.from.s + (anim.to.s - anim.from.s) * e;
+        tx = anim.from.x + (anim.to.x - anim.from.x) * e;
+        ty = anim.from.y + (anim.to.y - anim.from.y) * e;
+        if (p === 1) anim = null;
+      }
+      function updateBackBtn() {
+        if (mode !== 'division') { backBtn.style.display = 'none'; return; }
+        backBtn.style.display = '';
+        if (selected) { backBtn.textContent = '해제'; backBtn.classList.add('sel'); }
+        else { backBtn.textContent = '전체'; backBtn.classList.remove('sel'); }
+      }
+      function enterDivision(dix) {
+        mode = 'division'; activeDiv = dix;
+        select(null);
+        if (subEl) subEl.textContent = '🔒 ' + DIVS[dix].name + ' · ' + parentWord(isFem(dix)) + ' → ' + childWord(isFem(dix));
+        animToDivision(dix);
+        updateBackBtn();
+      }
+      function exitToOverview() {
+        mode = 'overview'; activeDiv = -1;
+        select(null);
+        if (subEl) subEl.textContent = '🔒 관리자 미리보기';
+        animToOverview();
+        updateBackBtn();
+      }
+
+      // ── 물리 (체급 내부끼리만) + 잔잔한 흔들림 ──
+      let alpha = 1, dragNode = null;
+      function tick() {
+        alpha += (0.05 - alpha) * 0.02;
+        nodesByDiv.forEach(list => {
+          for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+            const a = list[i], b = list[j];
+            const dx = b.x - a.x, dy = b.y - a.y;
+            const d2 = dx * dx + dy * dy || 1, dd = Math.sqrt(d2);
+            const ux = dx / dd, uy = dy / dd;
+            const rep = 3000 / d2;
+            a.vx -= ux * rep; a.vy -= uy * rep; b.vx += ux * rep; b.vy += uy * rep;
+            const minD = a.r + b.r + 15;
+            if (dd < minD) { const push = (minD - dd) * .5; a.x -= ux * push; a.y -= uy * push; b.x += ux * push; b.y += uy * push; }
+          }
+        });
+        edges.forEach(e => {
+          const dx = e.b.x - e.a.x, dy = e.b.y - e.a.y, d = Math.sqrt(dx * dx + dy * dy) || 1;
+          const k = (d - (e.a.r + e.b.r + 52)) * 0.011;
+          const ux = dx / d, uy = dy / d;
+          e.a.vx += ux * k; e.a.vy += uy * k;
+          e.b.vx -= ux * k; e.b.vy -= uy * k;
+        });
+        nodes.forEach(n => {
+          const d = DIVS[n.div];
+          n.vy += (d.cy + (n.gen - d.maxGen / 2) * d.genGap - n.y) * 0.016;
+          n.vx += (d.cx - n.x) * 0.003;
+          if (n === dragNode) { n.vx = 0; n.vy = 0; return; }
+          n.vx *= 0.8; n.vy *= 0.8;
+          n.x += n.vx * alpha * 2.4; n.y += n.vy * alpha * 2.4;
+        });
+        const tN = performance.now() / 1000;
+        nodes.forEach(n => {
+          if (n === dragNode) { n.wx = n.x; n.wy = n.y; return; }
+          n.wx = n.x + Math.sin(tN * 0.8 + n.ph) * 2.8;
+          n.wy = n.y + Math.cos(tN * 0.62 + n.ph2) * 2.8;
+        });
+      }
+
+      // ── 선택 ──
+      let selected = null, anc = new Set(), desc = new Set(), dirF = new Map(), dirS = new Map(), ancDepth = new Map(), descDepth = new Map(), kinListMode = null;
+      function select(n) {
+        selected = n; kinListMode = null;
+        dirF = new Map(); dirS = new Map();
+        if (!n) { infoEl.style.display = 'none'; anc = new Set(); desc = new Set(); updateBackBtn(); return; }
+        anc = ancestorsOf(n.id); desc = descendantsOf(n.id);
+        (fathersOf.get(n.id) || []).forEach(e => dirF.set(e.f, e));
+        (sonsOf.get(n.id) || []).forEach(e => dirS.set(e.s, e));
+        ancDepth = new Map(); descDepth = new Map();
+        let frontier = [n.id], depth = 0;
+        while (frontier.length) {
+          depth++;
+          const next = [];
+          frontier.forEach(id => (fathersOf.get(id) || []).forEach(e => { if (!ancDepth.has(e.f) && e.f !== n.id) { ancDepth.set(e.f, depth); next.push(e.f); } }));
+          frontier = next;
+        }
+        frontier = [n.id]; depth = 0;
+        while (frontier.length) {
+          depth++;
+          const next = [];
+          frontier.forEach(id => (sonsOf.get(id) || []).forEach(e => { if (!descDepth.has(e.s) && e.s !== n.id) { descDepth.set(e.s, depth); next.push(e.s); } }));
+          frontier = next;
+        }
+        renderInfo();
+        infoEl.style.display = 'block';
+        alpha = Math.max(alpha, .25);
+        updateBackBtn();
+      }
+      const nickLink = id => {
+        const nn = byId.get(id);
+        return '<span class=lnk onclick="jbxSelectByNick(\'' + nn.nick.replace(/'/g, "\\'") + '\')">' + nn.nick + '</span>';
+      };
+      function renderInfo() {
+        const n = selected; if (!n) return;
+        const fem = isFem(n.div);
+        const faL = [...dirF.values()].map(e => nickLink(e.f) + (e.fw + e.sw > 1 ? ' <b style=color:#ff8577>' + recTxt(e.sw, e.fw, false) + '</b>' : ''));
+        const soL = [...dirS.values()].map(e => nickLink(e.s) + (e.fw + e.sw > 1 ? ' <b style=color:#7fb0ff>' + recTxt(e.fw, e.sw, true) + '</b>' : ''));
+        let listHTML = '';
+        if (kinListMode === 'anc') {
+          const items = [...ancDepth.entries()].sort((a, b) => a[1] - b[1])
+            .map(([id, d]) => nickLink(id) + '<span class=kin>(' + (d === 1 ? parentWord(fem) : kinshipName(d, true, fem)) + ')</span>');
+          listHTML = '<div class=row>' + (items.join(' · ') || '없음') + '</div>';
+        } else if (kinListMode === 'desc') {
+          const items = [...descDepth.entries()].sort((a, b) => a[1] - b[1])
+            .map(([id, d]) => nickLink(id) + '<span class=kin>(' + (d === 1 ? childWord(fem) : kinshipName(d, false, fem)) + ')</span>');
+          listHTML = '<div class=row>' + (items.join(' · ') || '없음') + '</div>';
+        }
+        infoBody.innerHTML = '<span class=nk style="cursor:pointer" onclick="openFighterStats(\'' + n.nick.replace(/'/g, "\\'") + '\')" title="누르면 전적 팝업이 열립니다">' +
+          (n.cc ? flagImg(n.cc) + ' ' : '') + n.nick + (n.champ ? ' 👑' : '') + '</span> ' +
+          '<span class=sub>' + (n.champ ? '챔피언' : n.rank + '위') + '</span>' +
+          '<span class="kchip' + (kinListMode === 'anc' ? ' on' : '') + '" onclick="jbxToggleKin(\'anc\')">조상 ' + anc.size + '</span>' +
+          '<span class="kchip' + (kinListMode === 'desc' ? ' on2' : '') + '" onclick="jbxToggleKin(\'desc\')">자손 ' + desc.size + '</span>' +
+          listHTML +
+          '<div class=row><span class="tag l">패</span>' + (faL.length ? faL.join(' · ') : '없음 — 무패!') + '</div>' +
+          '<div class=row><span class="tag w">승</span>' + (soL.length ? soL.join(' · ') : '없음') + '</div>';
+      }
+      window.jbxToggleKin = m => { kinListMode = kinListMode === m ? null : m; renderInfo(); };
+      window.jbxClearSel = () => select(null);
+      window.jbxSelectByNick = nick => {
+        const n = nodes.find(x => x.nick === nick);
+        if (!n) return;
+        if (mode !== 'division' || activeDiv !== n.div) {
+          mode = 'division'; activeDiv = n.div;
+          if (subEl) subEl.textContent = '🔒 ' + DIVS[n.div].name + ' · ' + parentWord(isFem(n.div)) + ' → ' + childWord(isFem(n.div));
+        }
+        select(n);
+        animTo({ s: scale, x: W / 2 - n.x * scale, y: H * 0.38 - n.y * scale }, 420);
+      };
+
+      // ── 국기 이미지 (flagcdn, 사이트 국기와 동일 출처) ──
+      const flagImgs = new Map();
+      function flagImgFor(cc) {
+        if (!cc) return null;
+        if (!flagImgs.has(cc)) {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.src = 'https://flagcdn.com/w40/' + cc + '.png';
+          flagImgs.set(cc, img);
+        }
+        const img = flagImgs.get(cc);
+        return (img.complete && img.naturalWidth) ? img : null;
+      }
+
+      // ── 그리기 ──
+      const RED = '#dc2626', BLUE = '#2563eb', RED_PALE = '#f0b6b1', BLUE_PALE = '#aec7f1';
+      function draw() {
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        const bg = ctx.createRadialGradient(W / 2, H * .42, 40, W / 2, H * .42, Math.max(W, H) * .85);
+        bg.addColorStop(0, '#1d160c');
+        bg.addColorStop(.45, '#141118');
+        bg.addColorStop(1, '#0b0b0e');
+        ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+        ctx.translate(tx, ty); ctx.scale(scale, scale);
+        const tS = performance.now() / 1000;
+        SPARKS.forEach(sp => {
+          ctx.globalAlpha = sp.o * (0.6 + 0.4 * Math.sin(tS * 1.1 + sp.ph));
+          ctx.fillStyle = '#e8b04a';
+          ctx.fillRect(sp.x, sp.y, sp.s / Math.max(scale, .2), sp.s / Math.max(scale, .2));
+        });
+        ctx.globalAlpha = 1;
+        if (mode === 'overview') {
+          const glow = ctx.createRadialGradient(0, 0, 60, 0, 0, 800);
+          glow.addColorStop(0, 'rgba(255,186,66,.16)');
+          glow.addColorStop(1, 'rgba(255,186,66,0)');
+          ctx.fillStyle = glow;
+          ctx.beginPath(); ctx.arc(0, 0, 800, 0, 7); ctx.fill();
+          if (LION.complete && LION.naturalWidth) ctx.drawImage(LION, -470, -470, 940, 940);
+        }
+        if (mode === 'division' && activeDiv >= 0) {
+          const d = DIVS[activeDiv];
+          ctx.save();
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.font = '900 ' + Math.round(Math.min(320, d.Rc * 1.7 / d.name.length)) + "px -apple-system,'Malgun Gothic',sans-serif";
+          ctx.fillStyle = 'rgba(255,255,255,.05)';
+          ctx.fillText(d.name, d.cx, d.cy);
+          ctx.restore();
+        }
+        const detail = scale > 0.42;
+        const arrowQ = [];
+        const aSet = selected ? new Set([...anc, selected.id]) : null;
+        const dSet = selected ? new Set([...desc, selected.id]) : null;
+        edges.forEach(e => {
+          const inactive = mode === 'division' && e.div !== activeDiv;
+          let col = '#5d6d8c', width = 1.4, dash = null, al = selected ? .12 : .6;
+          if (inactive) al = .05;
+          else if (selected) {
+            if (e.s === selected.id && dirF.has(e.f)) { col = RED; width = 3; al = 1; }
+            else if (e.f === selected.id && dirS.has(e.s)) { col = BLUE; width = 3; al = 1; }
+            else if (aSet.has(e.f) && aSet.has(e.s)) { col = RED_PALE; width = 2; dash = [6, 5]; al = .9; }
+            else if (dSet.has(e.f) && dSet.has(e.s)) { col = BLUE_PALE; width = 2; dash = [6, 5]; al = .9; }
+          }
+          ctx.globalAlpha = al;
+          ctx.strokeStyle = col; ctx.lineWidth = width;
+          ctx.setLineDash(dash || []);
+          const ax = e.a.wx ?? e.a.x, ay = e.a.wy ?? e.a.y, bx = e.b.wx ?? e.b.x, by = e.b.wy ?? e.b.y;
+          const dx = bx - ax, dy = by - ay, d = Math.sqrt(dx * dx + dy * dy) || 1;
+          const ux = dx / d, uy = dy / d;
+          const x1 = ax + ux * e.a.r, y1 = ay + uy * e.a.r;
+          const x2 = bx - ux * (e.b.r + 6), y2 = by - uy * (e.b.r + 6);
+          ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+          ctx.setLineDash([]);
+          if (!inactive) arrowQ.push({ x2, y2, ux, uy, col, al });
+        });
+        ctx.globalAlpha = 1;
+        ctx.textAlign = 'center';
+        nodes.forEach(n => {
+          const nx = n.wx ?? n.x, ny = n.wy ?? n.y;
+          const inactive = mode === 'division' && n.div !== activeDiv;
+          let ring = null, faded = false, tag = null, pill = null;
+          if (selected) {
+            if (n === selected) ring = '#f5f7fb';
+            else if (dirF.has(n.id)) { ring = RED; const e = dirF.get(n.id); tag = { txt: parentWord(isFem(n.div)), col: '#ff8577' }; pill = { txt: recTxt(e.sw, e.fw, false), col: RED }; }
+            else if (dirS.has(n.id)) { ring = BLUE; const e = dirS.get(n.id); tag = { txt: childWord(isFem(n.div)), col: '#7fb0ff' }; pill = { txt: recTxt(e.fw, e.sw, true), col: BLUE }; }
+            else if (anc.has(n.id)) { ring = RED_PALE; const d = ancDepth.get(n.id); if (d >= 2) tag = { txt: kinshipName(d, true, isFem(n.div)), col: '#ff8577' }; }
+            else if (desc.has(n.id)) { ring = BLUE_PALE; const d = descDepth.get(n.id); if (d >= 2) tag = { txt: kinshipName(d, false, isFem(n.div)), col: '#7fb0ff' }; }
+            else faded = true;
+          }
+          ctx.globalAlpha = inactive ? .1 : faded ? .14 : 1;
+          const tier = TIERS[tierOf(n)];
+          ctx.save();
+          ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 7; ctx.shadowOffsetY = 2.5;
+          const grad = ctx.createRadialGradient(nx - n.r * .35, ny - n.r * .42, n.r * .15, nx, ny, n.r * 1.05);
+          grad.addColorStop(0, tier.light);
+          grad.addColorStop(1, tier.dark);
+          ctx.beginPath(); ctx.arc(nx, ny, n.r, 0, 7);
+          ctx.fillStyle = grad; ctx.fill();
+          ctx.restore();
+          ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,.9)';
+          ctx.beginPath(); ctx.arc(nx, ny, n.r, 0, 7); ctx.stroke();
+          if (ring) { ctx.lineWidth = 3.2; ctx.strokeStyle = ring; ctx.beginPath(); ctx.arc(nx, ny, n.r + 3, 0, 7); ctx.stroke(); }
+          if (detail && !inactive) {
+            const two = n.lines.length > 1;
+            const fimg = flagImgFor(n.cc);
+            const fy = ny - n.r * (two ? .52 : .4);
+            ctx.textBaseline = 'middle';
+            if (fimg) {
+              const fw2 = Math.round(n.r * .62), fh2 = Math.round(fw2 * .72);
+              ctx.drawImage(fimg, nx - fw2 / 2, fy - fh2 / 2, fw2, fh2);
+              ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,255,255,.85)';
+              ctx.strokeRect(nx - fw2 / 2, fy - fh2 / 2, fw2, fh2);
+            }
+            const nf = Math.min(13.5, Math.max(11, n.r * .38));
+            ctx.font = '800 ' + nf + "px -apple-system,'Malgun Gothic',sans-serif";
+            ctx.fillStyle = tier.text;
+            if (two) { ctx.fillText(n.lines[0], nx, ny + n.r * .06); ctx.fillText(n.lines[1], nx, ny + n.r * .48); }
+            else ctx.fillText(n.lines[0], nx, ny + n.r * .38);
+          }
+          if (n.champ && !inactive) { ctx.font = Math.round(n.r * .58) + 'px sans-serif'; ctx.textBaseline = 'middle'; ctx.fillText('👑', nx, ny - n.r - 9); }
+          if (tag && detail) {
+            const tyy = ny - n.r - (n.champ ? 26 : 13);
+            ctx.font = "800 11.5px -apple-system,'Malgun Gothic',sans-serif";
+            ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(12,13,18,.88)'; ctx.lineJoin = 'round';
+            ctx.strokeText(tag.txt, nx, tyy);
+            ctx.fillStyle = tag.col;
+            ctx.fillText(tag.txt, nx, tyy);
+          }
+          if (pill && detail) {
+            ctx.font = "800 11px -apple-system,'Malgun Gothic',sans-serif";
+            const tw = ctx.measureText(pill.txt).width + 14;
+            const pyy = ny + n.r + 11;
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,.4)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1.5;
+            ctx.fillStyle = pill.col;
+            ctx.beginPath(); ctx.roundRect(nx - tw / 2, pyy - 8.5, tw, 17, 8.5); ctx.fill();
+            ctx.restore();
+            ctx.fillStyle = '#fff';
+            ctx.fillText(pill.txt, nx, pyy + .5);
+          }
+          ctx.globalAlpha = 1;
+        });
+        arrowQ.forEach(a => {
+          ctx.globalAlpha = a.al;
+          ctx.beginPath();
+          ctx.moveTo(a.x2 + a.ux * 9, a.y2 + a.uy * 9);
+          ctx.lineTo(a.x2 - a.uy * 5.4, a.y2 + a.ux * 5.4);
+          ctx.lineTo(a.x2 + a.uy * 5.4, a.y2 - a.ux * 5.4);
+          ctx.closePath();
+          ctx.lineWidth = 2.6; ctx.strokeStyle = 'rgba(12,13,18,.9)'; ctx.lineJoin = 'round';
+          ctx.stroke();
+          ctx.fillStyle = a.col; ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+        // 체급 이름 배지
+        DIVS.forEach((d, dix) => {
+          if (mode === 'division' && dix === activeDiv) return;
+          const list = nodesByDiv[dix];
+          let topY = 1e9; list.forEach(n => topY = Math.min(topY, n.y - n.r));
+          const by = topY - 58, bx = d.cx;
+          const inactive = mode === 'division' && dix !== activeDiv;
+          ctx.globalAlpha = inactive ? .25 : 1;
+          ctx.font = "800 " + (mode === 'overview' ? 34 : 30) + "px -apple-system,'Malgun Gothic',sans-serif";
+          const tw = ctx.measureText(d.name).width + 46;
+          ctx.save();
+          ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
+          ctx.fillStyle = 'rgba(23,27,38,.94)';
+          ctx.beginPath(); ctx.roundRect(bx - tw / 2, by - 27, tw, 54, 27); ctx.fill();
+          ctx.restore();
+          ctx.lineWidth = 2; ctx.strokeStyle = '#3b4459';
+          ctx.beginPath(); ctx.roundRect(bx - tw / 2, by - 27, tw, 54, 27); ctx.stroke();
+          ctx.fillStyle = '#f0d48a'; ctx.textBaseline = 'middle';
+          ctx.fillText(d.name, bx, by + 1);
+          ctx.globalAlpha = 1;
+          d.badge = { x: bx, y: by, w: tw, h: 54 };
+        });
+      }
+
+      // ── 입력 ──
+      let panStart = null, pinch = null, downAt = 0, downPos = null, moved = false;
+      const pointers = new Map();
+      function nodeAt(px, py) {
+        const [wx, wy] = toWorld(px, py);
+        for (let i = nodes.length - 1; i >= 0; i--) {
+          const n = nodes[i];
+          if ((wx - (n.wx ?? n.x)) ** 2 + (wy - (n.wy ?? n.y)) ** 2 < (n.r + 8) ** 2) return n;
+        }
+        return null;
+      }
+      function divisionAt(px, py) {
+        const [wx, wy] = toWorld(px, py);
+        for (const d of DIVS) {
+          if (d.badge && Math.abs(wx - d.badge.x) < d.badge.w / 2 + 30 && Math.abs(wy - d.badge.y) < 60) return d.ix;
+        }
+        const n = nodeAt(px, py);
+        if (n) return n.div;
+        let best = -1, bestD = 1e18;
+        DIVS.forEach(d => {
+          const dd = Math.sqrt((wx - d.cx) ** 2 + (wy - d.cy) ** 2);
+          if (dd < bestD) { bestD = dd; best = d.ix; }
+        });
+        if (best >= 0 && bestD < DIVS[best].Rc * 1.15) return best;
+        return -1;
+      }
+      function maybeAutoExit() {
+        if (mode !== 'division') return;
+        const fit = camFor(boundsOf(nodesByDiv[activeDiv], 20), 56).s;
+        if (scale < fit * 0.45) exitToOverview();
+      }
+      cv.addEventListener('pointerdown', ev => {
+        cv.setPointerCapture(ev.pointerId);
+        pointers.set(ev.pointerId, [ev.offsetX, ev.offsetY]);
+        anim = null;
+        if (pointers.size === 2) { const ps = [...pointers.values()]; pinch = { d: Math.hypot(ps[0][0] - ps[1][0], ps[0][1] - ps[1][1]), s: scale }; dragNode = null; return; }
+        downAt = Date.now(); downPos = [ev.offsetX, ev.offsetY]; moved = false;
+        dragNode = mode === 'division' ? nodeAt(ev.offsetX, ev.offsetY) : null;
+        if (dragNode && dragNode.div !== activeDiv) dragNode = null;
+        if (!dragNode) panStart = { x: ev.offsetX - tx, y: ev.offsetY - ty };
+      });
+      cv.addEventListener('pointermove', ev => {
+        if (!pointers.has(ev.pointerId)) return;
+        pointers.set(ev.pointerId, [ev.offsetX, ev.offsetY]);
+        if (pinch && pointers.size === 2) {
+          const ps = [...pointers.values()];
+          const d = Math.hypot(ps[0][0] - ps[1][0], ps[0][1] - ps[1][1]);
+          const cx = (ps[0][0] + ps[1][0]) / 2, cy = (ps[0][1] + ps[1][1]) / 2;
+          const ns = Math.max(.06, Math.min(2.8, pinch.s * d / pinch.d));
+          tx = cx - (cx - tx) * ns / scale; ty = cy - (cy - ty) * ns / scale; scale = ns;
+          maybeAutoExit();
+          return;
+        }
+        if (downPos && Math.hypot(ev.offsetX - downPos[0], ev.offsetY - downPos[1]) > 6) moved = true;
+        if (dragNode) {
+          const [wx, wy] = toWorld(ev.offsetX, ev.offsetY);
+          dragNode.x = wx; dragNode.y = wy;
+          alpha = Math.max(alpha, .13);
+        }
+        else if (panStart) { tx = ev.offsetX - panStart.x; ty = ev.offsetY - panStart.y; }
+      });
+      function endPtr(ev) {
+        pointers.delete(ev.pointerId);
+        if (pointers.size < 2) pinch = null;
+        if (!moved && Date.now() - downAt < 450) {
+          if (mode === 'overview') {
+            const dix = divisionAt(ev.offsetX, ev.offsetY);
+            if (dix >= 0) enterDivision(dix);
+          } else {
+            const n = nodeAt(ev.offsetX, ev.offsetY);
+            if (n && n.div === activeDiv) select(n === selected ? null : n);
+            else if (n && n.div !== activeDiv) enterDivision(n.div);
+            else if (selected) select(null);   // 여백 한 번 = 선택 해제
+            else exitToOverview();              // 여백 한 번 더 = 전체 화면
+          }
+        }
+        dragNode = null; panStart = null; downPos = null;
+      }
+      cv.addEventListener('pointerup', endPtr);
+      cv.addEventListener('pointercancel', endPtr);
+      cv.addEventListener('wheel', ev => {
+        ev.preventDefault();
+        anim = null;
+        const ns = Math.max(.06, Math.min(2.8, scale * (ev.deltaY < 0 ? 1.12 : .89)));
+        tx = ev.offsetX - (ev.offsetX - tx) * ns / scale;
+        ty = ev.offsetY - (ev.offsetY - ty) * ns / scale;
+        scale = ns;
+        maybeAutoExit();
+      }, { passive: false });
+      backBtn.onclick = () => { if (selected) select(null); else exitToOverview(); };
+      const onResize = () => {
+        if (token !== __jbxToken || !document.getElementById('jbx-cv')) { window.removeEventListener('resize', onResize); return; }
+        sizeCanvas();
+        if (mode === 'overview') animToOverview(300); else animToDivision(activeDiv, 300);
+      };
+      window.addEventListener('resize', onResize);
+      // 시작: 전체 오버뷰
+      {
+        const c = camFor(boundsOf(nodes, 60), 56);
+        scale = c.s; tx = c.x; ty = c.y;
+        setTimeout(() => { if (token === __jbxToken) animToOverview(500); }, 900);
+      }
+      (function loop() {
+        if (token !== __jbxToken || !document.getElementById('jbx-cv')) return; // 페이지를 떠나면 루프 종료
+        tick();
+        stepAnim();
+        draw();
+        requestAnimationFrame(loop);
+      })();
     }
     /* ── 업적 (블랙컴뱃 기록실) ──
        공식 전적 데이터(records.json)를 그 자리에서 집계해 통산 기록 TOP을 보여준다.
