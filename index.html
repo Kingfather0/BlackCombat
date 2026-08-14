@@ -6465,6 +6465,7 @@
         font-size: 12.5px
       }
     }
+
   </style>
 </head>
 
@@ -8240,6 +8241,9 @@
         }
         const upEl = document.getElementById('tk-updated');
         if (upEl) { upEl.textContent = '🔄 실시간 조회 ' + fmtSnapTime(new Date().toISOString()); upEl.style.display = ''; }
+        // 좌석 카드 좌측 상단의 "기준 시각"도 방금 조회한 시각으로 갱신
+        const asofEl = document.getElementById('tk-total-asof');
+        if (asofEl) asofEl.textContent = fmtSnapTime(new Date().toISOString()) + ' 기준';
         tkBuildShareText(remainByGrade, new Date().toISOString()); // 공유 문구도 방금 조회한 최신값으로 교체
         toastMsg('✅ 예매 사이트에서 방금 직접 조회한 값입니다.');
       } catch (e) { toastMsg('⚠️ ' + (e.message || '실시간 조회에 실패했습니다.')); }
@@ -8617,9 +8621,11 @@
       // "판매 대상"과 "전체 좌석"이 다른(=판매 대상이 아닌 좌석이 있는) 회차가 하나라도 있을 때만
       // "ⓘ 기준 안내" 토글을 보여준다 — 둘이 같으면 안내할 차이가 없으므로 굳이 노출하지 않는다.
       const showTotalInfo = hasBreakdown && sumNoGradeForNote > 0;
-      // 버튼은 카드 우측 상단("총 N석..." 숫자 줄과 같은 줄) — 매진 예측 카드의 "ⓘ 예측 기준"과 같은 자리 느낌
+      // 카드 좌측 상단에는 "언제 기준 데이터인지"(가장 최근 기록 시각)를 매진 예측 카드 제목과
+      // 같은 크기·폰트·컬러(tk-trend-title)로 보여주고, 그 줄 우측에 "ⓘ 좌석 기준" 버튼을 둔다.
+      // 숫자 줄은 카드 폭 전체를 그대로 쓰므로 모바일에서도 글자가 줄어들지 않는다.
       const totalInfoBtnHTML = showTotalInfo ? `<button type="button" onclick="tkInfoToggle('tk-total-info')" onmouseenter="tkInfoHover('tk-total-info',true)" onmouseleave="tkInfoHover('tk-total-info',false)"
-            style="border:none;background:none;padding:0;cursor:pointer;font-size:11px;color:var(--dim);font-weight:700;text-decoration:underline;white-space:nowrap;flex-shrink:0">ⓘ 기준 안내</button>` : '';
+            style="border:none;background:none;padding:0;cursor:pointer;font-size:11px;color:var(--dim);font-weight:700;text-decoration:underline;white-space:nowrap;flex-shrink:0">ⓘ 좌석 기준</button>` : '';
       const totalInfoBoxHTML = showTotalInfo ? `
         <div id="tk-total-info" style="display:none;background:#f4f6fa;border-radius:9px;padding:9px 12px;margin-top:9px;font-size:11.5px;color:var(--muted);line-height:1.8">
           <div>· 전체 좌석 ${sumOverallForNote.toLocaleString()}석 중 실제 티켓 페이지에 판매 대상으로 열려있는 좌석은 ${sumSellableForNote.toLocaleString()}석입니다.</div>
@@ -8632,9 +8638,10 @@
         return `
       <div class="card tk-total-card">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
-          <div class="tk-total-num" style="flex:1;min-width:0;margin-top:0">총 ${sumTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%) · 잔여 ${sumRemainForTotal.toLocaleString()}석</div>
+          <span class="tk-trend-title" style="margin-bottom:0" id="tk-total-asof">${fmtSnapTime(newestAt)} 기준</span>
           ${totalInfoBtnHTML}
         </div>
+        <div class="tk-total-num">총 ${sumTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%) · 잔여 ${sumRemainForTotal.toLocaleString()}석</div>
         <div class="tk-bar tk-total-bar"><i style="width:${Math.min(100, Math.max(0, pct))}%"></i></div>
         ${bulkTopHTML}
         ${totalInfoBoxHTML}
@@ -8663,7 +8670,7 @@
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px">
           <span class="tk-trend-title" style="margin-bottom:0">매진 예측 시뮬레이션</span>
           <button type="button" onclick="tkInfoToggle('tk-fc-info')" onmouseenter="tkInfoHover('tk-fc-info',true)" onmouseleave="tkInfoHover('tk-fc-info',false)"
-            style="border:none;background:none;padding:0;cursor:pointer;font-size:11px;color:var(--dim);font-weight:700;text-decoration:underline">ⓘ 예측 기준</button>
+            style="border:none;background:none;padding:0;cursor:pointer;font-size:11px;color:var(--dim);font-weight:700;text-decoration:underline;white-space:nowrap;flex-shrink:0">ⓘ 예측 기준</button>
         </div>
         ${fcParts.join('<hr class="sep" style="margin:8px 0">')}
         <div id="tk-fc-info" style="display:none;background:#f4f6fa;border-radius:9px;padding:9px 12px;margin-top:9px;font-size:11.5px;color:var(--muted);line-height:1.8">
