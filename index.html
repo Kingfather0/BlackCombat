@@ -1263,8 +1263,7 @@
       padding: 3px 8px;
       border-radius: 7px;
       font-weight: 800;
-      font-size: 13.5px;
-      text-align: center
+      font-size: 13.5px
     }
 
     .pick-chip.A {
@@ -6429,7 +6428,7 @@
 
     /* 메뉴 6개 + 로고가 한 줄에 안 들어가는 아주 좁은 화면 — 로고 "텍스트"만 숨긴다.
        사자·카카오 아이콘과 오픈톡 링크는 유지되므로 기능 손실은 없다. */
-    @media(max-width:400px) {
+    @media(max-width:460px) {
       .logo .logo-text {
         display: none
       }
@@ -6446,7 +6445,8 @@
       <nav id="nav">
         <a href="#/" data-nav="home">홈</a>
         <a href="#/tickets" data-nav="tickets">티켓</a>
-        <a href="#/records" data-nav="fighters">선수</a>
+        <a href="#/fighters" data-nav="fighters">랭킹</a>
+        <a href="#/records" data-nav="records">업적</a>
         <a href="#/ranking" data-nav="ranking">격잘알</a>
         <a href="#/game" data-nav="game">게임</a>
       </nav>
@@ -6591,10 +6591,10 @@
       const map = {
         '': '홈',
         tickets: '티켓',
-        fighters: '선수',            // 상단 메뉴 "선수" = 선수 랭킹 페이지
+        fighters: '랭킹',            // 상단 메뉴 "랭킹" = 선수 랭킹 페이지
         ranking: '격잘알',           // 상단 메뉴 "격잘알" = 예측 적중 랭킹 페이지
         game: '게임',
-        records: '업적',             // 선수 페이지의 업적 탭
+        records: '업적',             // 상단 메뉴 "업적" = 블랙컴뱃 기록실
         t: '승부예측 상세',          // 홈의 승부예측 카드를 눌러 들어가는 대회 상세 화면
         player: '선수 기록',         // 랭킹에서 선수를 눌러 보는 개인 기록 화면
         admin: '관리자'
@@ -7230,11 +7230,14 @@
       // 티켓 판매 현황 — 모든 방문자에게 공개.
       const navTickets = document.querySelector('[data-nav="tickets"]');
       if (navTickets) navTickets.style.display = '';
-
+      // 업적(기록실) — 아직 공개 전이라 관리자 로그인 상태에서만 메뉴가 보인다.
+      // 공개하려면 아래 한 줄과 viewRecordsHall() 안의 관리자 확인만 지우면 된다.
+      const navRecords = document.querySelector('[data-nav="records"]');
+      if (navRecords) navRecords.style.display = adminPass() ? '' : 'none';
       if (seg[0] === '') { mark('home'); viewHome(); }
       else if (seg[0] === 't') { viewTournament(decodeURIComponent(seg[1] || '')); }
       else if (seg[0] === 'fighters') { mark('fighters'); viewFighters(); }
-      else if (seg[0] === 'records') { mark('fighters'); viewRecordsHall(); }
+      else if (seg[0] === 'records') { mark('records'); viewRecordsHall(); }
       else if (seg[0] === 'ranking') { mark('ranking'); viewRanking(); }
       else if (seg[0] === 'game') { mark('game'); viewGame(seg[1] || ''); }
       else if (seg[0] === 'tickets') { mark('tickets'); viewTickets(decodeURIComponent(seg[1] || '')); }
@@ -7786,13 +7789,17 @@
     // fallbackOverall: 이 기록 자체에는 정확한 전체 총원(meta.overallTotal)이 없지만, 같은 회차의
     // 다른 기록(예: 북마클릿 수동 캡처)에서 이미 총원을 알아낸 경우 그 값을 대신 쓴다 —
     // 자동 기록과 수동 캡처가 섞여도 판매율 계산 기준이 갈라지지 않게 하기 위함.
-    // 반환값: { pct(판매율 0~100), sold(판매 좌석 수), total(전체 좌석 수) } — 총원을 전혀 모르면 null.
-    function computeRowSoldPct(r, fallbackOverall) {
+    // fallbackSellable: 위와 같은 방식의 "판매 대상 좌석"(meta.sellableTotal) 대체값 — 있으면
+    // (전체 좌석에 판매 대상이 아닌 좌석까지 섞여있는) overallTotal 대신 이 값을 분모로 우선 쓴다.
+    // 반환값: { pct(판매율 0~100), sold(판매 좌석 수), total(분모로 쓴 좌석 수) } — 둘 다 모르면 null.
+    function computeRowSoldPct(r, fallbackOverall, fallbackSellable) {
       const grades = r.grades || {}, totals = r.totals || {};
+      const sellableTotal = (r.meta && r.meta.sellableTotal != null) ? r.meta.sellableTotal : (fallbackSellable != null ? fallbackSellable : null);
       const overallTotal = (r.meta && r.meta.overallTotal != null) ? r.meta.overallTotal : (fallbackOverall != null ? fallbackOverall : null);
+      const effectiveTotal = sellableTotal != null ? sellableTotal : overallTotal;
       let total = 0, remain = 0, has = false;
-      if (overallTotal != null) {
-        total = overallTotal;
+      if (effectiveTotal != null) {
+        total = effectiveTotal;
         remain = Object.keys(grades).reduce((s, k) => s + ((grades[k] && grades[k].remain) || 0), 0);
         has = true;
       } else {
@@ -7806,14 +7813,16 @@
       return { pct: Math.max(0, Math.min(100, sold / total * 100)), sold, total };
     }
     function trendChartHTML(roundRows, bulkEvents) {
-      // 이 회차에서 가장 최근에 알아낸 정확한 전체 총원(meta.overallTotal)을 찾아, 총원이 없는
-      // 다른 기록에도 같은 기준으로 적용한다. (roundRows는 최신순 정렬이므로 첫 매칭 = 최신값)
+      // 이 회차에서 가장 최근에 알아낸 정확한 전체 총원(meta.overallTotal)/판매 대상(meta.sellableTotal)을
+      // 찾아, 그 값이 없는 다른 기록에도 같은 기준으로 적용한다. (roundRows는 최신순 정렬이므로 첫 매칭 = 최신값)
       const ovRow = roundRows.find(x => x.meta && x.meta.overallTotal != null);
       const roundOverall = ovRow ? ovRow.meta.overallTotal : null;
+      const svRow = roundRows.find(x => x.meta && x.meta.sellableTotal != null);
+      const roundSellable = svRow ? svRow.meta.sellableTotal : null;
       const allPoints = roundRows
         .slice()
         .sort((a, b) => new Date(a.captured_at) - new Date(b.captured_at))
-        .map(r => { const d = computeRowSoldPct(r, roundOverall); return { t: r.captured_at, pct: d ? d.pct : null }; })
+        .map(r => { const d = computeRowSoldPct(r, roundOverall, roundSellable); return { t: r.captured_at, pct: d ? d.pct : null }; })
         .filter(p => p.pct != null);
       if (allPoints.length < 2) return '';
       // ⚡ 급감 감지 지점: 솎아내기에서 빠지지 않도록 항상 포함하고, 다른 색+⚡로 표시한다
@@ -7880,10 +7889,12 @@
     function dailyTrendChartHTML(roundRows) {
       const ovRow = roundRows.find(x => x.meta && x.meta.overallTotal != null);
       const roundOverall = ovRow ? ovRow.meta.overallTotal : null;
+      const svRow = roundRows.find(x => x.meta && x.meta.sellableTotal != null);
+      const roundSellable = svRow ? svRow.meta.sellableTotal : null;
       const allPoints = roundRows
         .slice()
         .sort((a, b) => new Date(a.captured_at) - new Date(b.captured_at))
-        .map(r => { const d = computeRowSoldPct(r, roundOverall); return d ? { t: r.captured_at, sold: d.sold, pct: d.pct } : null; })
+        .map(r => { const d = computeRowSoldPct(r, roundOverall, roundSellable); return d ? { t: r.captured_at, sold: d.sold, pct: d.pct } : null; })
         .filter(Boolean);
       if (!allPoints.length) return '';
       // 날짜별로 묶어서 그날의 마지막(가장 늦은) 기록만 대표값으로 쓴다. allPoints가 이미
@@ -8013,9 +8024,11 @@
     function tkDetectBulkDrops(roundRows) {
       const ovRow = roundRows.find(x => x.meta && x.meta.overallTotal != null);
       const roundOverall = ovRow ? ovRow.meta.overallTotal : null;
+      const svRow = roundRows.find(x => x.meta && x.meta.sellableTotal != null);
+      const roundSellable = svRow ? svRow.meta.sellableTotal : null;
       const snaps = roundRows.slice()
         .sort((a, b) => new Date(a.captured_at) - new Date(b.captured_at))
-        .map(r => { const d = computeRowSoldPct(r, roundOverall); return d ? { t: +new Date(r.captured_at), iso: r.captured_at, sold: d.sold, grades: r.grades || {} } : null; })
+        .map(r => { const d = computeRowSoldPct(r, roundOverall, roundSellable); return d ? { t: +new Date(r.captured_at), iso: r.captured_at, sold: d.sold, grades: r.grades || {} } : null; })
         .filter(Boolean);
       if (snaps.length < 3) return [];
       const first = snaps[0];
@@ -8485,6 +8498,19 @@
         if (!overallByRound.has(key) && r.meta && r.meta.overallTotal != null) overallByRound.set(key, r.meta.overallTotal);
       });
 
+      // 회차별 "판매 대상 좌석"(meta.sellableTotal) / "판매 대상 아닌 좌석"(meta.noGradeTotal)도
+      // 같은 방식으로 이어서 쓴다. 북마클릿이 실제 좌석 데이터 조회에 성공했을 때만 채워지는 값이며,
+      // 이 값이 있으면 "총 좌석"(overallTotal) 대신 이 값을 판매율 계산의 기준(분모)으로 삼는다 —
+      // overallTotal(전체 좌석)에는 애초에 판매 대상이 아닌 좌석까지 섞여 있어 그대로 쓰면
+      // 판매/잔여 계산이 부정확해지기 때문.
+      const sellableByRound = new Map();
+      const noGradeByRound = new Map();
+      rows.forEach(r => {
+        const key = r.round_label || '__default__';
+        if (!sellableByRound.has(key) && r.meta && r.meta.sellableTotal != null) sellableByRound.set(key, r.meta.sellableTotal);
+        if (!noGradeByRound.has(key) && r.meta && r.meta.noGradeTotal != null) noGradeByRound.set(key, r.meta.noGradeTotal);
+      });
+
       // 등급별 총원(totals)과 등급별 가격(meta.gradePrices)도 같은 방식으로 이어서 쓴다.
       // 이 값들은 북마클릿 캡처에만 담기고 자동 기록에는 없으므로, 최신 자동 기록을
       // 보여줄 때도 과거 캡처에서 알아낸 총원/가격을 계속 활용해야 판매율/매출이 유지된다.
@@ -8500,12 +8526,25 @@
       // meta.overallTotal(북마클릿으로 실제 좌석맵을 세어 얻은 정확한 총원)이 있으면 그걸 우선 사용하고,
       // 없는 회차는 기존처럼 등급별 총원(totals) 추정치를 합산한다.
       let sumTotal = 0, sumRemainForTotal = 0, hasTotal = false;
+      // "ⓘ 기준 안내" 박스에 쓸, 회차 합산 전체/판매대상/미배정 좌석 수 — 세 값을 모두 아는
+      // 회차만 더해서 셋의 합이 항상 정확히 맞도록 한다 (일부만 아는 회차가 섞여 숫자가 안 맞는 걸 방지).
+      let sumOverallForNote = 0, sumSellableForNote = 0, sumNoGradeForNote = 0, hasBreakdown = false;
       latestRows.forEach(r => {
         const grades = r.grades || {}, totals = r.totals || {};
-        const overallTotal = overallByRound.get(r.round_label || '__default__');
-        if (overallTotal != null) {
+        const key = r.round_label || '__default__';
+        const overallTotal = overallByRound.get(key);
+        const sellableTotal = sellableByRound.get(key);
+        const noGradeTotal = noGradeByRound.get(key);
+        if (overallTotal != null && sellableTotal != null && noGradeTotal != null) {
+          sumOverallForNote += overallTotal; sumSellableForNote += sellableTotal; sumNoGradeForNote += noGradeTotal;
+          hasBreakdown = true;
+        }
+        // 판매율/잔여 계산의 분모는 "판매 대상 좌석"(sellableTotal)을 최우선으로 쓰고,
+        // 그 값이 없는(구버전 캡처만 있는) 회차에 한해 "전체 좌석"(overallTotal)으로 대체한다.
+        const effectiveTotal = sellableTotal != null ? sellableTotal : overallTotal;
+        if (effectiveTotal != null) {
           const remainSum = Object.keys(grades).reduce((s, k) => s + ((grades[k] && grades[k].remain) || 0), 0);
-          sumTotal += overallTotal; sumRemainForTotal += remainSum; hasTotal = true;
+          sumTotal += effectiveTotal; sumRemainForTotal += remainSum; hasTotal = true;
           return;
         }
         Object.keys(grades).forEach(k => {
@@ -8528,6 +8567,20 @@
         return recent.map(ev => `<div class="tk-bulk-alert">${esc(tkBulkAlertText(ev))}</div>`).join('')
           + (olderCnt > 0 ? `<div class="sub" style="margin-top:5px;font-size:11px;color:var(--dim)">이 외 급감 의심 ${olderCnt}건 — 아래 판매 추이(시간별)의 ⚡ 점에서 확인할 수 있습니다.</div>` : '');
       })() : '';
+      // "판매 대상"과 "전체 좌석"이 다른(=판매 대상이 아닌 좌석이 있는) 회차가 하나라도 있을 때만
+      // "ⓘ 기준 안내" 토글을 보여준다 — 둘이 같으면 안내할 차이가 없으므로 굳이 노출하지 않는다.
+      const showTotalInfo = hasBreakdown && sumNoGradeForNote > 0;
+      const totalInfoBtnHTML = showTotalInfo ? `
+        <div style="text-align:right;margin-top:6px">
+          <button type="button" onclick="const b=document.getElementById('tk-total-info');b.style.display=b.style.display==='none'?'block':'none'"
+            style="border:none;background:none;padding:0;cursor:pointer;font-size:11px;color:var(--dim);font-weight:700;text-decoration:underline">ⓘ 기준 안내</button>
+        </div>` : '';
+      const totalInfoBoxHTML = showTotalInfo ? `
+        <div id="tk-total-info" style="display:none;background:#f4f6fa;border-radius:9px;padding:9px 12px;margin-top:9px;font-size:11.5px;color:var(--muted);line-height:1.8">
+          <div>· 전체 좌석 ${sumOverallForNote.toLocaleString()}석 중 실제 티켓 페이지에 판매 대상으로 열려있는 좌석은 ${sumSellableForNote.toLocaleString()}석입니다.</div>
+          <div>· 나머지 ${sumNoGradeForNote.toLocaleString()}석은 등급 미배정(no-grade) 좌석으로, 판매 대상에서 제외되어 있습니다.</div>
+          <div>· 미판매 좌석이 판매로 전환 시 갱신할 예정입니다.</div>
+        </div>` : '';
       const totalBarHTML = totalTitleHTML + ((hasTotal && sumTotal > 0) ? (() => {
         const sold = sumTotal - sumRemainForTotal;
         const pct = (sold / sumTotal * 100).toFixed(1);
@@ -8536,6 +8589,8 @@
         <div class="tk-total-num">총 ${sumTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%) · 잔여 ${sumRemainForTotal.toLocaleString()}석</div>
         <div class="tk-bar tk-total-bar"><i style="width:${Math.min(100, Math.max(0, pct))}%"></i></div>
         ${bulkTopHTML}
+        ${totalInfoBtnHTML}
+        ${totalInfoBoxHTML}
       </div>`;
       })() : `
       <div class="card tk-total-card">
@@ -8549,8 +8604,9 @@
       latestRows.forEach(r => {
         const key = r.round_label || '__default__';
         const fc = tkSelloutForecast(rows.filter(x => (x.round_label || '__default__') === key), bulkByRound.get(key) || []);
-        // 매진 문구용 총 좌석수 — 정확한 총원(overallTotal)이 있을 때만 숫자를 보여준다
-        const fcTotal = overallByRound.has(key) ? overallByRound.get(key) : null;
+        // 매진 문구용 총 좌석수 — "판매 대상 좌석"(sellableTotal)을 우선 쓰고(전석 매진은 판매
+        // 대상 기준으로 판단하는 게 맞으므로), 그 값을 모르면 전체 좌석(overallTotal)으로 대체한다.
+        const fcTotal = sellableByRound.has(key) ? sellableByRound.get(key) : (overallByRound.has(key) ? overallByRound.get(key) : null);
         const labelHTML = latestRows.length > 1 && r.round_label ? `<span style="color:var(--dim);font-weight:700">${esc(r.round_label)}</span> · ` : '';
         const line = tkForecastLine(fc, periodEnd, fcTotal, labelHTML);
         if (line) fcParts.push(line);
@@ -8636,15 +8692,20 @@
       const histHTML = rows.map(r => {
         const grades = r.grades || {}, totals = r.totals || {};
         let hTotal = 0, hRemainForTotal = 0, hRemainAll = 0, hHasTotal = false;
+        const roundKeyH = r.round_label || '__default__';
         const overallTotal = (r.meta && r.meta.overallTotal != null)
           ? r.meta.overallTotal
-          : overallByRound.get(r.round_label || '__default__');
+          : overallByRound.get(roundKeyH);
+        const sellableTotal = (r.meta && r.meta.sellableTotal != null)
+          ? r.meta.sellableTotal
+          : sellableByRound.get(roundKeyH);
+        const effectiveTotal = sellableTotal != null ? sellableTotal : overallTotal;
         Object.keys(grades).forEach(k => {
           const remain = grades[k] && grades[k].remain;
           hRemainAll += (remain || 0);
-          if (overallTotal == null && totals[k] != null && remain != null) { hTotal += totals[k]; hRemainForTotal += remain; hHasTotal = true; }
+          if (effectiveTotal == null && totals[k] != null && remain != null) { hTotal += totals[k]; hRemainForTotal += remain; hHasTotal = true; }
         });
-        if (overallTotal != null) { hTotal = overallTotal; hRemainForTotal = hRemainAll; hHasTotal = true; }
+        if (effectiveTotal != null) { hTotal = effectiveTotal; hRemainForTotal = hRemainAll; hHasTotal = true; }
         const summaryText = (hHasTotal && hTotal > 0)
           ? `총 좌석 판매 수 : ${(hTotal - hRemainForTotal).toLocaleString()}/${hTotal.toLocaleString()} (${((hTotal - hRemainForTotal) / hTotal * 100).toFixed(1)}%)`
           : `잔여 합계 ${hRemainAll.toLocaleString()}석`;
@@ -8898,20 +8959,19 @@
     function recFlowChartHTML(nick, official) {
       if (!official || official.length < 2) return '';
       const seq = official.slice().reverse(); // 최신순 → 시간순
-      let margin = 0, w = 0, l = 0, dr = 0, nc = 0;
+      let margin = 0, w = 0, l = 0, dr = 0;
       const pts = [{ i: 0, m: 0 }]; // 데뷔 전 0에서 시작
       seq.forEach((mch, i) => {
         if (mch.res === 'W') { margin++; w++; }
         else if (mch.res === 'L') { margin--; l++; }
-        else if (mch.res === 'N') nc++; // 노 컨테스트(무효) — 승패에 안 센다
         else dr++;
         pts.push({ i: i + 1, m: margin, res: mch.res, ev: mch.ev });
       });
-      // 최근 연승/연패 계산 (무승부·무효는 흐름 유지로 보고 건너뜀)
+      // 최근 연승/연패 계산 (무승부는 흐름 유지로 보고 건너뜀)
       let streak = 0, streakRes = null;
       for (let i = seq.length - 1; i >= 0; i--) {
         const r = seq[i].res;
-        if (r === 'D' || r === 'N') continue;
+        if (r === 'D') continue;
         if (!streakRes) { streakRes = r; streak = 1; }
         else if (r === streakRes) streak++;
         else break;
@@ -8937,13 +8997,13 @@
       for (let i = 1; i < pts.length; i++) path += ` L ${x(i).toFixed(1)} ${y(pts[i].m).toFixed(1)}`;
       const dots = pts.slice(1).map(p => {
         const c = p.res === 'W' ? '#2563eb' : p.res === 'L' ? '#dc2626' : '#9aa3b2';
-        return `<circle cx="${x(p.i).toFixed(1)}" cy="${y(p.m).toFixed(1)}" r="3" fill="${c}"><title>${esc(p.ev)} ${p.res === 'W' ? '승' : p.res === 'L' ? '패' : p.res === 'N' ? '무효' : '무'}</title></circle>`;
+        return `<circle cx="${x(p.i).toFixed(1)}" cy="${y(p.m).toFixed(1)}" r="3" fill="${c}"><title>${esc(p.ev)} ${p.res === 'W' ? '승' : p.res === 'L' ? '패' : '무'}</title></circle>`;
       }).join('');
       const evShort = s => { s = String(s); return s.length > 16 ? s.slice(0, 16) + '…' : s; };
       return `
       <div class="sec-title" style="font-size:12.5px;margin-top:16px;display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap">
         <span>전적 흐름 <span style="color:var(--dim);font-size:11px;font-weight:700">블랙컴뱃 ${seq.length}경기</span></span>
-        <span style="color:var(--dim);font-size:11px;font-weight:700">${w}승 ${l}패${dr ? ' ' + dr + '무' : ''}${nc ? ` · 무효 ${nc}` : ''}${streakTxt}</span>
+        <span style="color:var(--dim);font-size:11px;font-weight:700">${w}승 ${l}패${dr ? ' ' + dr + '무' : ''}${streakTxt}</span>
       </div>
       <div class="pcard" style="padding:8px 10px">
         <svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:480px;display:block;margin:0 auto" role="img" aria-label="${esc(nick)} 전적 흐름 그래프">
@@ -9013,21 +9073,16 @@
         const meFirst = m.a[0] === mySeq;
         const opp = meFirst ? m.b : m.a;
         const oppNick = (rec.data.nicks || {})[opp[0]];
-        const NCB = '<span class="badge" style="background:#eef1f6;color:#525d6b;font-size:11px">무효</span>';
-        const myBadge = m.res === 'W' ? W : m.res === 'L' ? L : m.res === 'N' ? NCB : DR;
-        const oppBadge = m.res === 'W' ? L : m.res === 'L' ? W : m.res === 'N' ? NCB : DR;
+        const myBadge = m.res === 'W' ? W : m.res === 'L' ? L : DR;
+        const oppBadge = m.res === 'W' ? L : m.res === 'L' ? W : DR;
         const oppHTML = oppNick
           ? `<span style="cursor:pointer;background:#eef1f6;border-radius:8px;padding:2px 8px" onclick="openFighterStats('${String(oppNick).replace(/'/g, "\\'")}')" title="누르면 ${esc(oppNick)} 선수의 기록이 보입니다">${fflagHTML(oppNick)}${esc(oppNick)}</span>`
           : `<span>${fflagHTML(opp[1])}${esc(opp[1])}</span>`;
-        // 피니시(KO/TKO/서브미션)로 끝난 경기는 마무리 방법을 강조 — 이겼으면 파랑, 졌으면 빨강.
-        // 판정·무효 등은 기존 회색 유지. (rhClassify는 업적 페이지와 같은 분류 기준을 공유)
-        const mCls = rhClassify(m.m);
-        const mColor = (mCls === 'KO' || mCls === 'SUB') ? (m.res === 'W' ? '#1d4ed8' : m.res === 'L' ? '#a51c1c' : null) : null;
         return `<div class="pcard" style="padding:11px 14px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
           <span style="font-weight:800;font-size:14px">${fflagHTML(nick)}${esc(nick)} ${myBadge} <span style="color:var(--dim);font-weight:700">vs</span> ${oppHTML} ${oppBadge}</span>
         </div>
-        <div style="font-size:12px;margin-top:2px;color:var(--dim);font-weight:700">${esc(m.ev)}${m.m ? ` · <span${mColor ? ` style="color:${mColor}"` : ''}>${esc(m.m)}</span>` : ''}</div>
+        <div style="font-size:12px;margin-top:2px;color:var(--dim);font-weight:700">${esc(m.ev)}${m.m ? ` · ${esc(m.m)}` : ''}</div>
       </div>`;
       }).join('')}
       `;
@@ -9049,16 +9104,6 @@
       else pushModal(ov);
     }
     /* ── 선수 랭킹 페이지 ── */
-    // 랭킹 ↔ 업적 전환 탭 (두 페이지 상단 공용) — 페이지 배경이 연회색이라 칩만 두면 묻히므로,
-    // 한 단계 진한 회색 "받침(트레이)" 안에 두 탭을 넣어 전환 컨트롤임이 한눈에 보이게 한다.
-    // 활성 탭 = 파란 채움, 비활성 탭 = 트레이 위 투명 버튼.
-    const rankTab = (on, href, label) => on
-      ? `<a href="${href}" style="padding:5px 15px;background:var(--key);color:#fff;font-weight:800;font-size:13.5px;text-decoration:none">${label}</a>`
-      : `<a href="${href}" style="padding:5px 15px;background:#fff;color:var(--muted);font-weight:700;font-size:13.5px;text-decoration:none">${label}</a>`;
-    const rankTabsHTML = act => `<span style="display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;flex-shrink:0">
-      ${rankTab(act === 'records', '#/records', '업적')}
-      ${rankTab(act === 'fighters', '#/fighters', '랭킹')}
-    </span>`;
     const frow = f => f[1] === '공석'
       ? `<div class="frow"><span class="frk c">👑</span><span class="fnm" style="color:var(--dim)">공석</span></div>`
       : `<div class="frow" style="cursor:pointer" onclick="openFighterStats('${f[1].replace(/'/g, "\\'")}')" title="${esc(f[2])} · ${f[3]}승 ${f[4]}패${f[5] ? ' ' + f[5] + '무' : ''} · 누르면 공식 전적과 우리 방 승부예측 기록이 보입니다">
@@ -9074,15 +9119,15 @@
     }
     function viewFighters() {
       $app.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
-      ${rankTabsHTML('fighters')}
+    <h1 class="page" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <span>블랙컴뱃 선수 랭킹</span>
       <span class="fit-row" style="display:inline-flex;gap:8px;align-items:center">
         ${fightersUpdatedAt ? `<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${fmtDT(fightersUpdatedAt)} 갱신</span>` : ''}
         ${adminPass() ? `<button class="btn small" onclick="toggleAddFighterForm()">➕ 선수 추가</button>` : ''}
         ${adminPass() ? `<button class="btn primary small" onclick="refreshFighters(this)">🔄 수동 갱신</button>` : ''}
       </span>
-    </div>
-    <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 선수 선택 시 상세 기록 · 매일 새벽 자동 갱신</div>
+    </h1>
+    <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 매일 새벽 자동 갱신</div>
     <div id="afx"></div>
     <div class="fgrid">
       ${FIGHTERS.map((d, di) => {
@@ -9130,8 +9175,7 @@
                 st.fast = { r: key[0], s: key[1], m: m.m, ev: m.ev };
             }
           } else if (m.res === 'L') { st.l++; streak = 0; }
-          else if (m.res === 'D') st.dr++;
-          // 'N'(노 컨테스트)은 승·패·무 어디에도 안 세고 연승도 끊지 않는다 (출전 수에는 포함)
+          else st.dr++;
         });
         st.curStreak = streak;
         out.push(st);
@@ -9142,14 +9186,14 @@
     let __rhCardSeq = 0;
     function rhCardHTML(title, note, rows, showN) {
       if (!rows.length) return '';
-      showN = showN || 10; // 랭킹표처럼 기본 10명 표시, 그 이상은 더보기
+      showN = showN || 5;
       let lastVal = null, lastRank = 0;
       const lines = rows.map((r, i) => {
         const rank = (lastVal !== null && r.val === lastVal) ? lastRank : i + 1;
         lastVal = r.val; lastRank = rank;
         return `<div class="frow" style="cursor:pointer" onclick="openFighterStats('${String(r.nick).replace(/'/g, "\\'")}')" title="누르면 ${esc(r.nick)} 선수의 기록이 보입니다">
         <span class="frk">${rank}</span>
-        ${fflagHTML(r.nick)}<b class="fnm" style="min-width:0;word-break:normal;overflow-wrap:anywhere">${esc(r.nick)}</b>
+        ${fflagHTML(r.nick)}<b class="fnm">${esc(r.nick)}</b>
         <span class="frec">${r.valText}</span>
       </div>${r.subText ? `<div style="font-size:11px;color:var(--dim);margin:-4px 0 4px 34px">${esc(r.subText)}</div>` : ''}`;
       });
@@ -9163,23 +9207,29 @@
     </div>`;
     }
     async function viewRecordsHall() {
+      // 공개 전 — 관리자만 미리보기 가능. 공개 시 이 블록을 지우면 된다.
+      if (!adminPass()) {
+        $app.innerHTML = `<h1 class="page">🏆 블랙컴뱃 업적</h1>
+      <div class="empty" style="margin-top:14px">준비 중인 페이지입니다.</div>`;
+        return;
+      }
       loading();
       await loadRecords();
       const stats = rhComputeStats();
       if (!stats || !stats.length) {
-        $app.innerHTML = `<div style="margin-top:6px">${rankTabsHTML('records')}</div>
+        $app.innerHTML = `<h1 class="page">🏆 블랙컴뱃 업적</h1>
       <div class="empty" style="margin-top:14px">아직 전적 데이터가 준비되지 않았습니다.<br>매일 새벽 자동 수집이 완료되면 표시됩니다.</div>`;
         return;
       }
       __rhCardSeq = 0;
-      const MAX = 20; // 더보기까지 포함해 카드당 최대 표시 인원
+      const MAX = 15; // 더보기까지 포함해 카드당 최대 표시 인원
       const desc = (arr, key) => arr.filter(s => key(s) > 0).sort((a, b) => key(b) - key(a) || b.w - a.w).slice(0, MAX);
       const mk = (arr, key, unit) => desc(arr, key).map(s => ({ nick: s.nick, val: key(s), valText: key(s).toLocaleString() + unit }));
 
       // 최단 피니시: 라운드 → 시간 순 (라운드 길이를 가정하지 않아 정확)
       const fastRows = stats.filter(s => s.fast)
         .sort((a, b) => a.fast.r - b.fast.r || a.fast.s - b.fast.s).slice(0, MAX)
-        .map(s => ({ nick: s.nick, val: s.fast.r * 10000 + s.fast.s, valText: `${s.fast.r}R ${Math.floor(s.fast.s / 60)}:${String(s.fast.s % 60).padStart(2, '0')}` }));
+        .map(s => ({ nick: s.nick, val: s.fast.r * 10000 + s.fast.s, valText: `${s.fast.r}R ${Math.floor(s.fast.s / 60)}:${String(s.fast.s % 60).padStart(2, '0')}`, subText: `${s.fast.m} · ${s.fast.ev}` }));
       // 최단 피니시의 공동 순위는 (라운드,시간)이 같을 때만 — val을 그 값으로 썼으므로 자동 처리됨
 
       // 무패: 패·무 없이 3경기 이상 — 승수 내림차순
@@ -9189,29 +9239,26 @@
 
       // 피니시율: 5승 이상, (KO+서브미션)/승
       const finRows = stats.filter(s => s.w >= 5)
-        .map(s => ({ nick: s.nick, val: Math.round((s.ko + s.sub) / s.w * 100), w: s.w, fin: s.ko + s.sub }))
-        .filter(r => r.val > 0) // 피니시가 하나도 없는(0%) 선수는 제외
+        .map(s => ({ nick: s.nick, val: Math.round((s.ko + s.sub) / s.w * 100), w: s.w }))
         .sort((a, b) => b.val - a.val || b.w - a.w).slice(0, MAX)
-        .map(r => ({ nick: r.nick, val: r.val, valText: `${r.val}% · ${r.fin}/${r.w}` })); // 예: 40% · 2/5 = 5승 중 피니시 2회
+        .map(r => ({ nick: r.nick, val: r.val, valText: `${r.val}% (${r.w}승)` }));
 
       const updated = recordsCache.data.updated_at ? fmtDT(recordsCache.data.updated_at) : '';
       $app.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
-      ${rankTabsHTML('records')}
-      <span class="fit-row" style="display:inline-flex;gap:8px;align-items:center">
-        ${updated ? `<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${updated} 갱신</span>` : ''}
-      </span>
-    </div>
-    <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 선수 선택 시 상세 기록 · 매일 새벽 자동 갱신</div>
+    <h1 class="page" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <span>🏆 블랙컴뱃 업적</span>
+      ${updated ? `<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${updated} 갱신</span>` : ''}
+    </h1>
+    <div class="sub" style="font-size:11px;color:var(--dim)">공식 홈페이지에 등재된 경기 기준 · 매일 새벽 자동 갱신 · 선수를 누르면 상세 기록이 보입니다</div>
     <div class="fgrid">
       ${rhCardHTML('🔥 최다 연승 (역대)', '', mk(stats, s => s.maxStreak, '연승'))}
       ${rhCardHTML('📈 현재 연승 중', '', mk(stats, s => s.curStreak, '연승'))}
-      ${rhCardHTML('🛡️ 무패', '3전↑', undefeatedRows)}
+      ${rhCardHTML('🛡️ 무패', '3경기 이상', undefeatedRows)}
       ${rhCardHTML('🥇 최다 승', '', mk(stats, s => s.w, '승'))}
       ${rhCardHTML('👊 최다 KO/TKO승', '', mk(stats, s => s.ko, '회'))}
       ${rhCardHTML('🥋 최다 서브미션승', '', mk(stats, s => s.sub, '회'))}
       ${rhCardHTML('⚡ 최단 피니시', '빠른 순', fastRows)}
-      ${rhCardHTML('🎯 피니시율', '피니시/승', finRows)}
+      ${rhCardHTML('🎯 피니시율', '5승 이상 · KO+서브미션 비율', finRows)}
       ${rhCardHTML('🏟️ 최다 출전', '', mk(stats, s => s.n, '경기'))}
     </div>`;
     }
@@ -14360,14 +14407,14 @@
       const meets = (rd.records[seqA] || []).filter(m =>
         (m.a[0] === seqA && m.b[0] === seqB) || (m.a[0] === seqB && m.b[0] === seqA));
       if (!meets.length) return '';
-      let wa = 0, wb = 0, dr = 0, nc = 0;
+      let wa = 0, wb = 0, dr = 0;
       meets.forEach(m => {
-        // res는 "그 페이지 주인공(seqA)" 기준의 결과다. 'N'(노 컨테스트)은 승패에 안 센다.
-        if (m.res === 'W') wa++; else if (m.res === 'L') wb++; else if (m.res === 'N') nc++; else dr++;
+        // res는 "그 페이지 주인공(seqA)" 기준의 결과다
+        if (m.res === 'W') wa++; else if (m.res === 'L') wb++; else dr++;
       });
       return `<div style="margin-top:7px;padding:6px 10px;background:#fff7ed;border:1px solid #fed7aa;border-radius:9px;font-size:12px;font-weight:700;color:#9a3412;display:flex;gap:6px;align-items:baseline;flex-wrap:wrap">
         <span>⚔️ ${meets.length >= 2 ? '과거 맞대결 ' + meets.length + '회' : '리매치'}</span>
-        <span style="font-weight:800">${esc(nickA)} ${wa}승 : ${esc(nickB)} ${wb}승${dr ? ` · 무 ${dr}` : ''}${nc ? ` · 무효 ${nc}` : ''}</span>
+        <span style="font-weight:800">${esc(nickA)} ${wa}승 : ${esc(nickB)} ${wb}승${dr ? ` · 무 ${dr}` : ''}</span>
       </div>`;
     }
     // 카드 그리드 마크업
