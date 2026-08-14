@@ -6547,6 +6547,12 @@
       margin-top: 2px
     }
 
+    #jbx-info .tierow {
+      color: #7f8aa0;
+      font-size: 11px;
+      font-weight: 700
+    }
+
     #jbx-info .tag {
       display: inline-block;
       font-size: 11px;
@@ -9443,7 +9449,7 @@
           wins.set(k, (wins.get(k) || 0) + 1);
         });
       });
-      const edges = [];
+      const edges = [], ties = [];
       const seen = new Set();
       wins.forEach((w, k) => {
         const [x, y] = k.split('|');
@@ -9453,15 +9459,16 @@
         const wx = wins.get(x + '|' + y) || 0, wy = wins.get(y + '|' + x) || 0;
         if (wx > wy) edges.push({ f: x, s: y, fw: wx, sw: wy });
         else if (wy > wx) edges.push({ f: y, s: x, fw: wy, sw: wx });
-        // 동률 → 호적 정리(관계 없음)
+        else ties.push({ a: x, b: y, w: wx }); // 동률 → 호적 정리(관계 없음). 대신 "무승부 상대"로 별도 기록
       });
-      return edges;
+      return { edges, ties };
     }
     // 체급별 노드/간선/세대 데이터 구성 (같은 체급 로스터끼리의 관계만)
     function jbxBuildDivisions() {
       const rd = recordsCache.data;
-      const edges = jbComputeEdges();
-      if (!edges || !edges.length) return [];
+      const ce = jbComputeEdges();
+      if (!ce || !ce.edges.length) return [];
+      const edges = ce.edges, allTies = ce.ties;
       const nickOf = s => rd.nicks[s] || '';
       const fl = new Map();
       FIGHTERS.forEach((d, di) => d.list.forEach(f => { if (f[1] !== '공석') fl.set(String(f[1]).trim().toLowerCase(), { di, cc: f[6], champ: f[0] === 'C', rank: f[0] === 'C' ? 0 : Number(f[0]) }); }));
@@ -9471,6 +9478,7 @@
         const dEdges = edges.filter(e => { const a = meta(e.f), b = meta(e.s); return a && b && a.di === di && b.di === di; });
         if (!dEdges.length) return;
         const nodeIds = [...new Set(dEdges.flatMap(e => [e.f, e.s]))];
+        const nodeIdSet = new Set(nodeIds);
         // 세대 = 조상으로부터의 최장 거리 (위상 정렬, 순환에 걸린 노드는 1세대 취급)
         const inCnt = new Map(nodeIds.map(n => [n, 0]));
         dEdges.forEach(e => inCnt.set(e.s, inCnt.get(e.s) + 1));
@@ -9490,10 +9498,21 @@
         }
         const cyc = new Set();
         nodeIds.forEach(n => { if (!layer.has(n)) { layer.set(n, 1); cyc.add(n); } });
+        // 동률(호적 정리)이라 관계선은 없지만, 둘 다 이 체급 그래프에 노드로 있다면
+        // (= 클릭해서 볼 수 있는 상대라면) "무승부 상대"로 정보 패널에 참고 표시한다.
+        const tiesOf = new Map();
+        allTies.forEach(t => {
+          const ma = meta(t.a), mb = meta(t.b);
+          if (!ma || !mb || ma.di !== di || mb.di !== di) return;
+          if (!nodeIdSet.has(t.a) || !nodeIdSet.has(t.b)) return;
+          if (!tiesOf.has(t.a)) tiesOf.set(t.a, []); tiesOf.get(t.a).push({ id: t.b, w: t.w });
+          if (!tiesOf.has(t.b)) tiesOf.set(t.b, []); tiesOf.get(t.b).push({ id: t.a, w: t.w });
+        });
         const maxRank = Math.max(...nodeIds.map(sq => meta(sq).rank), 1);
         const dnodes = nodeIds.map(sq => {
           const m = meta(sq);
-          return { id: sq, nick: nickOf(sq), cc: m.cc, champ: m.champ, rank: m.rank, gen: layer.get(sq) || 0, cyc: cyc.has(sq) };
+          const ties = (tiesOf.get(sq) || []).map(t => ({ id: t.id, nick: nickOf(t.id), w: t.w }));
+          return { id: sq, nick: nickOf(sq), cc: m.cc, champ: m.champ, rank: m.rank, gen: layer.get(sq) || 0, cyc: cyc.has(sq), ties };
         });
         divisions.push({ di, name: d.div, maxGen: Math.max(...dnodes.map(n => n.gen)), maxRank, dnodes, dedges: dEdges });
       });
@@ -9794,7 +9813,8 @@
           '<span class="kchip' + (kinListMode === 'desc' ? ' on2' : '') + '" onclick="jbxToggleKin(\'desc\')">자손 ' + desc.size + '</span>' +
           listHTML +
           '<div class=row><span class="tag l">패</span>' + (faL.length ? faL.join(' · ') : '없음 — 무패!') + '</div>' +
-          '<div class=row><span class="tag w">승</span>' + (soL.length ? soL.join(' · ') : '없음') + '</div>';
+          '<div class=row><span class="tag w">승</span>' + (soL.length ? soL.join(' · ') : '없음') + '</div>' +
+          (n.ties && n.ties.length ? '<div class="row tierow">무승부(호적 정리) — ' + n.ties.map(t => nickLink(t.id) + ' ' + t.w + ':' + t.w).join(' · ') + '</div>' : '');
       }
       window.jbxToggleKin = m => { kinListMode = kinListMode === m ? null : m; renderInfo(); };
       window.jbxClearSel = () => select(null);
