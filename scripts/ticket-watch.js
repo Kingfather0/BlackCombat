@@ -33,6 +33,10 @@ const EVENT_KEY = process.env.EVENT_KEY;
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const TICKET_BOT_SECRET = process.env.TICKET_BOT_SECRET;
+// SET_CURRENT: 'false'면 "사이트가 지금 볼 event_key" 포인터를 갱신하지 않는다.
+// 메인 대회(예: 블랙컴뱃)와 보조 대회(예: 지난 대회로 내려간 로드FC)를 동시에 기록할 때,
+// 보조 대회 기록이 사이트 메인 화면을 뺏어가지 않게 하기 위한 옵션. (기본값: 갱신함)
+const SET_CURRENT = process.env.SET_CURRENT !== 'false';
 
 function bail(msg) {
   console.error('❌ ' + msg);
@@ -44,6 +48,15 @@ if (!TARGET_DATE || !/^\d{4}-\d{2}-\d{2}$/.test(TARGET_DATE)) bail('TARGET_DATE 
 if (!EVENT_KEY) bail('EVENT_KEY 환경변수가 없습니다.');
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) bail('SUPABASE_URL / SUPABASE_ANON_KEY 환경변수가 없습니다.');
 if (!TICKET_BOT_SECRET) bail('TICKET_BOT_SECRET 환경변수가 없습니다.');
+
+// 티켓 판매는 경기 당일(TARGET_DATE)로 끝나므로, 그 다음 날부터는 기록을 자동 정지한다.
+// (Variables를 지우거나 스케줄을 끄는 걸 잊어도 의미 없는 기록/실패가 쌓이지 않게 하는 안전장치.
+//  경기 당일까지는 정상 기록됨. 한국시간 기준으로 판단한다.)
+const kstToday = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+if (kstToday > TARGET_DATE) {
+  console.log(`⏹️ ${EVENT_KEY}: 경기일(${TARGET_DATE})이 지나 티켓 판매가 종료되었습니다 — 기록을 정지합니다. (오늘: ${kstToday} KST)`);
+  process.exit(0);
+}
 
 const targetDayNum = String(parseInt(TARGET_DATE.split('-')[2], 10));
 
@@ -307,7 +320,8 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
   });
   try {
     console.log('▶ 기록 대상 event_key:', EVENT_KEY);
-    await setCurrentTicketEvent();
+    if (SET_CURRENT) await setCurrentTicketEvent();
+    else console.log('ℹ️ 보조 대회 기록 모드(SET_CURRENT=false) — 사이트 메인 표시는 건드리지 않고 데이터만 쌓습니다.');
     console.log('▶ 티켓 페이지 접속:', TICKET_URL);
     // networkidle(요청이 완전히 잠잠해질 때까지 대기)은 채팅위젯/광고/분석 스크립트가
     // 계속 백그라운드 통신을 하는 요즘 사이트에서는 영영 안 걸릴 수 있어 타임아웃이 잦다.
