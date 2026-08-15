@@ -301,6 +301,27 @@
       flex-wrap: wrap;
     }
 
+    /* 📷 화면 이미지 저장 버튼 (각 페이지 제목 옆) — 배경/테두리 없이 이모지만 표시 */
+    .snap-btn {
+      border: none;
+      background: none;
+      padding: 2px 4px;
+      font-size: 19px;
+      line-height: 1;
+      cursor: pointer;
+      vertical-align: middle;
+      flex-shrink: 0
+    }
+
+    .snap-btn:disabled {
+      opacity: .6;
+      cursor: default
+    }
+
+    body.snapping .snap-btn {
+      visibility: hidden
+    }
+
     h1.page {
       font-size: 24px;
       font-weight: 900;
@@ -6456,6 +6477,7 @@
     }
 
     #jbx-full,
+    #jbx-snap,
     #jbx-back {
       border: 1px solid #39415a;
       background: #1d2230ee;
@@ -8001,12 +8023,16 @@
         .filter(p => p.sold > 0);
       const soldSum = parts.reduce((s, p) => s + p.sold, 0);
       if (!soldSum || parts.length < 2) return ''; // 등급이 1개뿐이면 원형 그래프가 의미 없음
-      // conic-gradient로 도넛 차트를 그린다 (외부 라이브러리 없이 CSS만으로)
+      // 도넛 차트는 SVG(stroke-dasharray)로 그린다. 예전엔 CSS conic-gradient만으로 그렸는데,
+      // 📷 화면 저장 기능(html2canvas)이 conic-gradient 배경을 지원하지 않아 캡처한 이미지에서
+      // 도넛이 비어 보이는 문제가 있었다 — SVG 도형은 정상적으로 캡처된다.
       // 조각별 각도/값은 __tkPieData에 저장해 두고, 도넛 위에 마우스를 올리거나 탭하면
-      // 좌표→각도 계산으로 어느 조각인지 찾아 말풍선을 띄운다 (tkPieHover).
+      // 좌표→각도 계산으로 어느 조각인지 찾아 말풍선을 띄운다 (tkPieHover, 좌표 계산 방식은 그대로).
+      const PIE_CX = 50, PIE_CY = 50, PIE_R = 34, PIE_SW = 28;
+      const PIE_CIRC = 2 * Math.PI * PIE_R;
       let acc = 0;
       const segData = [];
-      const segs = parts.map((p, i) => {
+      const segsSVG = parts.map((p, i) => {
         const from = acc / soldSum * 360;
         acc += p.sold;
         const to = acc / soldSum * 360;
@@ -8017,8 +8043,12 @@
           pct: p.sold / soldSum * 100,
           inner: totals[p.k] > 0 ? (p.sold / totals[p.k] * 100) : null
         });
-        return `${TK_PIE_COLORS[i % TK_PIE_COLORS.length]} ${from.toFixed(1)}deg ${to.toFixed(1)}deg`;
-      }).join(', ');
+        const lenFrac = (to - from) / 360;
+        const len = lenFrac * PIE_CIRC;
+        const gap = Math.max(0, PIE_CIRC - len);
+        const offset = -((from / 360) * PIE_CIRC);
+        return `<circle cx="${PIE_CX}" cy="${PIE_CY}" r="${PIE_R}" fill="none" stroke="${TK_PIE_COLORS[i % TK_PIE_COLORS.length]}" stroke-width="${PIE_SW}" stroke-dasharray="${len.toFixed(2)} ${gap.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}"/>`;
+      }).join('');
       window.__tkPieData = window.__tkPieData || {};
       window.__tkPieSeq = (window.__tkPieSeq || 0) + 1;
       const pieId = 'tk-pie-' + window.__tkPieSeq;
@@ -8046,8 +8076,11 @@
       return `<div style="padding-bottom:10px;margin-bottom:12px;border-bottom:1px dashed var(--border)">
         <div class="tk-trend-title">등급별 판매 비율</div>
         <div class="tk-pie-wrap">
-          <div class="tk-pie-donut" id="${pieId}" style="background:conic-gradient(${segs})"
+          <div class="tk-pie-donut" id="${pieId}"
             onmousemove="tkPieHover(event, this)" onmouseleave="tkPieLeave(this)" onclick="tkPieHover(event, this, 1)">
+            <svg viewBox="0 0 100 100" style="width:100%;height:100%;display:block" preserveAspectRatio="xMidYMid meet">
+              <g transform="rotate(-90 ${PIE_CX} ${PIE_CY})">${segsSVG}</g>
+            </svg>
             <div class="tk-pie-hole">
               <span class="tk-pie-hole-label">판매</span>
               <span class="tk-pie-hole-num">${soldSum.toLocaleString()}석</span>
@@ -8384,8 +8417,9 @@
       return [l1, l2, l3].filter(Boolean).join('\n');
     }
     /* --- 도넛 차트 조각 말풍선 (마우스 오버 + 탭/클릭 공용) ---
-       도넛은 conic-gradient 한 덩어리라 조각별 요소가 없다. 대신 마우스/탭 좌표를
-       중심 기준 각도로 바꿔서 어느 조각 위인지 계산한다. 가운데 구멍/바깥은 무시. */
+       SVG로 그린 도넛이지만 조각별로 이벤트를 따로 걸지 않고, 마우스/탭 좌표를
+       중심 기준 각도로 바꿔서 어느 조각 위인지 계산한다(도넛 전체가 하나의 hit 영역).
+       가운데 구멍/바깥은 무시. */
     function tkPieHover(ev, el, isClick) {
       const data = (window.__tkPieData || {})[el.id];
       if (!data) return;
@@ -9071,7 +9105,7 @@
 
       $app.innerHTML = `
       <h1 class="page fit-row" style="display:flex;justify-content:space-between;align-items:center;gap:10px">티켓 판매 현황
-        <button class="tk-share-btn" onclick="tkShare()">💬 티켓 현황 공유</button></h1>
+        <span style="display:inline-flex;gap:8px;align-items:center">${snapBtnHTML('app', 'ticket')}<button class="tk-share-btn" onclick="tkShare()">💬 티켓 현황 공유</button></span></h1>
       ${infoCard}
       ${totalBarHTML}
       ${forecastHTML}
@@ -9483,6 +9517,7 @@
         ${fightersUpdatedAt ? `<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${fmtDT(fightersUpdatedAt)} 갱신</span>` : ''}
         ${adminPass() ? `<button class="btn small" onclick="toggleAddFighterForm()">➕ 선수 추가</button>` : ''}
         ${adminPass() ? `<button class="btn primary small" onclick="refreshFighters(this)">🔄 수동 갱신</button>` : ''}
+        ${snapBtnHTML('app', 'ranking')}
       </span>
     </div>
     <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 선수 선택 시 상세 기록 · 매일 새벽 자동 갱신</div>
@@ -9610,6 +9645,7 @@
       <div id="jbx-btns">
         <button id="jbx-back" type="button" style="display:none">전체</button>
         <button id="jbx-full" type="button" title="전체화면으로 보기">⛶ 화면</button>
+        <button id="jbx-snap" class="snap-btn" type="button" title="족보 화면을 이미지로 저장" onclick="snapSave('#jbx-wrap','jokbo',this)">📷</button>
       </div>
       <div id="jbx-legend"></div>
       <div id="jbx-hint">체급 선택 = 확대 · 선수 선택 = 승패 강조 · 여백 탭/축소 = 뒤로</div>
@@ -10455,6 +10491,7 @@
       ${rankTabsHTML('records')}
       <span class="fit-row" style="display:inline-flex;gap:8px;align-items:center">
         ${updated ? `<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${updated} 갱신</span>` : ''}
+        ${snapBtnHTML('app', 'records')}
       </span>
     </div>
     <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 선수 선택 시 상세 기록 · 매일 새벽 자동 갱신</div>
@@ -10493,7 +10530,7 @@
       const cd = countdownText(t.deadline);
 
       let html = `
-    <h1 class="page">${esc(t.title)} ${stateBadge(t)}</h1>
+    <h1 class="page">${esc(t.title)} ${stateBadge(t)} ${snapBtnHTML('app', 'vote')}</h1>
     <div class="sub">
       ${(t.event_at || t.event_date) ? `📅 경기일 ${fmtEventDT(t)} &nbsp;·&nbsp; ` : ''}
       🚫 ${fmtDT(t.deadline)} 마감
@@ -10692,6 +10729,78 @@
         }
       });
     })();
+    /* ---------- 📷 화면 이미지 저장 ----------
+       각 페이지의 📷 버튼을 누르면 그 화면(#app 또는 지정 영역)을 그대로 PNG 이미지로 만들어 저장한다.
+       - 렌더링: html2canvas(CDN, 처음 누를 때 한 번만 로드)
+       - 휴대폰: 공유 시트(navigator.share)로 열어 사진 앱에 바로 저장/카톡 공유 가능
+       - PC/미지원: 파일 다운로드로 대체. 둘 다 안 되면 새 창에 이미지를 띄워 길게 눌러 저장하도록 안내
+       - 캡처 중에는 📷 버튼 자체(.snap-btn)와 .snap-hide 요소는 이미지에서 제외된다
+       - scale을 높이고 windowWidth/Height·letterRendering을 지정해 캡처 글자가 흐릿해지는 문제를 방지 */
+    let __h2cLoading = null;
+    function loadHtml2Canvas() {
+      if (window.html2canvas) return Promise.resolve(window.html2canvas);
+      if (__h2cLoading) return __h2cLoading;
+      __h2cLoading = new Promise((res, rej) => {
+        const sc = document.createElement('script');
+        sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        sc.onload = () => res(window.html2canvas);
+        sc.onerror = () => { __h2cLoading = null; rej(new Error('이미지 저장 도구를 불러오지 못했습니다. 네트워크를 확인해 주세요.')); };
+        document.head.appendChild(sc);
+      });
+      return __h2cLoading;
+    }
+    // target: 'app'(현재 페이지 본문) 또는 CSS 선택자('#jbx-wrap' 등) / name: 파일명에 들어갈 화면 이름
+    const snapBtnHTML = (target, name, extraStyle) =>
+      `<button type="button" class="snap-btn" title="이 화면을 이미지로 저장" aria-label="화면 이미지 저장" onclick="snapSave('${target}','${name}',this)"${extraStyle ? ` style="${extraStyle}"` : ''}>📷</button>`;
+    async function snapSave(target, name, btn) {
+      const el = target === 'app' ? document.getElementById('app') : document.querySelector(target);
+      if (!el) return;
+      const orig = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+      document.body.classList.add('snapping');
+      try {
+        const h2c = await loadHtml2Canvas();
+        const dark = target === '#jbx-wrap';
+        // 캡처 글자가 흐릿하게 나오는 문제 방지: scale을 더 높이고(최대 3배), html2canvas가
+        // 실제 뷰포트 크기를 알도록 windowWidth/Height를 명시하며, letterRendering으로
+        // 글자를 한 글자씩 그려 자간이 뭉개지지 않게 한다.
+        const canvas = await h2c(el, {
+          backgroundColor: dark ? '#0d0d10' : (getComputedStyle(document.body).backgroundColor || '#f4f6fa'),
+          useCORS: true, logging: false,
+          scale: Math.min(3, Math.max(2, (window.devicePixelRatio || 1) * 1.5)),
+          windowWidth: document.documentElement.clientWidth,
+          windowHeight: document.documentElement.clientHeight,
+          letterRendering: true,
+          imageTimeout: 15000,
+          ignoreElements: n => !!(n.classList && (n.classList.contains('snap-btn') || n.classList.contains('snap-hide')))
+        });
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+        if (!blob) throw new Error('이미지 생성에 실패했습니다.');
+        const pad = n => String(n).padStart(2, '0'), d = new Date();
+        // 파일명은 영문으로 (일부 브라우저는 한글 파일명을 'download'로 바꿔 확장자까지 잃어버림)
+        const fname = `blackcombat_${name}_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.png`;
+        const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+        // 휴대폰: 공유 시트로 사진 앱 저장/카톡 공유 (사용자가 취소하면 조용히 종료)
+        if (isMobile && navigator.canShare && typeof File !== 'undefined') {
+          const file = new File([blob], fname, { type: 'image/png' });
+          if (navigator.canShare({ files: [file] })) {
+            try { await navigator.share({ files: [file], title: fname }); return; }
+            catch (e) { if (e && e.name === 'AbortError') return; /* 그 외 실패 → 아래 다운로드로 */ }
+          }
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = fname; a.rel = 'noopener';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+        toastMsg('📷 이미지를 저장했습니다' + (isMobile ? ' (다운로드 폴더 확인)' : ''));
+      } catch (e) {
+        toastMsg('⚠️ ' + cleanErr(e && e.message));
+      } finally {
+        document.body.classList.remove('snapping');
+        if (btn) { btn.disabled = false; btn.textContent = orig || '📷'; }
+      }
+    }
     function toastMsg(s) {
       document.querySelectorAll('.fp-toast').forEach(t => t.remove());
       const el = document.createElement('div');
@@ -15988,7 +16097,7 @@
       const chip = rankChips(season);
       const streaks = computeStreaks(d);
       $app.innerHTML = `
-    <h1 class="page">격잘알 랭킹</h1>
+    <h1 class="page">격잘알 랭킹 ${snapBtnHTML('app', 'leaderboard')}</h1>
     <div class="sub">누적 대회 ${d.finals.length}개 · <b>우승 횟수 기준</b> (동률 시 총 적중 수)</div>
     <div class="card" style="display:flex;gap:8px;padding:12px;align-items:center">
       <input id="rk-search" placeholder="닉네임 검색 (전적 보기)" style="flex:1;min-width:0;box-sizing:border-box;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);outline:none;font-size:15px" oninput="filterRankTable()" onkeydown="if(event.key==='Enter')searchNick()">
