@@ -9643,7 +9643,7 @@
       });
       let ringR = 800, lionHalf = 470;
       function layoutRing() {
-        const total = DIVS.reduce((sum, d) => sum + d.Rc * 2, 0) * 1.1;
+        const total = DIVS.reduce((sum, d) => sum + d.Rc * 2, 0) * 1.16;
         // 화면 비율에 맞춘 타원 (세로 화면이면 위아래로 길게, 가로 화면이면 좌우로 길게)
         const aspect = Math.max(.5, Math.min(2.4, (W || 1) / Math.max(1, (H || 1) - 130)));
         const fx = Math.sqrt(aspect), fy = 1 / fx;
@@ -9655,9 +9655,12 @@
         lionHalf = Math.max(230, Math.min(470, Math.min(R * fx, R * fy) - maxRc * .55));
         // 타원 위를 실제 거리(호 길이) 기준으로 균등하게 나눠 배치 — 각도로 나누면 타원의 납작한 쪽에서
         // 덩어리끼리 겹치므로, 둘레를 잘게 샘플링해서 호 길이 → 좌표를 찾는다
+        // 배치 방향: 첫 체급(플라이급)이 왼쪽(9시 방향)에서 시작해 시계 방향으로
+        // 벤텀(11시) → 페더(12시) → 라이트(2시) → 웰터(3시) → 미들(5시) → 헤비(6시) → 언더그라운드(7시) → 여성부(8시) 순으로 돈다.
+        const thStart = Math.PI - (DIVS[0].Rc * 1.16) / R; // 첫 체급의 "중심"이 9시에 오도록 시작각 보정
         const N = 720, pts = [], cum = [0];
         for (let i = 0; i <= N; i++) {
-          const th = -Math.PI / 2 + (i / N) * 2 * Math.PI;
+          const th = thStart + (i / N) * 2 * Math.PI;
           pts.push([Math.cos(th) * R * fx, Math.sin(th) * R * fy]);
           if (i) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
         }
@@ -9670,9 +9673,9 @@
         };
         let acc = 0;
         DIVS.forEach(d => {
-          const p = at(((acc + d.Rc * 1.1) / total) * perim);
+          const p = at(((acc + d.Rc * 1.16) / total) * perim);
           d.rx = p[0]; d.ry = p[1];
-          acc += d.Rc * 2 * 1.1;
+          acc += d.Rc * 2 * 1.16;
         });
         applyCenters();
       }
