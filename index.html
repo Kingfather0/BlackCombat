@@ -10029,6 +10029,31 @@
         animTo({ s: scale, x: W / 2 - n.x * scale, y: padT + (H - padT - padB) * 0.45 - n.y * scale }, 420);
       };
       window.jbxTestTap = nick => { const n = nodes.find(x => x.nick === nick); if (n) select(n, true); }; // QA용: 화면 탭과 동일 동작
+      // ── 📷 화면 이미지 저장 전용 캡처 ──
+      // html2canvas로 #jbx-wrap 전체(고정 위치 전체화면 + 황금 사자 배경 + 파티클)를 다시
+      // 그리게 하면: (1) 매우 느리고 (2) 실제 화면과 다른 크기로 다시 레이아웃을 계산해서
+      // 원 배치가 찌그러지거나 촘촘해지는 문제가 있었다. 대신 지금 화면에 이미 그려져 있는
+      // 캔버스 비트맵을 있는 그대로(drawImage) 복사하고, 그 위에 범례/정보 패널처럼 캔버스
+      // 밖의 HTML 오버레이만 작게 따로 캡처해 정확한 위치에 합성한다 — 항상 화면에 보이는
+      // 그대로(WYSIWYG) 나오고, 캔버스 전체를 다시 그릴 필요가 없어 훨씬 빠르다.
+      window.jbxCaptureCompose = async (html2canvasFn) => {
+        const out = document.createElement('canvas');
+        out.width = cv.width; out.height = cv.height;
+        const octx = out.getContext('2d');
+        octx.fillStyle = '#0d0d10';
+        octx.fillRect(0, 0, out.width, out.height);
+        octx.drawImage(cv, 0, 0);
+        const wrapRect = wrap.getBoundingClientRect();
+        const overlays = [legendEl, (infoEl && infoEl.style.display === 'block') ? infoEl : null].filter(Boolean);
+        for (const elOv of overlays) {
+          try {
+            const ovCanvas = await html2canvasFn(elOv, { backgroundColor: null, useCORS: true, logging: false, scale: DPR });
+            const r = elOv.getBoundingClientRect();
+            octx.drawImage(ovCanvas, (r.left - wrapRect.left) * DPR, (r.top - wrapRect.top) * DPR, r.width * DPR, r.height * DPR);
+          } catch (e) { /* 오버레이 하나가 실패해도 그래프 캡처 자체는 살린다 */ }
+        }
+        return out;
+      };
 
       // ── 국기 이미지 (flagcdn, 사이트 국기와 동일 출처) ──
       const flagImgs = new Map();
@@ -10767,26 +10792,44 @@
       try {
         const h2c = await loadHtml2Canvas();
         const dark = target === '#jbx-wrap';
-        // scale만 높여서 해상도를 올린다. letterRendering(글자를 한 글자씩 그림)과
-        // windowWidth/Height 강제 지정은 캡처를 몇 배 느리게 만들고, 족보 전체화면처럼
-        // position:fixed로 화면을 꽉 채우는 요소에서는 오히려 캡처가 좁게 찌그러지는
-        // 부작용이 있어 제거했다 — scale만으로도 충분히 선명하다.
-        const canvas = await h2c(el, {
-          backgroundColor: dark ? '#0d0d10' : (getComputedStyle(document.body).backgroundColor || '#f4f6fa'),
-          useCORS: true, logging: false,
-          scale: Math.min(2.5, Math.max(2, window.devicePixelRatio || 1)),
-          ignoreElements: n => !!(n.classList && (n.classList.contains('snap-btn') || n.classList.contains('snap-hide')))
-        });
-        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-        if (!blob) throw new Error('이미지 생성에 실패했습니다.');
+        let canvas;
+        if (target === '#jbx-wrap' && window.jbxCaptureCompose) {
+          // 족보 전체화면: html2canvas로 전체를 다시 그리지 않고, 지금 화면에 이미 그려진
+          // 캔버스 비트맵을 그대로 합성한다 (느림/찌그러짐 문제의 원인을 아예 없앤다).
+          canvas = await window.jbxCaptureCompose(h2c);
+        } else {
+          // scale을 넉넉히(2.5~3배) 올려 선명하게 캡처한다. letterRendering(글자를 한 글자씩
+          // 그림)과 windowWidth/Height 강제 지정은 캡처를 몇 배 느리게 만들고 position:fixed로
+          // 화면을 꽉 채우는 요소에서는 오히려 찌그러지는 부작용이 있어 쓰지 않는다.
+          canvas = await h2c(el, {
+            backgroundColor: dark ? '#0d0d10' : (getComputedStyle(document.body).backgroundColor || '#f4f6fa'),
+            useCORS: true, logging: false,
+            scale: Math.min(3, Math.max(2.5, window.devicePixelRatio || 1)),
+            ignoreElements: n => !!(n.classList && (n.classList.contains('snap-btn') || n.classList.contains('snap-hide')))
+          });
+        }
         const pad = n => String(n).padStart(2, '0'), d = new Date();
         // 파일명은 영문으로 (일부 브라우저는 한글 파일명을 'download'로 바꿔 확장자까지 잃어버림)
         const fname = `blackcombat_${name}_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.png`;
         const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
         // 휴대폰: 공유 시트로 사진 앱 저장/카톡 공유 (사용자가 취소하면 조용히 종료)
         if (isMobile && navigator.canShare && typeof File !== 'undefined') {
-          const file = new File([blob], fname, { type: 'image/png' });
-          if (navigator.canShare({ files: [file] })) {
+          // 카카오톡 등 메신저는 "사진"으로 보낼 때 이미지가 클수록 더 세게 압축하는 경향이
+          // 있다. 공유용 사본만 긴 변을 2200px로 제한해 그 압축 문턱을 최대한 피하고,
+          // PC 다운로드(아래)는 원본 해상도를 그대로 유지한다.
+          let shareCanvas = canvas;
+          const longEdge = Math.max(canvas.width, canvas.height);
+          const SHARE_CAP = 2200;
+          if (longEdge > SHARE_CAP) {
+            const r = SHARE_CAP / longEdge;
+            shareCanvas = document.createElement('canvas');
+            shareCanvas.width = Math.round(canvas.width * r);
+            shareCanvas.height = Math.round(canvas.height * r);
+            shareCanvas.getContext('2d').drawImage(canvas, 0, 0, shareCanvas.width, shareCanvas.height);
+          }
+          const shareBlob = await new Promise(r => shareCanvas.toBlob(r, 'image/png'));
+          const file = shareBlob && new File([shareBlob], fname, { type: 'image/png' });
+          if (file && navigator.canShare({ files: [file] })) {
             try {
               await navigator.share({ files: [file], title: fname });
               // 카카오톡 등 메신저는 "사진"으로 보내면 자체적으로 화질을 압축한다(웹 기술로는
@@ -10803,6 +10846,9 @@
             catch (e) { if (e && e.name === 'AbortError') return; /* 그 외 실패 → 아래 다운로드로 */ }
           }
         }
+        // PC 다운로드는 원본 해상도(canvas) 그대로 저장한다.
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+        if (!blob) throw new Error('이미지 생성에 실패했습니다.');
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url; a.download = fname; a.rel = 'noopener';
