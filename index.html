@@ -301,38 +301,6 @@
       flex-wrap: wrap;
     }
 
-    /* 📷 화면 이미지 저장 버튼 (각 페이지 제목 옆) — 배경/테두리 없이 이모지만 표시 */
-    .snap-btn {
-      border: none;
-      background: none;
-      padding: 2px 4px;
-      font-size: 19px;
-      line-height: 1;
-      cursor: pointer;
-      vertical-align: middle;
-      flex-shrink: 0
-    }
-
-    .snap-btn:disabled {
-      opacity: .6;
-      cursor: default
-    }
-
-    body.snapping .snap-btn {
-      visibility: hidden
-    }
-
-    /* 📷 캡처 시 폰트를 잠깐 시스템 폰트로 바꾼다.
-       기본 본문 폰트인 'Pretendard Variable'(가변 폰트)과 장식용 'Jua' 폰트는 html2canvas가
-       글자를 정확히 그리지 못해(외곽선이 뭉개지거나 두께가 달라짐) 캡처한 이미지가 실제
-       화면보다 화질이 떨어져 보이는 가장 큰 원인이었다 — 족보(canvas) 캡처가 유독 선명했던
-       이유도 거기는 애초에 이 폰트를 안 쓰고 시스템 폰트로 직접 그리기 때문이다.
-       캡처 중(body.snapping)에만 브라우저가 항상 정확히 그릴 수 있는 시스템 폰트로 바꿔서
-       찍고, 캡처가 끝나면(1~2초 뒤) 원래 폰트로 즉시 돌아온다. */
-    body.snapping * {
-      font-family: -apple-system, BlinkMacSystemFont, 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Segoe UI', sans-serif !important;
-    }
-
     h1.page {
       font-size: 24px;
       font-weight: 900;
@@ -6488,7 +6456,6 @@
     }
 
     #jbx-full,
-    #jbx-snap,
     #jbx-back {
       border: 1px solid #39415a;
       background: #1d2230ee;
@@ -9122,7 +9089,7 @@
 
       $app.innerHTML = `
       <h1 class="page fit-row" style="display:flex;justify-content:space-between;align-items:center;gap:10px">티켓 판매 현황
-        <span style="display:inline-flex;gap:8px;align-items:center">${snapBtnHTML('app', 'ticket')}<button class="tk-share-btn" onclick="tkShare()">💬 티켓 현황 공유</button></span></h1>
+        <span style="display:inline-flex;gap:8px;align-items:center"><button class="tk-share-btn" onclick="tkShare()">💬 티켓 현황 공유</button></span></h1>
       ${infoCard}
       ${totalBarHTML}
       ${forecastHTML}
@@ -9534,7 +9501,6 @@
         ${fightersUpdatedAt ? `<span style="font-size:11px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 9px;border-radius:99px;white-space:nowrap">🔄 ${fmtDTShort(fightersUpdatedAt)} 갱신</span>` : ''}
         ${adminPass() ? `<button class="btn small" onclick="toggleAddFighterForm()">➕ 선수 추가</button>` : ''}
         ${adminPass() ? `<button class="btn primary small" onclick="refreshFighters(this)">🔄 수동 갱신</button>` : ''}
-        ${snapBtnHTML('app', 'ranking')}
       </span>
     </div>
     <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 선수 선택 시 상세 기록 · 매일 새벽 자동 갱신</div>
@@ -9662,7 +9628,6 @@
       <div id="jbx-btns">
         <button id="jbx-back" type="button" style="display:none">전체</button>
         <button id="jbx-full" type="button" title="전체화면으로 보기">⛶ 화면</button>
-        <button id="jbx-snap" class="snap-btn" type="button" title="족보 화면을 이미지로 저장" onclick="snapSave('#jbx-wrap','jokbo',this)">📷</button>
       </div>
       <div id="jbx-legend"></div>
       <div id="jbx-hint">체급 선택 = 확대 · 선수 선택 = 승패 강조 · 여백 탭/축소 = 뒤로</div>
@@ -10040,31 +10005,6 @@
         animTo({ s: scale, x: W / 2 - n.x * scale, y: padT + (H - padT - padB) * 0.45 - n.y * scale }, 420);
       };
       window.jbxTestTap = nick => { const n = nodes.find(x => x.nick === nick); if (n) select(n, true); }; // QA용: 화면 탭과 동일 동작
-      // ── 📷 화면 이미지 저장 전용 캡처 ──
-      // html2canvas로 #jbx-wrap 전체(고정 위치 전체화면 + 황금 사자 배경 + 파티클)를 다시
-      // 그리게 하면: (1) 매우 느리고 (2) 실제 화면과 다른 크기로 다시 레이아웃을 계산해서
-      // 원 배치가 찌그러지거나 촘촘해지는 문제가 있었다. 대신 지금 화면에 이미 그려져 있는
-      // 캔버스 비트맵을 있는 그대로(drawImage) 복사하고, 그 위에 범례/정보 패널처럼 캔버스
-      // 밖의 HTML 오버레이만 작게 따로 캡처해 정확한 위치에 합성한다 — 항상 화면에 보이는
-      // 그대로(WYSIWYG) 나오고, 캔버스 전체를 다시 그릴 필요가 없어 훨씬 빠르다.
-      window.jbxCaptureCompose = async (html2canvasFn) => {
-        const out = document.createElement('canvas');
-        out.width = cv.width; out.height = cv.height;
-        const octx = out.getContext('2d');
-        octx.fillStyle = '#0d0d10';
-        octx.fillRect(0, 0, out.width, out.height);
-        octx.drawImage(cv, 0, 0);
-        const wrapRect = wrap.getBoundingClientRect();
-        const overlays = [legendEl, (infoEl && infoEl.style.display === 'block') ? infoEl : null].filter(Boolean);
-        for (const elOv of overlays) {
-          try {
-            const ovCanvas = await html2canvasFn(elOv, { backgroundColor: null, useCORS: true, logging: false, scale: DPR });
-            const r = elOv.getBoundingClientRect();
-            octx.drawImage(ovCanvas, (r.left - wrapRect.left) * DPR, (r.top - wrapRect.top) * DPR, r.width * DPR, r.height * DPR);
-          } catch (e) { /* 오버레이 하나가 실패해도 그래프 캡처 자체는 살린다 */ }
-        }
-        return out;
-      };
 
       // ── 국기 이미지 (flagcdn, 사이트 국기와 동일 출처) ──
       const flagImgs = new Map();
@@ -10533,7 +10473,6 @@
       ${rankTabsHTML('records')}
       <span class="fit-row" style="display:inline-flex;gap:8px;align-items:center;min-width:0">
         ${updated ? `<span style="font-size:11px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 9px;border-radius:99px;white-space:nowrap">🔄 ${updated} 갱신</span>` : ''}
-        ${snapBtnHTML('app', 'records')}
       </span>
     </div>
     <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 선수 선택 시 상세 기록 · 매일 새벽 자동 갱신</div>
@@ -10577,7 +10516,7 @@
       ${(t.event_at || t.event_date) ? `📅 경기일 ${fmtEventDT(t)} &nbsp;·&nbsp; ` : ''}
       🚫 ${fmtDT(t.deadline)} 마감
       ${cd ? ` &nbsp;·&nbsp; ${cdHTML(t.deadline)}` : ''}
-      &nbsp;·&nbsp; 👥 ${parts.length}명 참여 ${snapBtnHTML('app', 'vote')}
+      &nbsp;·&nbsp; 👥 ${parts.length}명 참여
     </div>`;
 
       // 선물에는 등수 이름표(1등 선물/2등 선물)를 붙이지 않는다 — 밀어내기 방식에서는 1등이
@@ -10630,52 +10569,6 @@
           } catch (e) { }
         }, 20000);
       }
-    }
-    async function makeShareImage() {
-      const t = curT; if (!t) return;
-      toastMsg('📸 이미지를 만드는 중...');
-      try {
-        if (!window.html2canvas) {
-          await new Promise((res, rej) => {
-            const s = document.createElement('script');
-            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-            s.onload = res; s.onerror = rej; document.head.appendChild(s);
-          });
-        }
-        const canvas = await html2canvas(document.getElementById('app'), { backgroundColor: '#f4f6fa', scale: 2, useCORS: true, logging: false });
-        canvas.toBlob(b => {
-          const fname = t.title.replace(/\s+/g, '_') + '.png';
-          const file = new File([b], fname, { type: 'image/png' });
-          // 1) 기본: 저장
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(b); a.download = fname; a.click();
-          setTimeout(() => URL.revokeObjectURL(a.href), 8000);
-          // 2) 공유 가능 기기면 공유 버튼 제공
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            showShareBar(file, t.title);
-          } else {
-            toastMsg('📸 이미지가 저장되었습니다. 카톡방에 공유해 보세요!');
-          }
-        });
-      } catch (e) { toastMsg('⚠️ 이미지 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.'); }
-    }
-    function showShareBar(file, title) {
-      document.querySelectorAll('.sharebar').forEach(e => e.remove());
-      const el = document.createElement('div');
-      el.className = 'sharebar';
-      el.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#242d3f;color:#fff;padding:10px 14px;border-radius:14px;font-size:13.5px;font-weight:700;z-index:120;box-shadow:0 6px 20px rgba(0,0,0,.4);display:flex;gap:10px;align-items:center';
-      el.innerHTML = `📸 저장 완료!
-    <button style="background:var(--key);color:#fff;border-radius:9px;padding:7px 13px;font-weight:800;font-size:13px" id="sb-share">카톡 등으로 공유</button>
-    <button style="color:#aab;font-size:15px;padding:2px 6px" onclick="this.parentElement.remove()">✕</button>`;
-      document.body.appendChild(el);
-      el.querySelector('#sb-share').onclick = async () => {
-        try { await navigator.share({ files: [file], title }); } catch (e) { }
-        el.remove();
-      };
-      setTimeout(() => el.remove(), 15000);
-    }
-    function copyLink() {
-      navigator.clipboard?.writeText(location.href).then(() => toastMsg('링크가 복사되었습니다. 카톡방에 붙여넣으세요!'));
     }
     function flashEl(el) {
       if (!el) return;
@@ -10771,119 +10664,6 @@
         }
       });
     })();
-    /* ---------- 📷 화면 이미지 저장 ----------
-       각 페이지의 📷 버튼을 누르면 그 화면(#app 또는 지정 영역)을 그대로 PNG 이미지로 만들어 저장한다.
-       - 렌더링: html2canvas(CDN, 처음 누를 때 한 번만 로드)
-       - 휴대폰: 공유 시트(navigator.share)로 열어 사진 앱에 바로 저장/카톡 공유 가능
-       - PC/미지원: 파일 다운로드로 대체. 둘 다 안 되면 새 창에 이미지를 띄워 길게 눌러 저장하도록 안내
-       - 캡처 중에는 📷 버튼 자체(.snap-btn)와 .snap-hide 요소는 이미지에서 제외된다
-       - scale을 높이고 windowWidth/Height·letterRendering을 지정해 캡처 글자가 흐릿해지는 문제를 방지 */
-    let __h2cLoading = null;
-    function loadHtml2Canvas() {
-      if (window.html2canvas) return Promise.resolve(window.html2canvas);
-      if (__h2cLoading) return __h2cLoading;
-      __h2cLoading = new Promise((res, rej) => {
-        const sc = document.createElement('script');
-        sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-        sc.onload = () => res(window.html2canvas);
-        sc.onerror = () => { __h2cLoading = null; rej(new Error('이미지 저장 도구를 불러오지 못했습니다. 네트워크를 확인해 주세요.')); };
-        document.head.appendChild(sc);
-      });
-      return __h2cLoading;
-    }
-    // target: 'app'(현재 페이지 본문) 또는 CSS 선택자('#jbx-wrap' 등) / name: 파일명에 들어갈 화면 이름
-    const snapBtnHTML = (target, name, extraStyle) =>
-      `<button type="button" class="snap-btn" title="이 화면을 이미지로 저장" aria-label="화면 이미지 저장" onclick="snapSave('${target}','${name}',this)"${extraStyle ? ` style="${extraStyle}"` : ''}>📷</button>`;
-    // (foreignObjectRendering:true로 브라우저 네이티브 텍스트 렌더러를 써보려 했으나, 실제 기기에서
-    // 이모지·커스텀 웹폰트가 깨지고 속도도 크게 느려지는 부작용이 확인되어 되돌렸다. html2canvas의
-    // 기본(캔버스 재구현) 렌더링이 이모지/폰트 호환성 면에서 더 안전하다.)
-    async function snapSave(target, name, btn) {
-      const el = target === 'app' ? document.getElementById('app') : document.querySelector(target);
-      if (!el) return;
-      const orig = btn ? btn.textContent : '';
-      if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
-      document.body.classList.add('snapping');
-      try {
-        const h2c = await loadHtml2Canvas();
-        const dark = target === '#jbx-wrap';
-        let canvas;
-        if (target === '#jbx-wrap' && window.jbxCaptureCompose) {
-          // 족보 전체화면: html2canvas로 전체를 다시 그리지 않고, 지금 화면에 이미 그려진
-          // 캔버스 비트맵을 그대로 합성한다 (느림/찌그러짐 문제의 원인을 아예 없앤다).
-          canvas = await window.jbxCaptureCompose(h2c);
-        } else {
-          // "화질이 나쁘다"는 문제의 실제 원인 중 하나: 선수 국기 이미지(<img loading="lazy">)가
-          // 화면 아래쪽(스크롤 전이라 아직 안 보이는 부분)에 있으면 브라우저가 아직 다운로드를
-          // 시작조차 안 한 상태다. 그 상태로 캡처하면 그 자리들이 통째로 빈 칸/뿌옇게 나온다.
-          // 캡처 직전에 이 화면 안의 이미지를 전부 강제로(eager) 미리 불러와 완전히 로드된
-          // 뒤에 캡처하면 이 문제가 사라진다.
-          const imgs = Array.from(el.querySelectorAll('img'));
-          imgs.forEach(img => { if (img.loading === 'lazy') img.loading = 'eager'; });
-          await Promise.all(imgs.map(img => {
-            if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-            return new Promise(res => {
-              const done = () => { img.removeEventListener('load', done); img.removeEventListener('error', done); res(); };
-              img.addEventListener('load', done); img.addEventListener('error', done);
-              setTimeout(done, 6000); // 개별 이미지 로딩이 오래 걸려도 전체가 무한정 멈추지 않도록
-            });
-          }));
-          // scale을 넉넉히(2.5~3배) 올려 선명하게 캡처한다. letterRendering(글자를 한 글자씩
-          // 그림)과 windowWidth/Height 강제 지정은 캡처를 몇 배 느리게 만들고 position:fixed로
-          // 화면을 꽉 채우는 요소에서는 오히려 찌그러지는 부작용이 있어 쓰지 않는다.
-          const h2cOpts = {
-            backgroundColor: dark ? '#0d0d10' : (getComputedStyle(document.body).backgroundColor || '#f4f6fa'),
-            useCORS: true, logging: false,
-            scale: Math.min(3, Math.max(2.5, window.devicePixelRatio || 1)),
-            ignoreElements: n => !!(n.classList && (n.classList.contains('snap-btn') || n.classList.contains('snap-hide')))
-          };
-          canvas = await h2c(el, h2cOpts);
-        }
-        const pad = n => String(n).padStart(2, '0'), d = new Date();
-        // 파일명은 영문으로 (일부 브라우저는 한글 파일명을 'download'로 바꿔 확장자까지 잃어버림)
-        const fname = `blackcombat_${name}_${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}.png`;
-        const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
-        // 휴대폰: 공유 시트로 사진 앱 저장/카톡 공유 (사용자가 취소하면 조용히 종료)
-        if (isMobile && navigator.canShare && typeof File !== 'undefined') {
-          // 예전엔 "카톡이 큰 이미지를 더 세게 압축할 것"이라는 추측으로 공유용 이미지의
-          // 긴 변을 2200px로 강제로 줄였는데, 이 페이지들처럼 세로로 긴 화면은 "긴 변" =
-          // 높이라서 실제로는 가로 폭이 원래(900px 안팎)의 30% 수준(260px대)까지 짓눌려
-          // 버렸다 — "화질이 흐리다"는 문제의 진짜 범인이 바로 이거였다. 그 로직을 없애고
-          // 다운로드와 동일하게 원본 해상도(canvas) 그대로 공유한다.
-          const shareBlob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-          const file = shareBlob && new File([shareBlob], fname, { type: 'image/png' });
-          if (file && navigator.canShare({ files: [file] })) {
-            try {
-              await navigator.share({ files: [file], title: fname });
-              // 카카오톡 등 메신저는 "사진"으로 보내면 자체적으로 화질을 압축한다(웹 기술로는
-              // 막을 수 없음). 카톡 설정 > 채팅 > "사진 화질"을 '원본'으로 바꾸면 압축 없이
-              // 전송된다 — 처음 공유 성공 시 한 번만 안내한다.
-              let tipShown = false;
-              try { tipShown = !!localStorage.getItem('fp_kakao_tip_shown'); } catch (e2) { }
-              if (!tipShown) {
-                try { localStorage.setItem('fp_kakao_tip_shown', '1'); } catch (e2) { }
-                setTimeout(() => toastMsg('💡 카톡으로 보낼 때 화질이 깨진다면: 카톡 설정 › 채팅 › "사진 화질"을 원본으로 바꿔보세요'), 900);
-              }
-              return;
-            }
-            catch (e) { if (e && e.name === 'AbortError') return; /* 그 외 실패 → 아래 다운로드로 */ }
-          }
-        }
-        // PC 다운로드는 원본 해상도(canvas) 그대로 저장한다.
-        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-        if (!blob) throw new Error('이미지 생성에 실패했습니다.');
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = fname; a.rel = 'noopener';
-        document.body.appendChild(a); a.click(); a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 60000);
-        toastMsg('📷 이미지를 저장했습니다' + (isMobile ? ' (다운로드 폴더 확인)' : ''));
-      } catch (e) {
-        toastMsg('⚠️ ' + cleanErr(e && e.message));
-      } finally {
-        document.body.classList.remove('snapping');
-        if (btn) { btn.disabled = false; btn.textContent = orig || '📷'; }
-      }
-    }
     function toastMsg(s) {
       document.querySelectorAll('.fp-toast').forEach(t => t.remove());
       const el = document.createElement('div');
@@ -10891,6 +10671,16 @@
       el.textContent = s;
       el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#242d3f;color:#fff;padding:11px 18px;border-radius:99px;font-size:13.5px;font-weight:600;z-index:99;box-shadow:0 6px 20px rgba(0,0,0,.4);animation:fadeUp .25s ease';
       document.body.appendChild(el); setTimeout(() => el.remove(), 2200);
+    }
+    // 화면 아래쪽 토스트는 화면 위쪽에서 해야 할 일(예: 닉네임 등록)을 안내할 때는 눈에 잘
+    // 안 띈다는 지적이 있어, 그런 경우에 쓰는 화면 상단 전용 토스트.
+    function toastMsgTop(s) {
+      document.querySelectorAll('.fp-toast-top').forEach(t => t.remove());
+      const el = document.createElement('div');
+      el.className = 'fp-toast-top';
+      el.textContent = s;
+      el.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#e0332a;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;z-index:9998;box-shadow:0 6px 20px rgba(0,0,0,.35);animation:fadeUp .25s ease;text-align:center;max-width:92vw';
+      document.body.appendChild(el); setTimeout(() => el.remove(), 3200);
     }
     /* 브라우저 기본 confirm() 대신 쓰는 작고 디자인된 확인 팝업.
        danger:true(기본값)면 확인 버튼이 빨간색(위험한 동작), false면 금색(일반 확인)으로 표시된다.
@@ -11260,7 +11050,7 @@
        이미 로그인돼 있는지만 확인하고, 아니면 홈으로 안내한다. */
     function gmStartGate(startFn) {
       if (gmMyNick && gmMyPin) return startFn();
-      toastMsg('먼저 홈 화면에서 닉네임을 등록해 주세요.');
+      toastMsgTop('👆 먼저 화면 위쪽에서 닉네임을 등록해 주세요.');
       location.hash = '#/';
     }
     function gmLogout() {
@@ -13920,7 +13710,7 @@
        대신 보내는 것은 허용하지 않는다(스팸 방지를 위한 플랫폼 자체의 제약) — 그래서 "완전 자동 발송"은
        기술적으로 불가능하다. 대신 모바일에서 지원되는 OS 공유 시트(navigator.share)를 띄워 카카오톡을
        바로 골라 몇 번의 탭만으로 보낼 수 있게 하고, 그마저 지원하지 않는 환경(주로 PC 브라우저)에서는
-       기존 공유 기능(copyLink)과 동일하게 클립보드에 복사해 붙여넣기만 하면 되도록 돕는다.
+       클립보드에 복사해 붙여넣기만 하면 되도록 돕는다.
        공유되는 링크는 잡담방 오픈채팅 참여 링크가 아니라 블랙 배틀 매칭 화면으로 바로 들어오는 링크다 —
        받은 사람이 누르자마자 곧장 매칭 화면으로 이동할 수 있게 하기 위함이다. */
     const BB_PROMOTE_TEXT = '블랙 배틀 한판 하실분?!🔥🔥';
@@ -16180,7 +15970,7 @@
       const chip = rankChips(season);
       const streaks = computeStreaks(d);
       $app.innerHTML = `
-    <h1 class="page">격잘알 랭킹 ${snapBtnHTML('app', 'leaderboard')}</h1>
+    <h1 class="page">격잘알 랭킹</h1>
     <div class="sub">누적 대회 ${d.finals.length}개 · <b>우승 횟수 기준</b> (동률 시 총 적중 수)</div>
     <div class="card" style="display:flex;gap:8px;padding:12px;align-items:center">
       <input id="rk-search" placeholder="닉네임 검색 (전적 보기)" style="flex:1;min-width:0;box-sizing:border-box;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);outline:none;font-size:15px" oninput="filterRankTable()" onkeydown="if(event.key==='Enter')searchNick()">
