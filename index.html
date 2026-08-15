@@ -9555,16 +9555,35 @@
     function jbxBuildDivisions() {
       const rd = recordsCache.data;
       const ce = jbComputeEdges();
-      if (!ce || !ce.edges.length) return [];
-      const edges = ce.edges, allTies = ce.ties;
+      const edges = (ce && ce.edges) || [], allTies = (ce && ce.ties) || [];
       const nickOf = s => rd.nicks[s] || '';
+      // 닉네임이 같아도 두 체급에 동시에 랭크된 선수(예: 투 디비전)가 있을 수 있으므로,
+      // 닉네임 하나당 체급별 항목을 배열로 저장한다. (예전엔 마지막에 처리된 체급 값으로
+      // 덮어써져서, 두 체급에 걸친 선수가 어느 쪽에서도 자기 체급으로 인식되지 못하는 버그가 있었다)
       const fl = new Map();
-      FIGHTERS.forEach((d, di) => d.list.forEach(f => { if (f[1] !== '공석') fl.set(String(f[1]).trim().toLowerCase(), { di, cc: f[6], champ: f[0] === 'C', rank: f[0] === 'C' ? 0 : Number(f[0]) }); }));
-      const meta = s => fl.get(String(nickOf(s)).trim().toLowerCase());
+      FIGHTERS.forEach((d, di) => d.list.forEach(f => {
+        if (f[1] === '공석') return;
+        const key = String(f[1]).trim().toLowerCase();
+        if (!fl.has(key)) fl.set(key, []);
+        fl.get(key).push({ di, cc: f[6], champ: f[0] === 'C', rank: f[0] === 'C' ? 0 : Number(f[0]) });
+      }));
+      const metaIn = (s, di) => { const arr = fl.get(String(nickOf(s)).trim().toLowerCase()); return arr && arr.find(m => m.di === di); };
+      // 랭킹엔 있지만 이 체급 안에서 아직 아무와도 선(관계)이 없는 선수도 "선 없이" 노드로는
+      // 띄워야 하므로, 실제 경기기록 시스템의 seq id를 닉네임+실명 조합으로 역으로 찾아둔다.
+      // (경기 기록이 아예 없는 랭커는 못 찾는데, 그런 경우는 화면 표시용 가짜 id를 쓴다)
+      const idByKey = new Map();
+      Object.keys(rd.nicks).forEach(id => {
+        const k = String(rd.nicks[id]).trim().toLowerCase() + '|' + String(rd.reals[id] || '').trim().toLowerCase();
+        if (!idByKey.has(k)) idByKey.set(k, id);
+      });
       const divisions = [];
       FIGHTERS.forEach((d, di) => {
-        const dEdges = edges.filter(e => { const a = meta(e.f), b = meta(e.s); return a && b && a.di === di && b.di === di; });
-        if (!dEdges.length) return;
+        // 노드 id는 "체급:seq" 형태로 이 체급 전용 네임스페이스를 준다. 두 체급에 동시에
+        // 랭크된 선수(같은 seq id)가 두 체급 트리에 각각 별개의 원으로 나와야 하는데, 네임스페이스가
+        // 없으면 화면 전체에서 공유하는 id→노드 맵에서 한쪽이 다른 쪽을 덮어써 선이 엉뚱하게 그려진다.
+        const ns = raw => di + ':' + raw;
+        const rawOf = nid => nid.slice(nid.indexOf(':') + 1);
+        const dEdges = edges.filter(e => metaIn(e.f, di) && metaIn(e.s, di)).map(e => ({ f: ns(e.f), s: ns(e.s), fw: e.fw, sw: e.sw }));
         const nodeIds = [...new Set(dEdges.flatMap(e => [e.f, e.s]))];
         const nodeIdSet = new Set(nodeIds);
         // 세대 = 조상으로부터의 최장 거리 (위상 정렬, 순환에 걸린 노드는 1세대 취급)
@@ -9590,18 +9609,33 @@
         // (= 클릭해서 볼 수 있는 상대라면) "무승부 상대"로 정보 패널에 참고 표시한다.
         const tiesOf = new Map();
         allTies.forEach(t => {
-          const ma = meta(t.a), mb = meta(t.b);
-          if (!ma || !mb || ma.di !== di || mb.di !== di) return;
-          if (!nodeIdSet.has(t.a) || !nodeIdSet.has(t.b)) return;
-          if (!tiesOf.has(t.a)) tiesOf.set(t.a, []); tiesOf.get(t.a).push({ id: t.b, w: t.w });
-          if (!tiesOf.has(t.b)) tiesOf.set(t.b, []); tiesOf.get(t.b).push({ id: t.a, w: t.w });
+          if (!metaIn(t.a, di) || !metaIn(t.b, di)) return;
+          const na = ns(t.a), nb = ns(t.b);
+          if (!nodeIdSet.has(na) || !nodeIdSet.has(nb)) return;
+          if (!tiesOf.has(na)) tiesOf.set(na, []); tiesOf.get(na).push({ id: nb, w: t.w });
+          if (!tiesOf.has(nb)) tiesOf.set(nb, []); tiesOf.get(nb).push({ id: na, w: t.w });
         });
-        const maxRank = Math.max(...nodeIds.map(sq => meta(sq).rank), 1);
-        const dnodes = nodeIds.map(sq => {
-          const m = meta(sq);
-          const ties = (tiesOf.get(sq) || []).map(t => ({ id: t.id, nick: nickOf(t.id), w: t.w }));
-          return { id: sq, nick: nickOf(sq), cc: m.cc, champ: m.champ, rank: m.rank, gen: layer.get(sq) || 0, cyc: cyc.has(sq), ties };
+        const dnodes = nodeIds.map(nid => {
+          const raw = rawOf(nid);
+          const m = metaIn(raw, di);
+          const ties = (tiesOf.get(nid) || []).map(t => ({ id: t.id, nick: nickOf(rawOf(t.id)), w: t.w }));
+          return { id: nid, nick: nickOf(raw), cc: m.cc, champ: m.champ, rank: m.rank, gen: layer.get(nid) || 0, cyc: cyc.has(nid), ties };
         });
+        // 여기까지는 "이 체급 안에서 다른 랭커와 승/패로 이어진" 선수만 들어있다.
+        // 랭킹엔 있는데 아직 아무 관계선도 없는 선수(상대가 비랭커였거나, 아직 경기가 없거나)도
+        // 빠짐없이 노드로 띄운다 — 그냥 어디에도 선만 안 이어질 뿐, 랭킹에 있으면 무조건 나온다.
+        const includedNicks = new Set(nodeIds.map(nid => nickOf(rawOf(nid)).trim().toLowerCase()));
+        d.list.forEach((f, fi) => {
+          if (f[1] === '공석') return;
+          const nickKey = String(f[1]).trim().toLowerCase();
+          if (includedNicks.has(nickKey)) return;
+          includedNicks.add(nickKey);
+          const realKey = String(f[2] || '').trim().toLowerCase();
+          const rawId = idByKey.get(nickKey + '|' + realKey) || ('orphan:' + fi);
+          dnodes.push({ id: ns(rawId), nick: f[1], cc: f[6], champ: f[0] === 'C', rank: f[0] === 'C' ? 0 : Number(f[0]), gen: 0, cyc: false, ties: [] });
+        });
+        if (!dnodes.length) return;
+        const maxRank = Math.max(...dnodes.map(n => n.rank), 1);
         divisions.push({ di, name: d.div, maxGen: Math.max(...dnodes.map(n => n.gen)), maxRank, dnodes, dedges: dEdges });
       });
       return divisions;
