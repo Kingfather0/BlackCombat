@@ -6501,6 +6501,27 @@
       margin-right: 3px
     }
 
+    /* 좁은 화면: 범례가 오른쪽 위 버튼(해제/화면)과 겹치지 않도록 폭을 제한하고 줄바꿈 */
+    @media (max-width: 520px) {
+      #jbx-legend {
+        max-width: calc(100% - 150px);
+        font-size: 10px;
+        line-height: 1.55;
+        padding: 6px 9px
+      }
+
+      #jbx-legend .lg-title {
+        display: none
+      }
+    }
+
+    /* iOS 등 브라우저 전체화면 미지원 기기용 CSS 전체화면 (게임 화면과 동일한 방식) */
+    #jbx-wrap.gm-pseudo-full {
+      min-height: 0;
+      border: none;
+      background: #0d0d10
+    }
+
     #jbx-hint {
       position: absolute;
       left: 10px;
@@ -6529,6 +6550,18 @@
       max-height: 46%;
       overflow: auto;
       color: #d7deea
+    }
+
+    /* 넓은 화면(PC)에서는 정보 패널을 오른쪽 아래 구석에 두어, 족보가 세로 공간을 온전히 쓰게 한다 */
+    @media (min-width: 900px) {
+      #jbx-info {
+        left: auto;
+        right: 12px;
+        width: 380px;
+        max-width: 380px;
+        margin: 0;
+        max-height: 60%
+      }
     }
 
     #jbx-info .nk {
@@ -6838,14 +6871,22 @@
       const map = {
         '': '홈',
         tickets: '티켓',
-        fighters: '선수',            // 상단 메뉴 "선수" = 선수 랭킹 페이지
+        jokbo: '선수 - 족보',        // 상단 메뉴 "선수"의 기본 탭(족보)
+        fighters: '선수 - 랭킹',     // 선수 페이지의 랭킹 탭
+        records: '선수 - 업적',      // 선수 페이지의 업적 탭
         ranking: '격잘알',           // 상단 메뉴 "격잘알" = 예측 적중 랭킹 페이지
         game: '게임',
-        records: '업적',             // 선수 페이지의 업적 탭
         t: '승부예측 상세',          // 홈의 승부예측 카드를 눌러 들어가는 대회 상세 화면
         player: '선수 기록',         // 랭킹에서 선수를 눌러 보는 개인 기록 화면
         admin: '관리자'
       };
+      // 승부예측 상세(#/t/대회ID)는 대회마다 주소가 달라 같은 이름이 여러 줄로 나뉘어 보였다.
+      // 관리자 화면에서 미리 받아둔 대회 목록으로 대회명을 붙여 서로 구분되게 한다.
+      if (seg[0] === 't') {
+        let id = ''; try { id = decodeURIComponent(seg[1] || ''); } catch (e) { id = seg[1] || ''; }
+        const title = (window.__fpTournamentTitles || {})[id];
+        return title ? '승부예측 상세 - ' + title : (id ? '승부예측 상세 (' + id.slice(0, 8) + '…)' : '승부예측 상세');
+      }
       return map[seg[0]] || path;
     }
     /* --- 관리자 방문 통계: 기간 선택 + 자동 롤업 ---
@@ -7070,16 +7111,43 @@
       // 세션ID로 취급 — 구버전 호출 대비 하위호환.)
       const sessionIds = (window.__fpVisitorSessionIds || {})[rowKey] || [rowKey];
       const range = fpCurrentStatRange();
+      // 기간 조회 함수(admin_get_session_activity_range)가 아직 DB에 없으면 예전에는 "기간의 마지막
+      // 하루"만 대신 보여줬는데, 그러면 7일/한달을 골라도 오늘 활동이 없는 방문자는 전부 "기록 없음"
+      // 으로 떠서 (목록에는 138회 활동이라 나오는데 상세는 0회) 헷갈렸다. 이제는 그런 경우
+      // 하루짜리 함수(admin_get_session_activity)를 기간 안의 날짜마다 차례로 불러 합산한다.
+      // (하루짜리 함수는 최초 패치부터 있었으므로 어느 DB에서나 동작)
+      const dayList = (() => {
+        const to = range.to || fpKstToday();
+        let from = range.from;
+        if (!from) from = new Date(new Date(to + 'T00:00:00Z').getTime() - 30 * 86400000).toISOString().slice(0, 10); // 전체 기간이면 최근 31일만
+        const out = [];
+        let cur = new Date(from + 'T00:00:00Z');
+        const end = new Date(to + 'T00:00:00Z');
+        let guard = 0;
+        while (cur <= end && guard++ < 62) { out.push(cur.toISOString().slice(0, 10)); cur = new Date(cur.getTime() + 86400000); }
+        return out;
+      })();
+      let usedDayFallback = false;
+      // 세션 하나의 결과를 [{pages,actions,total,...}] 배열(하루 1개 또는 기간 1개)로 돌려준다
       const fetchOne = async (sessionId) => {
-        let res;
         try {
-          res = await sb.rpc('admin_get_session_activity_range', { p_pass: adminPass(), p_session_id: sessionId, p_from: range.from, p_to: range.to });
-          if (res.error && /function|not find|unique/i.test(res.error.message || '')) {
-            // 구버전 패치만 있는 경우: 지금 보고 있는 기간의 마지막 날짜 하루치만 보여준다
-            res = await sb.rpc('admin_get_session_activity', { p_pass: adminPass(), p_session_id: sessionId, p_date: range.to });
+          const res = await sb.rpc('admin_get_session_activity_range', { p_pass: adminPass(), p_session_id: sessionId, p_from: range.from, p_to: range.to });
+          if (!res.error) return { parts: [res.data || {}] };
+          if (!/function|not find|unique|schema cache/i.test(res.error.message || '')) return { error: res.error };
+        } catch (e) { /* 아래 하루 단위 조회로 대체 */ }
+        usedDayFallback = true;
+        // 날짜별로 하나씩 조회 (요청 수를 줄이려고 6개씩 묶어서 병렬 처리)
+        const parts = [];
+        for (let i = 0; i < dayList.length; i += 6) {
+          const chunk = dayList.slice(i, i + 6);
+          const rs = await Promise.all(chunk.map(d => sb.rpc('admin_get_session_activity', { p_pass: adminPass(), p_session_id: sessionId, p_date: d }).catch(e => ({ error: e }))));
+          for (const r of rs) {
+            if (r.error) return { error: r.error };
+            const p = r.data || {};
+            if (Number(p.total || 0) > 0 || (p.timeline || []).length) parts.push(p);
           }
-        } catch (e) { res = { error: e }; }
-        return res;
+        }
+        return { parts };
       };
       const results = await Promise.all(sessionIds.map(fetchOne));
       const errRes = results.find(r => r.error);
@@ -7087,8 +7155,8 @@
         if (/function|not find/i.test(errRes.error.message || '')) return toastMsg('⚠️ 방문통계_활동상세_패치.sql을 먼저 실행해 주세요.');
         return toastMsg('⚠️ ' + cleanErr(errRes.error.message));
       }
-      // 여러 세션의 결과를 하나로 합산 (페이지/활동 카운트는 더하고, 시간 흐름은 시간순으로 이어붙인다)
-      const parts = results.map(r => r.data || {});
+      // 여러 세션·여러 날짜의 결과를 하나로 합산 (페이지/활동 카운트는 더하고, 시간 흐름은 시간순으로 이어붙인다)
+      const parts = results.flatMap(r => r.parts || []);
       const pageMap = new Map(), actionMap = new Map();
       let total = 0, firstSeen = null, lastSeen = null, timeline = [];
       const dates = new Set();
@@ -7107,23 +7175,30 @@
         pages: [...pageMap.entries()].map(([path, cnt]) => ({ path, cnt })).sort((a, b) => b.cnt - a.cnt),
         actions: [...actionMap.entries()].map(([action, cnt]) => ({ action, cnt })).sort((a, b) => b.cnt - a.cnt),
         total, firstSeen, lastSeen, timeline,
-        date: sortedDates.length <= 1 ? (sortedDates[0] || '') : `${sortedDates[0]} ~ ${sortedDates[sortedDates.length - 1]}`
+        // 배지에는 실제로 조회한 기간을 보여준다 (활동이 있던 날짜가 아니라) — 기록이 없어도 "어느 기간을
+        // 봤는데 없는 건지"가 드러나야 오해가 없다.
+        date: range.from && range.from !== range.to ? `${range.from} ~ ${range.to}`
+          : (sortedDates.length <= 1 ? (sortedDates[0] || range.to || '') : `${sortedDates[0]} ~ ${sortedDates[sortedDates.length - 1]}`)
       };
+      // 여러 날짜의 시간 흐름을 이어붙였으므로 시각 앞에 날짜(월/일)도 함께 보여준다
+      const multiDay = dayList.length > 1;
       const fmtT = t => new Date(t).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+      const fmtTL = t => multiDay ? new Date(t).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : fmtT(t);
       const pagesHTML = (d.pages || []).map(p => `<div style="display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0"><span>${esc(fpPathLabel(p.path))}</span><span style="font-weight:800">${Number(p.cnt).toLocaleString()}회</span></div>`).join('');
       const actionsHTML = (d.actions || []).map(a => `<div style="display:flex;justify-content:space-between;font-size:13.5px;padding:4px 0"><span>${esc(FP_ACTION_LABELS[a.action] || a.action)}</span><span style="font-weight:800">${Number(a.cnt).toLocaleString()}회</span></div>`).join('');
       const timelineHTML = (d.timeline || []).map(ev => {
         const what = ev.event_type === 'action'
           ? `<b>${esc(FP_ACTION_LABELS[ev.action] || ev.action || '활동')}</b>`
           : esc(fpPathLabel(ev.path));
-        return `<div style="display:flex;gap:10px;font-size:12.5px;padding:3px 0;border-bottom:1px solid #f4f5f8"><span style="color:var(--dim);font-variant-numeric:tabular-nums;flex:none">${fmtT(ev.t)}</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${what}</span></div>`;
+        return `<div style="display:flex;gap:10px;font-size:12.5px;padding:3px 0;border-bottom:1px solid #f4f5f8"><span style="color:var(--dim);font-variant-numeric:tabular-nums;flex:none">${fmtTL(ev.t)}</span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${what}</span></div>`;
       }).join('');
       const ov = document.createElement('div');
       ov.className = 'modal-ov';
       ov.innerHTML = `<div class="modal">
     <div class="modal-h"><span><b>${label}</b> <span class="badge rt" style="font-size:11.5px">${esc(d.date || '')}</span></span><button class="modal-x" onclick="history.back()">✕</button></div>
     <div class="modal-b">
-      <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--muted)">총 ${Number(d.total || 0).toLocaleString()}회 활동${d.firstSeen ? ` · ${fmtT(d.firstSeen)} ~ ${fmtT(d.lastSeen)}` : ''}</div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--muted)">총 ${Number(d.total || 0).toLocaleString()}회 활동${d.firstSeen ? ` · ${fmtTL(d.firstSeen)} ~ ${fmtTL(d.lastSeen)}` : ''}</div>
+      ${usedDayFallback && !range.from ? '<div class="note" style="margin:0 0 8px">※ 전체 기간 선택 시 상세 내역은 최근 31일까지만 보여줍니다.</div>' : ''}
       <div class="sec-title" style="font-size:12.5px;margin-top:0">방문한 페이지</div>
       ${pagesHTML || '<div class="empty" style="padding:4px 0">기록 없음</div>'}
       <div class="sec-title" style="font-size:12.5px;margin-top:14px">주요 활동</div>
@@ -9560,24 +9635,62 @@
       sizeCanvas();
 
       // ── 클러스터(체급) 배치: 사자를 중심으로 한 방사형 링 ──
+      // 전체(축소) 화면에서는 각 체급을 촘촘한 덩어리로 뭉쳐 두고(여백 최소화 → 동그라미가 커 보임),
+      // 체급을 눌러 확대할 때만 세대별로 위아래로 펼친다. 링은 화면 비율(가로/세로)에 맞춰
+      // 타원으로 늘려서, 세로로 긴 휴대폰에서도 화면을 꽉 채우도록 한다.
       DIVS.forEach(d => {
-        d.genGap = Math.min(96, 620 / Math.max(1, d.maxGen));
-        d.genGap0 = d.genGap; // 전체 화면용 기본 간격 (체급 확대 시 화면 비율에 맞춰 늘렸다가 복귀 시 원복)
-        const h = d.maxGen * d.genGap + 280;
-        const w = Math.sqrt(d.dnodes.length) * 150 + 160;
-        d.Rc = Math.max(h, w) / 2 + 40;
+        d.genGap0 = Math.min(96, 620 / Math.max(1, d.maxGen)); // 체급 확대 시 세대 간격
+        d.genGapOv = Math.min(d.genGap0, 44);                    // 전체 화면(축소)에서의 촘촘한 간격
+        d.genGap = d.genGapOv;
+        const n = d.dnodes.length;
+        // 촘촘히 뭉친 덩어리의 대략적인 반경 (+ 위쪽 체급 이름 배지 자리)
+        d.Rc = Math.max(42 * Math.sqrt(n) + 95, (d.maxGen * d.genGapOv) / 2 + 110);
       });
-      {
-        const total = DIVS.reduce((sum, d) => sum + d.Rc * 2, 0);
-        const R = Math.max(1020, total / (2 * Math.PI));
+      let ringR = 800, lionHalf = 470;
+      function layoutRing() {
+        const total = DIVS.reduce((sum, d) => sum + d.Rc * 2, 0) * 1.1;
+        // 화면 비율에 맞춘 타원 (세로 화면이면 위아래로 길게, 가로 화면이면 좌우로 길게)
+        const aspect = Math.max(.5, Math.min(2.4, (W || 1) / Math.max(1, (H || 1) - 130)));
+        const fx = Math.sqrt(aspect), fy = 1 / fx;
+        // 타원 둘레(라마누잔 근사)가 체급 덩어리 지름 합계와 같아지는 반경 R
+        const perimUnit = Math.PI * (3 * (fx + fy) - Math.sqrt((3 * fx + fy) * (fx + 3 * fy)));
+        const R = Math.max(520, total / perimUnit);
+        const maxRc = Math.max(...DIVS.map(d => d.Rc));
+        ringR = R;
+        lionHalf = Math.max(230, Math.min(470, Math.min(R * fx, R * fy) - maxRc * .55));
+        // 타원 위를 실제 거리(호 길이) 기준으로 균등하게 나눠 배치 — 각도로 나누면 타원의 납작한 쪽에서
+        // 덩어리끼리 겹치므로, 둘레를 잘게 샘플링해서 호 길이 → 좌표를 찾는다
+        const N = 720, pts = [], cum = [0];
+        for (let i = 0; i <= N; i++) {
+          const th = -Math.PI / 2 + (i / N) * 2 * Math.PI;
+          pts.push([Math.cos(th) * R * fx, Math.sin(th) * R * fy]);
+          if (i) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+        }
+        const perim = cum[N];
+        const at = s => { // 호 길이 s(0~perim) 위치의 좌표
+          let lo = 0, hi = N;
+          while (lo < hi) { const m = (lo + hi) >> 1; if (cum[m] < s) lo = m + 1; else hi = m; }
+          const i = Math.max(1, Math.min(N, lo)), t = (s - cum[i - 1]) / Math.max(1e-6, cum[i] - cum[i - 1]);
+          return [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * t, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * t];
+        };
         let acc = 0;
         DIVS.forEach(d => {
-          const th = -Math.PI / 2 + ((acc + d.Rc) / total) * 2 * Math.PI;
-          d.cx = Math.cos(th) * R;
-          d.cy = Math.sin(th) * R * 0.92;
-          acc += d.Rc * 2;
+          const p = at(((acc + d.Rc * 1.1) / total) * perim);
+          d.rx = p[0]; d.ry = p[1];
+          acc += d.Rc * 2 * 1.1;
+        });
+        applyCenters();
+      }
+      // 체급 확대 중에는 나머지 체급 덩어리를 바깥으로 살짝 밀어내, 펼쳐진 체급과 겹치지 않게 한다
+      function applyCenters() {
+        DIVS.forEach(d => {
+          const k = (mode === 'division' && d.ix !== activeDiv) ? 1.75 : 1;
+          d.cx = d.rx * k; d.cy = d.ry * k;
         });
       }
+      DIVS.forEach((d, i) => { d.ix = i; });
+      let mode = 'overview', activeDiv = -1;
+      layoutRing();
 
       // ── 노드/간선 ──
       const nameLines = nick => {
@@ -9622,10 +9735,12 @@
       const ancestorsOf = id => collect(id, fathersOf, 'f', new Set());
       const descendantsOf = id => collect(id, sonsOf, 's', new Set());
       const nodesByDiv = DIVS.map((d, i) => nodes.filter(n => n.div === i));
+      // 항목 하나(예: "11위 밖")가 중간에서 줄바꿈되지 않도록 항목 단위로만 줄이 바뀌게 한다
+      const lgItem = html => '<span style="white-space:nowrap;display:inline-block;margin-right:6px">' + html + '</span>';
       document.getElementById('jbx-legend').innerHTML =
-        '<div><b>크기·색 = 공식 랭킹</b></div><div>' +
-        TIERS.map(t => '<span class=sw style=background:' + t.dark + '></span>' + t.label).join('&nbsp; ') + '</div>' +
-        '<div><span class=sw style="background:#dc2626"></span>빨강 = 나를 이긴 상대 &nbsp;<span class=sw style="background:#2563eb"></span>파랑 = 내가 이긴 상대</div>';
+        '<div class="lg-title"><b>크기·색 = 공식 랭킹</b></div><div>' +
+        TIERS.map(t => lgItem('<span class=sw style=background:' + t.dark + '></span>' + t.label)).join('') + '</div>' +
+        '<div>' + lgItem('<span class=sw style="background:#dc2626"></span>빨강 = 나를 이긴 상대') + lgItem('<span class=sw style="background:#2563eb"></span>파랑 = 내가 이긴 상대') + '</div>';
 
       // ── 중앙 사자 + 금빛 입자 ──
       const LION = new Image();
@@ -9649,26 +9764,44 @@
         return win ? (win + '승 ' + lose + '패') : (lose + '패');
       };
 
-      // ── 모드/카메라 ──
-      let mode = 'overview', activeDiv = -1;
+      // ── 모드/카메라 ── (mode/activeDiv는 위 클러스터 배치 코드에서 선언)
       let scale = 1, tx = 0, ty = 0, anim = null;
       let followUntil = Date.now() + 2500;
       const toWorld = (px, py) => [(px - tx) / scale, (py - ty) / scale];
-      function boundsOf(list, pad) {
+      function boundsOf(list, pad, topPx) {
         let x1 = 1e9, y1 = 1e9, x2 = -1e9, y2 = -1e9;
-        list.forEach(n => { x1 = Math.min(x1, n.x - n.r - pad); y1 = Math.min(y1, n.y - n.r - 34); x2 = Math.max(x2, n.x + n.r + pad); y2 = Math.max(y2, n.y + n.r + 24); });
+        // 위쪽 여유: 체급 이름 배지(화면 고정 크기 ≈ 34px) 또는 호칭/왕관 표시가 들어갈 자리를 현재 배율로 환산해 확보
+        const topPad = Math.max(30, (topPx == null ? 40 : topPx) / Math.max(scale, .05));
+        list.forEach(n => { x1 = Math.min(x1, n.x - n.r - pad); y1 = Math.min(y1, n.y - n.r - topPad); x2 = Math.max(x2, n.x + n.r + pad); y2 = Math.max(y2, n.y + n.r + 24); });
         return { x1, y1, x2, y2 };
       }
-      function camFor(b, padT) {
-        const pad = 16;
-        const s2 = Math.min(2, (W - pad * 2) / (b.x2 - b.x1), (H - padT - pad) / (b.y2 - b.y1));
+      // 화면 위 오버레이(왼쪽 위 범례, 오른쪽 위 버튼, 아래 안내문/선수 정보 패널)에 동그라미가
+      // 가려지지 않도록, 그 영역을 뺀 "안전 영역" 안에만 들어오게 카메라를 맞춘다.
+      const legendEl = document.getElementById('jbx-legend');
+      function safePads() {
+        const padT = ((legendEl && legendEl.offsetHeight) ? legendEl.offsetTop + legendEl.offsetHeight : 56) + 12;
+        let padB = 30, padR = 14;
+        const panelOpen = infoEl && infoEl.style.display === 'block' && infoEl.offsetHeight;
+        if (panelOpen) {
+          if (window.innerWidth >= 900) padR = Math.min(W * .5, infoEl.offsetWidth + 12 + 16); // PC(CSS와 동일 기준): 패널이 오른쪽 아래 구석 → 오른쪽 여백만 확보
+          else padB = Math.min(H * .55, infoEl.offsetHeight + 24 + 12);
+        }
+        return { padT, padB, padR };
+      }
+      function camFor(b) {
+        const { padT, padB, padR } = safePads();
+        const pad = 14;
+        const availW = Math.max(60, W - pad - padR), availH = Math.max(60, H - padT - padB);
+        const s2 = Math.min(2, availW / (b.x2 - b.x1), availH / (b.y2 - b.y1));
         return { s: s2,
-          x: (W - (b.x2 - b.x1) * s2) / 2 - b.x1 * s2,
-          y: padT + (H - padT - pad - (b.y2 - b.y1) * s2) / 2 - b.y1 * s2 };
+          x: pad + (availW - (b.x2 - b.x1) * s2) / 2 - b.x1 * s2,
+          y: padT + (availH - (b.y2 - b.y1) * s2) / 2 - b.y1 * s2 };
       }
       function animTo(cam, dur) { anim = { t0: performance.now(), dur: dur || 620, from: { s: scale, x: tx, y: ty }, to: cam }; }
-      const animToOverview = dur => animTo(camFor(boundsOf(nodes, 60), 56), dur);
-      const animToDivision = (dix, dur) => animTo(camFor(boundsOf(nodesByDiv[dix], 20), 56), dur);
+      const overviewCam = () => camFor(boundsOf(nodes, 40));
+      const divisionCam = dix => camFor(boundsOf(nodesByDiv[dix], 20, 22));
+      const animToOverview = dur => animTo(overviewCam(), dur);
+      const animToDivision = (dix, dur) => animTo(divisionCam(dix), dur);
       function stepAnim() {
         if (!anim) return;
         let p = (performance.now() - anim.t0) / anim.dur;
@@ -9688,18 +9821,29 @@
       // 체급 확대 시: "전체화면"처럼 세로가 훨씬 긴 화면에서만 세대 간격을 늘려
       // 동그라미들이 화면을 꽉 채우도록 세로로 펼친다. 일반 화면은 기본 배치 유지,
       // 전체화면에서 나오면 자동 원복.
+      // 전체화면 여부 (브라우저 기본 전체화면 또는 iOS용 CSS 전체화면)
+      const isFull = () => document.fullscreenElement === wrap || document.webkitFullscreenElement === wrap || wrap.classList.contains('gm-pseudo-full');
       function fitDivisionShape(dix) {
         const d = DIVS[dix];
-        if (document.fullscreenElement !== wrap) { d.genGap = d.genGap0; return; }
+        // 가로로 넓은 화면(PC)에서는 세대 간격을 조금 줄여 위아래로 덜 길게 — 그만큼 배율이 커져 동그라미가 커 보인다
+        const wide = W > (H - 130) * 1.5;
+        if (!isFull()) { d.genGap = wide ? Math.max(58, d.genGap0 * 0.74) : d.genGap0; return; }
+        // 전체화면(세로가 훨씬 긴 화면)에서는 세대 간격을 조금만 늘린다.
+        // 예전엔 화면을 꽉 채우려고 최대 190까지 늘려서 세로로 지나치게 길어져 보기 불편했으므로,
+        // 기본 간격의 1.3배(최대 120)까지만 허용해 비율을 유지한다.
         const estW = Math.sqrt(d.dnodes.length) * 150 + 160;
         const availW = Math.max(200, W - 40), availH = Math.max(200, H - 120);
         const desiredH = estW * availH / availW;
-        d.genGap = Math.max(d.genGap0, Math.min(190, (desiredH - 240) / Math.max(1, d.maxGen)));
+        d.genGap = Math.max(d.genGap0, Math.min(d.genGap0 * 1.3, 120, (desiredH - 240) / Math.max(1, d.maxGen)));
       }
       function enterDivision(dix) {
         mode = 'division'; activeDiv = dix;
+        userAdjusted = false;
         select(null);
+        DIVS.forEach(d => { d.genGap = d.genGapOv; });
         fitDivisionShape(dix);
+        applyCenters();
+        alpha = Math.max(alpha, .35); // 세대별로 펼쳐지는 움직임이 눈에 띄게 빠르도록
         if (subEl) subEl.textContent = '😎 ' + DIVS[dix].name + ' · ' + parentWord(isFem(dix)) + ' → ' + childWord(isFem(dix));
         animToDivision(dix);
         followUntil = Date.now() + 2400; // 펼쳐지는 동안 카메라가 부드럽게 따라간다
@@ -9707,8 +9851,11 @@
       }
       function exitToOverview() {
         mode = 'overview'; activeDiv = -1;
+        userAdjusted = false;
         select(null);
-        DIVS.forEach(d => { d.genGap = d.genGap0; });
+        DIVS.forEach(d => { d.genGap = d.genGapOv; });
+        applyCenters();
+        alpha = Math.max(alpha, .35);
         if (subEl) subEl.textContent = '😎 이기면 아버지';
         animToOverview();
         followUntil = Date.now() + 2400;
@@ -9740,8 +9887,11 @@
         });
         nodes.forEach(n => {
           const d = DIVS[n.div];
+          // 전체(축소) 화면이거나 지금 확대 중이 아닌 체급은 중심으로 세게 당겨 촘촘한 덩어리로 뭉친다.
+          // 확대 중인 체급만 가로로 느슨하게 풀어 계보가 잘 보이게 한다.
+          const compact = mode !== 'division' || n.div !== activeDiv;
           n.vy += (d.cy + (n.gen - d.maxGen / 2) * d.genGap - n.y) * 0.016;
-          n.vx += (d.cx - n.x) * 0.003;
+          n.vx += (d.cx - n.x) * (compact ? 0.014 : 0.003);
           if (n === dragNode) { n.vx = 0; n.vy = 0; return; }
           n.vx *= 0.8; n.vy *= 0.8;
           n.x += n.vx * alpha * 2.4; n.y += n.vy * alpha * 2.4;
@@ -9756,10 +9906,17 @@
 
       // ── 선택 ──
       let selected = null, anc = new Set(), desc = new Set(), dirF = new Map(), dirS = new Map(), ancDepth = new Map(), descDepth = new Map(), kinListMode = null;
-      function select(n) {
+      // 선수 정보 패널이 열리고 닫힐 때, 동그라미들이 패널 뒤에 가려지지 않도록 카메라를 다시 맞춘다.
+      // 사용자가 직접 많이 확대해 둔 상태(맞춤 배율의 1.25배 초과)라면 시점을 건드리지 않는다.
+      let userAdjusted = false; // 사용자가 직접 확대/이동한 상태면 true (체급 진입/복귀 시 초기화)
+      function refitAfterPanel() {
+        if (mode !== 'division' || activeDiv < 0 || userAdjusted) return;
+        animTo(divisionCam(activeDiv), 380); followUntil = 0;
+      }
+      function select(n, refit) {
         selected = n; kinListMode = null;
         dirF = new Map(); dirS = new Map();
-        if (!n) { infoEl.style.display = 'none'; anc = new Set(); desc = new Set(); updateBackBtn(); return; }
+        if (!n) { infoEl.style.display = 'none'; anc = new Set(); desc = new Set(); updateBackBtn(); if (refit) refitAfterPanel(); return; }
         anc = ancestorsOf(n.id); desc = descendantsOf(n.id);
         // 순환(A→B→C→A)에 끼면 자기 자신이 자기 조상/자손 집합에 들어와 수가 1씩
         // 부풀려지므로 제외한다 (강조 표시는 selected로 따로 처리돼 영향 없음)
@@ -9785,6 +9942,7 @@
         infoEl.style.display = 'block';
         alpha = Math.max(alpha, .25);
         updateBackBtn();
+        if (refit) refitAfterPanel();
       }
       const nickLink = id => {
         const nn = byId.get(id);
@@ -9816,8 +9974,10 @@
           '<div class=row><span class="tag w">승</span>' + (soL.length ? soL.join(' · ') : '없음') + '</div>' +
           (n.ties && n.ties.length ? '<div class="row tierow">무승부(호적 정리) — ' + n.ties.map(t => nickLink(t.id) + ' ' + t.w + ':' + t.w).join(' · ') + '</div>' : '');
       }
-      window.jbxToggleKin = m => { kinListMode = kinListMode === m ? null : m; renderInfo(); };
-      window.jbxClearSel = () => select(null);
+      // 조상/자손 목록을 펼치면 패널이 커지므로 카메라도 다시 맞춘다
+      window.jbxToggleKin = m => { kinListMode = kinListMode === m ? null : m; renderInfo(); refitAfterPanel(); };
+      window.jbxClearSel = () => select(null, true);
+      window.jbxTestEnter = dix => enterDivision(dix); // 화면 검증(QA) 스크립트용 훅
       window.jbxSelectByNick = nick => {
         const n = nodes.find(x => x.nick === nick);
         if (!n) return;
@@ -9827,8 +9987,11 @@
         }
         select(n);
         followUntil = 0;
-        animTo({ s: scale, x: W / 2 - n.x * scale, y: H * 0.38 - n.y * scale }, 420);
+        // 선택한 선수를 화면 가운데(위 범례와 아래 정보 패널 사이의 빈 영역 기준)로 데려온다
+        const { padT, padB } = safePads();
+        animTo({ s: scale, x: W / 2 - n.x * scale, y: padT + (H - padT - padB) * 0.45 - n.y * scale }, 420);
       };
+      window.jbxTestTap = nick => { const n = nodes.find(x => x.nick === nick); if (n) select(n, true); }; // QA용: 화면 탭과 동일 동작
 
       // ── 국기 이미지 (flagcdn, 사이트 국기와 동일 출처) ──
       const flagImgs = new Map();
@@ -9862,12 +10025,12 @@
         });
         ctx.globalAlpha = 1;
         if (mode === 'overview') {
-          const glow = ctx.createRadialGradient(0, 0, 60, 0, 0, 800);
+          const glow = ctx.createRadialGradient(0, 0, 60, 0, 0, Math.max(400, lionHalf * 1.7));
           glow.addColorStop(0, 'rgba(255,186,66,.16)');
           glow.addColorStop(1, 'rgba(255,186,66,0)');
           ctx.fillStyle = glow;
-          ctx.beginPath(); ctx.arc(0, 0, 800, 0, 7); ctx.fill();
-          if (LION.complete && LION.naturalWidth) ctx.drawImage(LION, -470, -470, 940, 940);
+          ctx.beginPath(); ctx.arc(0, 0, Math.max(400, lionHalf * 1.7), 0, 7); ctx.fill();
+          if (LION.complete && LION.naturalWidth) ctx.drawImage(LION, -lionHalf, -lionHalf, lionHalf * 2, lionHalf * 2);
         }
         if (mode === 'division' && activeDiv >= 0) {
           const d = DIVS[activeDiv];
@@ -9984,27 +10147,32 @@
           ctx.fillStyle = a.col; ctx.fill();
         });
         ctx.globalAlpha = 1;
-        // 체급 이름 배지
+        // 체급 이름 배지 — 화면을 아무리 축소해도 글자가 같은 크기(픽셀)로 보이도록 화면 좌표에 그린다.
+        // (예전엔 세계 좌표 34px라 휴대폰 전체 화면에서 5px 정도로 쪼그라들어 어느 체급인지 읽을 수 없었음)
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        const bf = W < 520 ? 12.5 : 14, bh = W < 520 ? 24 : 28;
         DIVS.forEach((d, dix) => {
-          if (mode === 'division' && dix === activeDiv) return;
+          if (mode === 'division' && dix === activeDiv) { d.badge = null; return; }
           const list = nodesByDiv[dix];
           let topY = 1e9; list.forEach(n => topY = Math.min(topY, n.y - n.r));
-          const by = topY - 58, bx = d.cx;
+          const sx = d.cx * scale + tx, sy = (topY - 6) * scale + ty - bh / 2 - 4;
           const inactive = mode === 'division' && dix !== activeDiv;
           ctx.globalAlpha = inactive ? .25 : 1;
-          ctx.font = "800 " + (mode === 'overview' ? 34 : 30) + "px -apple-system,'Malgun Gothic',sans-serif";
-          const tw = ctx.measureText(d.name).width + 46;
+          ctx.font = "800 " + bf + "px -apple-system,'Malgun Gothic',sans-serif";
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          const tw = ctx.measureText(d.name).width + 20;
           ctx.save();
-          ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
+          ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 2;
           ctx.fillStyle = 'rgba(23,27,38,.94)';
-          ctx.beginPath(); ctx.roundRect(bx - tw / 2, by - 27, tw, 54, 27); ctx.fill();
+          ctx.beginPath(); ctx.roundRect(sx - tw / 2, sy - bh / 2, tw, bh, bh / 2); ctx.fill();
           ctx.restore();
-          ctx.lineWidth = 2; ctx.strokeStyle = '#3b4459';
-          ctx.beginPath(); ctx.roundRect(bx - tw / 2, by - 27, tw, 54, 27); ctx.stroke();
-          ctx.fillStyle = '#f0d48a'; ctx.textBaseline = 'middle';
-          ctx.fillText(d.name, bx, by + 1);
+          ctx.lineWidth = 1.2; ctx.strokeStyle = '#4a5470';
+          ctx.beginPath(); ctx.roundRect(sx - tw / 2, sy - bh / 2, tw, bh, bh / 2); ctx.stroke();
+          ctx.fillStyle = '#f0d48a';
+          ctx.fillText(d.name, sx, sy + 1);
           ctx.globalAlpha = 1;
-          d.badge = { x: bx, y: by, w: tw, h: 54 };
+          // 탭 판정용(세계 좌표) — 화면 크기 배지를 세계 좌표로 환산해 저장
+          d.badge = { x: (sx - tx) / scale, y: (sy - ty) / scale, w: tw / scale, h: bh / scale };
         });
       }
 
@@ -10027,7 +10195,7 @@
       function divisionAt(px, py) {
         const [wx, wy] = toWorld(px, py);
         for (const d of DIVS) {
-          if (d.badge && Math.abs(wx - d.badge.x) < d.badge.w / 2 + 30 && Math.abs(wy - d.badge.y) < 60) return d.ix;
+          if (d.badge && Math.abs(wx - d.badge.x) < d.badge.w / 2 + 14 / scale && Math.abs(wy - d.badge.y) < d.badge.h / 2 + 14 / scale) return d.ix;
         }
         const n = nodeAt(px, py);
         if (n) return n.div;
@@ -10041,7 +10209,7 @@
       }
       function maybeAutoExit() {
         if (mode !== 'division') return;
-        const fit = camFor(boundsOf(nodesByDiv[activeDiv], 20), 56).s;
+        const fit = divisionCam(activeDiv).s;
         if (scale < fit * 0.45) exitToOverview();
       }
       cv.addEventListener('pointerdown', ev => {
@@ -10063,6 +10231,7 @@
           const cx = (ps[0][0] + ps[1][0]) / 2, cy = (ps[0][1] + ps[1][1]) / 2;
           const ns = Math.max(.06, Math.min(2.8, pinch.s * d / pinch.d));
           tx = cx - (cx - tx) * ns / scale; ty = cy - (cy - ty) * ns / scale; scale = ns;
+          userAdjusted = true;
           maybeAutoExit();
           return;
         }
@@ -10072,7 +10241,7 @@
           dragNode.x = wx; dragNode.y = wy;
           alpha = Math.max(alpha, .13);
         }
-        else if (panStart) { tx = ev.offsetX - panStart.x; ty = ev.offsetY - panStart.y; }
+        else if (panStart) { tx = ev.offsetX - panStart.x; ty = ev.offsetY - panStart.y; if (moved) userAdjusted = true; }
       });
       function endPtr(ev) {
         pointers.delete(ev.pointerId);
@@ -10083,9 +10252,9 @@
             if (dix >= 0) enterDivision(dix);
           } else {
             const n = nodeAt(ev.offsetX, ev.offsetY, 18);
-            if (n && n.div === activeDiv) select(n === selected ? null : n);
+            if (n && n.div === activeDiv) select(n === selected ? null : n, true);
             else if (n && n.div !== activeDiv) enterDivision(n.div);
-            else if (selected) select(null);   // 여백 한 번 = 선택 해제
+            else if (selected) select(null, true);   // 여백 한 번 = 선택 해제
             else exitToOverview();              // 여백 한 번 더 = 전체 화면
           }
         }
@@ -10100,34 +10269,64 @@
         tx = ev.offsetX - (ev.offsetX - tx) * ns / scale;
         ty = ev.offsetY - (ev.offsetY - ty) * ns / scale;
         scale = ns;
+        userAdjusted = true;
         maybeAutoExit();
       }, { passive: false });
-      backBtn.onclick = () => { if (selected) select(null); else exitToOverview(); };
-      // 전체화면 버튼 — 지원 안 되는 브라우저(iOS 사파리 등)에선 자동으로 숨긴다
+      backBtn.onclick = () => { if (selected) select(null, true); else exitToOverview(); };
+      // 전체화면 버튼 — 브라우저 기본 전체화면을 쓰고, 지원이 안 되는 iOS(아이폰 사파리/앱)에서는
+      // 게임 화면과 같은 CSS 전체화면(gm-pseudo-full)으로 대체해서 어느 기기에서나 버튼이 동작한다.
       const fullBtn = document.getElementById('jbx-full');
+      // 화면 크기/전체화면 상태가 바뀐 뒤 공통 처리: 캔버스 크기 재계산 + 링 재배치 + 카메라 재맞춤
+      function afterViewportChange(dur) {
+        if (token !== __jbxToken || !document.getElementById('jbx-cv')) return;
+        sizeCanvas();
+        layoutRing();
+        if (mode === 'division') fitDivisionShape(activeDiv);
+        userAdjusted = false;
+        alpha = Math.max(alpha, .3);
+        if (mode === 'overview') animToOverview(dur || 250); else animToDivision(activeDiv, dur || 250);
+        followUntil = Date.now() + 2400;
+      }
+      function syncFullBtn() {
+        if (!fullBtn) return;
+        fullBtn.textContent = isFull() ? '✕ 닫기' : '⛶ 화면';
+        fullBtn.title = isFull() ? '전체화면 닫기' : '전체화면으로 보기';
+      }
+      function leavePseudoFull() {
+        wrap.classList.remove('gm-pseudo-full');
+        document.body.classList.remove('gm-pf-lock');
+      }
       if (fullBtn) {
-        if (!wrap.requestFullscreen) fullBtn.style.display = 'none';
-        else {
-          fullBtn.onclick = () => {
-            if (document.fullscreenElement === wrap) document.exitFullscreen();
-            else wrap.requestFullscreen();
-          };
-          const onFs = () => {
-            if (token !== __jbxToken || !document.getElementById('jbx-cv')) { document.removeEventListener('fullscreenchange', onFs); return; }
-            fullBtn.textContent = document.fullscreenElement === wrap ? '✕ 닫기' : '⛶ 화면';
-            fullBtn.title = document.fullscreenElement === wrap ? '전체화면 닫기' : '전체화면으로 보기';
-            sizeCanvas();
-            if (mode === 'division') fitDivisionShape(activeDiv);
-            if (mode === 'overview') animToOverview(250); else animToDivision(activeDiv, 250);
-            followUntil = Date.now() + 2400;
-          };
-          document.addEventListener('fullscreenchange', onFs);
-        }
+        const nativeOk = !__isIOS && !!(document.fullscreenEnabled || document.webkitFullscreenEnabled) && (wrap.requestFullscreen || wrap.webkitRequestFullscreen);
+        fullBtn.onclick = async () => {
+          if (wrap.classList.contains('gm-pseudo-full')) { leavePseudoFull(); syncFullBtn(); setTimeout(() => afterViewportChange(250), 60); return; }
+          if (nativeOk) {
+            try {
+              if (document.fullscreenElement === wrap || document.webkitFullscreenElement === wrap) {
+                if (document.exitFullscreen) await document.exitFullscreen(); else document.webkitExitFullscreen();
+              } else {
+                if (wrap.requestFullscreen) await wrap.requestFullscreen(); else wrap.webkitRequestFullscreen();
+              }
+              return;
+            } catch (e) { /* 실패하면 아래 CSS 전체화면으로 */ }
+          }
+          wrap.classList.add('gm-pseudo-full');
+          document.body.classList.add('gm-pf-lock');
+          syncFullBtn();
+          setTimeout(() => afterViewportChange(250), 60);
+          setTimeout(() => afterViewportChange(200), 400);
+        };
+        const onFs = () => {
+          if (token !== __jbxToken || !document.getElementById('jbx-cv')) { document.removeEventListener('fullscreenchange', onFs); document.removeEventListener('webkitfullscreenchange', onFs); return; }
+          syncFullBtn();
+          afterViewportChange(250);
+        };
+        document.addEventListener('fullscreenchange', onFs);
+        document.addEventListener('webkitfullscreenchange', onFs);
       }
       const onResize = () => {
-        if (token !== __jbxToken || !document.getElementById('jbx-cv')) { window.removeEventListener('resize', onResize); return; }
-        sizeCanvas();
-        if (mode === 'overview') animToOverview(300); else animToDivision(activeDiv, 300);
+        if (token !== __jbxToken || !document.getElementById('jbx-cv')) { window.removeEventListener('resize', onResize); leavePseudoFull(); return; }
+        afterViewportChange(300);
       };
       window.addEventListener('resize', onResize);
       // 화면에 그리기 전에 물리를 미리 돌려서, 첫 프레임부터 자리 잡힌 배치로 시작한다
@@ -10136,7 +10335,7 @@
       alpha = 0.12;
       // 첫 화면을 자리 잡힌 배치에 딱 맞춰 시작
       {
-        const c = camFor(boundsOf(nodes, 60), 56);
+        const c = overviewCam();
         scale = c.s; tx = c.x; ty = c.y;
       }
       // followUntil 동안은 레이아웃 변화(첫 로딩 크기 변동, 체급 펼침/복귀)에 맞춰
@@ -10144,14 +10343,12 @@
       cv.addEventListener('pointerdown', () => { followUntil = 0; });
       cv.addEventListener('wheel', () => { followUntil = 0; }, { passive: true });
       (function loop() {
-        if (token !== __jbxToken || !document.getElementById('jbx-cv')) return; // 페이지를 떠나면 루프 종료
+        if (token !== __jbxToken || !document.getElementById('jbx-cv')) { document.body.classList.remove('gm-pf-lock'); return; } // 페이지를 떠나면 루프 종료
         tick();
         stepAnim();
         if (Date.now() < followUntil && !dragNode && !anim) {
           if (wrap.clientWidth !== W || wrap.clientHeight !== H) sizeCanvas();
-          const c = mode === 'overview'
-            ? camFor(boundsOf(nodes, 60), 56)
-            : camFor(boundsOf(nodesByDiv[activeDiv], 20), 56);
+          const c = mode === 'overview' ? overviewCam() : divisionCam(activeDiv);
           scale += (c.s - scale) * .1;
           tx += (c.x - tx) * .1;
           ty += (c.y - ty) * .1;
@@ -10812,7 +11009,7 @@
     function gmShellHTML(wk, title, sub, desc, startLabel, hint, rule) {
       gmCurRule = rule;
       return `
-  <h1 class="page" style="gap:6px">${title} <button class="bb-rules-btn-top" id="gRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button><span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰ 주간 랭킹 리셋까지 <b>${gmResetLeft()}</b></span></h1>
+  <h1 class="page" style="gap:6px">${title} <button class="bb-rules-btn-top" id="gRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button><span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰ 주간 랭킹 리셋까지 <b style="color:#dc2626">${gmResetLeft()}</b></span></h1>
   <div id="gArea" class="ga-${gmCurGame}">
     <canvas id="gCanvas"></canvas>
     <div class="ghud">
@@ -15892,6 +16089,9 @@
       }
       loading();
       let d; try { d = await fetchAll(); } catch (e) { return fail(e); }
+      // 방문 통계의 "승부예측 상세" 항목에 대회명을 붙여 보여주기 위한 대회ID→대회명 표
+      window.__fpTournamentTitles = {};
+      d.list.forEach(t => { window.__fpTournamentTitles[String(t.id)] = t.title || ''; });
       const rows = await Promise.all(d.list.map(async t => {
         return adminTournamentHTML(t, d.counts[t.id] || 0);
       }));
