@@ -10840,20 +10840,12 @@
         const isMobile = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
         // 휴대폰: 공유 시트로 사진 앱 저장/카톡 공유 (사용자가 취소하면 조용히 종료)
         if (isMobile && navigator.canShare && typeof File !== 'undefined') {
-          // 카카오톡 등 메신저는 "사진"으로 보낼 때 이미지가 클수록 더 세게 압축하는 경향이
-          // 있다. 공유용 사본만 긴 변을 2200px로 제한해 그 압축 문턱을 최대한 피하고,
-          // PC 다운로드(아래)는 원본 해상도를 그대로 유지한다.
-          let shareCanvas = canvas;
-          const longEdge = Math.max(canvas.width, canvas.height);
-          const SHARE_CAP = 2200;
-          if (longEdge > SHARE_CAP) {
-            const r = SHARE_CAP / longEdge;
-            shareCanvas = document.createElement('canvas');
-            shareCanvas.width = Math.round(canvas.width * r);
-            shareCanvas.height = Math.round(canvas.height * r);
-            shareCanvas.getContext('2d').drawImage(canvas, 0, 0, shareCanvas.width, shareCanvas.height);
-          }
-          const shareBlob = await new Promise(r => shareCanvas.toBlob(r, 'image/png'));
+          // 예전엔 "카톡이 큰 이미지를 더 세게 압축할 것"이라는 추측으로 공유용 이미지의
+          // 긴 변을 2200px로 강제로 줄였는데, 이 페이지들처럼 세로로 긴 화면은 "긴 변" =
+          // 높이라서 실제로는 가로 폭이 원래(900px 안팎)의 30% 수준(260px대)까지 짓눌려
+          // 버렸다 — "화질이 흐리다"는 문제의 진짜 범인이 바로 이거였다. 그 로직을 없애고
+          // 다운로드와 동일하게 원본 해상도(canvas) 그대로 공유한다.
+          const shareBlob = await new Promise(r => canvas.toBlob(r, 'image/png'));
           const file = shareBlob && new File([shareBlob], fname, { type: 'image/png' });
           if (file && navigator.canShare({ files: [file] })) {
             try {
