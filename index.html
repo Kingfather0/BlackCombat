@@ -10679,7 +10679,7 @@
       const el = document.createElement('div');
       el.className = 'fp-toast-top';
       el.textContent = s;
-      el.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#e0332a;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;z-index:9998;box-shadow:0 6px 20px rgba(0,0,0,.35);animation:fadeUp .25s ease;text-align:center;max-width:92vw';
+      el.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#e0332a;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;z-index:9998;box-shadow:0 6px 20px rgba(0,0,0,.35);animation:fadeUp .25s ease;text-align:center;max-width:92vw;white-space:nowrap';
       document.body.appendChild(el); setTimeout(() => el.remove(), 3200);
     }
     /* 브라우저 기본 confirm() 대신 쓰는 작고 디자인된 확인 팝업.
@@ -11050,7 +11050,7 @@
        이미 로그인돼 있는지만 확인하고, 아니면 홈으로 안내한다. */
     function gmStartGate(startFn) {
       if (gmMyNick && gmMyPin) return startFn();
-      toastMsgTop('👆 먼저 화면 위쪽에서 닉네임을 등록해 주세요.');
+      toastMsgTop('먼저 닉네임을 등록해 주세요.');
       location.hash = '#/';
     }
     function gmLogout() {
