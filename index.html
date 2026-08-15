@@ -7593,6 +7593,12 @@
     function fmtDT(d) {
       return new Date(d).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit' });
     }
+    // fmtDT의 축약판 — 요일·오전/오후 표기를 빼고 24시간제로 짧게("8. 14. 20:29") 표시한다.
+    // 선수>업적/랭킹 페이지의 "자동 갱신" 배지처럼 족보·업적·랭킹 탭과 한 줄에 나란히 놓여야
+    // 하는 자리는 폭이 빠듯해서, 풀 포맷(fmtDT)을 쓰면 탭과 줄바꿈되거나 말줄임표로 잘린다.
+    function fmtDTShort(d) {
+      return new Date(d).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+    }
     // 경기 시작일 표시 — 시간까지 저장된 대회(event_at)는 "8월 29일 (토) 오후 05:00" 형태로,
     // 날짜만 있는 예전 대회(event_date)는 기존처럼 날짜만 보여준다.
     function fmtEventDT(t) {
@@ -9511,10 +9517,10 @@
     }
     function viewFighters() {
       $app.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
+    <div class="fit-row" style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px">
       ${rankTabsHTML('fighters')}
-      <span class="fit-row" style="display:inline-flex;gap:8px;align-items:center">
-        ${fightersUpdatedAt ? `<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${fmtDT(fightersUpdatedAt)} 갱신</span>` : ''}
+      <span class="fit-row" style="display:inline-flex;gap:8px;align-items:center;min-width:0">
+        ${fightersUpdatedAt ? `<span style="font-size:11px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 9px;border-radius:99px;white-space:nowrap">🔄 ${fmtDTShort(fightersUpdatedAt)} 갱신</span>` : ''}
         ${adminPass() ? `<button class="btn small" onclick="toggleAddFighterForm()">➕ 선수 추가</button>` : ''}
         ${adminPass() ? `<button class="btn primary small" onclick="refreshFighters(this)">🔄 수동 갱신</button>` : ''}
         ${snapBtnHTML('app', 'ranking')}
@@ -10485,12 +10491,12 @@
         .sort((a, b) => b.val - a.val || b.w - a.w).slice(0, MAX)
         .map(r => ({ nick: r.nick, val: r.val, valText: `${r.val}% · ${r.fin}/${r.w}` })); // 예: 40% · 2/5 = 5승 중 피니시 2회
 
-      const updated = recordsCache.data.updated_at ? fmtDT(recordsCache.data.updated_at) : '';
+      const updated = recordsCache.data.updated_at ? fmtDTShort(recordsCache.data.updated_at) : '';
       $app.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
+    <div class="fit-row" style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px">
       ${rankTabsHTML('records')}
-      <span class="fit-row" style="display:inline-flex;gap:8px;align-items:center">
-        ${updated ? `<span style="font-size:12px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 11px;border-radius:99px">🔄 ${updated} 갱신</span>` : ''}
+      <span class="fit-row" style="display:inline-flex;gap:8px;align-items:center;min-width:0">
+        ${updated ? `<span style="font-size:11px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 9px;border-radius:99px;white-space:nowrap">🔄 ${updated} 갱신</span>` : ''}
         ${snapBtnHTML('app', 'records')}
       </span>
     </div>
@@ -10530,12 +10536,12 @@
       const cd = countdownText(t.deadline);
 
       let html = `
-    <h1 class="page">${esc(t.title)} ${stateBadge(t)} ${snapBtnHTML('app', 'vote')}</h1>
+    <h1 class="page">${esc(t.title)} ${stateBadge(t)}</h1>
     <div class="sub">
       ${(t.event_at || t.event_date) ? `📅 경기일 ${fmtEventDT(t)} &nbsp;·&nbsp; ` : ''}
       🚫 ${fmtDT(t.deadline)} 마감
       ${cd ? ` &nbsp;·&nbsp; ${cdHTML(t.deadline)}` : ''}
-      &nbsp;·&nbsp; 👥 ${parts.length}명 참여
+      &nbsp;·&nbsp; 👥 ${parts.length}명 참여 ${snapBtnHTML('app', 'vote')}
     </div>`;
 
       // 선물에는 등수 이름표(1등 선물/2등 선물)를 붙이지 않는다 — 밀어내기 방식에서는 1등이
@@ -10761,17 +10767,14 @@
       try {
         const h2c = await loadHtml2Canvas();
         const dark = target === '#jbx-wrap';
-        // 캡처 글자가 흐릿하게 나오는 문제 방지: scale을 더 높이고(최대 3배), html2canvas가
-        // 실제 뷰포트 크기를 알도록 windowWidth/Height를 명시하며, letterRendering으로
-        // 글자를 한 글자씩 그려 자간이 뭉개지지 않게 한다.
+        // scale만 높여서 해상도를 올린다. letterRendering(글자를 한 글자씩 그림)과
+        // windowWidth/Height 강제 지정은 캡처를 몇 배 느리게 만들고, 족보 전체화면처럼
+        // position:fixed로 화면을 꽉 채우는 요소에서는 오히려 캡처가 좁게 찌그러지는
+        // 부작용이 있어 제거했다 — scale만으로도 충분히 선명하다.
         const canvas = await h2c(el, {
           backgroundColor: dark ? '#0d0d10' : (getComputedStyle(document.body).backgroundColor || '#f4f6fa'),
           useCORS: true, logging: false,
-          scale: Math.min(3, Math.max(2, (window.devicePixelRatio || 1) * 1.5)),
-          windowWidth: document.documentElement.clientWidth,
-          windowHeight: document.documentElement.clientHeight,
-          letterRendering: true,
-          imageTimeout: 15000,
+          scale: Math.min(2.5, Math.max(2, window.devicePixelRatio || 1)),
           ignoreElements: n => !!(n.classList && (n.classList.contains('snap-btn') || n.classList.contains('snap-hide')))
         });
         const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
@@ -10784,7 +10787,19 @@
         if (isMobile && navigator.canShare && typeof File !== 'undefined') {
           const file = new File([blob], fname, { type: 'image/png' });
           if (navigator.canShare({ files: [file] })) {
-            try { await navigator.share({ files: [file], title: fname }); return; }
+            try {
+              await navigator.share({ files: [file], title: fname });
+              // 카카오톡 등 메신저는 "사진"으로 보내면 자체적으로 화질을 압축한다(웹 기술로는
+              // 막을 수 없음). 카톡 설정 > 채팅 > "사진 화질"을 '원본'으로 바꾸면 압축 없이
+              // 전송된다 — 처음 공유 성공 시 한 번만 안내한다.
+              let tipShown = false;
+              try { tipShown = !!localStorage.getItem('fp_kakao_tip_shown'); } catch (e2) { }
+              if (!tipShown) {
+                try { localStorage.setItem('fp_kakao_tip_shown', '1'); } catch (e2) { }
+                setTimeout(() => toastMsg('💡 카톡으로 보낼 때 화질이 깨진다면: 카톡 설정 › 채팅 › "사진 화질"을 원본으로 바꿔보세요'), 900);
+              }
+              return;
+            }
             catch (e) { if (e && e.name === 'AbortError') return; /* 그 외 실패 → 아래 다운로드로 */ }
           }
         }
