@@ -10794,34 +10794,9 @@
     // target: 'app'(현재 페이지 본문) 또는 CSS 선택자('#jbx-wrap' 등) / name: 파일명에 들어갈 화면 이름
     const snapBtnHTML = (target, name, extraStyle) =>
       `<button type="button" class="snap-btn" title="이 화면을 이미지로 저장" aria-label="화면 이미지 저장" onclick="snapSave('${target}','${name}',this)"${extraStyle ? ` style="${extraStyle}"` : ''}>📷</button>`;
-    // html2canvas는 기본적으로 글자를 한 획씩 직접 캔버스에 다시 그려서(자체 폰트 래스터라이저),
-    // 폰이 화면을 그대로 찍는 OS 스크린샷과 달리 미세하게 "덜 또렷하게" 보일 수 있다(특히 작은
-    // 한글). foreignObjectRendering:true는 브라우저의 실제 SVG/텍스트 렌더러에 그리기를 맡겨서
-    // 이 차이를 줄여준다 — 다만 브라우저별로 간헐적으로 빈 화면을 만드는 경우가 있어(이 프로젝트에서
-    // 이미 한 번 확인됨) 결과가 비어있으면 자동으로 기존 방식으로 다시 그린다.
-    function isSnapCanvasBlank(canvas) {
-      try {
-        const ctx = canvas.getContext('2d');
-        const w = canvas.width, h = canvas.height;
-        if (!w || !h) return true;
-        const pts = [[.1, .1], [.5, .05], [.9, .1], [.1, .5], [.5, .5], [.9, .5], [.1, .9], [.5, .95], [.9, .9]];
-        let first = null;
-        for (const [px, py] of pts) {
-          const x = Math.min(w - 1, Math.floor(w * px)), y = Math.min(h - 1, Math.floor(h * py));
-          const d = ctx.getImageData(x, y, 1, 1).data;
-          const key = d[0] + ',' + d[1] + ',' + d[2] + ',' + d[3];
-          if (first === null) first = key; else if (key !== first) return false; // 지점마다 색이 다르면 내용이 그려진 것
-        }
-        return true; // 모든 샘플 지점이 같은 색 = 아무것도 안 그려졌을 가능성이 높음
-      } catch (e) { return true; } // 픽셀을 못 읽으면(오염된 캔버스) 안전하게 실패로 간주
-    }
-    async function renderSnapCanvas(h2c, el, opts) {
-      try {
-        const c1 = await h2c(el, { ...opts, foreignObjectRendering: true });
-        if (!isSnapCanvasBlank(c1)) return c1;
-      } catch (e) { /* 이 브라우저에서 지원 안 되면 아래 기존 방식으로 폴백 */ }
-      return h2c(el, opts);
-    }
+    // (foreignObjectRendering:true로 브라우저 네이티브 텍스트 렌더러를 써보려 했으나, 실제 기기에서
+    // 이모지·커스텀 웹폰트가 깨지고 속도도 크게 느려지는 부작용이 확인되어 되돌렸다. html2canvas의
+    // 기본(캔버스 재구현) 렌더링이 이모지/폰트 호환성 면에서 더 안전하다.)
     async function snapSave(target, name, btn) {
       const el = target === 'app' ? document.getElementById('app') : document.querySelector(target);
       if (!el) return;
@@ -10861,7 +10836,7 @@
             scale: Math.min(3, Math.max(2.5, window.devicePixelRatio || 1)),
             ignoreElements: n => !!(n.classList && (n.classList.contains('snap-btn') || n.classList.contains('snap-hide')))
           };
-          canvas = await renderSnapCanvas(h2c, el, h2cOpts);
+          canvas = await h2c(el, h2cOpts);
         }
         const pad = n => String(n).padStart(2, '0'), d = new Date();
         // 파일명은 영문으로 (일부 브라우저는 한글 파일명을 'download'로 바꿔 확장자까지 잃어버림)
