@@ -9565,7 +9565,9 @@
         if (f[1] === '공석') return;
         const key = String(f[1]).trim().toLowerCase();
         if (!fl.has(key)) fl.set(key, []);
-        fl.get(key).push({ di, cc: f[6], champ: f[0] === 'C', rank: f[0] === 'C' ? 0 : Number(f[0]) });
+        // w/l/dr = 랭킹에 있는 그 선수의 "공식 전체 전적". 이 체급 트리 안에서 상대와 선으로
+        // 이어졌는지와는 별개로, 정보 패널에 실제 전적을 그대로 보여주기 위해 들고 다닌다.
+        fl.get(key).push({ di, cc: f[6], champ: f[0] === 'C', rank: f[0] === 'C' ? 0 : Number(f[0]), w: f[3], l: f[4], dr: f[5] });
       }));
       const metaIn = (s, di) => { const arr = fl.get(String(nickOf(s)).trim().toLowerCase()); return arr && arr.find(m => m.di === di); };
       // 랭킹엔 있지만 이 체급 안에서 아직 아무와도 선(관계)이 없는 선수도 "선 없이" 노드로는
@@ -9619,7 +9621,7 @@
           const raw = rawOf(nid);
           const m = metaIn(raw, di);
           const ties = (tiesOf.get(nid) || []).map(t => ({ id: t.id, nick: nickOf(rawOf(t.id)), w: t.w }));
-          return { id: nid, nick: nickOf(raw), cc: m.cc, champ: m.champ, rank: m.rank, gen: layer.get(nid) || 0, cyc: cyc.has(nid), ties };
+          return { id: nid, nick: nickOf(raw), cc: m.cc, champ: m.champ, rank: m.rank, gen: layer.get(nid) || 0, cyc: cyc.has(nid), ties, ow: m.w, ol: m.l, odr: m.dr };
         });
         // 여기까지는 "이 체급 안에서 다른 랭커와 승/패로 이어진" 선수만 들어있다.
         // 랭킹엔 있는데 아직 아무 관계선도 없는 선수(상대가 비랭커였거나, 아직 경기가 없거나)도
@@ -9632,7 +9634,7 @@
           includedNicks.add(nickKey);
           const realKey = String(f[2] || '').trim().toLowerCase();
           const rawId = idByKey.get(nickKey + '|' + realKey) || ('orphan:' + fi);
-          dnodes.push({ id: ns(rawId), nick: f[1], cc: f[6], champ: f[0] === 'C', rank: f[0] === 'C' ? 0 : Number(f[0]), gen: 0, cyc: false, ties: [] });
+          dnodes.push({ id: ns(rawId), nick: f[1], cc: f[6], champ: f[0] === 'C', rank: f[0] === 'C' ? 0 : Number(f[0]), gen: 0, cyc: false, ties: [], ow: f[3], ol: f[4], odr: f[5] });
         });
         if (!dnodes.length) return;
         const maxRank = Math.max(...dnodes.map(n => n.rank), 1);
@@ -10017,9 +10019,13 @@
           '<span class="kchip' + (kinListMode === 'anc' ? ' on' : '') + '" onclick="jbxToggleKin(\'anc\')">조상 ' + anc.size + '</span>' +
           '<span class="kchip' + (kinListMode === 'desc' ? ' on2' : '') + '" onclick="jbxToggleKin(\'desc\')">자손 ' + desc.size + '</span>' +
           listHTML +
-          '<div class=row><span class="tag l">패</span>' + (faL.length ? faL.join(' · ') : '없음 — 무패!') + '</div>' +
-          '<div class=row><span class="tag w">승</span>' + (soL.length ? soL.join(' · ') : '없음') + '</div>' +
-          (n.ties && n.ties.length ? '<div class="row tierow">무승부(호적 정리) — ' + n.ties.map(t => nickLink(t.id) + ' ' + t.w + ':' + t.w).join(' · ') + '</div>' : '');
+          // "패/승"은 이 체급 족보 트리 "안에서" 이어진 상대만 보여준다 — 상대가 다른 체급이거나
+          // 비랭커였던 실제 경기는 여기 안 잡힌다. 그래서 상대가 하나도 없어도 "무패"처럼 실제
+          // 전적을 오해하게 만드는 말은 쓰지 않고, 항상 공식 전체 전적을 같이 보여준다.
+          '<div class=row><span class="tag l">패</span>' + (faL.length ? faL.join(' · ') : '이 체급 트리 안엔 없음') + '</div>' +
+          '<div class=row><span class="tag w">승</span>' + (soL.length ? soL.join(' · ') : '이 체급 트리 안엔 없음') + '</div>' +
+          (n.ties && n.ties.length ? '<div class="row tierow">무승부(호적 정리) — ' + n.ties.map(t => nickLink(t.id) + ' ' + t.w + ':' + t.w).join(' · ') + '</div>' : '') +
+          (n.ow != null ? '<div class="row tierow">공식 전체 전적 ' + n.ow + '승 ' + n.ol + '패' + (n.odr ? ' ' + n.odr + '무' : '') + ' <span style="text-decoration:underline;cursor:pointer" onclick="openFighterStats(\'' + n.nick.replace(/'/g, "\\'") + '\')">전적 보기</span></div>' : '');
       }
       // 조상/자손 목록을 펼치면 패널이 커지므로 카메라도 다시 맞춘다
       window.jbxToggleKin = m => { kinListMode = kinListMode === m ? null : m; renderInfo(); refitAfterPanel(); };
