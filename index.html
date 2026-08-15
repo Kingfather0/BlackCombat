@@ -322,6 +322,17 @@
       visibility: hidden
     }
 
+    /* 📷 캡처 시 폰트를 잠깐 시스템 폰트로 바꾼다.
+       기본 본문 폰트인 'Pretendard Variable'(가변 폰트)과 장식용 'Jua' 폰트는 html2canvas가
+       글자를 정확히 그리지 못해(외곽선이 뭉개지거나 두께가 달라짐) 캡처한 이미지가 실제
+       화면보다 화질이 떨어져 보이는 가장 큰 원인이었다 — 족보(canvas) 캡처가 유독 선명했던
+       이유도 거기는 애초에 이 폰트를 안 쓰고 시스템 폰트로 직접 그리기 때문이다.
+       캡처 중(body.snapping)에만 브라우저가 항상 정확히 그릴 수 있는 시스템 폰트로 바꿔서
+       찍고, 캡처가 끝나면(1~2초 뒤) 원래 폰트로 즉시 돌아온다. */
+    body.snapping * {
+      font-family: -apple-system, BlinkMacSystemFont, 'Malgun Gothic', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Segoe UI', sans-serif !important;
+    }
+
     h1.page {
       font-size: 24px;
       font-weight: 900;
@@ -7811,7 +7822,7 @@
           [3, '바비', '히라타 아야네', 4, 3, 0, 'jp'], [4, 'Libby', '조은비', 1, 7, 0, 'kr']]
       },
     ];
-    const flagImg = c => `<img class="flag" src="https://flagcdn.com/24x18/${c}.png" alt="${String(c).toUpperCase()}" width="18" height="14" loading="lazy">`;
+    const flagImg = c => `<img class="flag" src="https://flagcdn.com/24x18/${c}.png" alt="${String(c).toUpperCase()}" width="18" height="14" loading="lazy" crossorigin="anonymous">`;
     // 닉네임 → 선수 정보 (대진 표시용)
     let FIGHTER_MAP = {};
     let fightersUpdatedAt = null;
@@ -10798,6 +10809,21 @@
           // 캔버스 비트맵을 그대로 합성한다 (느림/찌그러짐 문제의 원인을 아예 없앤다).
           canvas = await window.jbxCaptureCompose(h2c);
         } else {
+          // "화질이 나쁘다"는 문제의 실제 원인 중 하나: 선수 국기 이미지(<img loading="lazy">)가
+          // 화면 아래쪽(스크롤 전이라 아직 안 보이는 부분)에 있으면 브라우저가 아직 다운로드를
+          // 시작조차 안 한 상태다. 그 상태로 캡처하면 그 자리들이 통째로 빈 칸/뿌옇게 나온다.
+          // 캡처 직전에 이 화면 안의 이미지를 전부 강제로(eager) 미리 불러와 완전히 로드된
+          // 뒤에 캡처하면 이 문제가 사라진다.
+          const imgs = Array.from(el.querySelectorAll('img'));
+          imgs.forEach(img => { if (img.loading === 'lazy') img.loading = 'eager'; });
+          await Promise.all(imgs.map(img => {
+            if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+            return new Promise(res => {
+              const done = () => { img.removeEventListener('load', done); img.removeEventListener('error', done); res(); };
+              img.addEventListener('load', done); img.addEventListener('error', done);
+              setTimeout(done, 6000); // 개별 이미지 로딩이 오래 걸려도 전체가 무한정 멈추지 않도록
+            });
+          }));
           // scale을 넉넉히(2.5~3배) 올려 선명하게 캡처한다. letterRendering(글자를 한 글자씩
           // 그림)과 windowWidth/Height 강제 지정은 캡처를 몇 배 느리게 만들고 position:fixed로
           // 화면을 꽉 채우는 요소에서는 오히려 찌그러지는 부작용이 있어 쓰지 않는다.
