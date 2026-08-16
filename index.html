@@ -7411,7 +7411,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T21:20:00+09:00';
+    const BUILD_ID = '2026-08-16T21:40:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -16117,7 +16117,7 @@
           if (names.length <= 10) hitters = `<div class="note" style="margin-top:6px;font-size:12.5px">이변 적중 ${names.length}명: <b>${names.map(esc).join(', ')}</b></div>`;
         }
         return `<div class="match">
-      <div class="no"><span>${m.seq}경기 ${m.winner === 'X' ? '<span class="badge done">무효/무승부</span>' : ''} ${tag}</span>
+      <div class="no"><span>${m.seq}경기 ${m.winner === 'X' ? '<span class="badge done">무효/무승부</span>' : ''} ${tag}</span>${matchDivHTML(m)}
         ${hasResult && (winA || winB) ? `<span class="wintag">🏆 ${esc(winA ? m.fighter_a : m.fighter_b)} 승</span>` : ''}</div>
       <div class="split" onclick="openMatchVoters('${m.id}')" style="cursor:pointer" title="누가 투표했는지 보기">${splitInner(m, parts, hasResult)}</div>${hitters}</div>`;
       }).join('');
