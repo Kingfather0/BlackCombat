@@ -7378,6 +7378,32 @@
     }
     window.addEventListener('hashchange', route);
 
+    /* ── 자동 업데이트 감지 ──
+       홈 화면에 추가한 앱(특히 아이폰)은 아이콘을 눌러 다시 열 때 새로고침 없이 예전 화면을
+       그대로 이어 보여줄 때가 많아서, 코드를 새로 올려도 자동으로 반영되지 않는 경우가 있다.
+       그래서 앱이 다시 화면에 보일 때마다(visibilitychange) 최신 index.html을 직접 받아와
+       버전(BUILD_ID)을 비교하고, 새 버전이면 자동으로 새로고침한다. 다만 투표 중(#/t/...)이거나
+       관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
+       내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
+       ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
+    const BUILD_ID = '2026-08-16T08:20:00+09:00';
+    async function checkForUpdate() {
+      try {
+        const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
+        if (!res.ok) return;
+        const text = await res.text();
+        const m = text.match(/const BUILD_ID = '([^']+)'/);
+        if (!m || m[1] === BUILD_ID) return; // 최신 버전이거나 확인 불가 → 아무것도 안 함
+        const busy = !!document.querySelector('.modal-ov')
+          || (document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName) && document.activeElement.value)
+          || /^#\/(t\/|admin)/.test(location.hash);
+        if (busy) { toastMsg('🔄 새 버전이 있어요. 하던 작업을 마치고 새로고침 해주세요.'); return; }
+        location.reload();
+      } catch (e) { /* 오프라인 등 — 조용히 무시하고 다음 기회에 다시 확인 */ }
+    }
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkForUpdate(); });
+    setInterval(() => { if (document.visibilityState === 'visible') checkForUpdate(); }, 10 * 60 * 1000);
+
     // ── PWA: 홈 화면 앱 설치 ──
     let __pwaPrompt = null;
     const __isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
