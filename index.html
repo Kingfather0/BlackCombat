@@ -7412,7 +7412,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-17T04:30:00+09:00';
+    const BUILD_ID = '2026-08-17T05:10:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -8130,7 +8130,8 @@
       eventDateText: null,
       place: null,
       openText: null,
-      buyUrl: null
+      buyUrl: null,
+      platform: null
     };
     function mergedTicketMeta(rows) {
       // 최신 기록부터 훑으면서 필드별로 값이 있는 걸 채운다(과거 기록에만 남아있을 수도 있음).
@@ -8145,13 +8146,17 @@
         if (m.place == null && r.meta.place) m.place = r.meta.place;
         if (m.openText == null && r.meta.openText) m.openText = r.meta.openText;
         if (m.buyUrl == null && r.meta.buyUrl) m.buyUrl = r.meta.buyUrl;
+        // 출처(어느 예매처에서 가져온 기록인지) — 예전 기록(NOL 초기)엔 이 필드가 없으므로
+        // 못 찾으면 아래에서 'NOL 티켓'으로 대체한다(기존 화면과 동일하게 유지).
+        if (m.platform == null && r.meta.platform) m.platform = r.meta.platform;
       }
       return {
         title: m.title || TICKET_INFO.title,
         eventDateText: m.dateText || TICKET_INFO.eventDateText,
         place: m.place || TICKET_INFO.place,
         openText: m.openText || TICKET_INFO.openText,
-        buyUrl: m.buyUrl || TICKET_INFO.buyUrl
+        buyUrl: m.buyUrl || TICKET_INFO.buyUrl,
+        platform: m.platform || TICKET_INFO.platform
       };
     }
     async function fetchTicketSnapshots(eventKey) {
@@ -9061,7 +9066,7 @@
       ${meta.openText ? `<div class="sub" style="margin-top:2px">🎟️ 티켓 오픈: ${esc(meta.openText)}</div>` : ''}
       ${previewBanner}
       ${isPreview || !meta.buyUrl ? '' : `<a class="btn primary small" style="margin-top:10px" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">예매하러 가기</a>`}
-      <div class="sub" style="margin-top:8px;font-size:11px;color:var(--dim)">출처: NOL 티켓 · 매일 시간별 자동 갱신</div>
+      <div class="sub" style="margin-top:8px;font-size:11px;color:var(--dim)">출처: ${esc(meta.platform || 'NOL 티켓')} · 매일 시간별 자동 갱신</div>
     </div>`;
 
       if (!rows.length) {
@@ -9231,6 +9236,7 @@
         </div>
         ${fcParts.join('<hr class="sep" style="margin:8px 0">')}
         <div id="tk-fc-info" style="display:none;background:#f4f6fa;border-radius:9px;padding:9px 12px;margin-top:9px;font-size:11.5px;color:var(--muted);line-height:1.8">
+          <div>· 총 좌석수는 '판매 대상 좌석' 기준(등급 미배정 좌석 제외)</div>
           <div>· 매진 예상일은 현재 잔여석 ÷ 하루 판매 속도로 계산</div>
           <div>· 판매 속도는 최근 3일 회귀 추세선 기준</div>
           <div>· 일괄 발권(이벤트표 등)은 잔여석에만 반영, 판매 속도엔 미포함</div>
@@ -9341,13 +9347,10 @@
 
       $app.innerHTML = `
       <h1 class="page fit-row" style="display:flex;justify-content:space-between;align-items:center;gap:10px">티켓 판매 현황
-        <span style="display:inline-flex;gap:8px;align-items:center"><button class="tk-share-btn" onclick="tkShare()">💬 티켓 현황 공유</button></span></h1>
+        <span style="display:inline-flex;gap:8px;align-items:center">${adminPass() ? `<button class="btn small" onclick="tkManualRefresh(this)">🔄 수동 갱신</button>` : ''}<button class="tk-share-btn" onclick="tkShare()">💬 티켓 현황 공유</button></span></h1>
       ${infoCard}
       ${totalBarHTML}
       ${forecastHTML}
-      ${adminPass() ? `<div style="display:flex;gap:8px;margin-top:10px">
-        <button class="btn small" onclick="tkManualRefresh(this)">🔄 수동 갱신</button>
-      </div>` : ''}
       <div class="sec-title">잔여 좌석</div>
       ${currentHTML}
       ${trendsSectionHTML}
