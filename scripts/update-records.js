@@ -64,11 +64,14 @@ function parseMatches(html) {
     // 대회명: game_name 안의 첫 텍스트
     const ev = stripTags((gameFrag.match(/<span[^>]*>([\s\S]*?)<\/span>/) || [, ''])[1]);
     // 승/패 배지 — 이 페이지 "주인공 선수" 기준의 결과다.
-    // 노 컨테스트(무효 경기)는 배지가 아예 없고 본문에 "No Contest"라고만 적혀 있으므로
-    // 별도 결과값 'N'으로 저장한다 (무승부 'D'와는 다른 값).
+    // 노 컨테스트(무효 경기)는 배지가 아예 없고 본문에 텍스트로만 적혀 있는데, 이벤트마다
+    // 표기가 달라서 "No Contest(Missed Weight)"처럼 풀어 쓴 곳도 있고 "N/C"로 줄여 쓴 곳도
+    // 있다. 둘 중 하나만 인식하면 그 표기를 쓴 경기가 통째로 조용히 스킵돼(res가 빈 문자열로
+    // 남아 아래 최종 push 조건에서 걸러짐) records.json에서 사라지고, 결국 웹사이트 "전적 보기"
+    // 팝업에도 그 경기가 안 보이는 버그로 이어진다. 그래서 두 표기를 모두 인식한다.
     const badge = (infoFrag.match(/>\s*(Win|Loss|Draw)\s*</i) || [])[1];
     let res = badge ? badge[0].toUpperCase() : ''; // W / L / D / N
-    if (!res && /no\s*contest/i.test(infoFrag)) res = 'N';
+    if (!res && /no\s*contest|\bn\s*\/\s*c\b/i.test(infoFrag)) res = 'N';
     // 양쪽 선수: fighter/<seq> 링크 순서대로 (왼쪽 → 오른쪽)
     const fighters = [];
     const aRe = /<a[^>]*fighter\/(\d+)[^>]*>([\s\S]*?)<\/a>/g;
