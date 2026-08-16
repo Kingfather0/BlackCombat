@@ -7386,7 +7386,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T10:40:00+09:00';
+    const BUILD_ID = '2026-08-16T10:55:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -7769,11 +7769,12 @@
       return '';
     }
     function announcementCardHTML(a) {
-      const lines = [annPeriodText(a), a.venue ? `📍 ${a.venue}` : '', a.price ? `💰 ${a.price}` : ''].filter(Boolean);
+      const period = annPeriodText(a);
+      const lines = [period ? `📅 ${period}` : '', a.venue ? `📍 ${a.venue}` : '', a.price ? `💰 ${a.price}` : ''].filter(Boolean);
       return `<div class="card" style="margin-bottom:12px;border:1.5px solid var(--key-deep);background:var(--key-soft)">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
         <div style="font-weight:800;font-size:15px;color:var(--text)">🔔${esc(a.title || '')}</div>
-        <button type="button" onclick="annShareOne('${a.id}')" style="background:none;border:none;padding:2px;margin:0;cursor:pointer;font-size:13px;font-weight:700;color:var(--key-deep);line-height:1;flex-shrink:0;white-space:nowrap">💬 공지 공유</button>
+        <button type="button" class="tk-share-btn" onclick="annShareOne('${a.id}')" style="padding:5px 11px;font-size:12px;flex-shrink:0">💬 공지 공유</button>
       </div>
       ${lines.length ? `<div style="font-size:13px;margin-top:6px;color:var(--muted);font-weight:600;line-height:1.6">${lines.map(esc).join('<br>')}</div>` : ''}
       ${a.link ? `<a class="btn primary small" style="margin-top:10px" href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">${esc(a.linkText || '예매하러 가기')}</a>` : ''}
@@ -7787,7 +7788,7 @@
       const blocks = (list || []).map(a => {
         const lines = [`🔔${a.title || ''}`];
         const period = annPeriodText(a);
-        if (period) lines.push(period);
+        if (period) lines.push(`📅 ${period}`);
         if (a.venue) lines.push(`📍 ${a.venue}`);
         if (a.price) lines.push(`💰 ${a.price}`);
         return lines.join('\n');
@@ -9026,7 +9027,7 @@
       if (meta.eventDateText) dpParts.push('📅 ' + esc(meta.eventDateText));
       if (meta.place) dpParts.push('📍 ' + esc(meta.place));
       const infoCard = `
-    <div class="card" style="padding:14px 16px">
+    <div class="card" style="padding:14px 16px;border:1.5px solid var(--key-deep);background:var(--key-soft)">
       <div style="font-weight:800;font-size:15.5px">${esc(meta.title || '행사 정보 수집 중...')}</div>
       ${dpParts.length ? `<div class="sub" style="margin-top:4px">${dpParts.join(' · ')}</div>` : ''}
       ${meta.openText ? `<div class="sub" style="margin-top:2px">🎟️ 티켓 오픈: ${esc(meta.openText)}</div>` : ''}
