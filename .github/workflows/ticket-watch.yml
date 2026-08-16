@@ -1,6 +1,8 @@
 name: 티켓 판매 현황 자동 기록
 
 on:
+  schedule:
+    - cron: '*/10 * * * *'   # 10분마다 실행 (GitHub 사정에 따라 실제 실행은 다소 늦어질 수 있음)
   workflow_dispatch:
     inputs:
       ticket_url:
@@ -11,6 +13,12 @@ on:
         required: false
       event_key:
         description: '(선택) 테스트용 event_key — 비워두면 실제 행사 데이터에 기록됨. 다른 티켓으로 테스트할 땐 꼭 채워서(예: test_preview) 실제 데이터와 섞이지 않게 하세요.'
+        required: false
+      item_id_29cm:
+        description: '(선택) 29CM 테스트용 티켓 상품번호 — https://ticket.29cm.co.kr/catalog/{이 숫자}'
+        required: false
+      event_key_29cm:
+        description: '(선택) 29CM 테스트용 event_key — 비워두면 실제 행사 데이터에 기록됨. 다른 티켓으로 테스트할 땐 꼭 채워서(예: test_29cm_preview) 실제 데이터와 섞이지 않게 하세요.'
         required: false
 
 jobs:
@@ -29,7 +37,8 @@ jobs:
         run: |
           npm install playwright@1
           npx playwright install --with-deps chromium
-      - name: 티켓 현황 확인 및 기록
+      - name: 티켓 현황 확인 및 기록 — TICKET_URL 설정 시에만 실행
+        if: ${{ github.event.inputs.ticket_url != '' || vars.TICKET_URL != '' }}
         env:
           TICKET_URL: ${{ github.event.inputs.ticket_url || vars.TICKET_URL }}
           TARGET_DATE: ${{ github.event.inputs.target_date || vars.TICKET_TARGET_DATE }}
@@ -57,6 +66,25 @@ jobs:
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
           TICKET_BOT_SECRET: ${{ secrets.TICKET_BOT_SECRET }}
         run: node scripts/ticket-watch.js
+      # ── 29CM 티켓 기록 (선택) ──────────────────────────────────────────
+      # 29CM(ticket.29cm.co.kr)에서 파는 티켓용입니다. NOL과 달리 로그인 없이도 열리는
+      # 공개 API를 그대로 쓰기 때문에 브라우저(Playwright) 없이 가볍게 동작합니다.
+      # 저장소 Variables에 ITEM_ID_29CM(예: https://ticket.29cm.co.kr/catalog/3998565 → 3998565)와
+      # TICKET_EVENT_KEY_29CM 을 채우면 매 실행마다 이어서 기록됩니다 (비워두면 그냥 건너뜀).
+      # TICKET_29CM_SET_CURRENT 를 'false'로 두면 사이트 메인 화면은 위쪽(NOL) 대회가 계속 차지하고
+      # 29CM 데이터는 "지난 티켓"에서만 갱신됩니다 — 기본값은 'true'(29CM이 메인)입니다.
+      # 어느 쪽을 메인으로 할지는 상황에 맞게 이 변수로 뒤집으면 됩니다.
+      - name: (선택) 29CM 티켓 기록 — ITEM_ID_29CM 설정 시에만 실행
+        if: ${{ !cancelled() && (github.event.inputs.item_id_29cm != '' || vars.ITEM_ID_29CM != '') }}
+        env:
+          ITEM_ID_29CM: ${{ github.event.inputs.item_id_29cm || vars.ITEM_ID_29CM }}
+          TARGET_DATE: ${{ vars.TICKET_TARGET_DATE_29CM }}
+          EVENT_KEY: ${{ github.event.inputs.event_key_29cm || vars.TICKET_EVENT_KEY_29CM }}
+          SET_CURRENT: ${{ vars.TICKET_29CM_SET_CURRENT || 'true' }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          TICKET_BOT_SECRET: ${{ secrets.TICKET_BOT_SECRET }}
+        run: node scripts/ticket-watch-29cm.js
       - name: 실패 시 디버그 스크린샷 저장
         if: failure()
         uses: actions/upload-artifact@v4
