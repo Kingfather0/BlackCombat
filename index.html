@@ -7412,7 +7412,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T23:00:00+09:00';
+    const BUILD_ID = '2026-08-16T23:30:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -7747,7 +7747,7 @@
       window.__annActiveCache = activeAnns; // 공지별 공유 버튼이 자기 데이터를 찾을 때 쓰는 캐시
       $app.innerHTML = `
     ${activeAnns.length ? activeAnns.map(announcementCardHTML).join('') : ''}
-    ${open.length ? `<div class="sec-title">🔥 진행 중인 승부예측</div>${open.map(card).join('')}` : ''}
+    ${open.length ? `<div class="sec-title">🔥 승부 예측 진행 중</div>${open.map(card).join('')}` : ''}
     ${!open.length && !wait.length && !done.length ? `<div class="empty">아직 등록된 대회가 없습니다.<br>관리자 페이지에서 첫 대회를 만들어 보세요!</div>` : ''}
     ${!open.length && (wait.length || done.length) ? `<div class="empty" style="padding:22px 0">현재 진행 중인 투표가 없습니다.</div>` : ''}
     ${wait.length ? `<div class="sec-title">⏳ 결과 대기</div>${wait.map(card).join('')}` : ''}
@@ -16577,10 +16577,8 @@
     <button class="btn wide" id="ann-toggle" onclick="toggleAnnBox()">➕ 새 공지 추가</button>
     <div class="card" id="ann-box" style="display:none">
       <div class="field"><label>제목</label><input id="ann-title" placeholder="예: 블랙컴뱃 미디어데이"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <div class="field" style="flex:1;min-width:160px"><label>노출 시작 (선택, 비우면 즉시 노출)</label><input id="ann-start" type="datetime-local"></div>
-        <div class="field" style="flex:1;min-width:160px"><label>노출 종료 (선택, 비우면 계속 노출)</label><input id="ann-end" type="datetime-local"></div>
-      </div>
+      <div class="field"><label>시작 (비우면 즉시 노출)</label><input id="ann-start" type="datetime-local"></div>
+      <div class="field"><label>종료 (비우면 계속 노출)</label><input id="ann-end" type="datetime-local"></div>
       <div class="field"><label>장소 (선택)</label><input id="ann-venue" placeholder="예: 잠실 실내체육관"></div>
       <div class="field"><label>가격 (선택)</label><input id="ann-price" placeholder="예: 5만원 ~ 12만원"></div>
       <div class="field"><label>링크 (선택)</label><input id="ann-link" placeholder="https://..."></div>
