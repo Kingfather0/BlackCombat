@@ -97,11 +97,17 @@ async function getJSON(url) {
   return json.data;
 }
 
-// 등급별 "총 좌석수"를 좌석배치도(seatAssignUnits)를 세어서 정확하게 구한다. quantityList에
-// 나온 등급(seatGradeCode)만 대상으로 하고, 공개 판매 대상이 아닌 등급(예: 스탭/기타석)은
-// 자연스럽게 제외된다. 실패하면(엔드포인트가 막히는 등) null을 반환하고, 그 경우 호출부가
+// 좌석배치도(seatAssignUnits)를 세어서 다음 세 가지를 정확하게 구한다 (NOL 티켓을 판매
+// 중간에 웹사이트 코드를 직접 뜯어서 "전체 좌석 수 vs 실제 판매 대상 좌석 수"를 구분했던 것과
+// 같은 방식 — index.html이 이미 meta.overallTotal/sellableTotal/noGradeTotal 세 값을 받아
+// "ⓘ 좌석 기준" 안내 박스를 그리도록 만들어져 있으므로, 그 형식 그대로 채워 넣는다):
+//   - totals: 등급별 총원 (quantityList에 있는, 즉 공개 판매 대상인 등급만)
+//   - overallTotal: 좌석배치도에 있는 좌석 전체 개수 (등급 배정 여부와 무관하게 전부)
+//   - sellableTotal: 그중 공개 판매 대상 등급(quantityList에 있는 등급)에 속한 좌석 수
+//   - noGradeTotal: overallTotal - sellableTotal (판매 대상이 아닌/등급 미배정 좌석 수)
+// 실패하면(엔드포인트가 막히는 등) null을 반환하고, 그 경우 호출부가
 // estimateTotalsIfFirstSnapshot()으로 대체한다(안전망 — 회귀 없음).
-async function fetchExactGradeTotals(productMasterCode, turnSequence, placeId, quantityList) {
+async function fetchSeatBreakdown(productMasterCode, turnSequence, placeId, quantityList) {
   if (!placeId) return null;
   try {
     const data = await getJSON(
@@ -116,12 +122,15 @@ async function fetchExactGradeTotals(productMasterCode, turnSequence, placeId, q
       countByCode[code] = (countByCode[code] || 0) + 1;
     }
     const totals = {};
+    let sellableTotal = 0;
     for (const q of quantityList) {
       const gradeName = String(q.seatGradeName || '').replace(/\s*티켓$/, '').trim() || q.seatGradeCode;
       const count = countByCode[q.seatGradeCode];
-      if (count != null) totals[gradeName] = count;
+      if (count != null) { totals[gradeName] = count; sellableTotal += count; }
     }
-    return Object.keys(totals).length ? totals : null;
+    if (!Object.keys(totals).length) return null;
+    const overallTotal = units.length;
+    return { totals, overallTotal, sellableTotal, noGradeTotal: Math.max(0, overallTotal - sellableTotal) };
   } catch (e) {
     console.log('ℹ️ 좌석배치도에서 총원을 세는 데 실패했습니다 (' + (e.message || e) + ') — 대체 방식으로 넘어갑니다.');
     return null;
@@ -246,17 +255,25 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       }
       const roundLabel = formatRoundLabel(turn.turnDateTime);
       const placeId = turn.placeId || row.placeId;
-      let totals = await fetchExactGradeTotals(productMasterCode, turn.turnSequence, placeId, quantityList);
-      let note = '29CM 공개 API에서 직접 추출 (좌석배치도로 등급별 총원 확인)';
-      if (totals) {
-        console.log(`🎯 [${roundLabel}] 좌석배치도에서 등급별 총원을 정확히 확인했습니다:`, JSON.stringify(totals));
+      const breakdown = await fetchSeatBreakdown(productMasterCode, turn.turnSequence, placeId, quantityList);
+      let totals, note;
+      let turnMeta = meta;
+      if (breakdown) {
+        totals = breakdown.totals;
+        note = '29CM 공개 API에서 직접 추출 (좌석배치도로 등급별 총원 확인)';
+        turnMeta = { ...meta, overallTotal: breakdown.overallTotal, sellableTotal: breakdown.sellableTotal, noGradeTotal: breakdown.noGradeTotal };
+        console.log(
+          `🎯 [${roundLabel}] 좌석배치도에서 등급별 총원을 정확히 확인했습니다:`, JSON.stringify(totals),
+          `(전체 ${breakdown.overallTotal}석 중 판매대상 ${breakdown.sellableTotal}석, 미배정 ${breakdown.noGradeTotal}석)`
+        );
       } else {
         // 안전망: 좌석배치도 조회가 실패했을 때만, 이번이 첫 기록이면 잔여석을 총원으로 추측한다.
+        // 이 경우 overallTotal/sellableTotal/noGradeTotal은 알 수 없으므로 지어내지 않고 생략한다.
         totals = await estimateTotalsIfFirstSnapshot(grades, roundLabel);
         note = '29CM 공개 API에서 직접 추출';
         if (totals) console.log(`🆕 [${roundLabel}] 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다(추정치):`, JSON.stringify(totals));
       }
-      await postSnapshot(grades, roundLabel, note, totals, meta);
+      await postSnapshot(grades, roundLabel, note, totals, turnMeta);
       console.log(`✅ [${roundLabel}] 기록 완료:`, JSON.stringify(grades));
       recorded++;
     }
