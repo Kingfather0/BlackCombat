@@ -7387,7 +7387,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T16:20:00+09:00';
+    const BUILD_ID = '2026-08-16T17:00:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -7783,8 +7783,11 @@
     }
     /* ── 공지 카톡방 공유 ── "티켓 현황 공유"(tkShare)와 같은 확인 팝업/발송 방식을 그대로 쓴다.
        티켓 예매 링크는 일부러 안 넣는다 — 예매 링크를 바로 주면 굳이 우리 사이트에 안 들어오고
-       그 링크로 바로 가버리니까, 사이트 유입을 위해 사이트 루트 주소만 공유한다. */
-    const ANN_SHARE_LINK = 'kingfather0.github.io/BlackCombat';
+       그 링크로 바로 가버리니까, 사이트 유입을 위해 사이트 루트 주소만 공유한다.
+       ⚠️ 반드시 og:url과 완전히 동일한 형태(https:// + 끝 슬래시)로 써야 한다. 카카오는 URL을
+       글자 그대로 캐시 키로 쓰기 때문에, "https://" 나 끝 슬래시가 하나라도 다르면 카카오 디버거로
+       초기화한 캐시와 전혀 다른(한 번도 초기화 안 된) 캐시를 타서 옛날 미리보기가 나온다. */
+    const ANN_SHARE_LINK = 'https://kingfather0.github.io/BlackCombat/';
     function annShareText(list) {
       const blocks = (list || []).map(a => {
         const lines = [`${a.title || ''}`];
@@ -8675,7 +8678,7 @@
     /* 티켓 페이지의 "수동 갱신(실시간 조회)"과 "카톡 공유"가 쓰는 화면 상태.
        viewTickets()가 렌더링할 때마다 새로 채워진다. */
     let tkLive = null;
-    const TK_SHARE_LINK = 'kingfather0.github.io/BlackCombat/#/tickets';
+    const TK_SHARE_LINK = 'https://kingfather0.github.io/BlackCombat/#/tickets';
     function tkBuildShareText(remainByGrade, atIso) {
       if (!tkLive) return;
       const lines = [`🎫 티켓 판매 현황 (${fmtSnapTime(atIso)})`];
