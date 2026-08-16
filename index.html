@@ -1370,6 +1370,14 @@
       color: var(--key-deep)
     }
 
+    /* 최종 순위 표의 적중/적중률 칩을 버튼으로 눌러 참가자 예측 현황을 바로 볼 수 있게 —
+       기본 버튼 테두리/배경만 지우고 .stat-chip 모양은 그대로 쓴다 */
+    button.stat-chip-btn {
+      border: none;
+      cursor: pointer;
+      font-family: inherit
+    }
+
     .stat-chip.dash {
       background: transparent;
       color: #b3bcc7
@@ -7403,7 +7411,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T20:40:00+09:00';
+    const BUILD_ID = '2026-08-16T21:20:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -7740,7 +7748,7 @@
     ${activeAnns.length ? activeAnns.map(announcementCardHTML).join('') : ''}
     ${open.length ? `<div class="sec-title">🔥 진행 중인 승부예측</div>${open.map(card).join('')}` : ''}
     ${!open.length && !wait.length && !done.length ? `<div class="empty">아직 등록된 대회가 없습니다.<br>관리자 페이지에서 첫 대회를 만들어 보세요!</div>` : ''}
-    ${!open.length && (wait.length || done.length) ? `<div class="empty" style="padding:22px 0">지금 진행 중인 투표가 없습니다.</div>` : ''}
+    ${!open.length && (wait.length || done.length) ? `<div class="empty" style="padding:22px 0">현재 진행 중인 투표가 없습니다.</div>` : ''}
     ${wait.length ? `<div class="sec-title">⏳ 결과 대기</div>${wait.map(card).join('')}` : ''}
     ${done.length ? `<div class="sec-title">🏁 지난 대회 <span style="color:var(--dim);font-size:13px;font-weight:700">최신순 · 총 ${done.length}개</span></div>
       ${done.slice(0, homeLimit).map(card).join('')}
@@ -10821,7 +10829,7 @@
     <h1 class="page">${esc(t.title)} ${stateBadge(t)}</h1>
     <div class="sub">
       ${(t.event_at || t.event_date) ? `📅 경기일 ${fmtEventDT(t)} &nbsp;·&nbsp; ` : ''}
-      🚫 ${fmtDT(t.deadline)} 마감
+      🔒 ${fmtDT(t.deadline)} 마감
       ${cd ? ` &nbsp;·&nbsp; ${cdHTML(t.deadline)}` : ''}
       &nbsp;·&nbsp; 👥 ${parts.length}명 참여
     </div>`;
@@ -15998,8 +16006,8 @@
       const rankRowHTML = r => `<tr data-nick="${esc(r.nickname.trim().toLowerCase())}" data-rank="${r.rank}">
         <td>${chip(r)}</td>
         <td class="rank-nick"><a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a></td>
-        <td><span class="stat-chip">${r.hit} / ${r.total}</span></td>
-        <td><span class="stat-chip b">${r.total ? Math.round(r.hit / r.total * 100) : 0}%</span></td></tr>`;
+        <td><button class="stat-chip b stat-chip-btn" data-nick-raw="${esc(r.nickname)}" onclick="openPartsModal(this.dataset.nickRaw)">적중 ${r.hit}</button></td>
+        <td><button class="stat-chip b stat-chip-btn" data-nick-raw="${esc(r.nickname)}" onclick="openPartsModal(this.dataset.nickRaw)">${r.total ? Math.round(r.hit / r.total * 100) : 0}%</button></td></tr>`;
       // 선물 수령 기한: 경기일(없으면 마감일) 다음날
       const baseD = t.event_at ? new Date(t.event_at) : (t.event_date ? new Date(t.event_date + 'T00:00:00') : new Date(t.deadline));
       const nextD = new Date(baseD.getTime() + 86400000);
@@ -16193,7 +16201,7 @@
     }
     /* openRenameModal/doRename(대회별 개별 닉네임·비번 변경)은 통합 로그인 도입으로
        더 이상 쓰이지 않는다 — 닉네임/비밀번호 변경은 이제 홈 화면 ⚙️에서 한 곳으로 통일된다. */
-    function openPartsModal() {
+    function openPartsModal(nick) {
       const src = document.getElementById('pf-area');
       if (!src) return;
       const ov = document.createElement('div');
@@ -16203,6 +16211,12 @@
     <div class="modal-b pf-scope">${src.innerHTML}</div></div>`;
       ov.onclick = e => { if (e.target === ov) history.back(); };
       pushModal(ov);
+      // 최종 순위 표에서 특정 참가자의 "적중"/"적중률"을 눌러 들어온 경우, 그 닉네임으로
+      // 바로 검색·필터링해서 해당 참가자 카드가 펼쳐진 상태로 보이게 한다.
+      if (nick) {
+        const inp = ov.querySelector('.pf-in');
+        if (inp) { inp.value = nick; applyPartFilter(inp); }
+      }
     }
     // 참여 통계의 "N명"(전체 참가자) / "+N"(신규 참가자) 숫자를 눌렀을 때 뜨는 닉네임 목록 팝업.
     // 참가자 예측 현황 팝업과 같은 스타일이며, 닉네임 검색 시 즉시 필터링된다.
