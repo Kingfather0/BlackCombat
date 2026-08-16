@@ -7411,7 +7411,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T21:40:00+09:00';
+    const BUILD_ID = '2026-08-16T22:15:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -16094,31 +16094,37 @@
     /* --- 경기별 현황 + 참가자 표 --- */
     function liveBoardHTML(t, matches, parts, st) {
       const hasResult = st === 'final' || matches.some(m => m.winner);
-      // 이변 계산: 적중률이 가장 낮은 경기
+      // 결과 멘트: 예전엔 대회 전체에서 적중률이 가장 낮은 "단 한 경기"에만 "최대 이변" 딱지를
+      // 붙였는데, 경기마다 독립적으로 판정해서 더 자주(그리고 다양하게) 나오도록 바꿨다 —
+      // 적중률 구간별로 다른 멘트를 붙인다. 체급 표시(가운데 절대 위치)와 겹치지 않도록
+      // 이 멘트는 제목 줄이 아니라 그 아래 자기 줄에 따로 둔다.
       const rateOf = m => {
         if (!(m.winner === 'A' || m.winner === 'B')) return null;
         const s = pickStats(m, parts);
         return s.tot ? (m.winner === 'A' ? s.a : s.b) / s.tot : null;
       };
-      let upsetId = null, minRate = 1.01;
-      if (parts.length) matches.forEach(m => { const r = rateOf(m); if (r !== null && r < minRate) { minRate = r; upsetId = m.id; } });
       const bars = st === 'open' ? '' : matches.map(m => {
         const winA = m.winner === 'A', winB = m.winner === 'B';
         const r = rateOf(m);
         let tag = '';
         if (r !== null) {
-          if (m.id === upsetId && r < 0.5) tag = `<span class="badge" style="background:#fdecec;color:#a51c1c;font-size:11px">😱 최대 이변 · ${Math.round(r * 100)}%만 적중</span>`;
-          else if (r === 1) tag = '<span class="badge" style="background:#e0f3e6;color:#116131;font-size:11px">🎯 전원 적중</span>';
-          else if (r === 0) tag = '<span class="badge" style="background:#e6eaf0;color:#525d6b;font-size:11px">💀 전원 실패</span>';
+          const pct = Math.round(r * 100);
+          if (r === 1) tag = '<span class="badge" style="background:#e0f3e6;color:#116131;font-size:11px">🎯 전원 적중</span>';
+          else if (r === 0) tag = '<span class="badge" style="background:#e6eaf0;color:#525d6b;font-size:11px">☠️ 전원 실패</span>';
+          else if (r < 0.15) tag = `<span class="badge" style="background:#fdecec;color:#a51c1c;font-size:11px">😱 대이변 · ${pct}%만 적중</span>`;
+          else if (r < 0.30) tag = `<span class="badge" style="background:#fdecec;color:#a51c1c;font-size:11px">😲 이변 · ${pct}%만 적중</span>`;
+          else if (r < 0.45) tag = `<span class="badge" style="background:#fff4e0;color:#8a5a06;font-size:11px">🤨 의외의 결과 · ${pct}%만 적중</span>`;
+          else if (r <= 0.55) tag = '<span class="badge" style="background:#eef1f6;color:#334052;font-size:11px">🔥 초박빙</span>';
         }
         let hitters = '';
-        if (m.id === upsetId && r !== null && r > 0 && r < 0.35) {
+        if (r !== null && r > 0 && r < 0.35) {
           const names = parts.filter(p => p.picks[m.id] === m.winner).map(p => p.nickname);
           if (names.length <= 10) hitters = `<div class="note" style="margin-top:6px;font-size:12.5px">이변 적중 ${names.length}명: <b>${names.map(esc).join(', ')}</b></div>`;
         }
         return `<div class="match">
-      <div class="no"><span>${m.seq}경기 ${m.winner === 'X' ? '<span class="badge done">무효/무승부</span>' : ''} ${tag}</span>${matchDivHTML(m)}
+      <div class="no"><span>${m.seq}경기 ${m.winner === 'X' ? '<span class="badge done">무효/무승부</span>' : ''}</span>${matchDivHTML(m)}
         ${hasResult && (winA || winB) ? `<span class="wintag">🏆 ${esc(winA ? m.fighter_a : m.fighter_b)} 승</span>` : ''}</div>
+      ${tag ? `<div style="margin:-4px 0 10px">${tag}</div>` : ''}
       <div class="split" onclick="openMatchVoters('${m.id}')" style="cursor:pointer" title="누가 투표했는지 보기">${splitInner(m, parts, hasResult)}</div>${hitters}</div>`;
       }).join('');
 
@@ -16444,7 +16450,7 @@
     ${me.records.sort((a, b) => new Date(b.t.deadline) - new Date(a.t.deadline)).map(r => `
       <a class="t-card" href="#/t/${r.t.id}">
         <div class="tt">${esc(r.t.title)}</div>
-        <div class="meta"><span><b>${rlabel(r.rank)}</b></span><span>🎯 ${r.hit}/${r.total} 적중</span><span>👥 ${r.entrants}명 중</span></div>
+        <div class="meta"><span><b>${rlabel(r.rank)}</b></span><span>🎯 ${r.total}개 중 ${r.hit}개 적중(${r.total ? Math.round(r.hit / r.total * 100) : 0}%)</span><span>👥 ${r.entrants}명 중</span></div>
       </a>`).join('')}`;
     }
     /* ---------- 관리자 ---------- */
