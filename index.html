@@ -7675,7 +7675,10 @@
     function moreDone() { homeLimit += 10; viewHome(); }
     async function viewHome() {
       loading();
-      let d; try { d = await fetchAll(); } catch (e) { return fail(e); }
+      let d, annRes;
+      try { [d, annRes] = await Promise.all([fetchAll(), fetchAnnouncements()]); } catch (e) { return fail(e); }
+      ANNOUNCEMENTS = (annRes && annRes.items) || [];
+      const activeAnns = activeAnnouncements(ANNOUNCEMENTS);
       const open = d.list.filter(t => tState(t) === 'open').sort((x, y) => new Date(x.deadline) - new Date(y.deadline));
       const wait = d.list.filter(t => tState(t) === 'wait').sort((x, y) => new Date(y.deadline) - new Date(x.deadline));
       const done = d.list.filter(t => tState(t) === 'final').sort((x, y) => new Date(y.deadline) - new Date(x.deadline));
@@ -7690,6 +7693,7 @@
       </div></a>`;
       };
       $app.innerHTML = `
+    ${activeAnns.length ? activeAnns.map(announcementCardHTML).join('') : ''}
     ${open.length ? `<div class="sec-title">🔥 진행 중인 승부예측</div>${open.map(card).join('')}` : ''}
     ${!open.length && !wait.length && !done.length ? `<div class="empty">아직 등록된 대회가 없습니다.<br>관리자 페이지에서 첫 대회를 만들어 보세요!</div>` : ''}
     ${!open.length && (wait.length || done.length) ? `<div class="empty" style="padding:22px 0">지금 진행 중인 투표가 없습니다.</div>` : ''}
@@ -7699,6 +7703,124 @@
       ${done.length > homeLimit ? `<button class="btn wide" style="margin-top:12px" onclick="moreDone()">지난 대회 더보기 (${done.length - homeLimit}개 더 있음)</button>` : ''}` : ''}`;
     }
 
+
+    /* ── 홈 화면 공지 카드 (미디어데이/티켓 오픈 등) ──
+       admin_save_data(site_data 키 'announcements')에 통째로 저장/조회한다 — 선수 랭킹(fighters)과
+       똑같은 방식이라 새 테이블/SQL 실행이 필요 없다. 관리자 페이지에서 추가·수정·삭제하면 바로
+       반영되고, 시작~종료 기간 안에 있는 공지만 홈 화면 승부예측 위에 자동으로 뜨고 사라진다. */
+    let ANNOUNCEMENTS = [];
+    async function fetchAnnouncements() {
+      try {
+        const { data, error } = await sb.from('site_data').select('value').eq('key', 'announcements').single();
+        if (error) { if (/function|not find/i.test(error.message || '')) return { items: [], needPatch: true }; return { items: [] }; }
+        if (data && data.value && Array.isArray(data.value.items)) return { items: data.value.items };
+      } catch (e) { }
+      return { items: [] };
+    }
+    async function saveAnnouncements(items) {
+      const { error } = await sb.rpc('admin_save_data', { p_pass: adminPass(), p_key: 'announcements', p_value: { items } });
+      return error;
+    }
+    // 지금(서버 시각 보정 반영) 기준으로 "노출 기간" 안에 있는 공지만 골라 시작일 빠른 순으로 정렬
+    function activeAnnouncements(list) {
+      const now = Date.now() + (typeof timeOffset === 'number' ? timeOffset : 0);
+      return (list || [])
+        .filter(a => (!a.start || new Date(a.start).getTime() <= now) && (!a.end || new Date(a.end).getTime() >= now))
+        .sort((a, b) => (a.start ? new Date(a.start) : 0) - (b.start ? new Date(b.start) : 0));
+    }
+    function fmtAnnDT(iso) {
+      if (!iso) return '';
+      return new Date(iso).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+    function annPeriodText(a) {
+      if (a.start && a.end) return `${fmtAnnDT(a.start)} ~ ${fmtAnnDT(a.end)}`;
+      if (a.start) return `${fmtAnnDT(a.start)} 부터`;
+      if (a.end) return `${fmtAnnDT(a.end)} 까지`;
+      return '';
+    }
+    function announcementCardHTML(a) {
+      const lines = [annPeriodText(a), a.venue ? `📍 ${a.venue}` : '', a.price ? `💰 ${a.price}` : ''].filter(Boolean);
+      return `<div class="card" style="margin-bottom:12px;border:1.5px solid var(--key-deep);background:var(--key-soft)">
+      <div style="font-weight:800;font-size:15px;color:var(--key-deep)">📢 ${esc(a.title || '')}</div>
+      ${lines.length ? `<div style="font-size:13px;margin-top:6px;color:var(--muted);font-weight:600;line-height:1.6">${lines.map(esc).join('<br>')}</div>` : ''}
+      ${a.link ? `<a class="btn small primary" style="margin-top:10px" href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">바로가기 →</a>` : ''}
+    </div>`;
+    }
+    /* ── 공지 관리(관리자) ── */
+    function annAdminRowHTML(a) {
+      const now = Date.now() + (typeof timeOffset === 'number' ? timeOffset : 0);
+      const isActive = (!a.start || new Date(a.start).getTime() <= now) && (!a.end || new Date(a.end).getTime() >= now);
+      return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:8px 2px;border-bottom:1px solid #eef1f6;flex-wrap:wrap">
+      <span style="min-width:0">
+        <span style="font-weight:800">${esc(a.title || '')}</span>
+        <span class="badge" style="margin-left:6px;font-size:10.5px;${isActive ? 'background:var(--key-soft);color:var(--key-deep)' : 'background:#eef1f4;color:var(--dim)'}">${isActive ? '노출 중' : '노출 기간 아님'}</span>
+        <div style="font-size:11.5px;color:var(--dim);font-weight:600;margin-top:2px">${esc(annPeriodText(a) || '기간 제한 없음')}</div>
+      </span>
+      <span style="display:inline-flex;gap:5px;flex-wrap:wrap;flex-shrink:0">
+        <button class="btn xs" onclick="editAnnouncement('${a.id}')">수정</button>
+        <button class="btn xs" style="color:#c62828" onclick="deleteAnnouncement('${a.id}')">삭제</button>
+      </span>
+    </div>`;
+    }
+    function toggleAnnBox(editId) {
+      const box = document.getElementById('ann-box');
+      const btn = document.getElementById('ann-toggle');
+      if (!box) return;
+      const willOpen = editId || box.style.display === 'none';
+      if (!willOpen) { box.style.display = 'none'; if (btn) btn.textContent = '➕ 새 공지 추가'; return; }
+      const editing = editId ? ANNOUNCEMENTS.find(a => a.id === editId) : null;
+      document.getElementById('ann-title').value = editing ? (editing.title || '') : '';
+      document.getElementById('ann-start').value = editing && editing.start ? editing.start.slice(0, 16) : '';
+      document.getElementById('ann-end').value = editing && editing.end ? editing.end.slice(0, 16) : '';
+      document.getElementById('ann-venue').value = editing ? (editing.venue || '') : '';
+      document.getElementById('ann-price').value = editing ? (editing.price || '') : '';
+      document.getElementById('ann-link').value = editing ? (editing.link || '') : '';
+      document.getElementById('ann-edit-id').value = editing ? editing.id : '';
+      const msg = document.getElementById('ann-msg'); msg.className = 'msg'; msg.textContent = '';
+      const saveBtn = box.querySelector('button.btn.primary');
+      if (saveBtn) saveBtn.textContent = editing ? '수정 저장' : '추가하기';
+      box.style.display = 'block';
+      if (btn) btn.textContent = '➖ 공지 입력창 접기';
+      box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    function editAnnouncement(id) { toggleAnnBox(id); }
+    async function submitAnnouncement() {
+      const title = document.getElementById('ann-title').value.trim();
+      const start = document.getElementById('ann-start').value;
+      const end = document.getElementById('ann-end').value;
+      const venue = document.getElementById('ann-venue').value.trim();
+      const price = document.getElementById('ann-price').value.trim();
+      const link = document.getElementById('ann-link').value.trim();
+      const editId = document.getElementById('ann-edit-id').value;
+      const msg = document.getElementById('ann-msg');
+      const show = (c, s) => { msg.className = 'msg ' + c; msg.textContent = s; };
+      if (!title) return show('err', '제목을 입력해 주세요.');
+      if (start && end && new Date(start) > new Date(end)) return show('err', '노출 시작이 종료보다 늦을 수 없습니다.');
+      if (link && !/^https?:\/\//i.test(link)) return show('err', '링크는 http:// 또는 https:// 로 시작해야 합니다.');
+      const item = {
+        id: editId || ('ann_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+        title, start: start ? new Date(start).toISOString() : '', end: end ? new Date(end).toISOString() : '',
+        venue, price, link
+      };
+      const next = editId ? ANNOUNCEMENTS.map(a => a.id === editId ? item : a) : ANNOUNCEMENTS.concat([item]);
+      const error = await saveAnnouncements(next);
+      if (error) {
+        if (/function|not find/i.test(error.message || '')) return show('err', 'admin_save_data 함수가 아직 없어 저장할 수 없습니다.');
+        return show('err', cleanErr(error.message));
+      }
+      ANNOUNCEMENTS = next;
+      toastMsg(editId ? '✅ 공지가 수정되었습니다.' : '✅ 공지가 추가되었습니다.');
+      viewAdmin();
+    }
+    async function deleteAnnouncement(id) {
+      if (!confirm('이 공지를 삭제할까요?')) return;
+      const next = ANNOUNCEMENTS.filter(a => a.id !== id);
+      const error = await saveAnnouncements(next);
+      if (error) return toastMsg('⚠️ ' + cleanErr(error.message));
+      ANNOUNCEMENTS = next;
+      toastMsg('🗑️ 공지가 삭제되었습니다.');
+      viewAdmin();
+    }
 
     /* ── 블랙컴뱃 공식 선수 랭킹 (blackcombat-official.com 기준) ──
        형식: [순위('C'=챔피언), 닉네임, 본명, 승, 패, 무, 국기]
@@ -16147,6 +16269,9 @@
       }
       loading();
       let d; try { d = await fetchAll(); } catch (e) { return fail(e); }
+      const annRes = await fetchAnnouncements();
+      ANNOUNCEMENTS = annRes.items || [];
+      const annNeedPatch = !!annRes.needPatch;
       // 방문 통계의 "승부예측 상세" 항목에 대회명을 붙여 보여주기 위한 대회ID→대회명 표
       window.__fpTournamentTitles = {};
       d.list.forEach(t => { window.__fpTournamentTitles[String(t.id)] = t.title || ''; });
@@ -16244,6 +16369,25 @@
     </div>
     <div class="sec-title">📋 대회 관리</div>
     ${rows.join('') || '<div class="empty">대회가 없습니다.</div>'}
+    <div class="sec-title">📢 공지 관리 <span style="color:var(--dim);font-size:12px;font-weight:700">홈 화면 승부예측 위에 표시</span></div>
+    ${annNeedPatch ? '<div class="empty">⚠️ admin_save_data 함수가 아직 없어 공지 저장이 안 됩니다. (선수 랭킹 갱신 기능과 같은 함수를 씁니다 — 랭킹 갱신이 이미 되고 있다면 이 메시지는 무시해도 됩니다)</div>' : `
+    <button class="btn wide" id="ann-toggle" onclick="toggleAnnBox()">➕ 새 공지 추가</button>
+    <div class="card" id="ann-box" style="display:none">
+      <div class="field"><label>제목</label><input id="ann-title" placeholder="예: 블랙컴뱃 미디어데이"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="field" style="flex:1;min-width:160px"><label>노출 시작 (선택, 비우면 즉시 노출)</label><input id="ann-start" type="datetime-local"></div>
+        <div class="field" style="flex:1;min-width:160px"><label>노출 종료 (선택, 비우면 계속 노출)</label><input id="ann-end" type="datetime-local"></div>
+      </div>
+      <div class="field"><label>장소 (선택)</label><input id="ann-venue" placeholder="예: 잠실 실내체육관"></div>
+      <div class="field"><label>가격 (선택)</label><input id="ann-price" placeholder="예: 5만원 ~ 12만원"></div>
+      <div class="field"><label>링크 (선택)</label><input id="ann-link" placeholder="https://..."></div>
+      <input type="hidden" id="ann-edit-id">
+      <div class="msg" id="ann-msg"></div>
+      <button class="btn primary wide" style="margin-top:10px" onclick="submitAnnouncement()">추가하기</button>
+    </div>
+    <div class="card">
+      ${ANNOUNCEMENTS.length ? ANNOUNCEMENTS.map(annAdminRowHTML).join('') : '<div class="empty">등록된 공지가 없습니다.</div>'}
+    </div>`}
     ${statsHTML}
     ${siteStatsHTML}
     <div class="sec-title">유저 관리 <span style="color:var(--dim);font-size:12px;font-weight:700">오픈톡방 유저만 신규 등록 가능</span></div>
