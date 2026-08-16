@@ -7386,7 +7386,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T09:15:00+09:00';
+    const BUILD_ID = '2026-08-16T09:40:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -7718,8 +7718,10 @@
         ${cd ? cdHTML(t.deadline) : `<span>🔒 ${fmtDT(t.deadline)} 마감</span>`}
       </div></a>`;
       };
+      window.__annActiveCache = activeAnns; // 공유 버튼이 지금 화면에 뜬 공지를 그대로 참조하기 위한 캐시
       $app.innerHTML = `
-    ${activeAnns.length ? activeAnns.map(announcementCardHTML).join('') : ''}
+    ${activeAnns.length ? `<div class="sec-title" style="display:flex;justify-content:space-between;align-items:center;gap:8px">🔔 공지
+      <button class="tk-share-btn" onclick="annShare()">💬 공지 공유</button></div>${activeAnns.map(announcementCardHTML).join('')}` : ''}
     ${open.length ? `<div class="sec-title">🔥 진행 중인 승부예측</div>${open.map(card).join('')}` : ''}
     ${!open.length && !wait.length && !done.length ? `<div class="empty">아직 등록된 대회가 없습니다.<br>관리자 페이지에서 첫 대회를 만들어 보세요!</div>` : ''}
     ${!open.length && (wait.length || done.length) ? `<div class="empty" style="padding:22px 0">지금 진행 중인 투표가 없습니다.</div>` : ''}
@@ -7770,10 +7772,58 @@
     function announcementCardHTML(a) {
       const lines = [annPeriodText(a), a.venue ? `📍 ${a.venue}` : '', a.price ? `💰 ${a.price}` : ''].filter(Boolean);
       return `<div class="card" style="margin-bottom:12px;border:1.5px solid var(--key-deep);background:var(--key-soft)">
-      <div style="font-weight:800;font-size:15px;color:var(--key-deep)">🔔 ${esc(a.title || '')}</div>
+      <div style="font-weight:800;font-size:15px;color:var(--text)">${esc(a.title || '')}</div>
       ${lines.length ? `<div style="font-size:13px;margin-top:6px;color:var(--muted);font-weight:600;line-height:1.6">${lines.map(esc).join('<br>')}</div>` : ''}
       ${a.link ? `<a class="btn primary small" style="margin-top:10px" href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">${esc(a.linkText || '예매하러 가기')}</a>` : ''}
     </div>`;
+    }
+    /* ── 공지 카톡방 공유 ── "티켓 현황 공유"(tkShare)와 같은 확인 팝업/발송 방식을 그대로 쓴다.
+       티켓 예매 링크는 일부러 안 넣는다 — 예매 링크를 바로 주면 굳이 우리 사이트에 안 들어오고
+       그 링크로 바로 가버리니까, 사이트 유입을 위해 사이트 루트 주소만 공유한다. */
+    const ANN_SHARE_LINK = 'https://kingfather0.github.io/BlackCombat/#/';
+    function annShareText(list) {
+      const blocks = (list || []).map(a => {
+        const lines = [a.title || ''];
+        const period = annPeriodText(a);
+        if (period) lines.push(period);
+        if (a.venue) lines.push(`📍 ${a.venue}`);
+        if (a.price) lines.push(`💰 ${a.price}`);
+        return lines.join('\n');
+      });
+      return blocks.concat([ANN_SHARE_LINK]).join('\n\n');
+    }
+    // 티켓 공유(tkShowShareConfirm)와 똑같은 팝업 UI/발송 방식(공유 시트 → 클립보드 → 수동 복사)을
+    // 그대로 재사용한다. tkDoShare는 문구를 그대로 받아 처리하는 범용 함수라 바로 쓸 수 있다.
+    function annShowShareConfirm(text) {
+      const ov = document.createElement('div');
+      ov.className = 'modal-ov bb-confirm-ov';
+      ov.innerHTML = `<div class="bb-confirm">
+    <div class="bb-confirm-ic">💬</div>
+    <div class="bb-confirm-t">카톡방에 공유할까요?</div>
+    <div class="bb-confirm-b">아래 메시지가 그대로 전달돼요.</div>
+    <div class="bb-promote-preview" style="text-align:left">${esc(text).replace(/\n/g, '<br>')}</div>
+    <div class="bb-confirm-actions">
+      <button type="button" class="bb-confirm-btn cancel">취소</button>
+      <button type="button" class="bb-confirm-btn ok">보내기</button>
+    </div>
+  </div>`;
+      ov.onclick = e => { if (e.target === ov) history.back(); };
+      const [cancelBtn, okBtn] = ov.querySelectorAll('.bb-confirm-btn');
+      cancelBtn.onpointerdown = e => e.stopPropagation();
+      cancelBtn.onclick = e => { e.stopPropagation(); history.back(); };
+      okBtn.onpointerdown = e => e.stopPropagation();
+      okBtn.onclick = e => {
+        e.stopPropagation();
+        const method = tkDoShare(text);
+        if (method === 'manual') { okBtn.style.display = 'none'; cancelBtn.textContent = '닫기'; return; }
+        history.back();
+      };
+      pushModal(ov);
+    }
+    function annShare() {
+      const list = window.__annActiveCache || [];
+      if (!list.length) { toastMsg('공유할 공지가 없습니다.'); return; }
+      annShowShareConfirm(annShareText(list));
     }
     /* ── 공지 관리(관리자) ── */
     function annAdminRowHTML(a) {
