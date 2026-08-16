@@ -63,17 +63,15 @@ if (!EVENT_KEY) bail('EVENT_KEY 환경변수가 없습니다.');
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) bail('SUPABASE_URL / SUPABASE_ANON_KEY 환경변수가 없습니다.');
 if (!TICKET_BOT_SECRET) bail('TICKET_BOT_SECRET 환경변수가 없습니다.');
 
-// "2026-05-27 20:00:00" 같은 값을 "5월 27일 오후 8시 00분" 형식의 자연스러운 한글로 바꾼다.
-// (Node 실행 환경에 따라 toLocaleString('ko-KR')이 오전/오후 대신 AM/PM을 돌려주는 경우가 있어
-//  직접 포맷한다 — 사이트의 다른 openText 표기들과 톤을 맞추기 위함)
-function formatOpenTextKo(dateTimeStr) {
-  const m = String(dateTimeStr || '').match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+// "2026. 08. 29" / "2026-08-29" 같은 값을 NOL 쪽(ticket-watch.js)과 동일한 "2026.08.29"
+// 형식으로 짧게 바꾼다. 상단 행사 정보 카드의 "📅" 줄에 쓰인다 — 예전엔 turnDateTimeKrViewList의
+// 긴 문장("2026년 8월 29일 (토) 오후 07시 00분")을 그대로 썼지만, 로드FC(NOL) 쪽과 표기가
+// 달라 보기 불편하다는 피드백에 맞춰 통일한다.
+function formatDateShortKo(dateStr) {
+  const m = String(dateStr || '').match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
   if (!m) return null;
-  const [, , mo, d, hh, mi] = m;
-  const h = parseInt(hh, 10);
-  const ampm = h < 12 ? '오전' : '오후';
-  let h12 = h % 12; if (h12 === 0) h12 = 12;
-  return `${parseInt(mo, 10)}월 ${parseInt(d, 10)}일 ${ampm} ${h12}시${mi === '00' ? '' : ' ' + parseInt(mi, 10) + '분'} 티켓오픈`;
+  const [, y, mo, d] = m;
+  return `${y}.${String(mo).padStart(2, '0')}.${String(d).padStart(2, '0')}`;
 }
 
 // 회차 이름을 ticket-watch.js(NOL)와 똑같은 "YYYY.MM.DD(요일) h:mm AM/PM" 형식으로 만든다.
@@ -95,6 +93,13 @@ async function getJSON(url) {
   const json = await res.json();
   if (json.resultCode !== '200') throw new Error(`API 응답 오류: ${json.resultMessage || JSON.stringify(json)}`);
   return json.data;
+}
+
+// 29CM API가 주는 등급명("VIP 티켓", "일반 티켓" 등)에서 뒤에 붙는 "티켓"을 떼어 사이트
+// 표시용 등급명("VIP", "일반")으로 통일한다. grades/totals/gradePrices 세 곳 모두 이 이름을
+// 키로 써야 index.html에서 서로 매칭되므로, 한 곳에서만 정의해서 어긋나지 않게 한다.
+function gradeDisplayName(seatGradeName, seatGradeCode) {
+  return String(seatGradeName || '').replace(/\s*티켓$/, '').trim() || seatGradeCode;
 }
 
 // 좌석배치도(seatAssignUnits)를 세어서 다음 세 가지를 정확하게 구한다 (NOL 티켓을 판매
@@ -124,7 +129,7 @@ async function fetchSeatBreakdown(productMasterCode, turnSequence, placeId, quan
     const totals = {};
     let sellableTotal = 0;
     for (const q of quantityList) {
-      const gradeName = String(q.seatGradeName || '').replace(/\s*티켓$/, '').trim() || q.seatGradeCode;
+      const gradeName = gradeDisplayName(q.seatGradeName, q.seatGradeCode);
       const count = countByCode[q.seatGradeCode];
       if (count != null) { totals[gradeName] = count; sellableTotal += count; }
     }
@@ -217,14 +222,33 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       process.exit(0);
     }
 
+    // "기간"에 해당하는 짧은 날짜 표기 — 로드FC(NOL) 쪽과 동일하게 "2026.08.29" 형식으로
+    // 통일한다(시작일과 종료일이 다르면 "시작 ~ 종료"로). openText(티켓 오픈 안내)는 요청에 따라
+    // 더 이상 채우지 않는다 — index.html은 이 값이 없으면 그 줄을 그냥 표시하지 않는다.
+    const startShort = formatDateShortKo(info.productRunStartDate);
+    const endShort = formatDateShortKo(info.productRunEndDate);
+    const dateText = startShort && endShort && startShort !== endShort
+      ? `${startShort} ~ ${endShort}`
+      : (startShort || endShort || null);
+    // 등급별 정가 — NOL(로드FC 등)은 이 값을 자동으로 못 구해서 북마클릿으로 수동 캡처했지만,
+    // 29CM은 상품 정보 API(seatGradePriceList)가 이미 등급별 가격을 공개로 내려주므로 자동으로
+    // 채운다. index.html의 잔여 좌석 카드는 meta.gradePrices가 있으면 등급명 옆에 가격을,
+    // 없으면 그냥 가격 없이 보여준다(북마클릿 캡처가 있는 NOL 회차와 동일한 방식).
+    const gradePrices = {};
+    if (Array.isArray(info.seatGradePriceList)) {
+      for (const g of info.seatGradePriceList) {
+        const gradeName = gradeDisplayName(g.seatGradeName, g.seatGradeCode);
+        if (g.seatGradePrice != null) gradePrices[gradeName] = g.seatGradePrice;
+      }
+    }
     const meta = {
       title: info.productName || null,
       place: info.placeName || null,
-      dateText: (info.turnDateTimeKrViewList && info.turnDateTimeKrViewList[0]) || null,
-      openText: formatOpenTextKo(info.productOnlineSaleStartDateTime),
+      dateText,
       buyUrl: `https://ticket.29cm.co.kr/catalog/${ITEM_ID_29CM}`,
       platform: '29CM',
       api: { productMasterCode },
+      gradePrices: Object.keys(gradePrices).length ? gradePrices : undefined,
     };
     console.log('🔎 자동 추출된 행사 정보:', JSON.stringify(meta));
 
@@ -250,7 +274,7 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       }
       const grades = {};
       for (const q of quantityList) {
-        const gradeName = String(q.seatGradeName || '').replace(/\s*티켓$/, '').trim() || q.seatGradeCode;
+        const gradeName = gradeDisplayName(q.seatGradeName, q.seatGradeCode);
         grades[gradeName] = { remain: q.turnClassificationRemainingProductQuantity };
       }
       const roundLabel = formatRoundLabel(turn.turnDateTime);
