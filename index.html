@@ -2025,8 +2025,8 @@
     }
 
     .gift-banner {
-      border: 1.5px solid #e6c34d !important;
-      background: #fffaf0 !important
+      border: 1.5px solid var(--key-deep) !important;
+      background: var(--key-soft) !important
     }
 
     /* 참가자 예측 현황 버튼 (입체) */
@@ -7387,7 +7387,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T17:00:00+09:00';
+    const BUILD_ID = '2026-08-16T18:10:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -15959,13 +15959,22 @@
       const first = ranked.filter(r => r.rank === 1);
       const second = ranked.filter(r => r.rank === 2);
       const chip = rankChips(ranked);
+      // 최종 순위 표: 1~3위(공동 포함)는 항상 펼쳐서 보여주고, 4위 이하는 스크롤 영역 +
+      // 닉네임 검색으로 찾아보게 한다 — 참가자가 많아지면 순위표가 한없이 길어지는 걸 방지.
+      const rankTop3 = ranked.filter(r => r.rank <= 3);
+      const rankRest = ranked.filter(r => r.rank > 3);
+      const rankRowHTML = r => `<tr data-nick="${esc(r.nickname.trim().toLowerCase())}">
+        <td>${chip(r)}</td>
+        <td class="nick"><a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a></td>
+        <td><span class="stat-chip">${r.hit} / ${r.total}</span></td>
+        <td><span class="stat-chip b">${r.total ? Math.round(r.hit / r.total * 100) : 0}%</span></td></tr>`;
       // 선물 수령 기한: 경기일(없으면 마감일) 다음날
       const baseD = t.event_at ? new Date(t.event_at) : (t.event_date ? new Date(t.event_date + 'T00:00:00') : new Date(t.deadline));
       const nextD = new Date(baseD.getTime() + 86400000);
       const nextStr = nextD.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' });
       const GIFT = 'https://open.kakao.com/o/su9HLAuh';
       return `
-    <div class="card" style="border:1.5px solid #e6c34d;background:#fffaf0">
+    <div class="card" style="border:1.5px solid var(--key-deep);background:var(--key-soft)">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
         <b>🎁당첨 선물 수령 안내</b>
         ${t.gift_winners
@@ -16023,16 +16032,28 @@
         <span class="pscore">${second[0].hit}/${sm.length} 적중${second.length > 1 ? ` · 공동 ${second.length}명` : ''}</span>
       </div>`: ''}
     </div>
-    <div class="sec-title" style="justify-content:space-between">최종 순위
-      <button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button></div>
-    <div class="tbl-scroll"><table>
-      <tr><th style="width:52px">순위</th><th class="nick">닉네임</th><th>적중</th><th>적중률</th></tr>
-      ${ranked.map(r => `<tr>
-        <td>${chip(r)}</td>
-        <td class="nick"><a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a></td>
-        <td><span class="stat-chip">${r.hit} / ${r.total}</span></td>
-        <td><span class="stat-chip b">${r.total ? Math.round(r.hit / r.total * 100) : 0}%</span></td></tr>`).join('')}
-    </table></div>`;
+    <div class="sec-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <span>최종 순위</span>
+      <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        ${rankRest.length ? `<input id="rankNickSearch" placeholder="닉네임 검색" oninput="filterRankList()" style="background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:7px 11px;color:var(--text);outline:none;font-size:13.5px;width:120px">` : ''}
+        <button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button>
+      </span>
+    </div>
+    <div class="tbl-scroll">
+      <table style="table-layout:fixed;width:100%">
+        <colgroup><col style="width:52px"><col><col style="width:78px"><col style="width:70px"></colgroup>
+        <tr><th>순위</th><th class="nick">닉네임</th><th>적중</th><th>적중률</th></tr>
+        ${rankTop3.map(rankRowHTML).join('')}
+      </table>
+      ${rankRest.length ? `
+      <div id="rankRestScroll" style="max-height:280px;overflow-y:auto;overscroll-behavior:contain;border-top:1px solid var(--border)">
+        <table style="table-layout:fixed;width:100%">
+          <colgroup><col style="width:52px"><col><col style="width:78px"><col style="width:70px"></colgroup>
+          ${rankRest.map(rankRowHTML).join('')}
+        </table>
+      </div>
+      <div class="empty" id="rankRestEmpty" style="display:none;padding:14px">일치하는 닉네임이 없습니다.</div>` : ''}
+    </div>`;
     }
 
     /* --- 경기별 현황 + 참가자 표 --- */
@@ -16187,6 +16208,22 @@
         if (match) shown++;
       });
       const empty = document.getElementById('statNickEmpty');
+      if (empty) empty.style.display = (q && shown === 0) ? '' : 'none';
+    }
+    // 결과 확정 페이지 "최종 순위" 표의 4위 이하 스크롤 영역 닉네임 검색 — 즉시 필터링.
+    // 1~3위는 항상 펼쳐서 보여주는 영역이라 검색 대상에서 제외한다(늘 보이니까 검색할 필요가 없다).
+    function filterRankList() {
+      const box = document.getElementById('rankRestScroll');
+      if (!box) return;
+      const q = (document.getElementById('rankNickSearch')?.value || '').trim().toLowerCase();
+      const rows = box.querySelectorAll('tr[data-nick]');
+      let shown = 0;
+      rows.forEach(row => {
+        const match = !q || row.dataset.nick.includes(q);
+        row.style.display = match ? '' : 'none';
+        if (match) shown++;
+      });
+      const empty = document.getElementById('rankRestEmpty');
       if (empty) empty.style.display = (q && shown === 0) ? '' : 'none';
     }
     /* ---------- 시즌 랭킹 / 개인 페이지 ---------- */
@@ -17255,7 +17292,11 @@
       const row = btn.parentElement;
       row.querySelectorAll('.res-btn').forEach(b => b.classList.remove('selA', 'selB', 'selX'));
       if (resSel[tid][mid] === v) {
-        delete resSel[tid][mid]; // 재클릭 → 선택 해제
+        // 재클릭 → 선택 해제. 단, 키 자체를 지우면(delete) 서버로 보낼 p_winners 객체에
+        // 이 경기가 아예 빠져버려서, "이 경기는 손대지 않음"으로 해석되어 DB에 저장된 예전
+        // 승자가 그대로 남는 버그가 있었다. null로 남겨둬야 "이 경기는 승자 없음"으로
+        // 명시적으로 전달되어 저장 시 실제로 지워진다.
+        resSel[tid][mid] = null;
       } else {
         resSel[tid][mid] = v;
         btn.classList.add('sel' + v);
