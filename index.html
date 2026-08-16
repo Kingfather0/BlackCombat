@@ -15830,14 +15830,13 @@
       if (!parts.length) return `<div class="empty">아직 참가자가 없습니다. 첫 번째로 예측해 보세요!</div>`;
       const hasResult = matches.some(m => m.winner);
       const ranked = st === 'final' ? rankParts(parts, matches) : parts.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-      // 미투표자 필터/표시는 관리자 전용 — "등록된 경기 수"는 matches.length를 그대로 쓰므로
+      // 미완료자 필터/표시는 전체 유저에게 공개 — "등록된 경기 수"는 matches.length를 그대로 쓰므로
       // 경기 수가 16전에서 15전 등으로 바뀌어도 항상 그 시점 기준으로 맞게 계산된다.
-      const isAdm = !!adminPass();
       return `
     <div class="card" style="padding:10px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <input class="pf-in" placeholder="닉네임 검색" oninput="applyPartFilter(this)" style="flex:1;min-width:120px;background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);outline:none;font-size:15px">
-      ${isAdm && matches.length ? `<label style="display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;color:#a51c1c;flex-shrink:0;cursor:pointer;white-space:nowrap;background:#fdecec;border:1px solid #f0c4c4;border-radius:8px;padding:6px 10px" title="등록된 ${matches.length}경기를 전부 예측하지 않은 참가자만 보여줍니다">
-        <input type="checkbox" class="pf-missing-only" onchange="applyPartFilter(this)" style="cursor:pointer;margin:0"> 미투표자만
+      ${matches.length ? `<label style="display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;color:#a51c1c;flex-shrink:0;cursor:pointer;white-space:nowrap;background:#fdecec;border:1px solid #f0c4c4;border-radius:8px;padding:6px 10px" title="등록된 ${matches.length}경기를 전부 예측하지 않은 참가자만 보여줍니다">
+        <input type="checkbox" class="pf-missing-only" onchange="applyPartFilter(this)" style="cursor:pointer;margin:0"> 미완료자
       </label>` : ''}
       <span style="color:var(--dim);font-size:13px;font-weight:700;flex-shrink:0">${parts.length}명 참여</span>
     </div>
@@ -15857,7 +15856,7 @@
         <button class="pcard-h" onclick="togglePicks(this)">
           <span class="pname">${esc(p.nickname)}</span>
           <span style="display:flex;gap:10px;align-items:center;flex-shrink:0">
-            ${isAdm && matches.length ? `<span class="stat-chip" style="${missing > 0 ? 'background:#fdecec;color:#a51c1c' : 'background:#e6f4ea;color:#146c2e'}">${votedCount}/${matches.length}표${missing > 0 ? ` · ${missing}경기 남음` : ''}</span>` : ''}
+            ${matches.length ? `<span class="stat-chip" style="${missing > 0 ? 'background:#fdecec;color:#a51c1c' : 'background:var(--key-soft);color:var(--key-deep)'}">${votedCount}/${matches.length}표${missing > 0 ? ` · ${missing}경기 남음` : ''}</span>` : ''}
             ${hit !== null ? `<span class="stat-chip b">적중 ${hit}</span>` : ''}
             <span class="arr">▾ 펼치기</span>
           </span>
