@@ -7386,7 +7386,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T10:15:00+09:00';
+    const BUILD_ID = '2026-08-16T10:30:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -7785,14 +7785,17 @@
     const ANN_SHARE_LINK = 'kingfather0.github.io/BlackCombat';
     function annShareText(list) {
       const blocks = (list || []).map(a => {
-        const lines = [a.title || ''];
+        const lines = [`🔔${a.title || ''}`];
         const period = annPeriodText(a);
         if (period) lines.push(period);
         if (a.venue) lines.push(`📍 ${a.venue}`);
         if (a.price) lines.push(`💰 ${a.price}`);
         return lines.join('\n');
       });
-      return blocks.concat([ANN_SHARE_LINK]).join('\n\n');
+      // 공지가 여러 건일 때만 공지 사이사이를 빈 줄로 구분하고, 마지막 링크 앞은 한 줄만 띄운다
+      // (예전엔 마지막 링크도 빈 줄 구분자로 이어붙여서, 공지가 1건뿐이어도 가격~링크 사이에
+      // 불필요한 빈 줄이 하나 더 남아있었다)
+      return blocks.join('\n\n') + '\n' + ANN_SHARE_LINK;
     }
     // 티켓 공유(tkShowShareConfirm)와 똑같은 팝업 UI/발송 방식(공유 시트 → 클립보드 → 수동 복사)을
     // 그대로 재사용한다. tkDoShare는 문구를 그대로 받아 처리하는 범용 함수라 바로 쓸 수 있다.
