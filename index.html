@@ -2015,11 +2015,11 @@
     .gift-name {
       display: inline-block;
       background: #fff;
-      border: 1.5px solid #dcbf6a;
+      border: 1.5px solid var(--key-deep);
       border-radius: 8px;
       padding: 2px 10px;
       font-weight: 800;
-      color: #26200f;
+      color: var(--text);
       margin: 2px 3px 2px 0;
       font-size: 14px
     }
@@ -7387,7 +7387,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T18:10:00+09:00';
+    const BUILD_ID = '2026-08-16T19:10:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -10508,7 +10508,12 @@
         downAt = Date.now(); downPos = [ev.offsetX, ev.offsetY]; moved = false;
         dragNode = mode === 'division' ? nodeAt(ev.offsetX, ev.offsetY, 28) : null;
         if (dragNode && dragNode.div !== activeDiv) dragNode = null;
-        if (!dragNode) panStart = { x: ev.offsetX - tx, y: ev.offsetY - ty };
+        // 전체 화면(overview)에서는 드래그로 이동해봤자 누를 게 늘어나지 않는다 — 체급은
+        // 어차피 라벨을 탭하면 바로 들어가지고, 다 지나서 화면 밖으로 나가면 빈 곳 탭
+        // 한 번으로 다시 전체 화면으로 복귀하는 것 말곤 할 게 없어서 오히려 헷갈린다.
+        // 그래서 overview에서는 패닝(이동)을 아예 안 받고, division(체급 상세)에서만 받는다.
+        // 확대/축소(휠·핀치)는 overview에서도 그대로 둔다 — 이동만 막는 거지 확대는 자연스럽다.
+        if (!dragNode && mode !== 'overview') panStart = { x: ev.offsetX - tx, y: ev.offsetY - ty };
       });
       cv.addEventListener('pointermove', ev => {
         if (!pointers.has(ev.pointerId)) return;
@@ -10803,8 +10808,8 @@
         const listLine = bannerTiers.map(g => `<b>${esc(g.desc)} ${g.max}명</b>`).join(' → ');
         html += `
     <div class="card gift-banner" style="margin-top:16px">
-      <b>🎁 당첨 선물</b> <b style="color:#8a6a12">— 총 ${totalWinners}명</b>
-      <div class="note" style="margin-top:6px;color:#57503a">
+      <b>🎁 당첨 선물</b> <b style="color:var(--key-deep)">— 총 ${totalWinners}명</b>
+      <div class="note" style="margin-top:6px">
         <div style="font-size:13.5px;color:var(--key-deep)">${listLine}</div>
         <div style="margin-top:6px">많이 맞힌 순서대로 ${totalWinners}명을 뽑아, 앞의 선물부터 차례로 드려요.<br>동점자끼리는 순서를 랜덤 추첨으로 정해요.</div>
         ${giftExampleHTML(bannerTiers)}
@@ -15959,10 +15964,9 @@
       const first = ranked.filter(r => r.rank === 1);
       const second = ranked.filter(r => r.rank === 2);
       const chip = rankChips(ranked);
-      // 최종 순위 표: 1~3위(공동 포함)는 항상 펼쳐서 보여주고, 4위 이하는 스크롤 영역 +
-      // 닉네임 검색으로 찾아보게 한다 — 참가자가 많아지면 순위표가 한없이 길어지는 걸 방지.
-      const rankTop3 = ranked.filter(r => r.rank <= 3);
-      const rankRest = ranked.filter(r => r.rank > 3);
+      // 최종 순위 표: 1~3위가 자연스럽게 맨 위에서 먼저 보이도록 표 하나를 통째로 스크롤 영역에
+      // 넣는다 (1~3위만 따로 떼어 고정하지 않음 — 스크롤하면 순위 상관없이 전부 같이 움직인다).
+      // 닉네임 검색도 순위 구분 없이 전체 행을 대상으로 필터링한다.
       const rankRowHTML = r => `<tr data-nick="${esc(r.nickname.trim().toLowerCase())}">
         <td>${chip(r)}</td>
         <td class="nick"><a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a></td>
@@ -15987,7 +15991,7 @@
               <button class="btn primary xs" onclick="drawGiftsFromResult('${t.id}')">🎲 선물 추첨</button>
             </span>`}
       </div>
-      <div class="note" style="color:#57503a">
+      <div class="note">
         ${t.gift_winners ? `
           ${(t.gift_winners.mode === 'waterfall' && Array.isArray(t.gift_winners.tiers)) ? `
           <div style="font-weight:800;font-size:14px">🎲 선물 추첨 결과</div>
@@ -16006,7 +16010,7 @@
             const tied = ranked.filter(r => r.rank === g.rank);
             return `<b>${g.rank}등 당첨${g.desc ? ` (${esc(g.desc)})` : ''}</b> :
             ${winners.map(n => `<span class="gift-name">${esc(n)}</span>`).join('') || '-'}
-            ${tied.length > winners.length ? `<span style="color:#8a6a12">← 공동 ${tied.length}명 중 ${winners.length}명 랜덤 추첨</span>` : ''}<br>`;
+            ${tied.length > winners.length ? `<span style="color:var(--muted)">← 공동 ${tied.length}명 중 ${winners.length}명 랜덤 추첨</span>` : ''}<br>`;
           }).join('')}`}
           위 당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>`
           : `당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>`}
@@ -16035,24 +16039,19 @@
     <div class="sec-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
       <span>최종 순위</span>
       <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        ${rankRest.length ? `<input id="rankNickSearch" placeholder="닉네임 검색" oninput="filterRankList()" style="background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:7px 11px;color:var(--text);outline:none;font-size:13.5px;width:120px">` : ''}
+        ${ranked.length > 3 ? `<input id="rankNickSearch" placeholder="닉네임 검색" oninput="filterRankList()" style="background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:7px 11px;color:var(--text);outline:none;font-size:13.5px;width:120px">` : ''}
         <button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button>
       </span>
     </div>
     <div class="tbl-scroll">
-      <table style="table-layout:fixed;width:100%">
-        <colgroup><col style="width:52px"><col><col style="width:78px"><col style="width:70px"></colgroup>
-        <tr><th>순위</th><th class="nick">닉네임</th><th>적중</th><th>적중률</th></tr>
-        ${rankTop3.map(rankRowHTML).join('')}
-      </table>
-      ${rankRest.length ? `
-      <div id="rankRestScroll" style="max-height:280px;overflow-y:auto;overscroll-behavior:contain;border-top:1px solid var(--border)">
+      <div id="rankScrollBox" style="${ranked.length > 3 ? 'max-height:280px;overflow-y:auto;overscroll-behavior:contain' : ''}">
         <table style="table-layout:fixed;width:100%">
           <colgroup><col style="width:52px"><col><col style="width:78px"><col style="width:70px"></colgroup>
-          ${rankRest.map(rankRowHTML).join('')}
+          <tr><th>순위</th><th class="nick">닉네임</th><th>적중</th><th>적중률</th></tr>
+          ${ranked.map(rankRowHTML).join('')}
         </table>
       </div>
-      <div class="empty" id="rankRestEmpty" style="display:none;padding:14px">일치하는 닉네임이 없습니다.</div>` : ''}
+      <div class="empty" id="rankEmpty" style="display:none;padding:14px">일치하는 닉네임이 없습니다.</div>
     </div>`;
     }
 
@@ -16210,10 +16209,9 @@
       const empty = document.getElementById('statNickEmpty');
       if (empty) empty.style.display = (q && shown === 0) ? '' : 'none';
     }
-    // 결과 확정 페이지 "최종 순위" 표의 4위 이하 스크롤 영역 닉네임 검색 — 즉시 필터링.
-    // 1~3위는 항상 펼쳐서 보여주는 영역이라 검색 대상에서 제외한다(늘 보이니까 검색할 필요가 없다).
+    // 결과 확정 페이지 "최종 순위" 표 닉네임 검색 — 순위 상관없이 전체 행을 대상으로 즉시 필터링.
     function filterRankList() {
-      const box = document.getElementById('rankRestScroll');
+      const box = document.getElementById('rankScrollBox');
       if (!box) return;
       const q = (document.getElementById('rankNickSearch')?.value || '').trim().toLowerCase();
       const rows = box.querySelectorAll('tr[data-nick]');
@@ -16223,7 +16221,7 @@
         row.style.display = match ? '' : 'none';
         if (match) shown++;
       });
-      const empty = document.getElementById('rankRestEmpty');
+      const empty = document.getElementById('rankEmpty');
       if (empty) empty.style.display = (q && shown === 0) ? '' : 'none';
     }
     /* ---------- 시즌 랭킹 / 개인 페이지 ---------- */
@@ -17306,6 +17304,10 @@
       const { error } = await sb.rpc('admin_set_results', { p_pass: adminPass(), p_tid: tid, p_winners: resSel[tid] || {} });
       if (error) return toastMsg('⚠️ ' + cleanErr(error.message));
       seasonCache = null; // 결과가 바뀌었으니 선수별 승부예측 기록 캐시 무효화
+      // 경기 결과를 다시 저장하면(수정/재입력) 예전 결과 기준으로 뽑아둔 선물 추첨은 더 이상
+      // 맞지 않으니 항상 자동으로 취소한다 — [선물 추첨하기]를 다시 눌러야 새로 뽑히게.
+      // 이미 추첨 전이었으면 그냥 아무 효과 없는 호출이라 조용히 무시(실패해도 결과 저장 자체는 성공).
+      try { await sb.rpc('admin_clear_gifts', { p_pass: adminPass(), p_tid: tid }); } catch (e) { }
       toastMsg('결과가 저장되었습니다. 순위가 자동 계산됩니다!');
       route();
     }
