@@ -349,6 +349,9 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
     // 예매 페이지 주소도 기록에 남긴다 — 사이트의 "예매하러 가기" 버튼이 이 값을 우선 사용해서,
     // 행사가 바뀔 때마다 index.html의 하드코딩 주소(TICKET_INFO.buyUrl)를 고칠 필요가 없어진다.
     meta.buyUrl = TICKET_URL;
+    // 출처 표시용 — 예전 기록(이 필드가 생기기 전)엔 없지만, index.html 쪽에서 없으면
+    // 'NOL 티켓'으로 대체해서 보여주므로 화면은 그대로 유지된다.
+    meta.platform = 'NOL 티켓';
     console.log('🔎 자동 추출된 행사 정보:', JSON.stringify(meta));
 
     const dateBtn = await findAndClickDate(page);
