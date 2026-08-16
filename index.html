@@ -6,13 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>🔥블랙컴뱃 잡담방🔥</title>
   <meta property="og:title" content="🔥블랙컴뱃 잡담방🔥">
-  <meta property="og:description" content="블랙컴뱃 승부예측 · 랭킹 · 게임">
+  <meta property="og:description" content="블랙컴뱃 승부예측 · 족보 · 업적 · 랭킹 · 게임">
   <meta property="og:image" content="https://kingfather0.github.io/BlackCombat/og.jpg?v=2">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://kingfather0.github.io/BlackCombat/">
-  <meta name="description" content="격투기 승부예측 · 랭킹 · 게임">
+  <meta name="description" content="격투기 승부예측 · 족보 · 업적 · 랭킹 · 게임">
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦁</text></svg>">
   <link rel="manifest" href="manifest.json">
@@ -1402,7 +1402,8 @@
       border-top: 1px solid var(--border);
       text-align: center;
       color: var(--dim);
-      font-size: 13px
+      font-size: 13px;
+      word-break: keep-all
     }
 
     footer a {
@@ -6740,7 +6741,7 @@
     <div class="empty">불러오는 중…</div>
   </div>
   <footer>
-    🔥블랙컴뱃 잡담방🔥 승부예측 · 랭킹 · 게임 &nbsp;|&nbsp; <a href="#/admin">관리자</a>
+    🔥블랙컴뱃 잡담방🔥 승부예측 · 족보 · 업적 · 랭킹 · 게임 &nbsp;|&nbsp; <a href="#/admin">관리자</a>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -7386,7 +7387,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T10:55:00+09:00';
+    const BUILD_ID = '2026-08-16T15:55:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -7773,7 +7774,7 @@
       const lines = [period ? `📅 ${period}` : '', a.venue ? `📍 ${a.venue}` : '', a.price ? `💰 ${a.price}` : ''].filter(Boolean);
       return `<div class="card" style="margin-bottom:12px;border:1.5px solid var(--key-deep);background:var(--key-soft)">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <div style="font-weight:800;font-size:15px;color:var(--text)">🔔${esc(a.title || '')}</div>
+        <div style="font-weight:800;font-size:15px;color:var(--text)">${esc(a.title || '')}</div>
         <button type="button" class="tk-share-btn" onclick="annShareOne('${a.id}')" style="padding:5px 11px;font-size:12px;flex-shrink:0">💬 공지 공유</button>
       </div>
       ${lines.length ? `<div style="font-size:13px;margin-top:6px;color:var(--muted);font-weight:600;line-height:1.6">${lines.map(esc).join('<br>')}</div>` : ''}
@@ -7786,7 +7787,7 @@
     const ANN_SHARE_LINK = 'kingfather0.github.io/BlackCombat';
     function annShareText(list) {
       const blocks = (list || []).map(a => {
-        const lines = [`🔔${a.title || ''}`];
+        const lines = [`${a.title || ''}`];
         const period = annPeriodText(a);
         if (period) lines.push(`📅 ${period}`);
         if (a.venue) lines.push(`📍 ${a.venue}`);
