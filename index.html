@@ -7386,7 +7386,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T08:45:00+09:00';
+    const BUILD_ID = '2026-08-16T09:05:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -7769,9 +7769,9 @@
     }
     function announcementCardHTML(a) {
       const lines = [annPeriodText(a), a.venue ? `📍 ${a.venue}` : '', a.price ? `💰 ${a.price}` : ''].filter(Boolean);
-      return `<div class="card" style="margin-bottom:12px;background:linear-gradient(160deg,#1b140c,#241a0d);border:2px solid #f0a92e;box-shadow:0 4px 16px rgba(240,169,46,.22)">
-      <div style="font-weight:900;font-size:15px;color:#ffd75f;letter-spacing:.2px">🔔 ${esc(a.title || '')}</div>
-      ${lines.length ? `<div style="font-size:13px;margin-top:6px;color:#e8dcc4;font-weight:600;line-height:1.6">${lines.map(esc).join('<br>')}</div>` : ''}
+      return `<div class="card" style="margin-bottom:12px;background:linear-gradient(135deg,#fff9ec,#fdf0d5);border:1.5px solid #e0a020">
+      <div style="font-weight:800;font-size:15px;color:#8a5a00;letter-spacing:.2px">🔔 ${esc(a.title || '')}</div>
+      ${lines.length ? `<div style="font-size:13px;margin-top:6px;color:#7a6a4d;font-weight:600;line-height:1.6">${lines.map(esc).join('<br>')}</div>` : ''}
       ${a.link ? `<a class="btn primary small" style="margin-top:10px;background:linear-gradient(180deg,#ffd15c,#f0a92e);color:#3d2600;font-weight:800;border:none" href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">${esc(a.linkText || '예매하러 가기')}</a>` : ''}
     </div>`;
     }
@@ -7791,6 +7791,14 @@
       </span>
     </div>`;
     }
+    // 저장된 UTC ISO 문자열(...Z)을 <input type=datetime-local>이 원하는 "로컬 시각" 문자열로 변환
+    function isoToLocalInput(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
     function toggleAnnBox(editId) {
       const box = document.getElementById('ann-box');
       const btn = document.getElementById('ann-toggle');
@@ -7799,8 +7807,10 @@
       if (!willOpen) { box.style.display = 'none'; if (btn) btn.textContent = '➕ 새 공지 추가'; return; }
       const editing = editId ? ANNOUNCEMENTS.find(a => a.id === editId) : null;
       document.getElementById('ann-title').value = editing ? (editing.title || '') : '';
-      document.getElementById('ann-start').value = editing && editing.start ? editing.start.slice(0, 16) : '';
-      document.getElementById('ann-end').value = editing && editing.end ? editing.end.slice(0, 16) : '';
+      // 저장된 값은 UTC(...Z)라서 그냥 앞 16자만 자르면 시간대가 어긋난다(예: 16:00 저장 → 07:00로 보임).
+      // datetime-local 입력칸은 "그 기기의 로컬 시각" 문자열을 원하므로, Date로 파싱해 로컬 시/분으로 다시 조립한다.
+      document.getElementById('ann-start').value = isoToLocalInput(editing && editing.start);
+      document.getElementById('ann-end').value = isoToLocalInput(editing && editing.end);
       document.getElementById('ann-venue').value = editing ? (editing.venue || '') : '';
       document.getElementById('ann-price').value = editing ? (editing.price || '') : '';
       document.getElementById('ann-link').value = editing ? (editing.link || '') : '';
