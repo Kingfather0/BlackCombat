@@ -7405,7 +7405,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T22:30:00+09:00';
+    const BUILD_ID = '2026-08-16T22:40:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -16103,12 +16103,12 @@
         let tag = '';
         if (r !== null) {
           const pct = Math.round(r * 100);
-          if (r === 1) tag = '<span class="badge" style="background:#e0f3e6;color:#116131;font-size:11px">🎯 전원 적중</span>';
+          if (r === 1) tag = '<span class="badge" style="background:#e8effd;color:#1d4ed8;font-size:11px">🎯 전원 적중</span>';
           else if (r === 0) tag = '<span class="badge" style="background:#e6eaf0;color:#525d6b;font-size:11px">☠️ 전원 실패</span>';
           else if (r < 0.15) tag = `<span class="badge" style="background:#fdecec;color:#a51c1c;font-size:11px">😱 대이변 · ${pct}%만 적중</span>`;
           else if (r < 0.30) tag = `<span class="badge" style="background:#fdecec;color:#a51c1c;font-size:11px">😲 이변 · ${pct}%만 적중</span>`;
           else if (r < 0.45) tag = `<span class="badge" style="background:#fff4e0;color:#8a5a06;font-size:11px">🤨 의외의 결과 · ${pct}%만 적중</span>`;
-          else if (r <= 0.55) tag = '<span class="badge" style="background:#eef1f6;color:#334052;font-size:11px">🔥 초박빙</span>';
+          else if (r <= 0.55) tag = '<span class="badge" style="background:#f2e8fc;color:#6b21a8;font-size:11px">🔥 초박빙</span>';
         }
         let hitters = '';
         if (r !== null && r > 0 && r < 0.35) {
