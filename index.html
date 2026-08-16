@@ -7386,7 +7386,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T10:00:00+09:00';
+    const BUILD_ID = '2026-08-16T10:15:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -7771,12 +7771,12 @@
     function announcementCardHTML(a) {
       const lines = [annPeriodText(a), a.venue ? `📍 ${a.venue}` : '', a.price ? `💰 ${a.price}` : ''].filter(Boolean);
       return `<div class="card" style="margin-bottom:12px;border:1.5px solid var(--key-deep);background:var(--key-soft)">
-      <div style="font-weight:800;font-size:15px;color:var(--text)">${esc(a.title || '')}</div>
-      ${lines.length ? `<div style="font-size:13px;margin-top:6px;color:var(--muted);font-weight:600;line-height:1.6">${lines.map(esc).join('<br>')}</div>` : ''}
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
-        ${a.link ? `<a class="btn primary small" href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">${esc(a.linkText || '예매하러 가기')}</a>` : ''}
-        <button type="button" class="btn small" onclick="annShareOne('${a.id}')">💬 공지 공유</button>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div style="font-weight:800;font-size:15px;color:var(--text)">🔔${esc(a.title || '')}</div>
+        <button type="button" onclick="annShareOne('${a.id}')" title="공지 공유" aria-label="공지 공유" style="background:none;border:none;padding:2px;margin:0;cursor:pointer;font-size:17px;line-height:1;flex-shrink:0">💬</button>
       </div>
+      ${lines.length ? `<div style="font-size:13px;margin-top:6px;color:var(--muted);font-weight:600;line-height:1.6">${lines.map(esc).join('<br>')}</div>` : ''}
+      ${a.link ? `<a class="btn primary small" style="margin-top:10px" href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">${esc(a.linkText || '예매하러 가기')}</a>` : ''}
     </div>`;
     }
     /* ── 공지 카톡방 공유 ── "티켓 현황 공유"(tkShare)와 같은 확인 팝업/발송 방식을 그대로 쓴다.
