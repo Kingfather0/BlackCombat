@@ -491,6 +491,10 @@
       border-left: 5px solid var(--key);
     }
 
+    .t-card.wait {
+      border-left: 5px solid #d9a520;
+    }
+
     .t-card:hover {
       filter: brightness(.985)
     }
@@ -1255,6 +1259,18 @@
 
     th.nick {
       background: var(--card2)
+    }
+
+    /* 최종 순위 표 전용 닉네임 칸: .nick과 달리 좌우로 스크롤될 일이 없는 표라서
+       position:sticky;left:0 을 안 쓴다 — 세로 스크롤 영역(#rankScrollBox) 안에 가로
+       스크롤 영역(.tbl-scroll)이 중첩돼 있으면 좌우 sticky가 브라우저에 따라 깨지면서
+       스크롤할 때 닉네임 칸만 위로 사라지는 버그가 있었다. */
+    .rank-nick {
+      text-align: left;
+      font-weight: 800;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis
     }
 
     .pick-chip {
@@ -7387,7 +7403,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T19:10:00+09:00';
+    const BUILD_ID = '2026-08-16T20:40:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -10495,10 +10511,19 @@
         if (best >= 0 && bestD < DIVS[best].Rc * 1.15) return best;
         return -1;
       }
-      function maybeAutoExit() {
-        if (mode !== 'division') return;
-        const fit = divisionCam(activeDiv).s;
-        if (scale < fit * 0.45) exitToOverview();
+      // 체급 상세에서 축소하다가 일정 배율 밑으로 내려가면 전체 화면으로 자동 복귀시킨다.
+      // 마우스 휠·핀치는 한 번의 스크롤/제스처에도 이벤트가 연속으로 여러 번 들어오는데,
+      // 예전엔 이 함수가 "축소값을 커서/두 손가락 중심 기준으로 계속 반영한 뒤" 호출돼서
+      // 전체 화면으로 넘어가는 바로 그 이벤트에서 이미 위치가 한쪽으로 쏠린 채로 나가버리고,
+      // 그 다음 이어지는 이벤트들도 (이미 mode가 'overview'라 이 함수는 그냥 리턴하지만) 커서
+      // 기준 이동을 계속 적용해서 exitToOverview()가 잡아준 중앙 위치를 다시 흐트러뜨렸다.
+      // 그래서 지금은: (1) division에서 임계값을 넘는 순간엔 이번 휠/핀치 값은 아예 반영하지
+      // 않고 바로 exitToOverview()에 맡기고, (2) overview에서는 맞춰진 배율(overviewCam().s)
+      // 밑으로는 축소가 안 되게 막아서, 축소를 계속해도 항상 중앙에 맞춰진 상태로 스냅되게 한다.
+      function clampOverviewFloor() {
+        if (mode !== 'overview') return;
+        const fit = overviewCam();
+        if (scale <= fit.s + 1e-6) { scale = fit.s; tx = fit.x; ty = fit.y; }
       }
       cv.addEventListener('pointerdown', ev => {
         cv.setPointerCapture(ev.pointerId);
@@ -10522,10 +10547,11 @@
           const ps = [...pointers.values()];
           const d = Math.hypot(ps[0][0] - ps[1][0], ps[0][1] - ps[1][1]);
           const cx = (ps[0][0] + ps[1][0]) / 2, cy = (ps[0][1] + ps[1][1]) / 2;
-          const ns = Math.max(.06, Math.min(2.8, pinch.s * d / pinch.d));
-          tx = cx - (cx - tx) * ns / scale; ty = cy - (cy - ty) * ns / scale; scale = ns;
+          const raw = Math.max(.06, Math.min(2.8, pinch.s * d / pinch.d));
           userAdjusted = true;
-          maybeAutoExit();
+          if (mode === 'division' && raw < divisionCam(activeDiv).s * 0.45) { exitToOverview(); return; }
+          tx = cx - (cx - tx) * raw / scale; ty = cy - (cy - ty) * raw / scale; scale = raw;
+          clampOverviewFloor();
           return;
         }
         if (downPos && Math.hypot(ev.offsetX - downPos[0], ev.offsetY - downPos[1]) > 6) moved = true;
@@ -10558,12 +10584,13 @@
       cv.addEventListener('wheel', ev => {
         ev.preventDefault();
         anim = null;
-        const ns = Math.max(.06, Math.min(2.8, scale * (ev.deltaY < 0 ? 1.12 : .89)));
-        tx = ev.offsetX - (ev.offsetX - tx) * ns / scale;
-        ty = ev.offsetY - (ev.offsetY - ty) * ns / scale;
-        scale = ns;
+        const raw = Math.max(.06, Math.min(2.8, scale * (ev.deltaY < 0 ? 1.12 : .89)));
         userAdjusted = true;
-        maybeAutoExit();
+        if (mode === 'division' && raw < divisionCam(activeDiv).s * 0.45) { exitToOverview(); return; }
+        tx = ev.offsetX - (ev.offsetX - tx) * raw / scale;
+        ty = ev.offsetY - (ev.offsetY - ty) * raw / scale;
+        scale = raw;
+        clampOverviewFloor();
       }, { passive: false });
       backBtn.onclick = () => { if (selected) select(null, true); else exitToOverview(); };
       // 전체화면 버튼 — 브라우저 기본 전체화면을 쓰고, 지원이 안 되는 iOS(아이폰 사파리/앱)에서는
@@ -10808,7 +10835,7 @@
         const listLine = bannerTiers.map(g => `<b>${esc(g.desc)} ${g.max}명</b>`).join(' → ');
         html += `
     <div class="card gift-banner" style="margin-top:16px">
-      <b>🎁 당첨 선물</b> <b style="color:var(--key-deep)">— 총 ${totalWinners}명</b>
+      <b>🎁 당첨 선물</b> <b>— 총 ${totalWinners}명</b>
       <div class="note" style="margin-top:6px">
         <div style="font-size:13.5px;color:var(--key-deep)">${listLine}</div>
         <div style="margin-top:6px">많이 맞힌 순서대로 ${totalWinners}명을 뽑아, 앞의 선물부터 차례로 드려요.<br>동점자끼리는 순서를 랜덤 추첨으로 정해요.</div>
@@ -10821,6 +10848,7 @@
       if (st === 'final') html += resultHTML(t, matches, parts) + rulesHTML();
       html += `<div id="liveboard">${liveBoardHTML(t, matches, parts, st)}</div>`;
       $app.innerHTML = html;
+      if (st === 'final') fitRankScrollBox();
 
       document.body.classList.toggle('has-votebar', st === 'open' && !!gmMyNick);
       if (st === 'open') {
@@ -15967,9 +15995,9 @@
       // 최종 순위 표: 1~3위가 자연스럽게 맨 위에서 먼저 보이도록 표 하나를 통째로 스크롤 영역에
       // 넣는다 (1~3위만 따로 떼어 고정하지 않음 — 스크롤하면 순위 상관없이 전부 같이 움직인다).
       // 닉네임 검색도 순위 구분 없이 전체 행을 대상으로 필터링한다.
-      const rankRowHTML = r => `<tr data-nick="${esc(r.nickname.trim().toLowerCase())}">
+      const rankRowHTML = r => `<tr data-nick="${esc(r.nickname.trim().toLowerCase())}" data-rank="${r.rank}">
         <td>${chip(r)}</td>
-        <td class="nick"><a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a></td>
+        <td class="rank-nick"><a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a></td>
         <td><span class="stat-chip">${r.hit} / ${r.total}</span></td>
         <td><span class="stat-chip b">${r.total ? Math.round(r.hit / r.total * 100) : 0}%</span></td></tr>`;
       // 선물 수령 기한: 경기일(없으면 마감일) 다음날
@@ -16047,7 +16075,7 @@
       <div id="rankScrollBox" style="${ranked.length > 3 ? 'max-height:280px;overflow-y:auto;overscroll-behavior:contain' : ''}">
         <table style="table-layout:fixed;width:100%">
           <colgroup><col style="width:52px"><col><col style="width:78px"><col style="width:70px"></colgroup>
-          <tr><th>순위</th><th class="nick">닉네임</th><th>적중</th><th>적중률</th></tr>
+          <tr><th>순위</th><th class="rank-nick">닉네임</th><th>적중</th><th>적중률</th></tr>
           ${ranked.map(rankRowHTML).join('')}
         </table>
       </div>
@@ -16223,6 +16251,23 @@
       });
       const empty = document.getElementById('rankEmpty');
       if (empty) empty.style.display = (q && shown === 0) ? '' : 'none';
+    }
+    // 결과 확정 페이지 "최종 순위" 표 초기 스크롤 박스 높이 — 몇 등까지 표시되든(공동 순위 포함)
+    // 1~3위 행은 전부 스크롤 없이 바로 보이게 하고, 4위부터는 스크롤해야 보이도록 표 렌더링
+    // 직후 실제 행 높이를 측정해서 max-height를 동적으로 맞춘다.
+    function fitRankScrollBox() {
+      const box = document.getElementById('rankScrollBox');
+      if (!box) return;
+      const table = box.querySelector('table');
+      if (!table) return;
+      const headerRow = table.querySelector('tr');
+      let h = headerRow ? headerRow.getBoundingClientRect().height : 0;
+      table.querySelectorAll('tr[data-nick]').forEach(row => {
+        if (parseInt(row.dataset.rank, 10) <= 3) h += row.getBoundingClientRect().height;
+      });
+      if (!h) return;
+      const capped = Math.min(Math.ceil(h) + 2, Math.round(window.innerHeight * .6));
+      box.style.maxHeight = capped + 'px';
     }
     /* ---------- 시즌 랭킹 / 개인 페이지 ---------- */
     async function fetchSeasonData() {
