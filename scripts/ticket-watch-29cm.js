@@ -18,9 +18,17 @@
 //   2. GET /api/public/product/ticket/info?productMasterCode={pmc}
 //        → 상품명/장소/가격/판매기간/공지사항 등 행사 메타 정보
 //   3. GET /api/public/product/ticket/turn/info?productMasterCode={pmc}
-//        → 회차(날짜/시간) 목록
+//        → 회차(날짜/시간) 목록, 좌석 배치도가 있는 placeId도 여기서 얻는다
 //   4. GET /api/public/product/ticket/turn/detail/seat/info?productMasterCode={pmc}&turnSequence={turn}
 //        → 그 회차의 등급별 잔여석(quantityList)
+//   5. GET /api/preempt/seat/info?productMasterCode={pmc}&turnSequence={turn}&placeId={placeId}
+//        → 좌석 하나하나의 등급/판매상태가 담긴 전체 좌석배치(seatAssignUnits). 여기 있는
+//          좌석을 등급별로 세면 "등급별 총원"을 추측이 아니라 정확한 숫자로 알 수 있다
+//          (NOL 티켓을 로드FC 판매 중간에 웹사이트 코드를 직접 뜯어서 총 좌석 수를 확인했던
+//          것과 같은 방식 — 2026-08-17 직접 확인: 이 상품은 VIP 100석 + 일반 442석 + 그 외
+//          공개 판매 대상이 아닌 8석 = 총 550석으로, quantityList의 잔여석과도 정확히 들어맞음).
+//          이 방식 덕분에 판매 도중에 추적을 시작해도(이미 일부 매진된 등급이 있어도) 총원이
+//          항상 정확하다 — "처음 기록 = 총원"으로 추측하던 이전 방식보다 훨씬 신뢰할 수 있다.
 //
 // 필요한 환경변수:
 //   ITEM_ID_29CM        29CM 티켓 상품 번호 (예: https://ticket.29cm.co.kr/catalog/3998565 → 3998565)
@@ -43,6 +51,7 @@ const TICKET_BOT_SECRET = process.env.TICKET_BOT_SECRET;
 const SET_CURRENT = process.env.SET_CURRENT !== 'false';
 
 const API_BASE = 'https://ticket.29cm.co.kr/api/public/product/ticket';
+const ORDER_API_BASE = 'https://ticket.29cm.co.kr/api'; // 좌석배치(전체 좌석 수) 조회용 — /public 하위가 아님
 
 function bail(msg) {
   console.error('❌ ' + msg);
@@ -88,8 +97,39 @@ async function getJSON(url) {
   return json.data;
 }
 
-// 등급별 "총 좌석수"는 API 어디에도 직접 나오지 않는다(잔여석만 알려줌). ticket-watch.js(NOL)와
-// 같은 방식으로, 이 회차를 통틀어 우리가 "처음으로" 기록하는 순간이면 그때의 잔여석 = 총원으로 본다.
+// 등급별 "총 좌석수"를 좌석배치도(seatAssignUnits)를 세어서 정확하게 구한다. quantityList에
+// 나온 등급(seatGradeCode)만 대상으로 하고, 공개 판매 대상이 아닌 등급(예: 스탭/기타석)은
+// 자연스럽게 제외된다. 실패하면(엔드포인트가 막히는 등) null을 반환하고, 그 경우 호출부가
+// estimateTotalsIfFirstSnapshot()으로 대체한다(안전망 — 회귀 없음).
+async function fetchExactGradeTotals(productMasterCode, turnSequence, placeId, quantityList) {
+  if (!placeId) return null;
+  try {
+    const data = await getJSON(
+      `${ORDER_API_BASE}/preempt/seat/info?productMasterCode=${productMasterCode}&turnSequence=${turnSequence}&placeId=${placeId}`
+    );
+    const units = data && data.seatAssignUnits;
+    if (!Array.isArray(units) || units.length === 0) return null;
+    const countByCode = {};
+    for (const u of units) {
+      const code = u.seatGradeCode;
+      if (code == null) continue;
+      countByCode[code] = (countByCode[code] || 0) + 1;
+    }
+    const totals = {};
+    for (const q of quantityList) {
+      const gradeName = String(q.seatGradeName || '').replace(/\s*티켓$/, '').trim() || q.seatGradeCode;
+      const count = countByCode[q.seatGradeCode];
+      if (count != null) totals[gradeName] = count;
+    }
+    return Object.keys(totals).length ? totals : null;
+  } catch (e) {
+    console.log('ℹ️ 좌석배치도에서 총원을 세는 데 실패했습니다 (' + (e.message || e) + ') — 대체 방식으로 넘어갑니다.');
+    return null;
+  }
+}
+
+// 위 방식이 실패했을 때만 쓰는 예전 방식(안전망): ticket-watch.js(NOL)와 같은 방식으로, 이
+// 회차를 통틀어 우리가 "처음으로" 기록하는 순간이면 그때의 잔여석 = 총원으로 추측한다.
 async function fetchExistingSnapshotCount(roundLabel) {
   try {
     const params = new URLSearchParams({ event_key: `eq.${EVENT_KEY}`, select: 'id', limit: '1' });
@@ -205,9 +245,18 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
         grades[gradeName] = { remain: q.turnClassificationRemainingProductQuantity };
       }
       const roundLabel = formatRoundLabel(turn.turnDateTime);
-      const totals = await estimateTotalsIfFirstSnapshot(grades, roundLabel);
-      if (totals) console.log(`🆕 [${roundLabel}] 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다:`, JSON.stringify(totals));
-      await postSnapshot(grades, roundLabel, '29CM 공개 API에서 직접 추출', totals, meta);
+      const placeId = turn.placeId || row.placeId;
+      let totals = await fetchExactGradeTotals(productMasterCode, turn.turnSequence, placeId, quantityList);
+      let note = '29CM 공개 API에서 직접 추출 (좌석배치도로 등급별 총원 확인)';
+      if (totals) {
+        console.log(`🎯 [${roundLabel}] 좌석배치도에서 등급별 총원을 정확히 확인했습니다:`, JSON.stringify(totals));
+      } else {
+        // 안전망: 좌석배치도 조회가 실패했을 때만, 이번이 첫 기록이면 잔여석을 총원으로 추측한다.
+        totals = await estimateTotalsIfFirstSnapshot(grades, roundLabel);
+        note = '29CM 공개 API에서 직접 추출';
+        if (totals) console.log(`🆕 [${roundLabel}] 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다(추정치):`, JSON.stringify(totals));
+      }
+      await postSnapshot(grades, roundLabel, note, totals, meta);
       console.log(`✅ [${roundLabel}] 기록 완료:`, JSON.stringify(grades));
       recorded++;
     }
