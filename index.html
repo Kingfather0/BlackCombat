@@ -7386,7 +7386,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-16T08:20:00+09:00';
+    const BUILD_ID = '2026-08-16T08:45:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -7756,7 +7756,10 @@
     }
     function fmtAnnDT(iso) {
       if (!iso) return '';
-      return new Date(iso).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+      const d = new Date(iso);
+      const wd = ['일', '월', '화', '수', '목', '금', '토'][d.getDay()];
+      const hh = String(d.getHours()).padStart(2, '0'), mm = String(d.getMinutes()).padStart(2, '0');
+      return `${d.getMonth() + 1}. ${d.getDate()}(${wd}) ${hh}:${mm}`;
     }
     function annPeriodText(a) {
       if (a.start && a.end) return `${fmtAnnDT(a.start)} ~ ${fmtAnnDT(a.end)}`;
@@ -7766,10 +7769,10 @@
     }
     function announcementCardHTML(a) {
       const lines = [annPeriodText(a), a.venue ? `📍 ${a.venue}` : '', a.price ? `💰 ${a.price}` : ''].filter(Boolean);
-      return `<div class="card" style="margin-bottom:12px;border:1.5px solid var(--key-deep);background:var(--key-soft)">
-      <div style="font-weight:800;font-size:15px;color:var(--key-deep)">📢 ${esc(a.title || '')}</div>
-      ${lines.length ? `<div style="font-size:13px;margin-top:6px;color:var(--muted);font-weight:600;line-height:1.6">${lines.map(esc).join('<br>')}</div>` : ''}
-      ${a.link ? `<a class="btn small primary" style="margin-top:10px" href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">바로가기 →</a>` : ''}
+      return `<div class="card" style="margin-bottom:12px;background:linear-gradient(160deg,#1b140c,#241a0d);border:2px solid #f0a92e;box-shadow:0 4px 16px rgba(240,169,46,.22)">
+      <div style="font-weight:900;font-size:15px;color:#ffd75f;letter-spacing:.2px">🔔 ${esc(a.title || '')}</div>
+      ${lines.length ? `<div style="font-size:13px;margin-top:6px;color:#e8dcc4;font-weight:600;line-height:1.6">${lines.map(esc).join('<br>')}</div>` : ''}
+      ${a.link ? `<a class="btn primary small" style="margin-top:10px;background:linear-gradient(180deg,#ffd15c,#f0a92e);color:#3d2600;font-weight:800;border:none" href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">${esc(a.linkText || '예매하러 가기')}</a>` : ''}
     </div>`;
     }
     /* ── 공지 관리(관리자) ── */
@@ -7801,6 +7804,7 @@
       document.getElementById('ann-venue').value = editing ? (editing.venue || '') : '';
       document.getElementById('ann-price').value = editing ? (editing.price || '') : '';
       document.getElementById('ann-link').value = editing ? (editing.link || '') : '';
+      document.getElementById('ann-linktext').value = editing ? (editing.linkText || '') : '';
       document.getElementById('ann-edit-id').value = editing ? editing.id : '';
       const msg = document.getElementById('ann-msg'); msg.className = 'msg'; msg.textContent = '';
       const saveBtn = box.querySelector('button.btn.primary');
@@ -7817,6 +7821,7 @@
       const venue = document.getElementById('ann-venue').value.trim();
       const price = document.getElementById('ann-price').value.trim();
       const link = document.getElementById('ann-link').value.trim();
+      const linkText = document.getElementById('ann-linktext').value.trim();
       const editId = document.getElementById('ann-edit-id').value;
       const msg = document.getElementById('ann-msg');
       const show = (c, s) => { msg.className = 'msg ' + c; msg.textContent = s; };
@@ -7826,7 +7831,7 @@
       const item = {
         id: editId || ('ann_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
         title, start: start ? new Date(start).toISOString() : '', end: end ? new Date(end).toISOString() : '',
-        venue, price, link
+        venue, price, link, linkText
       };
       const next = editId ? ANNOUNCEMENTS.map(a => a.id === editId ? item : a) : ANNOUNCEMENTS.concat([item]);
       const error = await saveAnnouncements(next);
@@ -16407,6 +16412,7 @@
       <div class="field"><label>장소 (선택)</label><input id="ann-venue" placeholder="예: 잠실 실내체육관"></div>
       <div class="field"><label>가격 (선택)</label><input id="ann-price" placeholder="예: 5만원 ~ 12만원"></div>
       <div class="field"><label>링크 (선택)</label><input id="ann-link" placeholder="https://..."></div>
+      <div class="field"><label>버튼 문구 (선택, 비우면 "예매하러 가기")</label><input id="ann-linktext" placeholder="예: 예매하러 가기 / 자세히 보기"></div>
       <input type="hidden" id="ann-edit-id">
       <div class="msg" id="ann-msg"></div>
       <button class="btn primary wide" style="margin-top:10px" onclick="submitAnnouncement()">추가하기</button>
