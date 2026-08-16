@@ -7412,7 +7412,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-17T00:20:00+09:00';
+    const BUILD_ID = '2026-08-17T04:30:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -9049,8 +9049,7 @@
 
       const meta = mergedTicketMeta(rows);
       const previewBanner = isPreview
-        ? `<div class="badge wait" style="margin-top:10px">🎟️ 지난 티켓 기록 보기 — ${esc(eventKey)}</div>
-       <div style="margin-top:8px"><a class="btn small" href="#/tickets">← 현재 티켓으로 돌아가기</a></div>`
+        ? `<div style="margin-top:10px"><a class="btn primary small" href="#/tickets">현재 티켓으로 돌아가기</a></div>`
         : '';
       const dpParts = [];
       if (meta.eventDateText) dpParts.push('📅 ' + esc(meta.eventDateText));
