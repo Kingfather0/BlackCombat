@@ -7412,7 +7412,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-17T06:20:00+09:00';
+    const BUILD_ID = '2026-08-17T08:10:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -10102,18 +10102,36 @@
         if (infoEl && infoEl.style.display === 'block' && infoEl.offsetHeight) padB = Math.min(H * .55, infoEl.offsetHeight + 24 + 12);
         return { padT, padB, padR };
       }
-      function camFor(b) {
+      // draw()에서 이름/관계 글자를 그리는 배율 문턱(scale > DETAIL_MIN_SCALE). 체급 확대 화면은
+      // 이 아래로 떨어지면 안 되므로(노드 전부가 안 보이는 게 아니라 "글자만" 통째로 사라지는
+      // 게 더 어색하다), 아래쪽 화면(camFor의 minScale)에서 살짝 여유를 두고 하한선을 맞춘다.
+      const DETAIL_MIN_SCALE = 0.42;
+      function camFor(b, minScale) {
         const { padT, padB, padR } = safePads();
         const pad = 14;
         const availW = Math.max(60, W - pad - padR), availH = Math.max(60, H - padT - padB);
-        const s2 = Math.min(2, availW / (b.x2 - b.x1), availH / (b.y2 - b.y1));
+        let s2 = Math.min(2, availW / (b.x2 - b.x1), availH / (b.y2 - b.y1));
+        if (minScale) s2 = Math.max(s2, minScale);
         return { s: s2,
           x: pad + (availW - (b.x2 - b.x1) * s2) / 2 - b.x1 * s2,
           y: padT + (availH - (b.y2 - b.y1) * s2) / 2 - b.y1 * s2 };
       }
       function animTo(cam, dur) { anim = { t0: performance.now(), dur: dur || 620, from: { s: scale, x: tx, y: ty }, to: cam }; }
-      const overviewCam = () => camFor(boundsOf(nodes, 40));
-      const divisionCam = dix => camFor(boundsOf(nodesByDiv[dix], 20, 22));
+      const overviewCam = () => camFor(boundsOf(nodes, 40)); // 전체 개요는 굳이 글자가 안 보여도 되므로 하한선 없음
+      const divisionCam = dix => camFor(boundsOf(nodesByDiv[dix], 20, 22), DETAIL_MIN_SCALE + .02);
+      // 선수를 선택했을 때는 "체급 전체"가 아니라 "선택 선수 + 조상 + 자손"만 화면에 맞춘다.
+      // 관계없는 노드는 이미 흐리게(alpha 낮춤) 처리되므로 카메라에 안 잡혀도 문제없고,
+      // 맞출 범위가 작아지는 만큼 배율이 높게 유지돼 이름/관계 글자가 사라지는 문제를 줄여준다.
+      // 그래도(노드가 아주 많이 이어진 체급 + 좁은 화면 조합) 모자랄 수 있어 하한선도 함께 건다 —
+      // 이땐 화면 안에 다 안 들어와서 일부가 위/아래로 살짝 잘릴 수 있지만, 글자가 통째로
+      // 사라지는 것보단 스크롤/드래그로 볼 수 있는 쪽이 낫다.
+      function selectionCam() {
+        if (!selected) return divisionCam(activeDiv);
+        const ids = new Set([selected.id, ...anc, ...desc]);
+        const list = [...ids].map(id => byId.get(id)).filter(Boolean);
+        if (!list.length) return divisionCam(activeDiv);
+        return camFor(boundsOf(list, 26, 22), DETAIL_MIN_SCALE + .02);
+      }
       const animToOverview = dur => animTo(overviewCam(), dur);
       const animToDivision = (dix, dur) => animTo(divisionCam(dix), dur);
       function stepAnim() {
@@ -10225,7 +10243,7 @@
       let userAdjusted = false; // 사용자가 직접 확대/이동한 상태면 true (체급 진입/복귀 시 초기화)
       function refitAfterPanel() {
         if (mode !== 'division' || activeDiv < 0 || userAdjusted) return;
-        animTo(divisionCam(activeDiv), 380); followUntil = 0;
+        animTo(selected ? selectionCam() : divisionCam(activeDiv), 380); followUntil = 0;
       }
       function select(n, refit) {
         selected = n; kinListMode = null;
