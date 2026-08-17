@@ -7412,7 +7412,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-17T05:10:00+09:00';
+    const BUILD_ID = '2026-08-17T06:20:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -8255,8 +8255,12 @@
     }
     // 등급별 "판매된 좌석"이 전체 판매량에서 차지하는 비율을 도넛(원형) 그래프로 그린다.
     // 어떤 등급이 많이 팔렸는지 한눈에 비교하는 용도. 판매량이 0이면 표시하지 않는다.
-    // 색상은 색약(색맹) 시뮬레이션·명도 균형 검증을 통과한 8색 팔레트를 고정 순서로 사용한다.
-    const TK_PIE_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'];
+    // 색상은 색약(색맹) 시뮬레이션·명도 균형 검증을 통과한 8색 팔레트를 고정 순서로 사용했었는데,
+    // 29CM(블랙컴뱃)은 등급이 8~9개까지 있을 수 있어(TK_PIE_COLORS[i % length]로 순환하는 구조라
+    // 등급 수가 팔레트 길이를 넘으면 색이 겹친다) 9번째·10번째 색을 미리 추가해뒀다. 기존 8색과
+    // 색상환(hue) 위치가 겹치지 않는 갈색·청록색을 골랐고, 명도(밝기) 대비도 기존 팔레트와
+    // 비슷한 수준으로 맞춰 색약 시뮬레이션에서도 기존 색상들과 구분되도록 했다.
+    const TK_PIE_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948', '#8c564b', '#17a2b8'];
     function gradePieHTML(grades, totals, prices) {
       if (!grades || !totals) return '';
       const keys = sortGradeKeysByPrice(Object.keys(grades), prices).filter(k => totals[k] != null && grades[k] && grades[k].remain != null);
@@ -9192,7 +9196,7 @@
         <div id="tk-total-info" style="display:none;background:#f4f6fa;border-radius:9px;padding:9px 12px;margin-top:9px;font-size:11.5px;color:var(--muted);line-height:1.8">
           <div>· 전체 좌석 ${sumOverallForNote.toLocaleString()}석 중 실제 티켓 페이지에 판매 대상으로 열려있는 좌석은 ${sumSellableForNote.toLocaleString()}석입니다.</div>
           <div>· 나머지 ${sumNoGradeForNote.toLocaleString()}석은 등급 미배정(no-grade) 좌석으로, 판매 대상에서 제외되어 있습니다.</div>
-          <div>· 미판매 좌석이 판매로 전환 시 갱신할 예정입니다.</div>
+          <div>· 미판매 좌석이 판매로 전환 시 ${meta.platform === '29CM' ? '자동 갱신됩니다' : '갱신할 예정입니다'}.</div>
         </div>` : '';
       const totalBarHTML = totalTitleHTML + ((hasTotal && sumTotal > 0) ? (() => {
         const sold = sumTotal - sumRemainForTotal;
@@ -9356,7 +9360,6 @@
       ${trendsSectionHTML}
       <div class="sec-title">판매 히스토리 <span style="color:var(--dim);font-size:12.5px;font-weight:700">전체 ${rows.length.toLocaleString()}건</span></div>
       <div class="card tk-hist-scroll" style="padding:0">${histHTML}</div>
-      <div class="note">이 페이지는 예매 사이트 화면을 주기적으로 자동 확인해 기록한 값으로, 실제 판매 시점과 몇 분 정도 오차가 있을 수 있습니다.</div>
       ${pastHTML}`;
       tkFitTotalLine();
       tkFitForecastLines();
