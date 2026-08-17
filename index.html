@@ -7412,7 +7412,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-17T09:20:00+09:00';
+    const BUILD_ID = '2026-08-17T11:45:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -11030,13 +11030,29 @@
     }
     // 화면 아래쪽 토스트는 화면 위쪽에서 해야 할 일(예: 닉네임 등록)을 안내할 때는 눈에 잘
     // 안 띈다는 지적이 있어, 그런 경우에 쓰는 화면 상단 전용 토스트.
+    // s에 임의의 HTML(예: <br>)을 넣을 수 있다(6.99부터). white-space:nowrap으로 줄을 완전히
+    // 고정했더니 좁은 화면(예: 320px)에서 긴 문장이 박스 밖으로 잘려 보이는 문제가 있었다.
+    // 그렇다고 그냥 줄바꿈만 허용하면 화면폭에 맞춰 "단어(음절) 중간"이 꺾여 오히려 더 안 읽힌다.
+    // 짧은 줄("등록되지 않은 닉네임입니다.", "해당 화면에서 로그인해 주세요." 등)은 어느
+    // 화면폭에서도 한 줄로 딱 붙는 게 가독성이 좋아 nowrap으로 고정한다. 기본은 첫 줄만
+    // 고정이고, 둘째 줄도 짧아서 한 줄에 들어갈 때는 oneLineIdx로 같이 고정해 준다. 반대로
+    // 정말 긴 줄은 nowrap으로 고정하면 좁은 화면에서 박스 밖으로 잘리므로, word-break:keep-all로
+    // "단어 중간에서는 꺾이지 않고 띄어쓰기 단위로만" 줄바꿈되게 해서 잘리지 않고 자연스럽게
+    // 다음 줄로 넘어가게 한다.
+    function gmnToastLines(lines, oneLineIdx) {
+      const oneLine = oneLineIdx || [0];
+      return lines.map((l, i) => {
+        const wrap = oneLine.includes(i) ? 'white-space:nowrap' : 'white-space:normal;word-break:keep-all;overflow-wrap:break-word';
+        return `<span style="display:block;${wrap}">${esc(l)}</span>`;
+      }).join('');
+    }
     function toastMsgTop(s) {
       document.querySelectorAll('.fp-toast-top').forEach(t => t.remove());
       const el = document.createElement('div');
       el.className = 'fp-toast-top';
-      el.textContent = s;
-      el.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#e0332a;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:700;z-index:9998;box-shadow:0 6px 20px rgba(0,0,0,.35);animation:ovIn .2s ease;text-align:center;max-width:92vw;white-space:nowrap';
-      document.body.appendChild(el); setTimeout(() => el.remove(), 3200);
+      el.innerHTML = s;
+      el.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);background:#e0332a;color:#fff;padding:10px 16px;border-radius:12px;font-size:12px;font-weight:700;z-index:9998;box-shadow:0 6px 20px rgba(0,0,0,.35);animation:ovIn .2s ease;text-align:center;max-width:92vw;line-height:1.5';
+      document.body.appendChild(el); setTimeout(() => el.remove(), 4000);
     }
     /* 브라우저 기본 confirm() 대신 쓰는 작고 디자인된 확인 팝업.
        danger:true(기본값)면 확인 버튼이 빨간색(위험한 동작), false면 금색(일반 확인)으로 표시된다.
@@ -11432,8 +11448,10 @@
     /* 6.95: 로그아웃 상태에서는 "닉네임 등록"(신규 계정 생성 전용)과 "로그인"(기존 계정 전용)
        버튼이 따로 있다. mode는 로그아웃 상태에서 호출자가 넘겨주는 'register' | 'login' 이고,
        이미 로그인된 상태(gmMyNick 있음)에서는 항상 "로그인 변경"(=계정 전환, login과 동일한
-       서버 동작)으로 취급한다. */
-    async function gmRenderLoginChangeView(ov, mode) {
+       서버 동작)으로 취급한다.
+       prefill({nick, pin})은 "잘못된 버튼으로 시도" 실패 후 반대 모드로 넘어갈 때, 이미
+       입력했던 닉네임/비밀번호를 다시 타이핑하지 않도록 이어서 채워주기 위한 값이다(6.99). */
+    async function gmRenderLoginChangeView(ov, mode, prefill) {
       const wasLoggedIn = !!gmMyNick;
       const isRegister = !wasLoggedIn && mode === 'register';
       ov.querySelector('#gmnTitle').textContent = isRegister ? '닉네임 등록' : (wasLoggedIn ? '👤 로그인 변경' : '로그인');
@@ -11441,10 +11459,10 @@
       body.innerHTML = `
     <div class="glogin" style="padding:0">
       <div class="gmn-suggest" style="width:100%">
-        <input id="gmn-nick" maxlength="20" placeholder="잡담방 닉네임 검색" value="" autocomplete="off">
+        <input id="gmn-nick" maxlength="20" placeholder="잡담방 닉네임 검색" value="${prefill && prefill.nick ? esc(prefill.nick) : ''}" autocomplete="off">
         <div id="gmn-suggest-list" class="gmn-suggest-list" style="display:none"></div>
       </div>
-      <input id="gmn-pin" inputmode="numeric" maxlength="4" placeholder="비밀번호 (숫자 4자리)" type="password">
+      <input id="gmn-pin" inputmode="numeric" maxlength="4" placeholder="비밀번호 (숫자 4자리)" type="password" value="${prefill && prefill.pin ? esc(prefill.pin) : ''}">
       ${isRegister ? `<input id="gmn-pin2" inputmode="numeric" maxlength="4" placeholder="비밀번호 확인" type="password">` : ''}
       <div class="msg" id="gmn-msg"></div>
       <button class="btn primary wide" style="margin-top:14px" id="gmnGo">${isRegister ? '등록' : '로그인'}</button>
@@ -11462,6 +11480,18 @@
         } else {
           msg.textContent = s;
         }
+      };
+      // 6.99: "로그인" 화면에 미등록 닉네임을 넣었거나, "닉네임 등록" 화면에 이미 있는 닉네임을
+      // 넣은 경우 — 즉 버튼을 잘못 눌러서 실패한 경우 — 에러 문구만 보여주고 끝내면 사용자가
+      // 직접 모달을 닫고 반대 버튼을 다시 찾아 눌러야 한다. 그 대신 지금까지 입력한 닉네임/
+      // 비밀번호를 그대로 이어서 반대 화면으로 바로 전환해버리고(추가 클릭 없음), 화면 맨
+      // 위에 무슨 일이 있었는지 붉은 토스트로 짧게 안내한다 — 모달 제목이 "로그인"↔"닉네임
+      // 등록"으로 바뀌고 비밀번호 확인 칸이 나타나는(사라지는) 것도 전환됐다는 눈에 띄는 신호다.
+      const autoSwitch = (s, targetMode) => {
+        toastMsgTop(s);
+        const nick = nickInput.value.trim();
+        const pin = (body.querySelector('#gmn-pin').value || '').trim();
+        gmRenderLoginChangeView(ov, targetMode, { nick, pin });
       };
       const box = body.querySelector('.glogin');
       box.onpointerdown = e => e.stopPropagation();
@@ -11513,7 +11543,14 @@
           if (/function|not find/i.test(error.message || '')) return put('미니게임_패치4.sql / 로그인변경_등록방지_패치.sql을 먼저 실행해 주세요. (관리자에게 문의)');
           return put(cleanErr(error.message));
         }
-        if (!data || data.ok === false) return put((data && data.msg) || '변경에 실패했습니다.');
+        if (!data || data.ok === false) {
+          const m = (data && data.msg) || '변경에 실패했습니다.';
+          // 6.99: 서버가 "잘못된 버튼으로 시도했다"고 판단한 경우(위 주석 참고)만 반대 화면으로
+          // 넘어가는 버튼을 얹는다 — 비밀번호 오류 등 다른 실패 사유엔 그냥 문구만 보여준다.
+          if (!isRegister && /등록/.test(m)) return autoSwitch(gmnToastLines(['등록되지 않은 닉네임입니다.', '해당 화면에서 닉네임과 비밀번호를 설정해 주세요.']), 'register');
+          if (isRegister && /로그인/.test(m)) return autoSwitch(gmnToastLines(['이미 등록된 닉네임입니다.', '해당 화면에서 로그인해 주세요.'], [0, 1]), 'login');
+          return put(m);
+        }
         gmMyNick = data.nickname || nick;
         gmMyPin = pin;
         try { localStorage.setItem('gm_nick', gmMyNick); localStorage.setItem('gm_pin', gmMyPin); } catch (err) { }
