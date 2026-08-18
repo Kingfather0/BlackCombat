@@ -311,6 +311,16 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       const grades = {};
       for (const q of quantityList) {
         const gradeName = gradeDisplayName(q.seatGradeName, q.seatGradeCode);
+        // quantityList에는 실제로 판매하지 않는 "유령" 등급이 항상 잔여 0으로 섞여 나올 때가
+        // 있습니다 (이 행사의 "시야방해석"이 그 예 — 실제 29CM 판매 페이지에는 뜨지도 않고
+        // 가격 정보(seatGradePriceList)도 없는데, API의 quantityList에는 항상 잔여 0으로 잡혀
+        // 사이트에 "매진"으로 잘못 표시됐습니다). 가격 정보가 없는 등급은 판매 대상이 아니라고
+        // 보고 기록에서 제외합니다 (gradePrices 자체가 비어있으면 — 즉 이 API가 가격을 아예
+        // 안 주는 다른 행사면 — 이 필터를 걸지 않고 예전처럼 전부 기록합니다, 안전망).
+        if (Object.keys(gradePrices).length && gradePrices[gradeName] == null) {
+          console.log(`ℹ️ "${gradeName}" 등급은 가격 정보가 없어(=실제 판매 대상 아님) 기록에서 제외합니다.`);
+          continue;
+        }
         grades[gradeName] = { remain: q.turnClassificationRemainingProductQuantity };
       }
       const roundLabel = formatRoundLabel(turn.turnDateTime);
