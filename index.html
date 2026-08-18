@@ -1208,24 +1208,39 @@
     .tk-live-legend {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 5px 13px;
       margin-top: 10px
     }
 
     .tk-live-legend-item {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      font-size: 11px;
+      gap: 3px;
+      font-size: 10px;
       font-weight: 700;
-      color: var(--dim)
+      color: var(--dim);
+      white-space: nowrap
     }
 
     .tk-live-legend-item i {
-      width: 9px;
-      height: 9px;
+      width: 8px;
+      height: 8px;
       border-radius: 2px;
-      display: inline-block
+      display: inline-block;
+      flex-shrink: 0
+    }
+
+    @media (max-width: 480px) {
+      .tk-live-legend {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px 6px
+      }
+      .tk-live-legend-item {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis
+      }
     }
 
     /* 구역 클릭 시 뜨는 29CM 스타일 열 단위 상세 팝업 */
@@ -9175,7 +9190,16 @@
     }
     function tkLiveLegendHTML() {
       const codes = ['001', '002', '003', '004', '005', '006'];
-      return codes.map(c => `<span class="tk-live-legend-item"><i style="background:${TK_LIVE_GRADE_COLOR[c]}"></i>${esc(TK_LIVE_GRADE_NAME[c])}</span>`).join('');
+      return codes.map(c => {
+        let remain = 0, any = false;
+        TK_LIVE_ZONES.forEach((z, i) => {
+          if (z.gradeCode !== c) return;
+          const r = window.__tkLiveResults[i];
+          if (r && r.ok) { remain += r.remain; any = true; }
+        });
+        const countTxt = any ? ` ${remain.toLocaleString()}석` : '';
+        return `<span class="tk-live-legend-item"><i style="background:${TK_LIVE_GRADE_COLOR[c]}"></i>${esc(TK_LIVE_GRADE_NAME[c])}${countTxt}</span>`;
+      }).join('');
     }
     // 마우스 오버 시 뜨는 짧은 요약 말풍선(이름 · 잔여/총원만 — 불필요한 API 보정 안내는 뺐다).
     window.__tkLiveResults = {};
@@ -9272,6 +9296,8 @@
           if (modal && modal.style.display === 'flex' && Number(modal.dataset.idx) === my) {
             modal.querySelector('.tk-live-modal-inner').innerHTML = tkLiveZoneDetailHTML(my);
           }
+          const legend = document.getElementById('tk-live-legend');
+          if (legend) legend.innerHTML = tkLiveLegendHTML();
         }
       }
       await Promise.all(Array.from({ length: Math.min(5, zones.length) }, worker));
@@ -9998,17 +10024,16 @@
       const liveZonesHTML = liveZonesEnabled ? `
       <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">새로고침 시 최신 현황 갱신</span></div>
       <div class="card">
-        <div class="sub" style="margin-bottom:8px;font-size:11px">매진(회색)·잔여(등급색) 표시 · API 특성상 실제와 오차가 있을 수 있습니다<br>정확한 좌석은 29CM에서 확인 · 구역 선택 시 좌석 상세 팝업</div>
+        <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">매진(회색)·잔여(등급색) 표시 · API 특성상 실제와 오차가 있을 수 있습니다.<br>정확한 좌석은 29CM에서 확인 · 구역 선택 시 좌석 상세 팝업</div>
         <div class="tk-live-map-wrap" id="tk-live-map-wrap">
-          <svg id="tk-live-map-svg" viewBox="0 0 1056 820" class="tk-live-map-svg" preserveAspectRatio="xMidYMid meet">
+          <svg id="tk-live-map-svg" viewBox="168 50 719 719" class="tk-live-map-svg" preserveAspectRatio="xMidYMid meet">
             <defs>${tkLiveClipDefsHTML()}</defs>
             <circle cx="528" cy="410" r="95" class="tk-live-ring-circle"></circle>
-            <text x="528" y="405" class="tk-live-ring-text">RING</text>
-            <text x="528" y="423" class="tk-live-ring-text2">경기장 중앙</text>
+            <text x="528" y="410" dominant-baseline="middle" class="tk-live-ring-text">RING</text>
             ${TK_LIVE_ZONES.map((z, i) => tkLiveZonePolyHTML(z, i, null)).join('')}
           </svg>
         </div>
-        <div class="tk-live-legend">${tkLiveLegendHTML()}</div>
+        <div class="tk-live-legend" id="tk-live-legend">${tkLiveLegendHTML()}</div>
       </div>` : '';
 
       $app.innerHTML = `
