@@ -1,0 +1,21 @@
+name: 29CM 좌석수 검증 진단 (1회성)
+
+on:
+  workflow_dispatch:
+    inputs:
+      item_id_29cm:
+        description: '진단할 29CM 티켓 상품 번호 (예: https://ticket.29cm.co.kr/catalog/4149667 → 4149667). 비우면 저장소 Variables의 ITEM_ID_29CM을 사용합니다.'
+        required: false
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 좌석수 검증 진단 (Supabase에는 아무것도 기록하지 않음, 읽기 전용)
+        env:
+          ITEM_ID_29CM: ${{ github.event.inputs.item_id_29cm || vars.ITEM_ID_29CM }}
+        run: node scripts/ticket-count-diag-29cm.js
