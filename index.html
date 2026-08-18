@@ -1126,6 +1126,205 @@
       margin-top: 6px
     }
 
+    /* "구역별 실시간 좌석 현황" — 29CM 실제 경기장 배치도(polygon) 좌표를 그대로 써서
+       도넛 형태로 38개 구역을 실제 위치에 그리고, 매진 정도에 따라 등급색→회색으로 채운다. */
+    .tk-live-map-wrap {
+      position: relative;
+      width: 100%
+    }
+
+    .tk-live-map-svg {
+      width: 100%;
+      height: auto;
+      display: block
+    }
+
+    .tk-live-poly {
+      stroke: #fff;
+      stroke-width: 2;
+      vector-effect: non-scaling-stroke;
+      cursor: pointer;
+      transition: opacity .15s
+    }
+
+    .tk-live-poly-g:hover .tk-live-poly {
+      opacity: .78;
+      stroke: #333
+    }
+
+    .tk-live-poly-loading,
+    .tk-live-poly-ok {
+      fill: #eef0f3
+    }
+
+    .tk-live-poly-err {
+      fill: #f3d9c4
+    }
+
+    .tk-live-poly-label {
+      fill: #1b1f27;
+      font-weight: 800;
+      text-anchor: middle;
+      pointer-events: none;
+      paint-order: stroke;
+      stroke: #fff;
+      stroke-width: 3px;
+      stroke-linejoin: round
+    }
+
+    .tk-live-ring-circle {
+      fill: #14161b
+    }
+
+    .tk-live-ring-text {
+      fill: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      text-anchor: middle
+    }
+
+    .tk-live-ring-text2 {
+      fill: #9aa0ab;
+      font-size: 9px;
+      text-anchor: middle
+    }
+
+    .tk-live-tip {
+      position: absolute;
+      transform: translate(-50%, -110%);
+      background: #14161b;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+      line-height: 1.5;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 5;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, .22)
+    }
+
+    .tk-live-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px
+    }
+
+    .tk-live-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--dim)
+    }
+
+    .tk-live-legend-item i {
+      width: 9px;
+      height: 9px;
+      border-radius: 2px;
+      display: inline-block
+    }
+
+    /* 구역 클릭 시 뜨는 29CM 스타일 열 단위 상세 팝업 */
+    .tk-live-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 17, 23, .55);
+      z-index: 60;
+      align-items: center;
+      justify-content: center;
+      padding: 16px
+    }
+
+    .tk-live-modal-inner {
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      width: 100%;
+      max-width: 460px;
+      max-height: 82vh;
+      overflow: auto
+    }
+
+    .tk-live-modal-head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px
+    }
+
+    .tk-live-modal-head b {
+      font-size: 16px
+    }
+
+    .tk-live-modal-close {
+      margin-left: auto;
+      border: none;
+      background: #f1f2f4;
+      border-radius: 8px;
+      width: 26px;
+      height: 26px;
+      cursor: pointer;
+      font-size: 12px;
+      flex: none
+    }
+
+    .tk-live-modal-sub {
+      font-size: 11px;
+      color: var(--dim);
+      font-weight: 700;
+      margin: 6px 0 10px
+    }
+
+    .tk-live-modal-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 3px
+    }
+
+    .tk-live-row {
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .tk-live-row-num {
+      width: 30px;
+      font-size: 10px;
+      color: var(--dim);
+      font-weight: 700;
+      flex: none;
+      text-align: right
+    }
+
+    .tk-live-row-seats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px
+    }
+
+    .tk-live-row-seats i {
+      width: 13px;
+      height: 13px;
+      border-radius: 3px;
+      flex: none
+    }
+
+    .tk-live-aisle {
+      text-align: center;
+      background: #eef0f3;
+      color: var(--dim);
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 6px;
+      padding: 3px 0;
+      margin: 4px 0
+    }
+
     /* 페이지 제목 우측의 티켓 현황 공유 버튼 — 하늘색 배경 + 파란 글자 알약 모양 */
     .tk-share-btn {
       background: var(--key-soft);
@@ -8698,6 +8897,386 @@
       const l3 = `· 평소 판매 속도(시간당 평균 ${avg >= 10 ? Math.round(avg).toLocaleString() : avg.toFixed(1)}석)의 약 ${Math.round(ev.multiple).toLocaleString()}배`;
       return [l1, l2, l3].filter(Boolean).join('\n');
     }
+    /* --- "구역별 실시간 좌석 현황" — 신뢰 회복용 실시간 시각화 ---
+       2026-08-18 38개 구역을 브라우저로 직접 열어 하나하나 확인한 진짜 총원(total, Konva 렌더링
+       좌석 수 집계 — VERIFIED_TOTAL_OVERRIDE와 동일한 근거)을 고정값으로 두고, 매진(회색)/잔여
+       (등급색) 개수는 29CM 공개 API(preempt/seat/info)를 사이트에서 직접 실시간으로 불러와 보여준다.
+       이 API가 "구역 하나 통째로"는 왜곡하지 않지만 좌석 몇 개를 응답에서 누락하는 버그가 있어
+       (총원 오버라이드를 만들게 된 그 버그), 칸 개수가 total보다 살짝 적게 보일 수 있음을
+       카드 하단에 표기한다 — 정직하게 한계를 밝히는 쪽이 신뢰 회복에 더 낫다고 판단했다.
+       이 행사(BC_2026_0829)에만 표시되도록 호출부에서 event_key로 범위를 좁혀둔다. */
+    const TK_LIVE_ZONES = [
+      { name: 'D1', placeId: 208, gradeCode: '006', total: 128 },
+      { name: 'C8', placeId: 209, gradeCode: '006', total: 145 },
+      { name: 'D2', placeId: 210, gradeCode: '005', total: 125 },
+      { name: 'D3', placeId: 211, gradeCode: '005', total: 83 },
+      { name: 'D4', placeId: 212, gradeCode: '005', total: 30 },
+      { name: 'D5', placeId: 213, gradeCode: '005', total: 31 },
+      { name: 'D6', placeId: 214, gradeCode: '005', total: 77 },
+      { name: 'D7', placeId: 215, gradeCode: '005', total: 103 },
+      { name: 'D8', placeId: 216, gradeCode: '006', total: 129 },
+      { name: 'A1', placeId: 217, gradeCode: '006', total: 145 },
+      { name: 'A2', placeId: 218, gradeCode: '005', total: 134 },
+      { name: 'A3', placeId: 219, gradeCode: '005', total: 126 },
+      { name: 'A4', placeId: 220, gradeCode: '005', total: 83 },
+      { name: 'A5', placeId: 221, gradeCode: '005', total: 82 },
+      { name: 'A6', placeId: 222, gradeCode: '005', total: 126 },
+      { name: 'A7', placeId: 223, gradeCode: '005', total: 135 },
+      { name: 'A8', placeId: 224, gradeCode: '006', total: 145 },
+      { name: 'B1', placeId: 225, gradeCode: '006', total: 130 },
+      { name: 'B2', placeId: 226, gradeCode: '005', total: 127 },
+      { name: 'B3', placeId: 227, gradeCode: '005', total: 106 },
+      { name: 'B4', placeId: 228, gradeCode: '005', total: 81 },
+      { name: 'B5', placeId: 229, gradeCode: '005', total: 80 },
+      { name: 'B6', placeId: 230, gradeCode: '005', total: 104 },
+      { name: 'B7', placeId: 231, gradeCode: '005', total: 126 },
+      { name: 'B8', placeId: 232, gradeCode: '006', total: 130 },
+      { name: 'C1', placeId: 233, gradeCode: '006', total: 145 },
+      { name: 'C2', placeId: 234, gradeCode: '005', total: 135 },
+      { name: 'C3', placeId: 235, gradeCode: '005', total: 127 },
+      { name: 'C4', placeId: 236, gradeCode: '005', total: 111 },
+      { name: 'C5', placeId: 237, gradeCode: '005', total: 112 },
+      { name: 'C6', placeId: 238, gradeCode: '005', total: 125 },
+      { name: 'C7', placeId: 239, gradeCode: '005', total: 135 },
+      { name: '선수입장로 W', placeId: 240, gradeCode: '004', total: 158 },
+      { name: '골드', placeId: 241, gradeCode: '002', total: 474 },
+      { name: '블랙티넘', placeId: 242, gradeCode: '001', total: 48 },
+      { name: '선수입장로 B', placeId: 243, gradeCode: '004', total: 158 },
+      { name: '플로어석 B', placeId: 244, gradeCode: '003', total: 87 },
+      { name: '플로어석 W', placeId: 245, gradeCode: '003', total: 127 },
+    ];
+    // 2026-08-18 38개 구역 전부 29CM 좌석 선택 화면을 직접 열어 실제 열 범위·통로 위치를 하나하나
+    // 확인한 실측값. preempt/seat/info API가 특정 열을 통째로 누락하는 버그가 있어(특히 시작 열 —
+    // B1/B8/C3/C6이 1열이 통째로 빠져 "2열부터 시작"으로 보이는 원인이 이것) 열 번호를 API가
+    // 준 데이터에서 그대로 추론하면 틀린다. 아래 min~max(및 skip)를 진짜 열 범위로 고정해두고,
+    // API가 못 준 열은 매진으로 채운다. 통로(aisleAfterRow)도 API의 blockId 추론 대신 실측값을
+    // 그대로 쓴다 — blockId 추론은 그 열 자체가 API에서 누락되면 통로 위치까지 잘못 판단했다
+    // (D6/C5/C6 등에서 확인). 특수 구역(선수입장로/골드/블랙티넘/플로어석)은 열 구조가 달라
+    // (통로 없이 "HOME" 중앙 공백만 있음) 여기 포함하지 않고 기존 동작을 그대로 둔다.
+    const TK_LIVE_ROW_OVERRIDE = {
+      'D1': { min: 1, max: 15, aisleAfterRow: 7 },
+      'C8': { min: 1, max: 15, aisleAfterRow: 7 },
+      'D2': { min: 1, max: 15, aisleAfterRow: 7 },
+      'D3': { min: 3, max: 15, aisleAfterRow: 7 },
+      'D4': { min: 8, max: 11, aisleAfterRow: 7 },
+      'D5': { min: 8, max: 11, aisleAfterRow: 7 },
+      'D6': { min: 4, max: 15, skip: [5], aisleAfterRow: 7 },
+      'D7': { min: 2, max: 15, aisleAfterRow: 7 },
+      'D8': { min: 1, max: 15, aisleAfterRow: 7 },
+      'A1': { min: 1, max: 15, aisleAfterRow: 7 },
+      'A2': { min: 1, max: 15, aisleAfterRow: 7 },
+      'A3': { min: 1, max: 15, aisleAfterRow: 7 },
+      'A4': { min: 3, max: 15, aisleAfterRow: 7 },
+      'A5': { min: 3, max: 15, aisleAfterRow: 7 },
+      'A6': { min: 1, max: 15, aisleAfterRow: 7 },
+      'A7': { min: 1, max: 15, aisleAfterRow: 7 },
+      'A8': { min: 1, max: 15, aisleAfterRow: 7 },
+      'B1': { min: 1, max: 15, aisleAfterRow: 7 },
+      'B2': { min: 1, max: 15, aisleAfterRow: 7 },
+      'B3': { min: 3, max: 15, aisleAfterRow: 7 },
+      'B4': { min: 3, max: 13, aisleAfterRow: 7 },
+      'B5': { min: 3, max: 12, aisleAfterRow: 7 },
+      'B6': { min: 3, max: 15, aisleAfterRow: 7 },
+      'B7': { min: 1, max: 15, aisleAfterRow: 7 },
+      'B8': { min: 1, max: 15, aisleAfterRow: 7 },
+      'C1': { min: 1, max: 15, aisleAfterRow: 7 },
+      'C2': { min: 1, max: 15, aisleAfterRow: 7 },
+      'C3': { min: 1, max: 15, aisleAfterRow: 7 },
+      'C4': { min: 3, max: 11, aisleAfterRow: 7 },
+      'C5': { min: 3, max: 15, aisleAfterRow: 7 },
+      'C6': { min: 1, max: 15, aisleAfterRow: 7 },
+      'C7': { min: 1, max: 15, aisleAfterRow: 7 },
+    };
+    const TK_LIVE_GRADE_NAME = { '001': '블랙티넘', '002': '골드', '003': '플로어', '004': '선수 입장로', '005': '스탠다드', '006': '이코노미' };
+    const TK_LIVE_GRADE_COLOR = { '001': '#bea886', '002': '#fabb3a', '003': '#7dcc7e', '004': '#275db3', '005': '#f48bbb', '006': '#9b8ef5' };
+    const TK_LIVE_API_URL = 'https://ticket.29cm.co.kr/api/preempt/seat/info';
+    const TK_LIVE_PRODUCT_MASTER_CODE = 1246;
+    const TK_LIVE_TURN_SEQUENCE = 11667;
+    // 29CM 실제 경기장 배치도 원본 좌표(placeId → polygon, 1056x820 기준) — 도넛 모양 그대로
+    // 그리기 위해 29CM이 자기 사이트에서 쓰는 차트 JSON을 그대로 옮겨둔 것(회전/왜곡 없음).
+    const TK_LIVE_CHART = {
+      width: 1056, height: 820, ringCx: 528, ringCy: 410, ringR: 95,
+      polygons: {
+        208: [[241, 605], [314, 555], [320, 564], [327, 573], [334, 581], [343, 590], [279, 652], [269, 641], [260, 631], [250, 619]],
+        209: [[284, 657], [345, 594], [352, 600], [360, 607], [367, 613], [374, 618], [382, 624], [331, 696], [320, 688], [310, 680], [300, 672], [292, 665]],
+        210: [[209, 546], [290, 510], [295, 520], [299, 528], [303, 537], [307, 543], [312, 550], [237, 599], [231, 590], [225, 579], [219, 568], [214, 559]],
+        211: [[188, 481], [275, 462], [278, 474], [281, 484], [284, 494], [289, 506], [205, 539], [200, 527], [197, 515], [193, 504], [191, 494]],
+        212: [[181, 413], [269, 412], [270, 421], [271, 431], [272, 441], [273, 451], [275, 458], [186, 474], [184, 463], [183, 452], [181, 443], [181, 433], [180, 425]],
+        213: [[187, 345], [274, 362], [272, 372], [271, 381], [270, 389], [270, 396], [270, 407], [180, 406], [181, 394], [182, 382], [182, 374], [184, 364]],
+        214: [[188, 338], [275, 357], [278, 344], [281, 333], [284, 325], [289, 313], [205, 280], [202, 289], [199, 299], [196, 308], [193, 316], [191, 326]],
+        215: [[237, 221], [311, 268], [307, 275], [303, 283], [299, 291], [296, 298], [291, 308], [208, 273], [213, 261], [218, 252], [223, 242], [228, 233]],
+        216: [[241, 213], [249, 202], [256, 192], [263, 185], [269, 177], [280, 167], [343, 229], [336, 236], [331, 243], [324, 251], [320, 257], [314, 265]],
+        217: [[285, 161], [294, 152], [301, 146], [309, 139], [318, 132], [325, 126], [332, 123], [382, 196], [375, 201], [368, 207], [362, 213], [355, 219], [347, 226]],
+        218: [[339, 119], [347, 113], [356, 108], [363, 103], [372, 98], [379, 95], [391, 90], [427, 172], [419, 175], [410, 180], [403, 184], [395, 188], [387, 194]],
+        219: [[399, 87], [410, 82], [418, 79], [428, 76], [440, 73], [456, 70], [474, 156], [465, 158], [454, 162], [444, 165], [431, 170]],
+        220: [[464, 68], [478, 65], [494, 64], [509, 63], [525, 62], [525, 151], [510, 152], [497, 153], [479, 156]],
+        221: [[531, 62], [546, 63], [561, 64], [575, 65], [592, 69], [576, 156], [564, 154], [552, 153], [541, 152], [530, 151]],
+        222: [[600, 70], [615, 74], [627, 77], [637, 80], [647, 84], [658, 88], [624, 171], [613, 166], [602, 162], [592, 160], [580, 156]],
+        223: [[664, 90], [678, 96], [687, 101], [698, 107], [706, 112], [717, 119], [669, 193], [659, 187], [649, 181], [639, 176], [629, 171]],
+        224: [[674, 195], [724, 123], [735, 130], [744, 137], [753, 145], [761, 152], [771, 162], [709, 225], [700, 216], [692, 210], [684, 203]],
+        225: [[713, 228], [776, 167], [784, 176], [791, 184], [799, 193], [806, 202], [814, 214], [741, 264], [735, 255], [729, 247], [723, 239]],
+        226: [[744, 268], [819, 220], [825, 231], [831, 240], [837, 251], [841, 261], [846, 273], [766, 308], [761, 299], [756, 288], [751, 279]],
+        227: [[768, 313], [850, 280], [854, 290], [857, 299], [860, 309], [863, 319], [865, 327], [867, 337], [780, 356], [778, 347], [775, 338], [772, 328]],
+        228: [[782, 361], [869, 345], [871, 355], [873, 364], [874, 374], [874, 386], [875, 395], [875, 406], [786, 407], [785, 397], [784, 387], [783, 377]],
+        229: [[786, 411], [875, 413], [875, 424], [874, 435], [873, 446], [871, 458], [870, 467], [868, 474], [781, 457], [783, 447], [785, 436], [785, 427]],
+        230: [[781, 462], [867, 481], [865, 494], [861, 506], [858, 517], [855, 526], [850, 539], [767, 506], [772, 493], [775, 481], [778, 472]],
+        231: [[766, 511], [847, 546], [843, 555], [839, 564], [834, 572], [830, 581], [825, 589], [818, 599], [744, 551], [748, 543], [754, 534], [758, 526], [761, 520]],
+        232: [[712, 590], [719, 583], [725, 576], [731, 569], [736, 562], [741, 555], [814, 606], [809, 613], [803, 621], [797, 629], [791, 637], [784, 644], [776, 652]],
+        233: [[674, 622], [682, 616], [691, 609], [699, 602], [708, 594], [770, 658], [762, 666], [754, 674], [743, 682], [735, 689], [724, 696]],
+        234: [[629, 647], [638, 643], [647, 638], [654, 634], [661, 630], [669, 625], [718, 700], [709, 706], [700, 712], [691, 717], [682, 722], [664, 730]],
+        235: [[580, 663], [591, 660], [601, 657], [610, 653], [623, 649], [657, 732], [646, 736], [635, 740], [624, 743], [613, 746], [599, 750]],
+        236: [[530, 668], [542, 667], [555, 666], [565, 664], [575, 662], [591, 751], [579, 753], [565, 755], [553, 756], [542, 757], [531, 757]],
+        237: [[480, 664], [493, 666], [504, 667], [515, 668], [525, 668], [523, 757], [511, 756], [499, 756], [487, 754], [476, 753], [464, 751]],
+        238: [[431, 649], [440, 653], [448, 656], [458, 659], [467, 661], [475, 662], [456, 749], [445, 747], [433, 743], [422, 740], [412, 737], [398, 731]],
+        239: [[338, 700], [349, 708], [360, 714], [373, 721], [390, 728], [426, 647], [414, 641], [404, 636], [395, 631], [386, 625]],
+        240: [[584, 258], [615, 179], [631, 185], [646, 192], [659, 200], [674, 210], [686, 220], [700, 233], [711, 244], [719, 254], [728, 265], [658, 317], [649, 305], [640, 296], [630, 287], [619, 278], [609, 272], [599, 266]],
+        241: [[732, 270], [751, 302], [761, 327], [769, 354], [773, 377], [775, 399], [774, 423], [772, 445], [767, 469], [760, 491], [752, 512], [743, 531], [733, 548], [660, 500], [672, 479], [679, 461], [684, 443], [687, 422], [687, 405], [686, 388], [682, 371], [678, 359], [671, 340], [665, 328], [660, 319]],
+        242: [[297, 335], [396, 335], [396, 484], [296, 484]],
+        243: [[615, 641], [630, 634], [644, 627], [657, 620], [671, 610], [681, 602], [694, 592], [705, 581], [716, 569], [728, 553], [658, 502], [648, 514], [639, 525], [627, 535], [615, 544], [602, 552], [584, 560]],
+        244: [[401, 513], [369, 583], [576, 583], [576, 513]],
+        245: [[370, 236], [402, 305], [576, 305], [576, 236]],
+      }
+    };
+
+    // 구역 하나의 실시간 매진/잔여를 29CM API에서 직접 조회 — 실패하면(간헐적 5xx 포함) 한 번만
+    // 짧게 쉬었다 재시도하고, 그래도 안 되면 그 구역만 "불러오기 실패"로 표시한다(전체를 막지 않음).
+    // seats에 좌석 하나하나의 열/번호/매진여부를 그대로 담아, 뭉뚱그린 비율이 아니라 실제 좌석
+    // 단위로 그릴 수 있게 한다.
+    async function tkFetchZoneSeats(zone, isRetry) {
+      try {
+        const url = `${TK_LIVE_API_URL}?productMasterCode=${TK_LIVE_PRODUCT_MASTER_CODE}&turnSequence=${TK_LIVE_TURN_SEQUENCE}&placeId=${zone.placeId}`;
+        const res = await fetch(url, { credentials: 'omit' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const json = await res.json();
+        const units = json.data && json.data.seatAssignUnits;
+        if (!Array.isArray(units)) throw new Error('no seatAssignUnits');
+        const seats = units.map(u => ({ row: parseInt(u.seatrow, 10) || 0, num: parseInt(u.num, 10) || 0, block: u.blockId, sold: u.seatSaleStatusCode === '1' }));
+        const remain = seats.filter(s => !s.sold).length;
+        return { ok: true, apiTotal: seats.length, remain, sold: seats.length - remain, seats };
+      } catch (e) {
+        if (!isRetry) {
+          await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
+          return tkFetchZoneSeats(zone, true);
+        }
+        return { ok: false };
+      }
+    }
+    // 다각형 중심점(라벨 위치용) — 꼭짓점 평균으로 근사(구역 모양이 대체로 볼록해 충분히 정확함).
+    function tkPolyCentroid(pts) {
+      let x = 0, y = 0;
+      pts.forEach(p => { x += p[0]; y += p[1]; });
+      return [x / pts.length, y / pts.length];
+    }
+    // 좌석 목록을 열(row) 오름차순 → 열 안에서는 번호(num) 오름차순으로 그룹핑한다.
+    // TK_LIVE_ROW_OVERRIDE에 실측값이 있는 구역은 그 열 범위를 그대로 쓰고, API가 통째로 누락한
+    // 열은 이웃 열 좌석 수만큼 매진으로 채워 넣는다(0석으로 비어 보이는 것보다 실측 폭에 가깝게
+    // 근사하는 편이 낫다). 통로 위치(aisleAfter)도 실측값 우선, 없으면 통로 없음으로 둔다.
+    function tkGroupSeatRows(seats, zone) {
+      const byRow = {};
+      seats.forEach(s => { (byRow[s.row] = byRow[s.row] || []).push(s); });
+      const override = zone && TK_LIVE_ROW_OVERRIDE[zone.name];
+      let rowNums;
+      if (override) {
+        const skip = new Set(override.skip || []);
+        rowNums = [];
+        for (let r = override.min; r <= override.max; r++) if (!skip.has(r)) rowNums.push(r);
+      } else {
+        rowNums = Object.keys(byRow).map(Number).sort((a, b) => a - b);
+      }
+      const present = rowNums.filter(r => byRow[r] && byRow[r].length);
+      const avgCount = present.length ? Math.round(present.reduce((s, r) => s + byRow[r].length, 0) / present.length) : 4;
+      return rowNums.map(r => {
+        let rowSeats;
+        if (byRow[r] && byRow[r].length) {
+          // num은 29CM 화면상 왼쪽→오른쪽이 아니라 내림차순으로 렌더링됨(실측 확인) — 오름차순 정렬 시
+          // 좌우가 뒤바뀌고, API가 특정 좌석 하나만 누락한 경우(예: 맨 앞 num) 뒤 좌석들이 한 칸씩
+          // 당겨져 보이는 오차까지 함께 생겨 내림차순으로 교정한다.
+          rowSeats = byRow[r].slice().sort((a, b) => b.num - a.num);
+        } else {
+          const nearest = present.length
+            ? present.reduce((best, p) => Math.abs(p - r) < Math.abs(best - r) ? p : best, present[0])
+            : null;
+          const n = nearest !== null ? byRow[nearest].length : avgCount;
+          rowSeats = Array.from({ length: n }, (_, k) => ({ row: r, num: k + 1, block: null, sold: true }));
+        }
+        return { row: r, block: rowSeats[0].block, seats: rowSeats, aisleAfter: !!(override && override.aisleAfterRow === r) };
+      });
+    }
+    // 구역 라벨 — "선수입장로 W"처럼 공백이 있는 긴 이름은 두 줄로 나눠 tspan으로 그린다.
+    // 모자이크(아래 tkLiveZoneMosaicSvg) 위에 얹히므로 흰 테두리를 둘러 가독성을 확보한다.
+    function tkLiveLabelSvg(cx, cy, name) {
+      const long = name.includes(' ');
+      const fs = long ? 16 : 20;
+      if (long) {
+        const parts = name.split(' ');
+        return `<text x="${cx}" y="${cy}" class="tk-live-poly-label" font-size="${fs}"><tspan x="${cx}" dy="-0.45em">${esc(parts[0])}</tspan><tspan x="${cx}" dy="1.05em">${esc(parts[1])}</tspan></text>`;
+      }
+      return `<text x="${cx}" y="${cy}" class="tk-live-poly-label" font-size="${fs}" dominant-baseline="middle">${esc(name)}</text>`;
+    }
+    // 구역 안을 채우는 좌석 모자이크 — "매진 비율만큼 색 섞기"가 아니라 실제 좌석 하나하나를
+    // 작은 사각형으로 그린다(매진=회색, 잔여=등급색). 열 사이에 blockId가 바뀌면(=실제 통로로
+    // 추정) 살짝 더 띄워서 통로가 있음을 암시한다. 구역 도형(다각형) 안에만 보이도록 이 결과는
+    // 항상 clipPath로 잘라서 쓴다.
+    function tkLiveZoneMosaicSvg(zone, pts, result) {
+      if (!result || !result.ok || !result.seats || !result.seats.length) return '';
+      const minX = Math.min(...pts.map(p => p[0])), maxX = Math.max(...pts.map(p => p[0]));
+      const minY = Math.min(...pts.map(p => p[1])), maxY = Math.max(...pts.map(p => p[1]));
+      const bw = maxX - minX, bh = maxY - minY;
+      const rows = tkGroupSeatRows(result.seats, zone);
+      const maxCols = Math.max(...rows.map(r => r.seats.length));
+      // 통로 위치는 TK_LIVE_ROW_OVERRIDE 실측값(aisleAfter) 기준 — 없는 구역은 통로 없음.
+      const aisles = rows.filter(r => r.aisleAfter).length;
+      const gap = 0.6, aisleGap = 2.4;
+      const cw = Math.max(1.4, Math.min(7.5, (bw - gap * (maxCols - 1)) / maxCols));
+      const ch = Math.max(1.4, Math.min(7.5, (bh - aisleGap * aisles - gap * (rows.length - 1)) / rows.length));
+      const gridW = maxCols * cw + gap * (maxCols - 1);
+      const gridH = rows.length * ch + gap * (rows.length - 1) + aisleGap * aisles;
+      const offX = minX + (bw - gridW) / 2;
+      let y = minY + (bh - gridH) / 2;
+      const color = TK_LIVE_GRADE_COLOR[zone.gradeCode];
+      let rects = '';
+      rows.forEach(r => {
+        const rowW = r.seats.length * cw + gap * (r.seats.length - 1);
+        const rowOffX = offX + (gridW - rowW) / 2;
+        r.seats.forEach((s, i) => {
+          const x = rowOffX + i * (cw + gap);
+          rects += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${cw.toFixed(1)}" height="${ch.toFixed(1)}" fill="${s.sold ? '#dadde2' : color}"></rect>`;
+        });
+        y += ch + gap;
+        if (r.aisleAfter) y += aisleGap;
+      });
+      return rects;
+    }
+    // 구역 다각형 하나를 결과(또는 로딩/에러 상태)로 렌더링 — 실제 경기장 배치도 좌표 그대로 그리고,
+    // 그 안을 실제 좌석 하나하나의 모자이크로 채운다(비율로 뭉뚱그리지 않음). 마우스오버는 요약
+    // 정보를, 클릭(모바일 탭 포함)은 29CM처럼 열 단위 상세 팝업을 보여준다.
+    function tkLiveZonePolyHTML(zone, idx, result) {
+      const pts = TK_LIVE_CHART.polygons[zone.placeId];
+      const ptsAttr = pts.map(p => p.join(',')).join(' ');
+      const [cx, cy] = tkPolyCentroid(pts);
+      let stateClass, title, mosaic;
+      if (!result) {
+        stateClass = 'tk-live-poly-loading'; title = `${zone.name} · 불러오는 중…`; mosaic = '';
+      } else if (!result.ok) {
+        stateClass = 'tk-live-poly-err'; title = `${zone.name} · 불러오기 실패`; mosaic = '';
+      } else {
+        stateClass = 'tk-live-poly-ok';
+        title = `${zone.name} · 잔여 ${result.remain.toLocaleString()}/${zone.total.toLocaleString()}석 · 눌러서 상세보기`;
+        mosaic = tkLiveZoneMosaicSvg(zone, pts, result);
+      }
+      const clipId = `tk-clip-${zone.placeId}`;
+      return `<g class="tk-live-poly-g" data-idx="${idx}" onmouseenter="tkLiveZoneHover(event,${idx})" onmouseleave="tkLiveZoneLeave()" onclick="tkLiveZoneOpenDetail(${idx})"><polygon points="${ptsAttr}" class="tk-live-poly ${stateClass}"><title>${esc(title)}</title></polygon><g clip-path="url(#${clipId})">${mosaic}</g>${tkLiveLabelSvg(cx, cy, zone.name)}</g>`;
+    }
+    function tkLiveClipDefsHTML() {
+      return TK_LIVE_ZONES.map(z => {
+        const pts = TK_LIVE_CHART.polygons[z.placeId];
+        return `<clipPath id="tk-clip-${z.placeId}"><polygon points="${pts.map(p => p.join(',')).join(' ')}"></polygon></clipPath>`;
+      }).join('');
+    }
+    function tkLiveLegendHTML() {
+      const codes = ['001', '002', '003', '004', '005', '006'];
+      return codes.map(c => `<span class="tk-live-legend-item"><i style="background:${TK_LIVE_GRADE_COLOR[c]}"></i>${esc(TK_LIVE_GRADE_NAME[c])}</span>`).join('');
+    }
+    // 마우스 오버 시 뜨는 짧은 요약 말풍선(이름 · 잔여/총원만 — 불필요한 API 보정 안내는 뺐다).
+    window.__tkLiveResults = {};
+    function tkLiveZoneHover(ev, idx) {
+      const wrap = document.getElementById('tk-live-map-wrap');
+      if (!wrap) return;
+      let tip = wrap.querySelector('.tk-live-tip');
+      if (!tip) { tip = document.createElement('div'); tip.className = 'tk-live-tip'; wrap.appendChild(tip); }
+      const zone = TK_LIVE_ZONES[idx];
+      const result = window.__tkLiveResults[idx];
+      let body;
+      if (!result) body = '불러오는 중…';
+      else if (!result.ok) body = '불러오기 실패';
+      else body = `잔여 ${result.remain.toLocaleString()} / ${zone.total.toLocaleString()}석`;
+      tip.innerHTML = `<b>${esc(zone.name)}</b> · ${body}`;
+      const rect = wrap.getBoundingClientRect();
+      let x = ev.clientX - rect.left, y = ev.clientY - rect.top;
+      x = Math.max(40, Math.min(rect.width - 40, x));
+      y = Math.max(28, y);
+      tip.style.left = x + 'px';
+      tip.style.top = y + 'px';
+      tip.style.display = 'block';
+    }
+    function tkLiveZoneLeave() {
+      const wrap = document.getElementById('tk-live-map-wrap');
+      const tip = wrap && wrap.querySelector('.tk-live-tip');
+      if (tip) tip.style.display = 'none';
+    }
+    // 구역을 클릭(탭)하면 29CM 좌석 선택 화면처럼 열 단위 상세 팝업을 띄운다 — 개별 좌석을
+    // 크게 보고 싶을 때용. 통로로 추정되는 blockId 전환 지점은 "통로" 바로 표시.
+    function tkLiveZoneDetailHTML(idx) {
+      const zone = TK_LIVE_ZONES[idx];
+      const result = window.__tkLiveResults[idx];
+      const gname = TK_LIVE_GRADE_NAME[zone.gradeCode];
+      const color = TK_LIVE_GRADE_COLOR[zone.gradeCode];
+      const head = `<div class="tk-live-modal-head"><b>${esc(zone.name)}</b><span style="color:${color}">${esc(gname)}</span><button type="button" class="tk-live-modal-close" onclick="tkLiveZoneCloseDetail()">✕</button></div>`;
+      if (!result || !result.ok || !result.seats || !result.seats.length) {
+        return `${head}<div class="tk-live-zone-loading">${!result ? '불러오는 중…' : '불러오기 실패 — 잠시 후 다시 시도해주세요'}</div>`;
+      }
+      const rows = tkGroupSeatRows(result.seats, zone);
+      let body = '';
+      rows.forEach(r => {
+        const seatsHtml = r.seats.map(s => `<i style="background:${s.sold ? '#dadde2' : color}" title="${r.row}열 ${s.num}번 · ${s.sold ? '매진' : '잔여'}"></i>`).join('');
+        body += `<div class="tk-live-row"><span class="tk-live-row-num">${r.row}열</span><span class="tk-live-row-seats">${seatsHtml}</span></div>`;
+        if (r.aisleAfter) body += `<div class="tk-live-aisle">통로</div>`;
+      });
+      return `${head}
+        <div class="tk-live-modal-sub">잔여 ${result.remain.toLocaleString()} / ${zone.total.toLocaleString()}석 · ▲ 무대(RING) 방향 — 1열이 가장 가까운 좌석입니다</div>
+        <div class="tk-live-modal-rows">${body}</div>`;
+    }
+    function tkLiveZoneOpenDetail(idx) {
+      let modal = document.getElementById('tk-live-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'tk-live-modal';
+        modal.className = 'tk-live-modal';
+        modal.addEventListener('click', e => { if (e.target === modal) tkLiveZoneCloseDetail(); });
+        document.body.appendChild(modal);
+      }
+      modal.innerHTML = `<div class="tk-live-modal-inner">${tkLiveZoneDetailHTML(idx)}</div>`;
+      modal.style.display = 'flex';
+      modal.dataset.idx = idx;
+    }
+    function tkLiveZoneCloseDetail() {
+      const modal = document.getElementById('tk-live-modal');
+      if (modal) modal.style.display = 'none';
+    }
+    // 38개 구역을 동시에 5개씩만 요청(과도한 동시 요청으로 29CM API가 일시적으로 503을 준 적이
+    // 있어 확인된 안전장치) — 도착하는 대로 그 구역 도형만 즉시 갱신해 체감 속도를 높인다.
+    // 새로고침 버튼은 없고 페이지 진입 시 1회만 자동으로 불러온다 — 다시 불러오려면 브라우저
+    // 새로고침(PC는 F5, 모바일은 화면 당겨서 새로고침)을 쓰면 된다.
+    let tkLiveZonesLoading = false;
+    async function tkLoadLiveSeatMap() {
+      if (tkLiveZonesLoading) return;
+      const svg = document.getElementById('tk-live-map-svg');
+      if (!svg) return;
+      tkLiveZonesLoading = true;
+      window.__tkLiveResults = {};
+      TK_LIVE_ZONES.forEach((z, i) => {
+        const g = svg.querySelector(`g[data-idx="${i}"]`);
+        if (g) g.outerHTML = tkLiveZonePolyHTML(z, i, null);
+      });
+      const zones = TK_LIVE_ZONES;
+      let cursor = 0;
+      async function worker() {
+        while (cursor < zones.length) {
+          const my = cursor++;
+          const result = await tkFetchZoneSeats(zones[my], false);
+          window.__tkLiveResults[my] = result;
+          const g = svg.querySelector(`g[data-idx="${my}"]`);
+          if (g) g.outerHTML = tkLiveZonePolyHTML(zones[my], my, result);
+          // 상세 팝업이 이 구역을 띄운 채로 로딩→완료로 바뀌면 팝업 내용도 갱신
+          const modal = document.getElementById('tk-live-modal');
+          if (modal && modal.style.display === 'flex' && Number(modal.dataset.idx) === my) {
+            modal.querySelector('.tk-live-modal-inner').innerHTML = tkLiveZoneDetailHTML(my);
+          }
+        }
+      }
+      await Promise.all(Array.from({ length: Math.min(5, zones.length) }, worker));
+      tkLiveZonesLoading = false;
+    }
     /* --- 도넛 차트 조각 말풍선 (마우스 오버 + 탭/클릭 공용) ---
        SVG로 그린 도넛이지만 조각별로 이벤트를 따로 걸지 않고, 마우스/탭 좌표를
        중심 기준 각도로 바꿔서 어느 조각 위인지 계산한다(도넛 전체가 하나의 hit 영역).
@@ -9248,7 +9827,7 @@
       // 수치가 실제보다 적게 표시됐던 사실을 밝혀둔다. 이 사건에 국한된 안내이므로 다른
       // event_key로는 노출되지 않게 이 행사(BC_2026_0829)로만 범위를 좁힌다.
       const totalBugFixNoteHTML = (eventKey === 'BC_2026_0829') ? `
-        <div class="sub" style="margin-top:6px;font-size:11px;color:var(--dim)">※ 총 좌석수는 29CM 좌석배치도 API의 집계 누락 버그로 실제보다 최대 762석 적게 표시되었습니다.<br>현재는 총원·등급별 수치 모두 정확한 값으로 바로잡았으며, 과거 판매율 그래프도 수정값 기준으로 자동 재계산됩니다.</div>` : '';
+        <div class="sub" style="margin-top:6px;font-size:11px;color:var(--dim)">※ 집계 초반 29CM 좌석배치도 API의 집계 누락 버그로 실제보다 최대 762석 적게 표시되었습니다.<br>현재는 총원·등급별 수치 모두 정확한 값으로 바로잡았으며, 과거 판매율 그래프도 수정값 기준으로 자동 재계산됩니다.</div>` : '';
       // 카드 좌측 상단에는 "언제 기준 데이터인지"(가장 최근 기록 시각)를 매진 예측 카드 제목과
       // 같은 크기·폰트·컬러(tk-trend-title)로 보여주고, 그 줄 우측에 "ⓘ 좌석 기준" 버튼을 둔다.
       // 숫자 줄은 카드 폭 전체를 그대로 쓰므로 모바일에서도 글자가 줄어들지 않는다.
@@ -9414,12 +9993,31 @@
       }));
       tkBuildShareText(liveRemain, newestAt);
 
+      // 구역별 실시간 좌석 현황 — 이 행사(BC_2026_0829)에서만, "전체 좌석"과 "잔여 좌석" 사이에 넣는다.
+      const liveZonesEnabled = (eventKey === 'BC_2026_0829');
+      const liveZonesHTML = liveZonesEnabled ? `
+      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">새로고침 시 최신 현황 갱신</span></div>
+      <div class="card">
+        <div class="sub" style="margin-bottom:8px;font-size:11px">매진(회색)·잔여(등급색) 표시 · API 특성상 실제와 오차가 있을 수 있습니다<br>정확한 좌석은 29CM에서 확인 · 구역 선택 시 좌석 상세 팝업</div>
+        <div class="tk-live-map-wrap" id="tk-live-map-wrap">
+          <svg id="tk-live-map-svg" viewBox="0 0 1056 820" class="tk-live-map-svg" preserveAspectRatio="xMidYMid meet">
+            <defs>${tkLiveClipDefsHTML()}</defs>
+            <circle cx="528" cy="410" r="95" class="tk-live-ring-circle"></circle>
+            <text x="528" y="405" class="tk-live-ring-text">RING</text>
+            <text x="528" y="423" class="tk-live-ring-text2">경기장 중앙</text>
+            ${TK_LIVE_ZONES.map((z, i) => tkLiveZonePolyHTML(z, i, null)).join('')}
+          </svg>
+        </div>
+        <div class="tk-live-legend">${tkLiveLegendHTML()}</div>
+      </div>` : '';
+
       $app.innerHTML = `
       <h1 class="page fit-row" style="display:flex;justify-content:space-between;align-items:center;gap:10px">티켓 판매 현황
         <span style="display:inline-flex;gap:8px;align-items:center">${adminPass() ? `<button class="btn small" onclick="tkManualRefresh(this)">🔄 수동 갱신</button>` : ''}<button class="tk-share-btn" onclick="tkShare()">💬 티켓 현황 공유</button></span></h1>
       ${infoCard}
       ${totalBarHTML}
       ${forecastHTML}
+      ${liveZonesHTML}
       <div class="sec-title">잔여 좌석</div>
       ${currentHTML}
       ${trendsSectionHTML}
@@ -9429,6 +10027,7 @@
       tkFitTotalLine();
       tkFitForecastLines();
       tkFitPies();
+      if (liveZonesEnabled) tkLoadLiveSeatMap();
     }
 
     /* ── 선수 정보 보관함 저장 ── 랭킹 갱신은 공식 랭킹 페이지 기준으로 목록을 통째로
