@@ -102,6 +102,14 @@ function gradeDisplayName(seatGradeName, seatGradeCode) {
   return String(seatGradeName || '').replace(/\s*티켓$/, '').trim() || seatGradeCode;
 }
 
+// 29CM 상품명(productName) 맨 앞에 판매자가 내부 구분용으로 붙여둔 "[개인결제창]" 같은
+// 대괄호 태그가 그대로 섞여 오는 경우가 있어, 사이트에는 그 태그를 떼고 실제 행사명만
+// 보여준다. 태그 표기는 행사마다 다를 수 있어("[사전예매]" 등) 특정 문구를 지우는 대신
+// "맨 앞 대괄호 한 덩어리"를 통째로 떼는 규칙으로 처리한다.
+function stripLeadingTag(name) {
+  return String(name || '').replace(/^\s*\[[^\]]*\]\s*/, '').trim();
+}
+
 // 좌석배치도(seatAssignUnits)를 세어서 다음 세 가지를 정확하게 구한다 (NOL 티켓을 판매
 // 중간에 웹사이트 코드를 직접 뜯어서 "전체 좌석 수 vs 실제 판매 대상 좌석 수"를 구분했던 것과
 // 같은 방식 — index.html이 이미 meta.overallTotal/sellableTotal/noGradeTotal 세 값을 받아
@@ -242,7 +250,7 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       }
     }
     const meta = {
-      title: info.productName || null,
+      title: stripLeadingTag(info.productName) || info.productName || null,
       place: info.placeName || null,
       dateText,
       buyUrl: `https://ticket.29cm.co.kr/catalog/${ITEM_ID_29CM}`,
