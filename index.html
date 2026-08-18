@@ -7412,7 +7412,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-18T16:05:00+09:00';
+    const BUILD_ID = '2026-08-18T16:35:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -8468,7 +8468,7 @@
       const first = points[0], last = points[points.length - 1];
       // ⚡가 있으면 차트 아래에도 항상 보이는 요약 한 줄씩 남긴다 (놓치지 않도록)
       const alertNoteHTML = (bulkEvents && bulkEvents.length)
-        ? `<div class="tk-rev-note" style="color:#b45309;font-weight:700">${bulkEvents.map(ev => esc(tkBulkAlertText(ev, true))).join('<br>')}<br><span style="font-weight:600">— 주황 ⚡ 점을 누르면 등급별 상세가 보입니다.</span></div>`
+        ? `<div class="tk-rev-note" style="color:#b45309;font-weight:700">${bulkEvents.map(ev => esc(tkBulkAlertText(ev, true))).join('<br>')}</div>`
         : '';
       return `<div class="tk-trend">
         <div class="tk-trend-title">판매 추이(시간별)</div>
@@ -8663,7 +8663,8 @@
     function tkBulkAlertText(ev, brief) {
       const dateStr = new Date(ev.tCur).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric', weekday: 'short' });
       const hm = t => new Date(t).toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
-      const durStr = ev.intervalH <= 1.05 ? '1시간' : `${Math.round(ev.intervalH)}시간`;
+      const durMin = Math.round(ev.intervalH * 60);
+      const durStr = ev.intervalH > 1.05 ? `${Math.round(ev.intervalH)}시간` : (durMin < 55 ? `${durMin}분` : '1시간');
       const l1 = `⚡ ${dateStr} ${hm(ev.tPrev)}~${hm(ev.tCur)} · ${durStr} 새 ${ev.drop.toLocaleString()}석 급감 — 일괄 발권 의심`;
       if (brief) return l1;
       const gLabel = k => /석/.test(k) ? k : k + '석';
