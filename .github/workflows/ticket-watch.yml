@@ -33,7 +33,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Playwright 설치
+      # TICKET_URL(NOL)이 설정된 경우에만 설치합니다 — 29CM은 브라우저 없이 순수 HTTP
+      # 요청만으로 동작하는데, 이 설치 단계가 조건 없이 매번 돌면서(체감상 1~2분 이상 걸림)
+      # 5분처럼 촘촘한 스케줄에서 실행이 서로 밀리고 쌓이는 원인이 되고 있었습니다.
+      - name: Playwright 설치 — TICKET_URL 설정 시에만 실행
+        if: ${{ github.event.inputs.ticket_url != '' || vars.TICKET_URL != '' }}
         run: |
           npm install playwright@1
           npx playwright install --with-deps chromium
