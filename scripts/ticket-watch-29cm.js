@@ -53,6 +53,28 @@ const SET_CURRENT = process.env.SET_CURRENT !== 'false';
 const API_BASE = 'https://ticket.29cm.co.kr/api/public/product/ticket';
 const ORDER_API_BASE = 'https://ticket.29cm.co.kr/api'; // 좌석배치(전체 좌석 수) 조회용 — /public 하위가 아님
 
+// 수동 검증된 총원 오버라이드 (productMasterCode별) — 아래 fetchSeatBreakdown()이 쓰는
+// preempt/seat/info(좌석배치도) API는 "통로 인접 열" 좌석 일부를 구조적으로 누락시키는 버그가
+// 있음을 확인했습니다 (2026-08-18, 이 행사의 38개 구역 전체를 브라우저에서 직접 열어 캔버스에
+// 실제로 그려진 좌석(Konva Rect)을 세어 좌석배치도 API 응답과 대조 — 골드/플로어석W/C4/A1
+// 구역 등 대부분에서 API 쪽이 실제보다 적게 나옴, 총 762석 차이). 이 버그는 API가 고쳐지지
+// 않는 한 자동 탐지로는 절대 바로잡을 수 없으므로, 이렇게 수동으로 확인된 총원을 우선 적용하는
+// 안전장치를 둡니다. 여기 없는 productMasterCode는 기존처럼 fetchSeatBreakdown() 자동 탐지를
+// 그대로 씁니다 — 다른 행사에는 영향이 없습니다.
+const VERIFIED_TOTAL_OVERRIDE = {
+  // 비앤디 블랙컴뱃 4강: 일본 vs 미국 (2026-08-29)
+  // 자동 탐지값(좌석배치도 API 합산)은 3,891석으로 실제보다 762석 적게 나왔던 것을 아래 값으로
+  // 바로잡습니다. 등급별 세부 총원(totals)은 이 버그의 영향을 그대로 받을 수 있어 오버라이드하지
+  // 않고 fetchSeatBreakdown()의 자동 탐지값을 참고용으로만 둡니다 — "총 N석 중 M석 판매"처럼
+  // 전체 합계를 보여주는 부분(overallTotal/sellableTotal)만 바로잡는 것이 목적입니다.
+  1246: {
+    overallTotal: 4653,
+    sellableTotal: 4653,
+    noGradeTotal: 0,
+    verifiedNote: '2026-08-18 38개 구역 전수 시각 확인(Konva 렌더링 좌석 수 집계)',
+  },
+};
+
 function bail(msg) {
   console.error('❌ ' + msg);
   process.exit(1);
@@ -294,9 +316,19 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       const roundLabel = formatRoundLabel(turn.turnDateTime);
       const placeId = turn.placeId || row.placeId;
       const breakdown = await fetchSeatBreakdown(productMasterCode, turn.turnSequence, placeId, quantityList);
+      const verifiedOverride = VERIFIED_TOTAL_OVERRIDE[productMasterCode];
       let totals, note;
       let turnMeta = meta;
-      if (breakdown) {
+      if (verifiedOverride) {
+        // 이 상품은 좌석배치도 API의 누락 버그가 확인되어, 자동 탐지 대신 수동 검증값을 씁니다
+        // (등급별 세부는 여전히 버그 영향을 받을 수 있어 자동 탐지값을 참고용으로만 남겨둡니다).
+        totals = breakdown ? breakdown.totals : undefined;
+        note = `총원은 수동 검증값 사용(29CM 좌석배치도 API 누락 버그 확인됨, ${verifiedOverride.verifiedNote}) — 잔여석은 실시간 API`;
+        turnMeta = { ...meta, overallTotal: verifiedOverride.overallTotal, sellableTotal: verifiedOverride.sellableTotal, noGradeTotal: verifiedOverride.noGradeTotal };
+        console.log(
+          `✅ [${roundLabel}] 수동 검증된 총원 오버라이드 적용: 총 ${verifiedOverride.overallTotal}석 (${verifiedOverride.verifiedNote})`
+        );
+      } else if (breakdown) {
         totals = breakdown.totals;
         note = '29CM 공개 API에서 직접 추출 (좌석배치도로 등급별 총원 확인)';
         turnMeta = { ...meta, overallTotal: breakdown.overallTotal, sellableTotal: breakdown.sellableTotal, noGradeTotal: breakdown.noGradeTotal };
