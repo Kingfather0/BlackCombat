@@ -7412,7 +7412,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-18T15:40:00+09:00';
+    const BUILD_ID = '2026-08-18T16:05:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -8321,7 +8321,7 @@
           <div style="display:flex;align-items:center;gap:6px;font-size:11.5px">
             <span class="tk-pie-chip" style="background:${pieColorFor(p.k, i, colors)}"></span>
             <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600">${esc(label)}</span>
-            <span style="white-space:nowrap;font-weight:800;font-variant-numeric:tabular-nums">${pct.toFixed(1)}% <span style="color:var(--dim);font-weight:600">(${p.sold.toLocaleString()}석)</span></span>
+            <span style="white-space:nowrap;font-weight:800;font-variant-numeric:tabular-nums">${pct.toFixed(1)}% <span style="color:var(--dim);font-weight:600">(${p.sold.toLocaleString()}석 판매)</span></span>
           </div>
           ${innerPct != null ? `<div class="tk-pie-sub"><span class="tk-pie-minibar"><i style="width:${Math.min(100, innerPct).toFixed(1)}%;background:${innerPct >= 100 ? '#dc2626' : pieColorFor(p.k, i, colors)}"></i></span><span class="tk-pie-sub-txt" style="${innerPct >= 100 ? 'color:#dc2626;font-weight:800' : ''}">등급 내 ${innerPct.toFixed(1)}%</span></div>` : ''}
         </div>`;
