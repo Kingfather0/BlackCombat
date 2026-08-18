@@ -8661,6 +8661,17 @@
         if (drop < 30) continue;
         const avgPerHour = (prev.sold - first.sold) / Math.max(1, hoursSinceStart);
         if (drop < 10 * Math.max(1, avgPerHour * intervalH)) continue;
+        // 일시적 API 글리치 필터: 29CM API가 한 번 이상한 값을 줘서 이번 기록에서만 잔여석이
+        // 튀었다가, 바로 다음 기록에서 거의 원래 수준으로 돌아오면(=급감분의 70% 이상 복귀)
+        // 실제 판매가 아니라 데이터 오류로 보고 알림에서 제외한다(2026-08-18, 16:01 기록에서
+        // 995석이 튀었다가 다음 기록에서 그대로 복귀한 사례로 확인). 아직 다음 기록이 없는(=방금
+        // 감지된) 경우는 판단할 수 없어 일단 정상적으로 띄우고, 다음 기록에서 복귀가 확인되면
+        // 그때 자동으로 사라진다 — 그래서 진짜 일괄 발권은 계속 정상적으로 잡힌다.
+        const next = snaps[i + 1];
+        if (next) {
+          const rebound = cur.sold - next.sold;
+          if (rebound >= drop * 0.7) continue;
+        }
         // 등급별로 어디서 얼마나 빠졌는지 분해 (감소량 큰 순)
         const gradeDrops = [];
         Object.keys(prev.grades).forEach(k => {
