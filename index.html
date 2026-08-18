@@ -7412,7 +7412,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-17T11:45:00+09:00';
+    const BUILD_ID = '2026-08-18T14:20:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -9057,8 +9057,18 @@
       }
 
       const meta = mergedTicketMeta(rows);
-      const previewBanner = isPreview
-        ? `<div style="margin-top:10px"><a class="btn primary small" href="#/tickets">현재 티켓으로 돌아가기</a></div>`
+      // "예매하러 가기"는 지금 보는 화면이 지난 티켓(미리보기)이어도 계속 보여준다 — 시간이
+      // 지난 뒤에 그 행사의 원래 예매 페이지를 다시 찾고 싶을 때가 있을 수 있어서(예매 기간이
+      // 지나 실제로는 안 열릴 수도 있지만, 페이지 자체로는 이동 가능하다). 지난 티켓 화면에서는
+      // 왼쪽에 "예매하러 가기", 오른쪽에 기존 "현재 티켓으로 돌아가기"를 나란히 보여준다.
+      const buyBtnHTML = meta.buyUrl
+        ? `<a class="btn primary small" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">예매하러 가기</a>`
+        : '';
+      const backBtnHTML = isPreview
+        ? `<a class="btn primary small" href="#/tickets">현재 티켓으로 돌아가기</a>`
+        : '';
+      const actionBtnsHTML = (buyBtnHTML || backBtnHTML)
+        ? `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">${buyBtnHTML}${backBtnHTML}</div>`
         : '';
       const dpParts = [];
       if (meta.eventDateText) dpParts.push('📅 ' + esc(meta.eventDateText));
@@ -9068,8 +9078,7 @@
       <div style="font-weight:800;font-size:15.5px">${esc(meta.title || '행사 정보 수집 중...')}</div>
       ${dpParts.length ? `<div class="sub" style="margin-top:4px">${dpParts.join(' · ')}</div>` : ''}
       ${meta.openText ? `<div class="sub" style="margin-top:2px">🎟️ 티켓 오픈: ${esc(meta.openText)}</div>` : ''}
-      ${previewBanner}
-      ${isPreview || !meta.buyUrl ? '' : `<a class="btn primary small" style="margin-top:10px" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">예매하러 가기</a>`}
+      ${actionBtnsHTML}
       <div class="sub" style="margin-top:8px;font-size:11px;color:var(--dim)">출처: ${esc(meta.platform || (rows.length ? 'NOL 티켓' : '확인 중'))} · 매일 시간별 자동 갱신</div>
     </div>`;
 
@@ -9187,6 +9196,11 @@
       // "판매 대상"과 "전체 좌석"이 다른(=판매 대상이 아닌 좌석이 있는) 회차가 하나라도 있을 때만
       // "ⓘ 좌석 기준" 토글을 보여준다 — 둘이 같으면 안내할 차이가 없으므로 굳이 노출하지 않는다.
       const showTotalInfo = hasBreakdown && sumNoGradeForNote > 0;
+      // 임시 안내: 정확한 좌석배치도 기반 총원(breakdown)이 아니라 "선예매 오픈 시점 잔여석
+      // 합계" 추정치로만 총원을 알고 있을 때, 그 사실을 짧게 밝혀둔다. 17시 일반예매 전환 후
+      // 좌석 선택 화면에서 정확한 총원을 확인하면 이 줄은 지워도 된다 (2026-08-18 임시 조치).
+      const estimateNoteHTML = (hasTotal && !hasBreakdown) ? `
+        <div class="sub" style="margin-top:6px;font-size:11px;color:var(--dim)">※ 현재 ${sumTotal.toLocaleString()}석은 선예매 오픈 시점 잔여석 합계(총 좌석 API 미존재) · 17시 일반 예매 오픈 후 갱신 예정</div>` : '';
       // 카드 좌측 상단에는 "언제 기준 데이터인지"(가장 최근 기록 시각)를 매진 예측 카드 제목과
       // 같은 크기·폰트·컬러(tk-trend-title)로 보여주고, 그 줄 우측에 "ⓘ 좌석 기준" 버튼을 둔다.
       // 숫자 줄은 카드 폭 전체를 그대로 쓰므로 모바일에서도 글자가 줄어들지 않는다.
@@ -9209,6 +9223,7 @@
         </div>
         <div class="tk-total-num">총 ${sumTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%) · 잔여 ${sumRemainForTotal.toLocaleString()}석</div>
         <div class="tk-bar tk-total-bar"><i style="width:${Math.min(100, Math.max(0, pct))}%"></i></div>
+        ${estimateNoteHTML}
         ${bulkTopHTML}
         ${totalInfoBoxHTML}
       </div>`;
