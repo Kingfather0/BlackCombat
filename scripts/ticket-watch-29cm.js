@@ -64,14 +64,25 @@ const ORDER_API_BASE = 'https://ticket.29cm.co.kr/api'; // 좌석배치(전체 �
 const VERIFIED_TOTAL_OVERRIDE = {
   // 비앤디 블랙컴뱃 4강: 일본 vs 미국 (2026-08-29)
   // 자동 탐지값(좌석배치도 API 합산)은 3,891석으로 실제보다 762석 적게 나왔던 것을 아래 값으로
-  // 바로잡습니다. 등급별 세부 총원(totals)은 이 버그의 영향을 그대로 받을 수 있어 오버라이드하지
-  // 않고 fetchSeatBreakdown()의 자동 탐지값을 참고용으로만 둡니다 — "총 N석 중 M석 판매"처럼
-  // 전체 합계를 보여주는 부분(overallTotal/sellableTotal)만 바로잡는 것이 목적입니다.
+  // 바로잡습니다. 처음엔 등급별 세부 총원(totals)까지는 오버라이드하지 않고 fetchSeatBreakdown()의
+  // 자동 탐지값(합계 3,877석 — 등급별로도 버그 영향을 그대로 받아 실제보다 적음)을 참고용으로만
+  // 뒀었는데, 2026-08-18에 38개 구역을 이번엔 "구역별 등급"까지 함께 확인해 등급별 진짜 총원도
+  // 구했으므로 totals도 함께 오버라이드합니다 (아래 6개 등급 합계 = 4,653석으로 overallTotal과
+  // 정확히 일치 — 구역마다 등급이 섞이지 않고 하나로만 배정되어 있어 구역 단위 합산이 그대로
+  // 등급별 총원이 됩니다).
   1246: {
     overallTotal: 4653,
     sellableTotal: 4653,
     noGradeTotal: 0,
-    verifiedNote: '2026-08-18 38개 구역 전수 시각 확인(Konva 렌더링 좌석 수 집계)',
+    totals: {
+      '블랙티넘': 48,
+      '골드': 474,
+      '플로어': 214,
+      '선수 입장로': 316,
+      '스탠다드': 2504,
+      '이코노미': 1097,
+    },
+    verifiedNote: '2026-08-18 38개 구역 전수 시각 확인(Konva 렌더링 좌석 수 집계, 구역별 등급까지 매칭)',
   },
 };
 
@@ -330,9 +341,10 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       let totals, note;
       let turnMeta = meta;
       if (verifiedOverride) {
-        // 이 상품은 좌석배치도 API의 누락 버그가 확인되어, 자동 탐지 대신 수동 검증값을 씁니다
-        // (등급별 세부는 여전히 버그 영향을 받을 수 있어 자동 탐지값을 참고용으로만 남겨둡니다).
-        totals = breakdown ? breakdown.totals : undefined;
+        // 이 상품은 좌석배치도 API의 누락 버그가 확인되어, 자동 탐지 대신 수동 검증값을 씁니다.
+        // verifiedOverride.totals(등급별 총원)까지 채워둔 행사면 그것을 그대로 쓰고, 아직 없는
+        // 행사면(등급별 매칭 전) breakdown의 자동 탐지값을 참고용으로만 씁니다(안전망).
+        totals = verifiedOverride.totals || (breakdown ? breakdown.totals : undefined);
         note = `총원은 수동 검증값 사용(29CM 좌석배치도 API 누락 버그 확인됨, ${verifiedOverride.verifiedNote}) — 잔여석은 실시간 API`;
         turnMeta = { ...meta, overallTotal: verifiedOverride.overallTotal, sellableTotal: verifiedOverride.sellableTotal, noGradeTotal: verifiedOverride.noGradeTotal };
         console.log(
