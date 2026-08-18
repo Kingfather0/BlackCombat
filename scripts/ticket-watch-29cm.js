@@ -242,11 +242,16 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
     // 29CM은 상품 정보 API(seatGradePriceList)가 이미 등급별 가격을 공개로 내려주므로 자동으로
     // 채운다. index.html의 잔여 좌석 카드는 meta.gradePrices가 있으면 등급명 옆에 가격을,
     // 없으면 그냥 가격 없이 보여준다(북마클릿 캡처가 있는 NOL 회차와 동일한 방식).
+    // 등급별 공식 색상(seatGradeColorCode)도 가격과 같은 방식으로 자동으로 채운다 — 29CM 판매
+    // 페이지가 실제로 쓰는 등급 색과 사이트 표시를 통일하기 위함(예: 안내 프리뷰/구역도 이미지의
+    // 등급 색과 우리 사이트의 등급별 판매 비율 도넛 색을 맞춤).
     const gradePrices = {};
+    const gradeColors = {};
     if (Array.isArray(info.seatGradePriceList)) {
       for (const g of info.seatGradePriceList) {
         const gradeName = gradeDisplayName(g.seatGradeName, g.seatGradeCode);
         if (g.seatGradePrice != null) gradePrices[gradeName] = g.seatGradePrice;
+        if (g.seatGradeColorCode) gradeColors[gradeName] = g.seatGradeColorCode;
       }
     }
     const meta = {
@@ -257,6 +262,7 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       platform: '29CM',
       api: { productMasterCode },
       gradePrices: Object.keys(gradePrices).length ? gradePrices : undefined,
+      gradeColors: Object.keys(gradeColors).length ? gradeColors : undefined,
     };
     console.log('🔎 자동 추출된 행사 정보:', JSON.stringify(meta));
 
