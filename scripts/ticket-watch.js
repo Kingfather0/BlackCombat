@@ -134,7 +134,7 @@ function parseGrades(text) {
 //   3차 티켓오픈 : 8월 20일(목) 오전 11시
 // 못 찾은 항목은 그냥 비워두고, 부르는 쪽(postSnapshot 호출부)에서 null로 넘어가면
 // 사이트가 알아서 기존 값(TICKET_INFO 기본값)으로 대체해서 보여준다.
-function extractMeta(bodyText, pageTitle) {
+function extractMeta(bodyText, pageTitle, h1Title) {
   const meta = {};
   const lines = bodyText.split('\n').map((s) => s.trim()).filter(Boolean);
 
@@ -164,25 +164,37 @@ function extractMeta(bodyText, pageTitle) {
   );
   if (openMatch) meta.openText = (openMatch[1] ? openMatch[1] + ' ' : '') + openMatch[2];
 
-  // 제목: 페이지 맨 위쪽 줄들 중, 메뉴/버튼/날짜 표기가 아닌 첫 번째 그럴듯한 줄을 후보로 삼는다.
-  // (사이트마다 구조가 조금씩 달라질 수 있어서 100% 정확하진 않음 — 못 찾으면 그냥 비워둔다)
-  // 2026-08-19: NOL(구 인터파크) 페이지 상단에 "NOL 티켓" 브랜드/카테고리 표기 줄이 새로
-  // 추가되면서, 그 줄이 실제 행사명("굽네 ROAD FC 078...")보다 먼저 잡혀 제목이 통째로
-  // "NOL 티켓"으로 오기록되는 문제가 발견됐다 — 기존엔 'NOL' 단독 줄만 걸렀는데 "NOL 티켓"처럼
-  // 브랜드명+카테고리가 붙은 줄은 안 걸러졌던 게 원인. 브랜드/카테고리 계열 줄을 폭넓게 거른다.
-  const skipExact = ['로그인', '회원가입', '장바구니', '메뉴', '검색', '고객센터', 'NOL', '홈', '일반 예매', '인터파크'];
-  const skipPattern = /^(일반\s*예매|장소|기간|시간|연령|D-\d+|\d{1,2}\.\d{1,2}|\d{1,2}월|\d{1,2}차|오픈예정|오픈\s*안내|(NOL|인터파크)\s*(티켓)?$)/;
-  for (const l of lines.slice(0, 15)) {
-    if (l.length < 2 || l.length > 60) continue;
-    if (skipExact.includes(l)) continue;
-    if (skipPattern.test(l)) continue;
-    meta.title = l;
-    break;
+  const skipExact = ['로그인', '회원가입', '장바구니', '메뉴', '검색', '고객센터', 'NOL', '홈', '일반 예매', '인터파크', '마이', '찜', '최근 본 상품'];
+  const skipPattern = /^(일반\s*예매|장소|기간|시간|연령|D-\d+|\d{1,2}\.\d{1,2}|\d{1,2}월|\d{1,2}차|오픈예정|오픈\s*안내|(NOL|인터파크)\s*(티켓)?$|\d+\s*\/\s*\d+$)/;
+
+  // 제목: 실측 결과 NOL 상품 페이지는 항상 <h1> 태그 하나에 행사명을 정확히 담고 있다
+  // (2026-08-19 https://nol.yanolja.com/ticket/products/26011375 실측: h1 = "굽네 ROAD FC 078
+  // with K-POP"). 화면 텍스트를 줄 단위로 훑어 "그럴듯한 첫 줄"을 추측하는 기존 방식은 상단
+  // 네비게이션 구성이 바뀔 때마다("NOL 티켓" 브랜드 줄 → "마이/찜/장바구니/최근 본 상품" 메뉴
+  // 줄 → 이미지 카운터 "1/1" 등) 매번 새로운 오탐 사례가 나오는 두더지잡기였다. h1은 페이지
+  // 구조상 행사명 전용 자리라 훨씬 안정적이므로 최우선으로 쓰고, 혹시 h1을 못 찾은 경우에만
+  // 아래 줄 단위 추측 → 탭 제목(document.title) 순으로 안전망을 둔다.
+  if (h1Title) {
+    const h1 = String(h1Title).trim();
+    if (h1 && h1.length >= 2 && h1.length <= 80 && !skipExact.includes(h1) && !skipPattern.test(h1)) {
+      meta.title = h1;
+    }
   }
 
-  // 안전망: 위 줄 단위 추측이 전부 실패하거나(빈 본문 등) 브랜드 줄만 걸려서 못 찾은 경우,
-  // 브라우저 탭 제목(document.title)에서 뽑아본다. 사이트들이 보통
-  // "행사명 - NOL 티켓" / "행사명 | 인터파크" 처럼 행사명을 맨 앞에 두고 사이트명을 뒤에
+  // 안전망 1: h1을 못 찾았거나 못 믿을 값이었던 경우, 페이지 맨 위쪽 줄들 중 메뉴/버튼/날짜
+  // 표기가 아닌 첫 번째 그럴듯한 줄을 후보로 삼는다. (사이트 구조가 바뀌면 다시 어긋날 수 있음)
+  if (!meta.title) {
+    for (const l of lines.slice(0, 15)) {
+      if (l.length < 2 || l.length > 60) continue;
+      if (skipExact.includes(l)) continue;
+      if (skipPattern.test(l)) continue;
+      meta.title = l;
+      break;
+    }
+  }
+
+  // 안전망 2: 그래도 못 찾은 경우, 브라우저 탭 제목(document.title)에서 뽑아본다. 사이트들이
+  // 보통 "행사명 - NOL 티켓" / "행사명 | 인터파크" 처럼 행사명을 맨 앞에 두고 사이트명을 뒤에
   // 구분자로 붙이므로, 맨 앞 구분자 이전 조각을 쓰고 그 조각 자체가 브랜드명뿐이면 버린다.
   if (!meta.title && pageTitle) {
     const head = String(pageTitle).split(/\s*[-|::·]\s*/)[0].trim();
@@ -360,7 +372,10 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
     // 제목/장소/기간/오픈안내는 달력을 누르기 전, 페이지 상단에 이미 나와 있는 경우가 많다.
     // (날짜를 클릭하면 회차별 잔여석이 나오는 것과는 별개 정보라 여기서 미리 읽어둔다)
     const fullBodyText = await page.innerText('body').catch(() => '');
-    const meta = extractMeta(fullBodyText, pageTitle === '(제목 없음)' ? '' : pageTitle);
+    // 2026-08-19: 줄 단위 추측이 상단 네비게이션 변화("NOL 티켓" → "마이/찜/장바구니" 등)에
+    // 계속 오탐을 내서, 실제 행사명이 항상 담기는 <h1> 태그를 최우선 소스로 함께 넘긴다.
+    const h1Title = await page.locator('h1').first().innerText({ timeout: 3000 }).catch(() => '');
+    const meta = extractMeta(fullBodyText, pageTitle === '(제목 없음)' ? '' : pageTitle, h1Title);
     // 예매 페이지 주소도 기록에 남긴다 — 사이트의 "예매하러 가기" 버튼이 이 값을 우선 사용해서,
     // 행사가 바뀔 때마다 index.html의 하드코딩 주소(TICKET_INFO.buyUrl)를 고칠 필요가 없어진다.
     meta.buyUrl = TICKET_URL;
