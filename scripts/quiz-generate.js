@@ -731,8 +731,10 @@ async function rpc(fn, body) {
   }
   console.log('');
 
-  // 이번 회차에 생성되지 않은 자동 생성 문제는 원천에서 사라진 것 → 비활성화
+  // 이번 회차에 생성되지 않은 자동 생성 문제는 원천에서 사라졌거나(또는 필터링
+  // 규칙으로 더 이상 만들지 않기로 한 것) → 고아 문제로 남지 않도록 비활성화
   const alive = [...new Set(finalQs.map(q => q.source_key))];
+  const pruned = await rpc('quiz_batch_prune_stale', { p_alive_keys: alive });
   const pool = await rpc('quiz_batch_build_pool', { p_date: null });
   const cal = await rpc('quiz_batch_calibrate_difficulty', {});
   await rpc('quiz_batch_cleanup', {});
@@ -744,10 +746,10 @@ async function rpc(fn, body) {
       reject_breakdown: rejects,
       pool_by_difficulty: (pool && pool.pool) || byDiff,
       status: warn ? 'WARN' : 'OK',
-      message: `신규 ${ins} / 갱신 ${upd} / 난이도보정 ${(cal && cal.moved) || 0} / 유효 source_key ${alive.length}`,
+      message: `신규 ${ins} / 갱신 ${upd} / 정리 ${(pruned && pruned.pruned) || 0} / 난이도보정 ${(cal && cal.moved) || 0} / 유효 source_key ${alive.length}`,
     },
   });
-  console.log(`✅ 업로드 완료 — 신규 ${ins} 갱신 ${upd}`);
+  console.log(`✅ 업로드 완료 — 신규 ${ins} 갱신 ${upd} 정리(비활성화) ${(pruned && pruned.pruned) || 0}`);
   console.log('   Pool:', JSON.stringify((pool && pool.pool) || {}));
   if (warn) process.exit(1);
 })().catch(e => { console.error('❌', e.message); process.exit(1); });
