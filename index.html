@@ -2985,9 +2985,9 @@
     }
 
     .gc-new {
-      position: absolute;
-      top: 10px;
-      left: 10px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 6px;
       background: linear-gradient(135deg, #ff7a7a, #e11d48);
       color: #fff;
       font-size: 10px;
@@ -7384,7 +7384,7 @@
       color: #ffd977
     }
 
-    .bq-stage .g-start:disabled {
+    .g-start:disabled {
       background: linear-gradient(180deg, #b9c3d2, #8e9aab 60%, #7b8899);
       box-shadow: 0 6px 0 #5a6675, 0 10px 20px rgba(20, 50, 120, .25);
       animation: none;
@@ -13576,7 +13576,7 @@
       ctx.arcTo(x, y, x + w2, y, r);
       ctx.closePath(); ctx.stroke();
     }
-    function gmShellHTML(wk, title, sub, desc, startLabel, hint, rule) {
+    function gmShellHTML(wk, title, sub, desc, startLabel, hint, rule, disabled) {
       gmCurRule = rule;
       return `
   <h1 class="page" style="gap:6px">${title} <button class="bb-rules-btn-top" id="gRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button><span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰ 주간 랭킹 리셋까지 <b style="color:#dc2626">${gmResetLeft()}</b></span></h1>
@@ -13597,7 +13597,7 @@
       <div class="gt-name">${sub[0]}</div>
       <div class="gt-sub">${sub[1]}</div>
       <div class="gt-desc">${desc}</div>
-      <button class="g-start g-en" id="gStart">${startLabel}</button>
+      <button class="g-start g-en" id="gStart" ${disabled ? 'disabled' : ''}>${startLabel}</button>
       <div class="gt-hint">${hint}</div>
     </div>
     <div id="gOver" style="display:none"></div>
@@ -13865,10 +13865,9 @@
       const wk = gameWeekKey(svrNow());
       const card = (href, img, name, desc, topId, acc, badge) => `
   <a class="gcard gcard-${acc}" href="${href}">
-    ${badge ? `<span class="gc-new">${esc(badge)}</span>` : ''}
     <div class="gc-ico"><img data-pose="${img}" src="${GM_LION_SRC}" alt=""></div>
     <div class="gc-b">
-      <b>${name}</b>
+      <b>${name}${badge ? `<span class="gc-new">${esc(badge)}</span>` : ''}</b>
       <span>${desc}</span>
       <span class="gc-top" id="${topId}">🥇 불러오는 중…</span>
     </div>
@@ -15274,10 +15273,13 @@
       gmToken++; gmClear(); gmCurGame = 'punch';
       G.mode = 'idle'; G.parts = [];
       const wk = gameWeekKey(svrNow());
+      const loggedIn = !!(gmMyNick && gmMyPin);
       $app.innerHTML = gmShellHTML(wk, '🥊 블랙 펀칭', ['블랙 펀칭', 'BLACK PUNCHING'],
         `불빛이 <b>꼭대기 👑 왕관</b>에 닿는 순간 탭!<br><b>10번의 펀치</b>로 최고 파워를 찍어라`,
-        'START', '높이 칠수록 강펀치 · PERFECT 연속 = 배율 UP · 3연속 = FEVER ×2',
-        `<b style="color:var(--text)">파워</b> 불빛을 높이 멈출수록 강펀치 · PERFECT(👑) 연속마다 배율 +0.25(최대 ×3) · 3연속 PERFECT = 다음 펀치 <b>FEVER ×2</b> · 10펀치 합계(kg)로 경쟁`);
+        loggedIn ? 'START' : '로그인 필요',
+        loggedIn ? '높이 칠수록 강펀치 · PERFECT 연속 = 배율 UP · 3연속 = FEVER ×2' : '먼저 닉네임을 등록해 주세요',
+        `<b style="color:var(--text)">파워</b> 불빛을 높이 멈출수록 강펀치 · PERFECT(👑) 연속마다 배율 +0.25(최대 ×3) · 3연속 PERFECT = 다음 펀치 <b>FEVER ×2</b> · 10펀치 합계(kg)로 경쟁`,
+        !loggedIn);
       const area = document.getElementById('gArea');
       area.addEventListener('pointerdown', gmTap);
       document.getElementById('gStart').onclick = e => { e.stopPropagation(); gmStartGate(gmNewGame); };
@@ -16281,10 +16283,13 @@
       G.mode = 'runpage'; G.parts = [];
       R.mode = 'idle'; R.obs = []; R.cns = []; R.dead = false;
       const wk = gameWeekKey(svrNow());
+      const loggedIn = !!(gmMyNick && gmMyPin);
       $app.innerHTML = gmShellHTML(wk, '🏃 블랙 러닝', ['블랙 러닝', 'BLACK RUNNING'],
         `탭 = 점프 · 공중에서 한 번 더 탭 = <b>더블 점프</b>!<br>장애물을 피해 <b>챔피언의 길</b>을 달려라`,
-        'START', '멀리 갈수록 빨라진다 · 🪙 코인 +50점 · 아슬아슬하게 넘으면 보너스!',
-        `<b style="color:var(--text)">점수</b> 1m = 5점 · 🪙 코인 = +50점 · 장애물을 <b>아슬아슬</b>하게 넘으면 +25점 · 부딪히면 그대로 KO`);
+        loggedIn ? 'START' : '로그인 필요',
+        loggedIn ? '멀리 갈수록 빨라진다 · 🪙 코인 +50점 · 아슬아슬하게 넘으면 보너스!' : '먼저 닉네임을 등록해 주세요',
+        `<b style="color:var(--text)">점수</b> 1m = 5점 · 🪙 코인 = +50점 · 장애물을 <b>아슬아슬</b>하게 넘으면 +25점 · 부딪히면 그대로 KO`,
+        !loggedIn);
       const area = document.getElementById('gArea');
       area.addEventListener('pointerdown', gmTap);
       document.getElementById('gStart').onclick = e => { e.stopPropagation(); gmStartGate(runStart); };
@@ -16679,10 +16684,13 @@
       G.mode = 'jumppage'; G.parts = [];
       J.mode = 'idle'; J.plats = []; J.coins = [];
       const wk = gameWeekKey(svrNow());
+      const loggedIn = !!(gmMyNick && gmMyPin);
       $app.innerHTML = gmShellHTML(wk, '☁️ 블랙 점핑', ['블랙 점핑', 'BLACK JUMPING'],
         `발판을 밟으면 자동으로 통! 통! 튀어오른다.<br><b>왼쪽/오른쪽을 누르고 있으면</b> 그쪽으로 이동!<br>발판을 밟고 하늘 끝 <b>챔피언 벨트</b>까지!`,
-        'START', '🌟 금색 스프링 = 슈퍼점프 · 갈라진 발판은 한 번만 · 떨어지면 끝!',
-        `<b style="color:var(--text)">점수</b> 높이 1m = 5점 · 🪙 코인 = +50점 · 높이 올라갈수록 발판이 험해진다 · 아래로 떨어지면 KO`);
+        loggedIn ? 'START' : '로그인 필요',
+        loggedIn ? '🌟 금색 스프링 = 슈퍼점프 · 갈라진 발판은 한 번만 · 떨어지면 끝!' : '먼저 닉네임을 등록해 주세요',
+        `<b style="color:var(--text)">점수</b> 높이 1m = 5점 · 🪙 코인 = +50점 · 높이 올라갈수록 발판이 험해진다 · 아래로 떨어지면 KO`,
+        !loggedIn);
       const area = document.getElementById('gArea');
       area.addEventListener('pointerdown', gmTap);
       area.addEventListener('pointerup', jumpRelease);
@@ -17364,7 +17372,7 @@
     }
     async function removeWhitelistUser(btn) {
       const nick = btn.dataset.nick;
-      if (!confirm(`'${nick}' 님을 사이트에서 완전히 제거할까요?\n게임 계정+미니게임/블랙 배틀 기록+투표 기록과 화이트리스트 등록이 모두 삭제되며 되돌릴 수 없습니다.\n(제거 후에는 같은 닉네임을 다시 만들 수 없고, 추후 필요하면 화이트리스트에 다시 등록해야 합니다)`)) return;
+      if (!confirm(`'${nick}' 님을 사이트에서 완전히 제거할까요?\n게임 계정+미니게임/블랙 배틀/블랙 퀴즈 기록+투표 기록과 화이트리스트 등록이 모두 삭제되며 되돌릴 수 없습니다.\n(제거 후에는 같은 닉네임을 다시 만들 수 없고, 추후 필요하면 화이트리스트에 다시 등록해야 합니다)`)) return;
       const { data, error } = await sb.rpc('admin_force_delete_game_user', { p_pass: adminPass(), p_nickname: nick });
       if (error) {
         if (/function|not find/i.test(error.message || '')) return toastMsg('⚠️ 미니게임_계정관리_패치.sql을 먼저 실행해 주세요.');
@@ -17375,13 +17383,27 @@
       if (data && data.ok === false && !/찾을 수 없습니다/.test(data.msg || '')) {
         return toastMsg('⚠️ ' + (data.msg || '제거에 실패했습니다.'));
       }
+      // admin_force_delete_game_user(미니게임_계정관리_패치.sql)는 블랙 퀴즈가 나오기 전에 만들어진
+      // 함수라 game_scores/bb_pvp/투표 기록만 지우고 블랙 퀴즈 기록(quiz_attempt/quiz_daily_best/
+      // quiz_weekly_best/quiz_user_stat)은 건드리지 않는다 — 그래서 "유저 관리"에서 완전히 제거해도
+      // 블랙 퀴즈 랭킹에는 그 닉네임이 계속 남아있던 버그(2026-08-19 발견)의 원인이었다.
+      // 같은 정리 로직(quiz_admin_reset_attempts)을 여기서도 그대로 호출해 빠짐없이 지운다.
+      // 블랙퀴즈_패치.sql이 아직 적용 안 된 사이트도 있을 수 있어, 함수가 없을 때만 조용히 건너뛰고
+      // 그 외 실제 오류는 나머지 삭제를 막지 않되 안내 메시지에 남긴다.
+      let quizWarn = '';
+      const qz = await sb.rpc('quiz_admin_reset_attempts', { p_pass: adminPass(), p_nickname: nick });
+      if (qz.error) {
+        if (!/function|not find/i.test(qz.error.message || '')) quizWarn = ' (블랙 퀴즈 기록 삭제 실패: ' + cleanErr(qz.error.message) + ')';
+      } else if (!qz.data || qz.data.ok === false) {
+        quizWarn = ' (블랙 퀴즈 기록 삭제 실패: ' + ((qz.data && qz.data.msg) || '알 수 없는 오류') + ')';
+      }
       const wl = await sb.rpc('admin_delete_allowed_nickname', { p_pass: adminPass(), p_nickname: nick });
       if (wl.error) {
-        if (/function|not find/i.test(wl.error.message || '')) return toastMsg('⚠️ 잡담방_닉네임_화이트리스트_패치.sql을 먼저 실행해 주세요. (게임 계정/기록은 이미 삭제됨)');
-        return toastMsg('⚠️ ' + cleanErr(wl.error.message) + ' (게임 계정/기록은 이미 삭제됨)');
+        if (/function|not find/i.test(wl.error.message || '')) return toastMsg('⚠️ 잡담방_닉네임_화이트리스트_패치.sql을 먼저 실행해 주세요. (게임 계정/기록은 이미 삭제됨)' + quizWarn);
+        return toastMsg('⚠️ ' + cleanErr(wl.error.message) + ' (게임 계정/기록은 이미 삭제됨)' + quizWarn);
       }
-      if (!wl.data || wl.data.ok === false) return toastMsg('⚠️ ' + ((wl.data && wl.data.msg) || '화이트리스트 삭제에 실패했습니다.') + ' (게임 계정/기록은 이미 삭제됨)');
-      toastMsg(`'${nick}' 님이 사이트와 화이트리스트에서 완전히 제거되었습니다.`);
+      if (!wl.data || wl.data.ok === false) return toastMsg('⚠️ ' + ((wl.data && wl.data.msg) || '화이트리스트 삭제에 실패했습니다.') + ' (게임 계정/기록은 이미 삭제됨)' + quizWarn);
+      toastMsg(`'${nick}' 님이 사이트와 화이트리스트에서 완전히 제거되었습니다.` + quizWarn);
       loadWhitelist();
     }
 
@@ -17772,13 +17794,14 @@
       <div class="gt-desc"><b>기술 선택 심리전</b>으로 승부하는 1:1 MMA 전략 배틀!<br>가위바위보 상성(<b>타격·방어·태클</b>)으로 상대를 제압하세요.</div>
       ${step === 'me' ? `
       <div class="bb-mystatus" id="bbMyStatusLine">${gmMyNick ? `👤 <b>${esc(gmMyNick)}</b> · <span id="bbMyRecordTag">불러오는 중…</span>` : '매칭을 시작하려면 선수 등록(로그인)이 필요해요'}</div>
-      <button class="g-start g-en" id="bbMatchBtn">매칭</button>` : ''}
+      <button class="g-start g-en" id="bbMatchBtn" ${(gmMyNick && gmMyPin) ? '' : 'disabled'}>${(gmMyNick && gmMyPin) ? '매칭' : '로그인 필요'}</button>` : ''}
     </div>
   </div>
   <div class="card bg-pick" id="bbPickCard">
     <div class="bg-pick-t">${title} <span class="bg-pick-cur">${cur ? esc(cur.nick) : '미선택'}</span></div>
     ${bbFighterGridHtml(cur ? cur.nick : null)}
-    ${step === 'opp' ? `<button class="g-start g-en" id="bbPickNext" ${cur ? '' : 'disabled'}>⚔️ 전투 시작</button>` : ''}
+    ${step === 'opp' ? `<button class="g-start g-en" id="bbPickNext" ${(cur && gmMyNick && gmMyPin) ? '' : 'disabled'}>${(gmMyNick && gmMyPin) ? '⚔️ 전투 시작' : '로그인 필요'}</button>` : ''}
+    ${step === 'opp' && !(gmMyNick && gmMyPin) ? `<div class="bb-mystatus" style="margin-top:8px">먼저 닉네임을 등록해 주세요</div>` : ''}
     ${step === 'opp' ? `<button class="bg-forfeit" id="bbPickBack" style="display:block;margin:8px auto 0">← 내 선수 다시 선택</button>` : ''}
   </div>
   ${step === 'me' ? `
