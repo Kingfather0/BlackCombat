@@ -686,15 +686,24 @@ if (RANKHIST && RANKHIST.dates && RANKHIST.fighters) {
     (childOf[e.parent] = childOf[e.parent] || []).push(e.child);
   });
 
-  // 체인의 매 단계가 정확히 1명일 때만 유일한 조상/자손을 반환 (모호하면 null)
+  // 체인의 매 단계가 정확히 1명일 때만 유일한 조상/자손을 반환 (모호하면 null).
+  // 상대전적 기반 족보는 "A가 B의 부모, B가 C의 부모, C가 다시 A의 부모"처럼 순환이
+  // 생길 수 있다(정통 가위바위보식 비이행적 승부 — 이른바 "개족보"). 이 경우 예를 들어
+  // 4대(고조할아버지) 체인이 실제로는 2번째 세대에서 이미 나온 바로 그 사람으로 되돌아올
+  // 수 있는데, 그러면 "고조할아버지가 사실은 아버지"라는 말이 안 되는 문제가 생긴다
+  // (2026-08-19 발견 — 아레스 선수 사례). 체인 도중 이미 지나온 사람(출발점 포함)이
+  // 다시 나오면 그 세대 질문 자체를 만들지 않는다.
   function chainUnique(map, nick, gens) {
     let cur = nick;
+    const seen = new Set([nick]);
     for (let i = 0; i < gens; i++) {
       const next = map[cur];
       if (!next || next.length !== 1) return null;
       cur = next[0];
+      if (seen.has(cur)) return null;   // 순환(개족보) — 더 가까운 관계와 답이 겹치므로 제외
+      seen.add(cur);
     }
-    return cur !== nick ? cur : null;
+    return cur;
   }
   // X와 어떻게든(조상/자손, 몇 대가 됐든) 이어진 모든 선수 — 오답 후보에서 제외해
   // "사실은 친척인데 오답으로 나오는" 사고를 막는다.
