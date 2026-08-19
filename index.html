@@ -9916,15 +9916,22 @@
         const total = totals && totals[k];
         const price = prices && prices[k];
         const soldPct = (total && remain != null) ? Math.min(100, Math.max(0, (total - remain) / total * 100)).toFixed(1) : null;
-        const remainText = remain === 0 ? '매진' : (remain != null ? esc(remain.toLocaleString()) + '석 남음' : '-');
+        // remain===0이어도 total이 0(또는 미집계)이면 "원래 이 회차엔 그 등급 좌석 자체가 없다"는
+        // 뜻이지 "있던 좌석이 다 팔렸다"는 뜻이 아니다(예: 시야방해석 0석 — 29CM 자체도 이 등급을
+        // 판매 대상에서 아예 뺐다) — 이 경우까지 "매진"으로 표시하면 마치 있던 좌석이 동난 것처럼
+        // 오해를 준다. total이 실제로 0보다 클 때만 "매진"으로 표시한다.
+        const isSoldOut = remain === 0 && total > 0;
+        const remainText = isSoldOut ? '매진' : (remain === 0 ? '0석' : (remain != null ? esc(remain.toLocaleString()) + '석 남음' : '-'));
         const priceText = price != null ? `<span style="font-size:11.5px;color:var(--dim);font-weight:600;margin-left:6px">${price.toLocaleString()}원</span>` : '';
         // 등급별 총원을 모르는 경우엔 별도 안내 없이 잔여석만 깔끔하게 보여준다.
         const statusLine = soldPct != null
           ? `<div class="tk-bar"><i style="width:${soldPct}%"></i></div><div class="tk-pct">${soldPct}% 판매 <span class="tk-pct-sub">(총 ${total.toLocaleString()}석 중 ${(total - remain).toLocaleString()}석 판매)</span></div>`
           : '';
+        // 등급명이 이미 "~석"으로 끝나면(예: 시야방해석) 뒤에 "석"을 또 붙이지 않는다("시야방해석석" 방지).
+        const gradeLabel = /석$/.test(k) ? k : k + '석';
         return `<div class="tk-grade">
-        <div class="tk-grade-top"><span class="tk-grade-name">${esc(k)}석${priceText}</span>
-          <span class="tk-grade-remain${remain === 0 ? ' sold-out' : ''}">${remainText}</span></div>
+        <div class="tk-grade-top"><span class="tk-grade-name">${esc(gradeLabel)}${priceText}</span>
+          <span class="tk-grade-remain${isSoldOut ? ' sold-out' : ''}">${remainText}</span></div>
         ${statusLine}
       </div>`;
       }).join('');
@@ -10439,6 +10446,17 @@
     // 고지). 또한 블랙티넘 구역을 29CM 화면과 대조한 결과, override가 없는 특수 구역은 좌석
     // 번호가 표준 구역과 반대 방향(오름차순 = 왼쪽→오른쪽)으로 매겨진다는 것도 확인했다 —
     // tkGroupSeatRows에서 override 유무로 정렬 방향을 나눈다.
+    // 2026-08-19 재검증: 38개 구역 전부(표준 30 + 특수 6 + A2/B2/블랙티넘 재확인)를 Konva 캔버스
+    // 좌석 렌더 데이터(로그인 세션으로 실제 좌석 선택 화면을 열어 window.Konva.stages에서 직접
+    // 좌표를 뽑음 — API 누락 버그의 영향을 안 받는, 화면에 실제로 그려지는 물리적 좌석 배치 그
+    // 자체)로 전수 대조해 아래 두 가지를 추가로 확인/수정했다:
+    // 1) D7: 1·3·5열은 API 누락이 아니라 애초에 좌석이 0개인 진짜 빈 열(29CM 화면에도 좌석 없이
+    //    열 번호만 표시됨) — 기존엔 이 열들도 "누락된 열"로 오판해 없는 좌석을 매진(회색)으로
+    //    채워 넣고 있었다. skip에 [3, 5]를 추가해 해당 열 자체를 그리지 않도록 수정.
+    // 2) C4: max가 11로 좁게 잡혀 있었는데, 실제로는 15열까지 좌석이 있다(12~15열 46석) —
+    //    이 열들이 화면에서 통째로 안 보이고 있었다. max를 15로 수정.
+    // 그 외 28개 구역(A2/B2/D7/C4 제외)은 실측 결과가 기존 min/max/skip/rowWidths와 완전히
+    // 일치해 변경하지 않았다.
     const TK_LIVE_ROW_OVERRIDE = {
       'D1': { min: 1, max: 15, aisleAfterRow: 7 },
       'C8': { min: 1, max: 15, aisleAfterRow: 7 },
@@ -10447,7 +10465,7 @@
       'D4': { min: 8, max: 11, aisleAfterRow: 7 },
       'D5': { min: 8, max: 11, aisleAfterRow: 7 },
       'D6': { min: 4, max: 15, skip: [5], aisleAfterRow: 7 },
-      'D7': { min: 2, max: 15, aisleAfterRow: 7 },
+      'D7': { min: 2, max: 15, skip: [3, 5], aisleAfterRow: 7 },
       'D8': { min: 1, max: 15, aisleAfterRow: 7 },
       'A1': { min: 1, max: 15, aisleAfterRow: 7 },
       'A2': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 8, 2: 8, 4: 8 } },
@@ -10468,7 +10486,7 @@
       'C1': { min: 1, max: 15, aisleAfterRow: 7 },
       'C2': { min: 1, max: 15, aisleAfterRow: 7 },
       'C3': { min: 1, max: 15, aisleAfterRow: 7 },
-      'C4': { min: 3, max: 11, aisleAfterRow: 7 },
+      'C4': { min: 3, max: 15, aisleAfterRow: 7 },
       'C5': { min: 3, max: 15, aisleAfterRow: 7 },
       'C6': { min: 1, max: 15, aisleAfterRow: 7 },
       'C7': { min: 1, max: 15, aisleAfterRow: 7 },
@@ -10841,7 +10859,7 @@
        viewTickets()가 렌더링할 때마다 새로 채워진다. */
     let tkLive = null;
     const TK_SHARE_LINK = 'https://kingfather0.github.io/BlackCombat/#/tickets';
-    function tkBuildShareText(remainByGrade, atIso) {
+    function tkBuildShareText(remainByGrade, atIso, totalsByGrade) {
       if (!tkLive) return;
       const lines = [`🎫 티켓 판매 현황 (${fmtSnapTime(atIso)})`];
       if (tkLive.overallTotal) {
@@ -10851,7 +10869,13 @@
       }
       sortGradeKeys(Object.keys(remainByGrade)).forEach(g => {
         const r = remainByGrade[g];
-        lines.push(`${g}석 ${r === 0 ? '매진' : (r != null ? r.toLocaleString() + '석 남음' : '-')}`);
+        // total이 0(또는 미집계)인데 remain만 0이면 "원래 그 등급 좌석이 없다"는 뜻이지 매진이
+        // 아니다(위 gradeRowsHTML과 동일한 이유 — 예: 시야방해석 0석). 다만 totalsByGrade 자체를
+        // 안 넘겨준 호출부(NOL 수동 갱신/공유 — 총원 정보가 없음)는 기존 그대로 remain===0을 매진으로 본다.
+        const t = totalsByGrade ? totalsByGrade[g] : undefined;
+        const soldOut = r === 0 && (totalsByGrade ? t > 0 : true);
+        const label = /석$/.test(g) ? g : g + '석';
+        lines.push(`${label} ${soldOut ? '매진' : (r === 0 ? '0석' : (r != null ? r.toLocaleString() + '석 남음' : '-'))}`);
       });
       lines.push(TK_SHARE_LINK);
       tkLive.shareText = lines.join('\n');
@@ -11500,11 +11524,17 @@
         shareText: null
       };
       const liveRemain = {};
-      latestRows.forEach(r => Object.keys(r.grades || {}).forEach(k => {
-        const v = r.grades[k] && r.grades[k].remain;
-        if (v != null) liveRemain[k] = (liveRemain[k] || 0) + v;
-      }));
-      tkBuildShareText(liveRemain, newestAt);
+      const liveTotals = {};
+      latestRows.forEach(r => {
+        const roundKey = r.round_label || '__default__';
+        const rTotals = (r.totals && Object.keys(r.totals).length) ? r.totals : (totalsByRound.get(roundKey) || null);
+        Object.keys(r.grades || {}).forEach(k => {
+          const v = r.grades[k] && r.grades[k].remain;
+          if (v != null) liveRemain[k] = (liveRemain[k] || 0) + v;
+          if (rTotals && rTotals[k] != null) liveTotals[k] = (liveTotals[k] || 0) + rTotals[k];
+        });
+      });
+      tkBuildShareText(liveRemain, newestAt, liveTotals);
 
       // 구역별 실시간 좌석 현황 — 이 행사(BC_2026_0829)에서만, "전체 좌석"과 "잔여 좌석" 사이에 넣는다.
       const liveZonesEnabled = (eventKey === 'BC_2026_0829');
