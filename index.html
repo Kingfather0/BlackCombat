@@ -7627,6 +7627,18 @@
       letter-spacing: -.02em
     }
 
+    .bq-stopwatch {
+      background: #e6f8ec;
+      color: #16a34a;
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: -.02em;
+      font-variant-numeric: tabular-nums;
+      padding: 6px 12px;
+      border-radius: 99px;
+      white-space: nowrap
+    }
+
     .bq-exit {
       border: 1.5px solid var(--border);
       background: #fff;
@@ -13096,7 +13108,12 @@
       cancelBtn.onpointerdown = e => e.stopPropagation();
       cancelBtn.onclick = e => { e.stopPropagation(); close(); bbArmLeaveGuard(); };
       okBtn.onpointerdown = e => e.stopPropagation();
-      okBtn.onclick = e => { e.stopPropagation(); close(); bbDisarmLeaveGuard(); if (typeof onLeave === 'function') onLeave(); };
+      okBtn.onclick = e => {
+        e.stopPropagation(); close(); bbDisarmLeaveGuard();
+        // onLeave 안에서 뭔가 터져도 최소한 게임 메뉴로는 빠져나가게 한다(먹통 방지 최후 방어선).
+        try { if (typeof onLeave === 'function') onLeave(); }
+        catch (err) { location.hash = '#/game'; }
+      };
       overlayHost().append(ov);
     }
     window.addEventListener('popstate', () => {
@@ -13859,6 +13876,10 @@
       raf: 0,
       locked: false,     // 중복 제출 방지
       correctSoFar: 0,
+      swAnchor: 0,       // 실시간 소요 시간 스톱워치 기준 시각(ms) — 1번 문제 타이머가 실제로
+                         // 뜨는 시점(issued_at + timer_slack_ms)에 한 번만 고정된다. 서버의
+                         // quiz_close_attempt 총 소요시간 계산과 정확히 같은 기준이다.
+      swRaf: 0,
     };
 
     function bqRpcErr(e) {
@@ -13869,6 +13890,12 @@
       return cleanErr(m);
     }
     function bqSec(ms) { return (Math.round((ms || 0) / 100) / 10).toFixed(1); }
+    // 포기한 전적은 정답 수/시간을 숫자로 보여주지 않고 "포기"라고만 표시한다.
+    // (서버가 포기 시 correct_count/total_time_ms를 항상 0으로 강제 기록하므로, 숫자를 그대로
+    //  보여주면 "0/5 · 0.0초"처럼 오해를 부를 수 있어 클라이언트에서 항상 텍스트로 치환한다)
+    function bqIsForfeited(r) { return !!(r && (r.forfeited || r.status === 'ABANDONED')); }
+    function bqScoreText(r) { return bqIsForfeited(r) ? '포기' : `${r.correct_count}/${r.q_total}`; }
+    function bqTimeText(r) { return bqIsForfeited(r) ? '포기' : `${bqSec(r.total_time_ms)}초`; }
     /* 참여자가 적을 때 "상위 100%"처럼 어색하게 보이지 않도록, 10명 미만이면 인원수로 표기 */
     function bqRankSub(rank, total, pct) {
       if (!rank || !total) return '';
@@ -13913,7 +13940,7 @@
        ────────────────────────────────────────────────────────────── */
     function viewGameQuiz() {
       gmToken++; gmClear(); gmCurGame = 'quiz';
-      bqStopTimer();
+      bqStopTimer(); bqStopStopwatch();
       BQ.state = 'home';
       bqRenderHome();
     }
@@ -13962,7 +13989,7 @@
       const left = loggedIn ? (d.attempts_left || 0) : daily;
       const runs = (d.attempts || []);
       const best = d.best;
-      const bestKey = best ? `${best.correct_count}|${best.total_time_ms}` : '';
+      const bestKey = best ? `${best.correct_count}|${best.total_time_ms}|${!!best.forfeited}` : '';
       // "이어하기"는 제공하지 않는다 — 화면을 벗어나면 서버가 남은 도전을 바로 포기 처리해
       // d.live_attempt는 항상 null로 내려온다(quiz_get_home 참고). START만 남긴다.
 
@@ -13970,9 +13997,12 @@
         ? `<div class="bq-run empty">로그인하면 오늘의 기록이 여기에 쌓입니다.</div>`
         : (runs.length ? runs.map(r => {
           const done = r.status === 'COMPLETED' || r.status === 'ABANDONED';
-          const isBest = done && best && `${r.correct_count}|${r.total_time_ms}` === bestKey;
+          const isBest = done && best && `${r.correct_count}|${r.total_time_ms}|${bqIsForfeited(r)}` === bestKey;
           if (!done) return `<div class="bq-run"><span class="bq-run-no">${r.attempt_no}회차</span>
             <span class="bq-run-tm">진행 중…</span></div>`;
+          if (bqIsForfeited(r)) return `<div class="bq-run">
+            <span class="bq-run-no">${r.attempt_no}회차</span>
+            <span class="bq-run-sc">포기</span></div>`;
           return `<div class="bq-run${isBest ? ' best' : ''}">
             <span class="bq-run-no">${r.attempt_no}회차</span>
             <span class="bq-run-sc">${r.correct_count}/${r.q_total}</span>
@@ -14030,7 +14060,7 @@
       <div id="bqMyStatsBody" class="empty">${loggedIn ? '불러오는 중…' : '로그인하면 내 기록을 볼 수 있습니다.'}</div>
       <div id="bqTodayBody" style="margin-top:16px">
         <h3 style="margin-top:0">📅 오늘의 기록
-          ${best ? `<span style="font-size:12px;color:var(--muted);font-weight:800">최고 ${best.correct_count}/${best.q_total} · ${bqSec(best.total_time_ms)}초</span>` : ''}</h3>
+          ${best ? `<span style="font-size:12px;color:var(--muted);font-weight:800">최고 ${bqIsForfeited(best) ? '포기' : `${best.correct_count}/${best.q_total} · ${bqSec(best.total_time_ms)}초`}</span>` : ''}</h3>
         <div class="bq-runs">${runsHTML}</div>
         ${best && best.rank ? `<div class="bq-note">오늘 전체 <b>${best.rank}위</b> / ${best.total_players}명 · ${bqTierIcon(best.tier_meta)} ${esc(bqTierLabel(best.tier_meta))}</div>` : ''}
       </div>
@@ -14300,18 +14330,48 @@
       if (d.finished) { bqRenderResult(d.attempt_id); return; }
       BQ.attempt = d;
       BQ.correctSoFar = d.correct_so_far || 0;
-      bqEnterPlay(d.question, d, d.remain_ms);
+      // 1번 문제 issued_at + 그 당시 timer_slack_ms로 스톱워치 기준 시각을 그대로 복원한다
+      // (서버 quiz_close_attempt의 v_time 계산과 동일 기준) — 복구돼도 스톱워치가 0부터
+      // 다시 시작하는 것처럼 보이지 않게 한다.
+      const swAnchor = d.q1_issued_at
+        ? (new Date(d.q1_issued_at).getTime() + (d.q1_timer_slack_ms || 0))
+        : 0;
+      bqEnterPlay(d.question, d, d.remain_ms, swAnchor);
     }
 
     /* ──────────────────────────────────────────────────────────────
        게임 화면
        ────────────────────────────────────────────────────────────── */
-    function bqEnterPlay(question, attempt, remainMs) {
+    function bqEnterPlay(question, attempt, remainMs, swAnchor) {
       BQ.state = 'playing';
       BQ.q = question;
+      // 새 도전이 시작될 때마다 스톱워치 기준 시각을 초기화한다 — 이전 도전(재도전 등)의
+      // 잔여 상태가 새 도전으로 넘어와 시간이 잘못 누적되는 일을 막는다. 단, 제출 실패 후
+      // 복구(bqResume)로 재진입한 경우엔 swAnchor를 그대로 넘겨받아 스톱워치가 끊기지 않는다.
+      BQ.swAnchor = swAnchor || 0;
+      if (BQ.swRaf) { cancelAnimationFrame(BQ.swRaf); BQ.swRaf = 0; }
+      if (BQ.swAnchor) BQ.swRaf = requestAnimationFrame(bqStopwatchLoop);
       bqArmLeaveGuard();
       $app.innerHTML = `<div class="bq"><div class="bq-play" id="bqPlay"></div></div>`;
       bqPaintQuestion(question, remainMs, true);
+    }
+
+    // 1번 문제 타이머가 실제로 뜨는 순간(issued_at + timer_slack_ms)부터 마지막 문제를 답할
+    // 때까지 쉬지 않고 올라가는 실시간 소요 시간 표시. 문제 사이 정답/오답 피드백·전환 대기
+    // 시간도 서버의 총 소요시간 계산(quiz_close_attempt)에 그대로 포함되므로, 이 스톱워치도
+    // 문제가 바뀌어도 멈추지 않고 계속 흐른다 — 문제별로 새로 시작하는 타이머(bqStartTimer)와는
+    // 완전히 별개의 생명주기를 가진다.
+    function bqStopwatchLoop() {
+      if (BQ.state !== 'playing' && BQ.state !== 'feedback') { BQ.swRaf = 0; return; }
+      const el = document.getElementById('bqStopwatch');
+      if (el && BQ.swAnchor) {
+        const ms = Math.max(0, svrNow().getTime() - BQ.swAnchor);
+        el.textContent = `소요 시간 : ${bqSec(ms)}초`;
+      }
+      BQ.swRaf = requestAnimationFrame(bqStopwatchLoop);
+    }
+    function bqStopStopwatch() {
+      if (BQ.swRaf) { cancelAnimationFrame(BQ.swRaf); BQ.swRaf = 0; }
     }
 
     function bqPaintQuestion(q, remainMs, withCountdown) {
@@ -14326,6 +14386,7 @@
       el.innerHTML = `
     <div class="bq-ptop">
       <div class="bq-pno">문제 <b>${String(q.no).padStart(2, '0')}</b> / ${total}</div>
+      <div class="bq-stopwatch" id="bqStopwatch">소요 시간 : 0.0초</div>
     </div>
     <div class="bq-timer"><span class="ic">⏰</span>
       <span class="v" id="bqTimeV">${String(secs).padStart(2, '0')}</span><span class="u">초</span>
@@ -14385,6 +14446,12 @@
       BQ.deadline = (q && q.issued_at)
         ? (new Date(q.issued_at).getTime() + slackMs + limitMs)
         : (svrNow().getTime() + limitMs);
+      // 스톱워치는 1번 문제에서 딱 한 번만 기준 시각을 고정한다(서버의 v_q1_issued + Q1의
+      // timer_slack_ms와 정확히 같은 기준). 그 뒤로는 몇 번째 문제든 다시 건드리지 않는다.
+      if (q && q.no === 1 && !BQ.swAnchor) {
+        BQ.swAnchor = (q.issued_at ? new Date(q.issued_at).getTime() : svrNow().getTime()) + slackMs;
+        if (!BQ.swRaf) BQ.swRaf = requestAnimationFrame(bqStopwatchLoop);
+      }
       const vEl = document.getElementById('bqTimeV');
       const bar = document.getElementById('bqBar');
       const barI = bar && bar.querySelector('i');
@@ -14458,6 +14525,12 @@
         return;
       }
 
+      // 마지막 문제라면 여기서 즉시 스톱워치를 멈춘다 — 서버의 총 소요시간(v_time)도 정확히
+      // "마지막 답변 제출 시각"까지만 계산하고, 그 뒤 결과 화면으로 넘어가기 전 피드백 표시
+      // 시간은 포함하지 않기 때문이다. 마지막 문제가 아니면(피드백·다음 문제 전환 대기 포함)
+      // 서버 계산에 그대로 포함되므로 스톱워치도 계속 흐르게 둔다.
+      if (d.finished || !d.next_question) bqStopStopwatch();
+
       // ── 피드백 (게임 중에는 긴 해설을 보여주지 않는다) ──
       BQ.state = 'feedback';
       const fb = document.getElementById('bqFb');
@@ -14507,18 +14580,26 @@
       return (BQ.state === 'playing' || BQ.state === 'feedback') && !!(BQ.attempt && BQ.attempt.attempt_id);
     }
     // 포기하기 확정 — 서버에 이 도전을 종료 처리해 "이어하기"로 재개할 수 없게 만든다.
-    // 오늘 이용 횟수는 그대로 소진된 채로 남고(이미 시작한 도전이라 되돌려주지 않음),
-    // 최고 기록·랭킹·개인 통계에는 전혀 반영되지 않는다("기록은 저장되지 않습니다").
+    // 오늘 이용 횟수는 그대로 소진된 채로 남고(이미 시작한 도전이라 되돌려주지 않음), 몇 문제를
+    // 맞혔든 0문제 취급으로 "포기" 기록만 남는다(quiz_close_attempt 참고). 화면 이동
+    // (location.hash)은 try/finally로 감싸서, 위 정리 작업 중 어디서 뭐가 터지든(예: BQ 상태가
+    // 예상과 달라 어딘가 에러가 나든) 무조건 실행되게 한다 — 예전엔 이 함수 안에서 뭔가 하나라도
+    // 실패하면 화면 이동 줄까지 못 가서 "게임 선택을 눌러도 그 화면에 멈추는" 원인이 됐었다.
     function bqLeaveAndForfeit() {
-      bqStopTimer();
-      const attemptId = BQ.attempt && BQ.attempt.attempt_id;
-      bqDisarmLeaveGuard();
-      BQ.state = 'idle';
-      if (attemptId) {
-        sb.rpc('quiz_forfeit_attempt', { p_nickname: gmMyNick, p_pin: gmMyPin, p_attempt: attemptId })
-          .catch(() => { /* 실패해도 방치된 도전은 20분 뒤 서버가 자동으로 정리한다 */ });
+      try {
+        bqStopTimer();
+        bqStopStopwatch();
+        const attemptId = BQ.attempt && BQ.attempt.attempt_id;
+        bqDisarmLeaveGuard();
+        BQ.state = 'idle';
+        if (attemptId) {
+          sb.rpc('quiz_forfeit_attempt', { p_nickname: gmMyNick, p_pin: gmMyPin, p_attempt: attemptId })
+            .catch(() => { /* 실패해도 다음 홈 진입 시 서버가 즉시 정리한다 */ });
+        }
+      } catch (e) { /* 정리 실패해도 아래에서 반드시 화면은 빠져나간다 */ }
+      finally {
+        location.hash = '#/game';
       }
-      location.hash = '#/game';
     }
 
     /* ──────────────────────────────────────────────────────────────
@@ -14526,7 +14607,7 @@
        ────────────────────────────────────────────────────────────── */
     async function bqRenderResult(attemptId) {
       const tk = gmToken;
-      bqStopTimer(); bqDisarmLeaveGuard();
+      bqStopTimer(); bqStopStopwatch(); bqDisarmLeaveGuard();
       BQ.state = 'result';
       $app.innerHTML = `<div class="bq"><div class="bq-card"><div class="empty">채점 중…</div></div></div>`;
 
@@ -14577,7 +14658,7 @@
           ${d.attempts_left > 0 ? '다시 도전하기' : '내일 다시 만나요'}</button>
       </div>
       ${d.best && d.best.correct_count != null ? `<div class="bq-note">오늘의 공식 기록(최고 기록)은
-        <b>${d.best.correct_count}/${d.q_total} · ${bqSec(d.best.total_time_ms)}초</b> 입니다.</div>` : ''}
+        <b>${bqIsForfeited(d.best) ? '포기' : `${d.best.correct_count}/${d.q_total} · ${bqSec(d.best.total_time_ms)}초`}</b> 입니다.</div>` : ''}
     </div>
 
     <div class="bq-card">
@@ -14741,12 +14822,12 @@
     ${rows.map(r => `<div class="bq-rk${gmMyNick && r.nickname === gmMyNick ? ' me' : ''}" data-nick="${esc(r.nickname)}">
       <span class="r">${medal(r.rank)}</span>
       <span class="n" style="cursor:pointer" onclick="bqShowUserStats('${esc(r.nickname)}')">${esc(r.nickname)}${tierTag(r.tier)}</span>
-      <span class="s">${r.correct_count}/${r.q_total}</span>
-      <span class="t">${bqSec(r.total_time_ms)}초</span></div>`).join('')}
+      <span class="s">${bqIsForfeited(r) ? '포기' : `${r.correct_count}/${r.q_total}`}</span>
+      <span class="t">${bqIsForfeited(r) ? '' : `${bqSec(r.total_time_ms)}초`}</span></div>`).join('')}
     ${(!inList && d.me) ? `<div class="bq-rk me" data-nick="${esc(d.me.nickname)}">
       <span class="r">${d.me.rank}위</span><span class="n" style="cursor:pointer" onclick="bqShowUserStats('${esc(d.me.nickname)}')">${esc(d.me.nickname)} (나)${tierTag(d.me.tier)}</span>
-      <span class="s">${d.me.correct_count}/${d.me.q_total}</span>
-      <span class="t">${bqSec(d.me.total_time_ms)}초</span></div>` : ''}
+      <span class="s">${bqIsForfeited(d.me) ? '포기' : `${d.me.correct_count}/${d.me.q_total}`}</span>
+      <span class="t">${bqIsForfeited(d.me) ? '' : `${bqSec(d.me.total_time_ms)}초`}</span></div>` : ''}
     <div class="bq-note">총 ${d.total}명 · 정답 수 → 총 소요시간 → 달성 시각 순으로 정렬됩니다.</div>`;
 
       // 지난 주 TOP3 — 이번 주 기록과 비교해 볼 수 있게 아래에 덧붙인다
@@ -14761,7 +14842,7 @@
         <div class="gp-t">📜 지난 주 랭킹 (${gmWeekLabel(d2.week_key)})</div>
         ${prev.map((r, i) => `<div class="gp-r"><span>${pm[i] || (i + 1) + '위'}</span>
           <b><span style="cursor:pointer" onclick="bqShowUserStats('${esc(r.nickname)}')">${esc(r.nickname)}</span></b>
-          <span style="font-weight:800">${r.correct_count}/${r.q_total} · ${bqSec(r.total_time_ms)}초</span></div>`).join('')}
+          <span style="font-weight:800">${bqIsForfeited(r) ? '포기' : `${r.correct_count}/${r.q_total} · ${bqSec(r.total_time_ms)}초`}</span></div>`).join('')}
       </div>`;
         }
       } catch (e) { /* 지난 주 기록 없으면 조용히 생략 */ }
@@ -14799,8 +14880,8 @@
           : rows.map(r => `<div class="bq-rk">
         <span class="r">${r.rank}위</span>
         <span class="n"><button type="button" onclick="bqShowUserStats('${esc(r.nickname)}')" style="background:#eef2f8;color:#39445a;border:0;padding:4px 11px;border-radius:99px;font-size:12.5px;font-weight:800;cursor:pointer">${esc(r.nickname)}</button></span>
-        <span class="s">${r.correct_count}/${r.q_total}</span>
-        <span class="t">${bqSec(r.total_time_ms)}초</span></div>`).join('');
+        <span class="s">${bqIsForfeited(r) ? '포기' : `${r.correct_count}/${r.q_total}`}</span>
+        <span class="t">${bqIsForfeited(r) ? '' : `${bqSec(r.total_time_ms)}초`}</span></div>`).join('');
       } catch (e) {
         if (body) body.innerHTML = `<div class="empty">${esc(bqRpcErr(e))}</div>`;
       }
@@ -15084,7 +15165,7 @@
         const rows = (data && data.rows) || [];
         if (!rows.length) { el.textContent = '이번 주 기록 없음 — 1위에 도전!'; return; }
         const r = rows[0];
-        el.innerHTML = `이번 주 🥇 <b style="color:var(--text)">${esc(r.nickname)}</b> ${r.correct_count}/${r.q_total} · ${bqSec(r.total_time_ms)}초`;
+        el.innerHTML = `이번 주 🥇 <b style="color:var(--text)">${esc(r.nickname)}</b> ${bqIsForfeited(r) ? '포기' : `${r.correct_count}/${r.q_total} · ${bqSec(r.total_time_ms)}초`}`;
       } catch (e) { el.textContent = '랭킹 준비 중'; }
     }
 
