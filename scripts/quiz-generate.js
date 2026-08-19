@@ -376,6 +376,9 @@ RANKED.forEach(f => {
 });
 
 /* ── 템플릿 5. 초성 퀴즈 (NORMAL) ─────────────────────────────── */
+// 다른 문제에 비해 난이도가 너무 낮다는 피드백으로 생성을 중단한다(2026-08-19).
+// 로직은 나중에 필요하면 다시 켤 수 있도록 남겨두고, 생성만 끈다.
+const CHOSUNG_ENABLED = false;
 const CHO = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
 function chosung(s) {
   let out = '';
@@ -387,7 +390,7 @@ function chosung(s) {
   }
   return out;
 }
-RANKED.forEach(f => {
+if (CHOSUNG_ENABLED) RANKED.forEach(f => {
   const cho = chosung(f.nick);
   if (!cho || f.nick.replace(/\s/g, '').length < 2) return;
   const pool = RANKED.filter(x => x.nick !== f.nick && chosung(x.nick)
