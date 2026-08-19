@@ -14060,13 +14060,68 @@
       if (loggedIn) bqLoadMyStats();
     }
 
-    /* 스테이지의 설명서 버튼 / START 버튼 연결 */
+    /* 스테이지의 설명서 버튼 / 퀴즈 만들기 버튼 / START 버튼 연결 */
     function bqBindStage(onStart) {
       try { gmApplyPoses(); } catch (e) { }
       const rb = document.getElementById('bqRulesBtn');
       if (rb) rb.onclick = bqOpenRules;
+      const mb = document.getElementById('bqMakeBtn');
+      if (mb) mb.onclick = bqShowSubmitModal;
       const btn = document.getElementById('bqStart');
       if (btn && !btn.disabled && onStart) btn.onclick = onStart;
+    }
+
+    /* "퀴즈 만들기" — 유저가 직접 문제를 제출하는 모달. 제출한다고 바로 게임에 나오는 게
+       아니라 quiz_user_submission 에 검토 대기(PENDING)로만 쌓이고, 관리자가 골라 승인한
+       것만 실제 문제로 등록된다. */
+    function bqShowSubmitModal() {
+      if (!gmMyNick || !gmMyPin) { toastMsgTop('먼저 닉네임을 등록해 주세요.'); return; }
+      const ov = document.createElement('div');
+      ov.className = 'modal-ov';
+      ov.innerHTML = `<div class="modal" style="max-width:400px">
+    <div class="modal-h"><b>📝 퀴즈 만들기</b><button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-b">
+      <div class="note" style="margin-bottom:12px">퀴즈 작성 시 검토 후 퀴즈 리스트에 추가하겠습니다.<br>블랙컴뱃 관련 재밌는 퀴즈를 작성해 주세요!</div>
+      <div class="field"><label>제목</label><input id="bqs-q" maxlength="150" placeholder="예: 킹빠더의 필살기 이름은?"></div>
+      <div class="field"><label>정답</label><input id="bqs-a" maxlength="40" placeholder="정답을 입력해 주세요"></div>
+      <div class="field"><label>오답1)</label><input id="bqs-w1" maxlength="40"></div>
+      <div class="field"><label>오답2)</label><input id="bqs-w2" maxlength="40"></div>
+      <div class="field"><label>오답3)</label><input id="bqs-w3" maxlength="40"></div>
+      <div class="msg" id="bqs-msg"></div>
+      <button class="btn primary wide" style="margin-top:12px" id="bqs-go">제출하기</button>
+    </div>
+  </div>`;
+      ov.onclick = e => { if (e.target === ov) history.back(); };
+      pushModal(ov);
+      const box = ov.querySelector('.modal');
+      box.onpointerdown = e => e.stopPropagation();
+      const msg = ov.querySelector('#bqs-msg');
+      const put = (s, ok) => { msg.className = 'msg ' + (ok ? 'ok' : 'err'); msg.textContent = s; };
+      const goBtn = ov.querySelector('#bqs-go');
+      goBtn.onclick = async () => {
+        const q = ov.querySelector('#bqs-q').value.trim();
+        const a = ov.querySelector('#bqs-a').value.trim();
+        const w1 = ov.querySelector('#bqs-w1').value.trim();
+        const w2 = ov.querySelector('#bqs-w2').value.trim();
+        const w3 = ov.querySelector('#bqs-w3').value.trim();
+        if (!q || !a || !w1 || !w2 || !w3) { put('제목·정답·오답 3개를 모두 입력해 주세요.'); return; }
+        goBtn.disabled = true;
+        try {
+          const { data, error } = await sb.rpc('quiz_submit_question', {
+            p_nickname: gmMyNick, p_pin: gmMyPin,
+            p_question: q, p_answer: a, p_wrong1: w1, p_wrong2: w2, p_wrong3: w3,
+            p_pass: adminPass() || null,
+          });
+          if (error) throw error;
+          if (!data || data.ok === false) { put((data && data.msg) || '제출에 실패했습니다.'); goBtn.disabled = false; return; }
+          put(data.msg || '제출 완료! 검토 후 반영됩니다.', true);
+          toastMsg('📝 퀴즈가 제출됐어요! 검토 후 반영됩니다.');
+          setTimeout(() => { try { history.back(); } catch (e) { } }, 900);
+        } catch (e) {
+          put(bqRpcErr(e));
+          goBtn.disabled = false;
+        }
+      };
     }
 
     /* 시작 스테이지 — 블랙 러닝/펀칭의 타이틀 화면과 같은 구조(.gt-name/.gt-sub/.g-start)를
@@ -14079,7 +14134,8 @@
       return `
   <h1 class="page" style="gap:6px">🦁 블랙 퀴즈
     <button class="bb-rules-btn-top" id="bqRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button>
-    <span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰ 주간 랭킹 리셋까지 <b style="color:#dc2626">${gmResetLeft()}</b></span></h1>
+    <span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰ 주간 랭킹 리셋까지 <b style="color:#dc2626">${gmResetLeft()}</b></span>
+    <button class="bb-rules-btn-top" id="bqMakeBtn" type="button" style="padding:5px 10px;margin-left:auto">📝 퀴즈 만들기</button></h1>
   <div class="bq-stage">
     <div class="bq-rays"></div>
     <div class="bq-dots l"></div><div class="bq-dots r"></div>
@@ -14876,7 +14932,68 @@
           : '관리자 비밀번호로 로그인한 브라우저에서만 카드가 보이고 플레이할 수 있습니다. 다른 사람은 <code>#/game/quiz</code>로 직접 들어와도 서버에서 막힙니다.'}
         ${d.testers && d.testers.length ? `<br>추가 허용 닉네임: <b>${d.testers.map(esc).join(', ')}</b>` : ''}
       </div>
+    </div>
+    <div class="sec-title">📝 유저 제출 퀴즈 검토</div>
+    <div class="card">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+        <button class="btn xs primary" onclick="bqRenderSubmissions('PENDING')">대기중</button>
+        <button class="btn xs" onclick="bqRenderSubmissions('APPROVED')">승인됨</button>
+        <button class="btn xs" onclick="bqRenderSubmissions('REJECTED')">거절됨</button>
+      </div>
+      <div id="bqSubList"><div class="empty">불러오는 중…</div></div>
     </div>`;
+      bqRenderSubmissions('PENDING');
+    }
+    /* 유저가 "퀴즈 만들기"로 제출한 문제 검토 목록 — 절대 자동으로 채택되지 않고,
+       여기서 관리자가 하나씩 승인/거절해야만 실제 문제(quiz_question)로 등록된다. */
+    async function bqRenderSubmissions(status) {
+      const body = document.getElementById('bqSubList');
+      if (!body) return;
+      body.innerHTML = '<div class="empty">불러오는 중…</div>';
+      try {
+        const { data, error } = await sb.rpc('quiz_admin_list_submissions', { p_pass: adminPass(), p_status: status });
+        if (error) throw error;
+        if (!data || data.ok === false) { body.innerHTML = `<div class="empty">권한이 없습니다.</div>`; return; }
+        const items = data.items || [];
+        if (!items.length) { body.innerHTML = '<div class="empty">해당 상태의 제출이 없습니다.</div>'; return; }
+        body.innerHTML = items.map(s => bqSubmissionRowHTML(s, status)).join('');
+      } catch (e) {
+        body.innerHTML = `<div class="empty">${esc(bqRpcErr(e))}</div>`;
+      }
+    }
+    function bqSubmissionRowHTML(s, status) {
+      const opts = ['EASY', 'NORMAL', 'HARD', 'HELL']
+        .map(d => `<option value="${d}" ${d === 'NORMAL' ? 'selected' : ''}>${d}</option>`).join('');
+      return `<div class="card" style="margin-top:8px;padding:10px 12px">
+    <div style="font-weight:800;font-size:13px">${esc(s.question)}</div>
+    <div class="note" style="margin-top:4px">정답: <b style="color:var(--green)">${esc(s.answer)}</b> · 오답: ${esc(s.wrong1)}, ${esc(s.wrong2)}, ${esc(s.wrong3)}</div>
+    <div class="note" style="margin-top:2px">제출자: ${esc(s.nickname)} · ${new Date(s.created_at).toLocaleString('ko-KR')}
+      ${s.reject_reason ? `<br>거절 사유: ${esc(s.reject_reason)}` : ''}</div>
+    ${status === 'PENDING' ? `
+    <div style="display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap">
+      <select id="bqsub-diff-${s.id}" class="btn xs" style="padding:4px 8px">${opts}</select>
+      <button class="btn xs primary" onclick="bqReviewSubmission(${s.id},'APPROVE')">✅ 승인</button>
+      <button class="btn xs" style="color:#c62828" onclick="bqReviewSubmission(${s.id},'REJECT')">❌ 거절</button>
+    </div>` : ''}
+  </div>`;
+    }
+    async function bqReviewSubmission(id, action) {
+      let reason = null;
+      if (action === 'REJECT') {
+        reason = prompt('거절 사유 (선택, 비워도 됩니다):') || null;
+      }
+      const diffSel = document.getElementById('bqsub-diff-' + id);
+      const diff = diffSel ? diffSel.value : 'NORMAL';
+      try {
+        const { data, error } = await sb.rpc('quiz_admin_review_submission', {
+          p_pass: adminPass(), p_id: id, p_action: action,
+          p_category: 'COMMUNITY', p_difficulty: diff, p_reason: reason,
+        });
+        if (error) throw error;
+        if (!data || data.ok === false) throw new Error('처리에 실패했습니다.');
+        toastMsg(action === 'APPROVE' ? '✅ 승인되어 문제로 등록됐습니다.' : '❌ 거절했습니다.');
+        bqRenderSubmissions('PENDING');
+      } catch (e) { toastMsg(bqRpcErr(e)); }
     }
     async function bqAdminSetPublic(makePublic) {
       const msg = makePublic
