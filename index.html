@@ -2984,6 +2984,33 @@
       border-color: var(--key)
     }
 
+    .gc-new {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: linear-gradient(135deg, #ff7a7a, #e11d48);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .5px;
+      padding: 3px 9px;
+      border-radius: 99px;
+      box-shadow: 0 3px 8px rgba(225, 29, 72, .4);
+      animation: gcNewPulse 1.6s ease-in-out infinite
+    }
+
+    @keyframes gcNewPulse {
+
+      0%,
+      100% {
+        transform: scale(1)
+      }
+
+      50% {
+        transform: scale(1.1)
+      }
+    }
+
     .gc-ico {
       width: 60px;
       height: 60px;
@@ -7509,8 +7536,8 @@
     }
 
     .bq-tier.t-S {
-      background: linear-gradient(100deg, #101826, #1b2740);
-      border-color: #2b3a57
+      background: linear-gradient(100deg, #0e1c3f, #1d4ed8);
+      border-color: #2b4a8f
     }
 
     .bq-tier.t-S .bq-tier-n {
@@ -7884,9 +7911,9 @@
       border-radius: 18px;
       padding: 20px 16px;
       text-align: center;
-      background: linear-gradient(160deg, #101826, #1b2740);
-      border: 1.5px solid #2b3a57;
-      box-shadow: 0 8px 22px rgba(16, 28, 48, .28)
+      background: linear-gradient(160deg, #0e1c3f, #1d4ed8);
+      border: 1.5px solid #2b4a8f;
+      box-shadow: 0 8px 22px rgba(29, 78, 216, .28)
     }
 
     .bq-tiercard .n {
@@ -8124,6 +8151,18 @@
       white-space: nowrap
     }
 
+    .bq-rk-tier {
+      font-style: normal;
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--bq-p2);
+      background: var(--bq-soft);
+      border-radius: 99px;
+      padding: 2px 7px;
+      margin-left: 5px;
+      white-space: nowrap
+    }
+
     .bq-rk .r {
       font-weight: 900;
       color: var(--muted);
@@ -8248,7 +8287,7 @@
       border-radius: 16px;
       padding: 18px 16px;
       text-align: center;
-      background: linear-gradient(160deg, #101826, #1b2740);
+      background: linear-gradient(160deg, #0e1c3f, #1d4ed8);
       color: #fff
     }
 
@@ -8280,15 +8319,18 @@
 
     .bq-sharetext {
       white-space: pre-wrap;
+      word-break: break-all;
+      overflow-wrap: anywhere;
       text-align: left;
-      background: #f5f8fd;
-      border: 1.5px solid var(--bq-line);
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid rgba(255, 255, 255, .14);
       border-radius: 13px;
       padding: 13px;
       font-size: 13px;
       font-weight: 700;
       line-height: 1.6;
       margin-top: 12px;
+      color: #dfe4f0;
       user-select: text;
       -webkit-user-select: text
     }
@@ -13711,8 +13753,9 @@
     function viewGameMenu() {
       gmToken++; gmClear(); gmCurGame = '';
       const wk = gameWeekKey(svrNow());
-      const card = (href, img, name, desc, topId, acc) => `
+      const card = (href, img, name, desc, topId, acc, badge) => `
   <a class="gcard gcard-${acc}" href="${href}">
+    ${badge ? `<span class="gc-new">${esc(badge)}</span>` : ''}
     <div class="gc-ico"><img data-pose="${img}" src="${GM_LION_SRC}" alt=""></div>
     <div class="gc-b">
       <b>${name}</b>
@@ -13722,6 +13765,7 @@
     <span class="gc-go">PLAY</span>
   </a>`;
       $app.innerHTML = `
+  <span id="gQuizCardWrap" style="display:none">${card('#/game/quiz', 'idle', '블랙 퀴즈', '오늘의 블붕이 시험! 5문제로 실력 증명', 'gTopQuiz', 'quiz', 'NEW')}</span>
   ${card('#/game/run', 'run', '블랙 러닝', '점프·더블점프로 장애물을 뚫고 달려라!', 'gTopRun', 'run')}
   ${card('#/game/punch', 'punch', '블랙 펀칭', '타이밍에 딱 맞춰 최강 펀치 10방!', 'gTopPunch', 'punch')}
   ${card('#/game/grow', 'jump', '블랙 점핑', '발판을 통통 밟고 하늘 끝까지!', 'gTopGrow', 'grow')}
@@ -13733,8 +13777,7 @@
       <span class="gc-top" id="gTopBattle">🥇 불러오는 중…</span>
     </div>
     <span class="gc-go">PLAY</span>
-  </a>
-  <span id="gQuizCardWrap" style="display:none">${card('#/game/quiz', 'idle', '블랙 퀴즈', '오늘의 블붕이 시험! 10문제로 실력 증명', 'gTopQuiz', 'quiz')}</span>`;
+  </a>`;
       gmApplyPoses();
       loadMenuTops(wk);
       loadMenuBattleRecord();
@@ -13777,7 +13820,7 @@
     /* ══════════════════════════════════════════════════════════════════════
        게임 5: 블랙 퀴즈 (BLACK QUIZ)
 
-       "매일 새로 뽑히는 10문제를 하루 3번까지 풀고, 가장 좋은 기록으로
+       "매일 새로 뽑히는 5문제를 하루 3번까지 풀고, 가장 좋은 기록으로
         블붕이 등급과 랭킹을 증명하는 데일리 퀴즈"
 
        ⚠️ 이 화면은 채점을 하지 않는다.
@@ -13818,6 +13861,11 @@
     }
     function bqTierIcon(meta) { return (meta && meta.icon) || '🎯'; }
     function bqTierLabel(meta) { return (meta && meta.label) || '-'; }
+    /* 랭킹 행의 tier 코드(S/A/B/C/D)로 현재 설정된 등급 메타(아이콘·이름)를 찾는다 */
+    function bqTierByCode(code) {
+      const tiers = (BQ.cfg && BQ.cfg.tiers) || [];
+      return tiers.find(t => t.code === code) || null;
+    }
 
     /* 주간 랭킹 리셋까지 남은 시간 (KST 월요일 0시) — 기존 gmResetLeft보다 자세히 */
     function bqWeekResetLeft() {
@@ -13829,6 +13877,17 @@
       return {
         d: Math.floor(ms / 86400000),
         h: Math.floor(ms % 86400000 / 3600000),
+        m: Math.floor(ms % 3600000 / 60000),
+      };
+    }
+    /* 일간 랭킹 리셋까지 남은 시간 (다음 KST 자정 0시) */
+    function bqDayResetLeft() {
+      const now = svrNow();
+      const k = new Date(now.getTime() + 9 * 3600 * 1000);
+      const next = new Date(Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate() + 1));
+      const ms = Math.max(0, next.getTime() - k.getTime());
+      return {
+        h: Math.floor(ms / 3600000),
         m: Math.floor(ms % 3600000 / 60000),
       };
     }
@@ -13902,16 +13961,6 @@
       const bestKey = best ? `${best.correct_count}|${best.total_time_ms}` : '';
       const live = loggedIn && d.live_attempt;
 
-      const featHTML = `
-    <div class="bq-feats">
-      <div class="bq-feat"><div class="bq-feat-i">🗓️</div><div><b>매일 랜덤 ${qTotal}문제</b>
-        <span>난이도는 뒤로 갈수록 UP! EASY → NORMAL → HARD → HELL</span></div></div>
-      <div class="bq-feat"><div class="bq-feat-i">⏱️</div><div><b>문제당 ${secs}초 제한</b>
-        <span>시간이 지나면 자동 오답 처리 · 빨리 풀수록 순위 UP</span></div></div>
-      <div class="bq-feat"><div class="bq-feat-i">🏆</div><div><b>정답 수 &amp; 속도로 랭킹 결정</b>
-        <span>하루 ${daily}번 중 가장 좋은 기록이 공식 기록이 됩니다</span></div></div>
-    </div>`;
-
       const runsHTML = !loggedIn
         ? `<div class="bq-run empty">로그인하면 오늘의 기록이 여기에 쌓입니다.</div>`
         : (runs.length ? runs.map(r => {
@@ -13946,15 +13995,16 @@
             : '오늘의 도전을 모두 사용했어요 · 매일 00:00 초기화'));
 
       const rst = bqWeekResetLeft();
+      const drst = bqDayResetLeft();
+      const usedAll = loggedIn && (d.attempts_used || 0) >= daily;
 
       root.innerHTML = `
     ${bqStageHTML({
         ctaLabel, hint, locked: d.testing,
         disabled: !loggedIn || (left <= 0 && !live),
-        desc: `오늘의 <b>블붕이 시험</b>! ${qTotal}문제 · 문제당 ${secs}초<br>하루 ${daily}번 중 최고 기록으로 등급을 증명하라`,
+        desc: `오늘의 <b>블붕이 시험</b>! ${qTotal}문제 · 문제당 ${secs}초<br><b>찐블붕이</b>만 살아남는다! 블붕력을 시험하라`,
       })}
-    <div class="bq-cta-sub">${loggedIn ? `오늘의 도전 <b style="color:var(--bq-p2)">${d.attempts_used || 0} / ${daily}</b> · ` : ''}매일 00:00 초기화</div>
-    ${featHTML}
+    <div class="bq-cta-sub">${loggedIn ? `오늘의 도전 <b style="color:${usedAll ? '#dc2626' : 'var(--bq-p2)'}">${d.attempts_used || 0} / ${daily}</b> · ` : ''}<span style="color:#dc2626">매일 00:00 초기화</span></div>
 
     <div class="bq-card">
       <h3>📅 오늘의 기록
@@ -13977,12 +14027,16 @@
     </div>
 
     <div class="bq-card" id="bqMyBox">
-      <h3>📈 내 블퀴 기록</h3>
+      <h3>📈 나의 기록</h3>
       <div class="empty">${loggedIn ? '불러오는 중…' : '로그인하면 내 기록을 볼 수 있습니다.'}</div>
     </div>
 
     <div class="bq-card">
       <div class="bq-reset">
+        <div><div class="t">일간 랭킹 리셋까지</div>
+          <div class="v">${drst.h}시간 ${drst.m}분</div></div>
+      </div>
+      <div class="bq-reset" style="margin-top:8px">
         <div><div class="t">주간 랭킹 리셋까지</div>
           <div class="v">${rst.d}일 ${rst.h}시간 ${rst.m}분</div></div>
         <img data-pose="idle" src="${GM_LION_SRC}" alt="">
@@ -14105,14 +14159,13 @@
       const ov = document.createElement('div');
       ov.className = 'modal-ov bb-confirm-ov';
       ov.innerHTML = `<div class="bb-confirm">
-    <div class="bb-confirm-ic">🦁</div>
     <div class="bb-confirm-t">오늘의 블랙 퀴즈를 시작할까요?</div>
     <div class="bb-confirm-b">${q}문제 · 문제당 ${s}초 · 남은 기회 ${left}회<br>
       <b style="color:var(--red)">시작하면 기회 1회가 바로 소진됩니다.</b><br>
       중간에 나가도 그 시점까지의 결과로 기록돼요.</div>
     <div class="bb-confirm-actions">
       <button type="button" class="bb-confirm-btn cancel">취소</button>
-      <button type="button" class="bb-confirm-btn">시작하기</button>
+      <button type="button" class="bb-confirm-btn ok">시작하기</button>
     </div></div>`;
       const close = () => { try { ov.remove(); } catch (e) { } };
       ov.onclick = e => { if (e.target === ov) close(); };
@@ -14209,7 +14262,6 @@
       el.innerHTML = `
     <div class="bq-ptop">
       <div class="bq-pno">문제 <b>${String(q.no).padStart(2, '0')}</b> / ${total}</div>
-      <button class="bq-exit" id="bqExit">나가기 ✕</button>
     </div>
     <div class="bq-timer"><span class="ic">⏰</span>
       <span class="v" id="bqTimeV">${String(secs).padStart(2, '0')}</span><span class="u">초</span>
@@ -14229,7 +14281,6 @@
     </div>
     <div class="bq-fb" id="bqFb"></div>`;
 
-      document.getElementById('bqExit').onclick = bqConfirmExit;
       el.querySelectorAll('.bq-opt').forEach(b => {
         b.onclick = () => bqPick(+b.dataset.slot);
       });
@@ -14466,12 +14517,14 @@
        ────────────────────────────────────────────────────────────── */
     function bqShareText(d) {
       const tm = d.tier_meta || {};
+      const nick = d.nickname || gmMyNick || '';
       const lines = [
-        '🦁 블랙 퀴즈 — 오늘의 블붕이 판정',
+        '블랙 퀴즈 — 오늘의 블붕이 판정',
+        nick ? `${nick}님의 결과` : null,
         '',
         `${bqTierIcon(tm)} ${bqTierLabel(tm)}`,
         `${d.correct_count} / ${d.q_total} · ${bqSec(d.total_time_ms)}초`,
-      ];
+      ].filter(l => l !== null);
       if (d.tier_rank_public && d.tier_rank) lines.push(`${bqTierLabel(tm)} ${d.tier_rank}위`);
       if (d.percentile != null && d.total_players >= 10) lines.push(`전체 상위 ${d.percentile}%`);
       else if (d.rank && d.total_players) lines.push(`전체 ${d.total_players}명 중 ${d.rank}위`);
@@ -14480,13 +14533,14 @@
     }
     function bqShowShare(d) {
       const tm = d.tier_meta || {};
+      const nick = d.nickname || gmMyNick || '';
       const text = bqShareText(d);
       const url = location.origin + location.pathname + '#/game/quiz';
       const ov = document.createElement('div');
       ov.className = 'modal-ov bb-confirm-ov';
       ov.innerHTML = `<div class="bb-confirm" style="max-width:340px">
     <div class="bq-sharebox">
-      <div class="l">오늘의 블붕이 판정</div>
+      <div class="l">${nick ? `${esc(nick)} · ` : ''}오늘의 블붕이 판정</div>
       <div class="g">${bqTierIcon(tm)} ${esc(bqTierLabel(tm))}</div>
       <div class="s">${d.correct_count} / ${d.q_total}</div>
       <div class="m">${bqSec(d.total_time_ms)}초${d.rank ? ` · ${bqRankSub(d.rank, d.total_players, d.percentile) === `상위 ${d.percentile}%` ? `상위 ${d.percentile}%` : `${d.rank}위`}` : ''}</div>
@@ -14494,7 +14548,7 @@
     <div class="bq-sharetext" id="bqShareTxt">${esc(text)}\n${esc(url)}</div>
     <div class="bb-confirm-actions" style="margin-top:12px">
       <button type="button" class="bb-confirm-btn cancel">닫기</button>
-      <button type="button" class="bb-confirm-btn">공유하기</button>
+      <button type="button" class="bb-confirm-btn ok">공유하기</button>
     </div></div>`;
       const close = () => { try { ov.remove(); } catch (e) { } };
       ov.onclick = e => { if (e.target === ov) close(); };
@@ -14532,12 +14586,10 @@
     function bqRenderRankTabs() {
       const box = document.getElementById('bqRankTabs');
       if (!box) return;
-      const tiers = (BQ.cfg && BQ.cfg.tiers) || [];
       const tabs = [
-        { k: 'daily|', l: '오늘 전체' },
+        { k: 'daily|', l: '오늘' },
         { k: 'weekly|', l: '이번 주' },
-      ].concat(tiers.filter(t => t.rank_public !== false)
-        .map(t => ({ k: 'daily|' + t.code, l: `${t.icon} ${t.label}` })));
+      ];
       box.innerHTML = tabs.map(t => {
         const on = (BQ.rankScope + '|' + BQ.rankTier) === t.k;
         return `<button class="bq-tab${on ? ' on' : ''}" data-k="${t.k}">${esc(t.l)}</button>`;
@@ -14584,15 +14636,19 @@
       }
       const medal = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : `${r}위`;
       const inList = gmMyNick && rows.some(r => r.nickname === gmMyNick);
+      const tierTag = code => {
+        const tm = bqTierByCode(code);
+        return tm ? `<i class="bq-rk-tier">${tm.icon || ''} ${esc(tm.label || '')}</i>` : '';
+      };
       box.innerHTML = `
     <div class="bq-rk-h"><span>순위</span><span>닉네임</span><span style="text-align:right">정답</span><span style="text-align:right">소요시간</span></div>
     ${rows.map(r => `<div class="bq-rk${gmMyNick && r.nickname === gmMyNick ? ' me' : ''}">
       <span class="r">${medal(r.rank)}</span>
-      <span class="n">${esc(r.nickname)}</span>
+      <span class="n">${esc(r.nickname)}${tierTag(r.tier)}</span>
       <span class="s">${r.correct_count}/${r.q_total}</span>
       <span class="t">${bqSec(r.total_time_ms)}초</span></div>`).join('')}
     ${(!inList && d.me) ? `<div class="bq-rk me">
-      <span class="r">${d.me.rank}위</span><span class="n">${esc(d.me.nickname)} (나)</span>
+      <span class="r">${d.me.rank}위</span><span class="n">${esc(d.me.nickname)} (나)${tierTag(d.me.tier)}</span>
       <span class="s">${d.me.correct_count}/${d.me.q_total}</span>
       <span class="t">${bqSec(d.me.total_time_ms)}초</span></div>` : ''}
     <div class="bq-note">총 ${d.total}명 · 정답 수 → 총 소요시간 → 달성 시각 순으로 정렬됩니다.</div>`;
@@ -14617,12 +14673,12 @@
       const cats = d.categories || [];
       // 아직 한 번도 안 푼 사람에게 "최고 등급 -" 같은 빈 값을 보여주지 않는다
       if (!d.total_attempts) {
-        box.innerHTML = `<h3>📈 내 블퀴 기록</h3>
+        box.innerHTML = `<h3>📈 나의 기록</h3>
       <div class="empty">아직 기록이 없습니다.<br>첫 도전을 마치면 등급·최단 기록·분야별 정답률이 쌓입니다!</div>`;
         return;
       }
       box.innerHTML = `
-    <h3>📈 내 블퀴 기록</h3>
+    <h3>📈 나의 기록</h3>
     <div class="bq-run best" style="margin-bottom:10px">
       <span style="font-size:22px">${bqTierIcon(tm)}</span>
       <span><b style="font-size:15px">${esc(bqTierLabel(tm))}</b>
