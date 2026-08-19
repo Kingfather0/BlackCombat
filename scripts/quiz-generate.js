@@ -733,7 +733,7 @@ if (RANKHIST && RANKHIST.dates && RANKHIST.fighters) {
       if (up) {
         const label = isFemale ? REL[g].up[1] : REL[g].up[0];
         addQuestion({
-          question: `블랙컴뱃 족보상 ${nick} 선수의 ${label}${J.eun(label)} 누구일까요?`,
+          question: `${nick} 선수의 ${label}${J.eun(label)} 누구일까요?`,
           answer: up,
           wrong: pickN(pool, 6, rngFrom('jokbo_up' + g + nick)),
           category: 'JOKBO', template_id: `tpl_jokbo_up${g}`, difficulty: GEN_DIFF[g],
@@ -748,7 +748,7 @@ if (RANKHIST && RANKHIST.dates && RANKHIST.fighters) {
       if (down) {
         const label = isFemale ? REL[g].down[1] : REL[g].down[0];
         addQuestion({
-          question: `블랙컴뱃 족보상 ${nick} 선수의 ${label}${J.eun(label)} 누구일까요?`,
+          question: `${nick} 선수의 ${label}${J.eun(label)} 누구일까요?`,
           answer: down,
           wrong: pickN(pool, 6, rngFrom('jokbo_down' + g + nick)),
           category: 'JOKBO', template_id: `tpl_jokbo_down${g}`, difficulty: GEN_DIFF[g],
@@ -769,7 +769,7 @@ if (RANKHIST && RANKHIST.dates && RANKHIST.fighters) {
       const outsider = pickN(pool, 1, rngFrom('jokbo_notchild' + nick))[0];
       if (outsider) {
         addQuestion({
-          question: `블랙컴뱃 족보상 다음 중 ${nick} 선수의 ${kidLabel}이 아닌 선수는 누구일까요?`,
+          question: `다음 중 ${nick} 선수의 ${kidLabel}이 아닌 선수는 누구일까요?`,
           answer: outsider,
           wrong: pickN(kids, 3, rngFrom('jokbo_notchild_w' + nick)),
           category: 'JOKBO', template_id: 'tpl_jokbo_not_child', difficulty: 'HARD',
@@ -787,7 +787,7 @@ if (RANKHIST && RANKHIST.dates && RANKHIST.fighters) {
       const outsider = pickN(pool, 1, rngFrom('jokbo_notparent' + nick))[0];
       if (outsider) {
         addQuestion({
-          question: `블랙컴뱃 족보상 다음 중 ${nick} 선수의 ${dadLabel}가 아닌 선수는 누구일까요?`,
+          question: `다음 중 ${nick} 선수의 ${dadLabel}가 아닌 선수는 누구일까요?`,
           answer: outsider,
           wrong: pickN(dads, 3, rngFrom('jokbo_notparent_w' + nick)),
           category: 'JOKBO', template_id: 'tpl_jokbo_not_parent', difficulty: 'HARD',
