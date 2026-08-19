@@ -7642,34 +7642,21 @@
     }
 
     .bq-stopwatch {
-      display: inline-flex;
-      align-items: baseline;
-      gap: 4px;
-      background: #d7f5e3;
-      border: 1.5px solid #97e0b6;
-      color: #0e8a41;
-      font-weight: 900;
+      background: #e6f8ec;
+      color: #16a34a;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: -.02em;
       padding: 7px 13px;
       border-radius: 99px;
       white-space: nowrap
     }
 
-    .bq-stopwatch .ic {
-      font-size: 12.5px
-    }
-
-    .bq-stopwatch .lbl,
-    .bq-stopwatch .u {
-      font-size: 11.5px;
-      color: #159a4c;
-      font-weight: 800
-    }
-
     .bq-stopwatch b {
-      font-size: 17px;
-      letter-spacing: -.02em;
-      font-variant-numeric: tabular-nums;
-      color: #0e8a41
+      font-size: 15.5px;
+      font-weight: 900;
+      color: #0e8a41;
+      font-variant-numeric: tabular-nums
     }
 
     .bq-exit {
@@ -14436,11 +14423,11 @@
       el.innerHTML = `
     <div class="bq-ptop">
       <div class="bq-pno">문제 <b>${String(q.no).padStart(2, '0')}</b> / ${total}</div>
-      <div class="bq-stopwatch" id="bqStopwatch"><span class="ic">⏱️</span><span class="lbl">소요</span> <b id="bqSwV">0.0</b><span class="u">초</span></div>
+      <div class="bq-stopwatch" id="bqStopwatch">소요 시간 : <b id="bqSwV">0.0</b>초</div>
     </div>
     <div class="bq-timer"><span class="ic">⏰</span>
       <span class="v" id="bqTimeV">${String(secs).padStart(2, '0')}</span><span class="u">초</span>
-      <span style="margin-left:10px;font-size:12.5px;color:var(--muted);font-weight:800">
+      <span style="margin-left:auto;font-size:12.5px;color:var(--muted);font-weight:800">
         맞힌 개수 <b style="color:var(--bq-p2)">${BQ.correctSoFar}</b></span>
     </div>
     <div class="bq-bar" id="bqBar"><i style="transform:scaleX(1)"></i></div>
