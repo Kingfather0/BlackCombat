@@ -64,25 +64,14 @@ const ORDER_API_BASE = 'https://ticket.29cm.co.kr/api'; // 좌석배치(전체 �
 const VERIFIED_TOTAL_OVERRIDE = {
   // 비앤디 블랙컴뱃 4강: 일본 vs 미국 (2026-08-29)
   // 자동 탐지값(좌석배치도 API 합산)은 3,891석으로 실제보다 762석 적게 나왔던 것을 아래 값으로
-  // 바로잡습니다. 처음엔 등급별 세부 총원(totals)까지는 오버라이드하지 않고 fetchSeatBreakdown()의
-  // 자동 탐지값(합계 3,877석 — 등급별로도 버그 영향을 그대로 받아 실제보다 적음)을 참고용으로만
-  // 뒀었는데, 2026-08-18에 38개 구역을 이번엔 "구역별 등급"까지 함께 확인해 등급별 진짜 총원도
-  // 구했으므로 totals도 함께 오버라이드합니다 (아래 6개 등급 합계 = 4,653석으로 overallTotal과
-  // 정확히 일치 — 구역마다 등급이 섞이지 않고 하나로만 배정되어 있어 구역 단위 합산이 그대로
-  // 등급별 총원이 됩니다).
+  // 바로잡습니다. 등급별 세부 총원(totals)은 이 버그의 영향을 그대로 받을 수 있어 오버라이드하지
+  // 않고 fetchSeatBreakdown()의 자동 탐지값을 참고용으로만 둡니다 — "총 N석 중 M석 판매"처럼
+  // 전체 합계를 보여주는 부분(overallTotal/sellableTotal)만 바로잡는 것이 목적입니다.
   1246: {
     overallTotal: 4653,
     sellableTotal: 4653,
     noGradeTotal: 0,
-    totals: {
-      '블랙티넘': 48,
-      '골드': 474,
-      '플로어': 214,
-      '선수 입장로': 316,
-      '스탠다드': 2504,
-      '이코노미': 1097,
-    },
-    verifiedNote: '2026-08-18 38개 구역 전수 시각 확인(Konva 렌더링 좌석 수 집계, 구역별 등급까지 매칭)',
+    verifiedNote: '2026-08-18 38개 구역 전수 시각 확인(Konva 렌더링 좌석 수 집계)',
   },
 };
 
@@ -120,8 +109,13 @@ function formatRoundLabel(isoDateTime) {
   return `${y}.${mo}.${d}(${dow}) ${h12}:${mi} ${ampm}`;
 }
 
+// 20초 안에 응답이 없으면 요청을 그냥 실패 처리한다 — 29CM이 판매 일시중지/재개처럼 내부
+// 작업 중일 때 응답을 아예 안 주고 연결만 붙들고 있는 경우가 있었는데, 그러면 이 fetch가
+// 타임아웃 없이 무한정 매달려서 워크플로우 실행 자체가 몇 시간이고 "In progress"로 남는다.
+// (워크플로우 쪽에도 timeout-minutes/concurrency 안전장치를 같이 넣어뒀지만, 여기서 먼저
+// 빠르게 실패해야 로그에 원인이 남고 다음 스케줄 실행도 정상적으로 돌 수 있다.)
 async function getJSON(url) {
-  const res = await fetch(url, { credentials: 'omit' });
+  const res = await fetch(url, { credentials: 'omit', signal: AbortSignal.timeout(20000) });
   if (!res.ok) throw new Error(`요청 실패 (${res.status}): ${url}`);
   const json = await res.json();
   if (json.resultCode !== '200') throw new Error(`API 응답 오류: ${json.resultMessage || JSON.stringify(json)}`);
@@ -191,6 +185,7 @@ async function fetchExistingSnapshotCount(roundLabel) {
     if (roundLabel) params.set('round_label', `eq.${roundLabel}`);
     const res = await fetch(`${SUPABASE_URL}/rest/v1/ticket_snapshots?${params.toString()}`, {
       headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+      signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) return null;
     const rows = await res.json().catch(() => null);
@@ -214,6 +209,7 @@ async function setCurrentTicketEvent() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
       body: JSON.stringify({ p_secret: TICKET_BOT_SECRET, p_event_key: EVENT_KEY }),
+      signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) console.log('ℹ️ "지금 event_key" 갱신에 실패했습니다(패치를 아직 안 돌렸다면 정상) — 계속 진행합니다.');
     else console.log(`🔗 사이트가 자동으로 볼 event_key를 "${EVENT_KEY}"로 갱신했습니다.`);
@@ -235,6 +231,7 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       p_note: note || null,
       p_meta: meta && Object.keys(meta).length ? meta : null,
     }),
+    signal: AbortSignal.timeout(20000),
   });
   if (!res.ok) {
     const bodyText = await res.text().catch(() => '');
@@ -322,16 +319,6 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       const grades = {};
       for (const q of quantityList) {
         const gradeName = gradeDisplayName(q.seatGradeName, q.seatGradeCode);
-        // quantityList에는 실제로 판매하지 않는 "유령" 등급이 항상 잔여 0으로 섞여 나올 때가
-        // 있습니다 (이 행사의 "시야방해석"이 그 예 — 실제 29CM 판매 페이지에는 뜨지도 않고
-        // 가격 정보(seatGradePriceList)도 없는데, API의 quantityList에는 항상 잔여 0으로 잡혀
-        // 사이트에 "매진"으로 잘못 표시됐습니다). 가격 정보가 없는 등급은 판매 대상이 아니라고
-        // 보고 기록에서 제외합니다 (gradePrices 자체가 비어있으면 — 즉 이 API가 가격을 아예
-        // 안 주는 다른 행사면 — 이 필터를 걸지 않고 예전처럼 전부 기록합니다, 안전망).
-        if (Object.keys(gradePrices).length && gradePrices[gradeName] == null) {
-          console.log(`ℹ️ "${gradeName}" 등급은 가격 정보가 없어(=실제 판매 대상 아님) 기록에서 제외합니다.`);
-          continue;
-        }
         grades[gradeName] = { remain: q.turnClassificationRemainingProductQuantity };
       }
       const roundLabel = formatRoundLabel(turn.turnDateTime);
@@ -341,10 +328,9 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       let totals, note;
       let turnMeta = meta;
       if (verifiedOverride) {
-        // 이 상품은 좌석배치도 API의 누락 버그가 확인되어, 자동 탐지 대신 수동 검증값을 씁니다.
-        // verifiedOverride.totals(등급별 총원)까지 채워둔 행사면 그것을 그대로 쓰고, 아직 없는
-        // 행사면(등급별 매칭 전) breakdown의 자동 탐지값을 참고용으로만 씁니다(안전망).
-        totals = verifiedOverride.totals || (breakdown ? breakdown.totals : undefined);
+        // 이 상품은 좌석배치도 API의 누락 버그가 확인되어, 자동 탐지 대신 수동 검증값을 씁니다
+        // (등급별 세부는 여전히 버그 영향을 받을 수 있어 자동 탐지값을 참고용으로만 남겨둡니다).
+        totals = breakdown ? breakdown.totals : undefined;
         note = `총원은 수동 검증값 사용(29CM 좌석배치도 API 누락 버그 확인됨, ${verifiedOverride.verifiedNote}) — 잔여석은 실시간 API`;
         turnMeta = { ...meta, overallTotal: verifiedOverride.overallTotal, sellableTotal: verifiedOverride.sellableTotal, noGradeTotal: verifiedOverride.noGradeTotal };
         console.log(
