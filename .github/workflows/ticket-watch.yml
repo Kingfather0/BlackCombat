@@ -44,7 +44,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      # 2026-08-19: Playwright는 아래 "티켓 현황 확인 및 기록"(NOL) 단계에서만 쓰는데,
+      # 이 설치 단계에 조건이 없어서 NOL을 안 쓰고 29CM(블랙컴뱃)만 쓰는 실행에서도 매번
+      # 돌고 있었다 — 게다가 캐시도 없어서 매번 크로미움 브라우저 바이너리(약 150MB+)를
+      # 새로 내려받다 보니(로그 확인 결과, 폰트 패키지 21MB 받는 데만 40초+, 정작 크로미움
+      # 본체 다운로드는 시작도 못 하고) 10분을 다 채우고 다음 스케줄(10분 간격 외부 크론)에
+      # 취소당하는 일이 실제로 있었다 — 이러면 NOL은 물론 뒤 단계인 29CM(블랙컴뱃) 기록까지
+      # 같이 취소돼 아예 기록이 안 남는다. 그래서 1) NOL을 쓸 때만 설치하도록 조건을 걸고,
+      # 2) 브라우저 바이너리를 캐시해서 두 번째 실행부터는 다운로드 없이 몇 초 만에 끝나게 한다.
+      - name: Playwright 브라우저 캐시
+        if: ${{ github.event.inputs.ticket_url != '' || vars.TICKET_URL != '' || vars.TICKET_URL_2 != '' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-v1-chromium
       - name: Playwright 설치
+        if: ${{ github.event.inputs.ticket_url != '' || vars.TICKET_URL != '' || vars.TICKET_URL_2 != '' }}
         run: |
           npm install playwright@1
           npx playwright install --with-deps chromium
