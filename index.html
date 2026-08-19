@@ -8010,10 +8010,13 @@
     }
 
     .bq-acts button.primary {
-      border: 0;
-      background: linear-gradient(135deg, #4b8dff, #1d4ed8);
-      color: #fff;
-      box-shadow: 0 5px 14px rgba(29, 78, 216, .3)
+      background: var(--key);
+      border: 1.5px solid var(--key-deep);
+      color: #fff
+    }
+
+    .bq-acts button.primary:hover {
+      background: var(--key-deep)
     }
 
     .bq-acts button:disabled {
@@ -13969,7 +13972,7 @@
       <span class="bq-tier-b"><span class="bq-tier-n">${esc(t.label || '')}</span>
         <span class="bq-tier-d">${esc(t.desc || '')}</span></span>
       <span class="bq-tier-r">${bqTierRange(tiers, i2, qTotal)}<br>
-        순위 보기 ›</span>
+        순위 보기</span>
     </div>`).join('');
 
       const ctaLabel = live ? '이어하기'
@@ -13981,7 +13984,6 @@
             : '오늘의 도전을 모두 사용했어요 · 매일 00:00 초기화'));
 
       const rst = bqWeekResetLeft();
-      const drst = bqDayResetLeft();
       const usedAll = loggedIn && (d.attempts_used || 0) >= daily;
 
       root.innerHTML = `
@@ -14004,7 +14006,7 @@
         <h3 style="margin:0">🏆 이번 주 랭킹</h3>
         <input id="bqRankSearch" placeholder="닉네임 검색 (순위 보기)" oninput="bqFilterRank(this.value)" style="flex:1;max-width:180px;min-width:120px;box-sizing:border-box;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:6px 10px;color:var(--text);outline:none;font-size:12.5px;font-weight:600">
       </div>
-      <div id="bqHall" style="display:none;margin-top:10px"></div>
+      <div class="card" id="bqHall" style="display:none;margin-top:10px;margin-bottom:0"></div>
       <div id="bqRankBox" style="margin-top:10px"><div class="empty">불러오는 중…</div></div>
     </div>
 
@@ -14021,10 +14023,6 @@
 
     <div class="bq-card">
       <div class="bq-reset">
-        <div><div class="t">오늘 도전 횟수 리셋까지</div>
-          <div class="v">${drst.h}시간 ${drst.m}분</div></div>
-      </div>
-      <div class="bq-reset" style="margin-top:8px">
         <div><div class="t">주간 랭킹 리셋까지</div>
           <div class="v">${rst.d}일 ${rst.h}시간 ${rst.m}분</div></div>
         <img data-pose="idle" src="${GM_LION_SRC}" alt="">
@@ -14446,7 +14444,7 @@
 
       $app.innerHTML = `<div class="bq">
     <div class="bq-card">
-      <h3 style="justify-content:center">🎯 오늘의 결과</h3>
+      <h3 style="justify-content:center">오늘의 결과</h3>
       <div class="bq-res-top">
         <img class="bq-res-lion" data-pose="${d.correct_count >= d.q_total * 0.7 ? 'punch' : 'idle'}" src="${GM_LION_SRC}" alt="">
         <div class="bq-res-sc"><b>${d.correct_count}</b> <span>/ ${d.q_total} 정답</span></div>
@@ -14467,9 +14465,9 @@
         <div class="bq-tr"><span>오늘의 도전</span><b>${d.attempts_used} / ${(BQ.cfg && BQ.cfg.daily_attempts) || 3}</b></div>
       </div>
       <div class="bq-acts">
-        <button id="bqShare">🔗 결과 공유하기</button>
+        <button id="bqShare">💬 결과 공유하기</button>
         <button class="primary" id="bqAgain" ${d.attempts_left > 0 ? '' : 'disabled'}>
-          ${d.attempts_left > 0 ? `다시 도전하기 (${d.attempts_left})` : '내일 다시 만나요'}</button>
+          ${d.attempts_left > 0 ? '다시 도전하기' : '내일 다시 만나요'}</button>
       </div>
       ${d.best && d.best.correct_count != null ? `<div class="bq-note">오늘의 공식 기록(최고 기록)은
         <b>${d.best.correct_count}/${d.q_total} · ${bqSec(d.best.total_time_ms)}초</b> 입니다.</div>` : ''}
@@ -14525,7 +14523,7 @@
       if (d.tier_rank_public && d.tier_rank) lines.push(`${bqTierLabel(tm)} ${d.tier_rank}위`);
       if (d.percentile != null && d.total_players >= 10) lines.push(`전체 상위 ${d.percentile}%`);
       else if (d.rank && d.total_players) lines.push(`전체 ${d.total_players}명 중 ${d.rank}위`);
-      lines.push('', '너도 진짜 블붕이인지 확인해보세요 👇');
+      lines.push('', '👇찐 블붕이인지 증명해 보세요!');
       return lines.join('\n');
     }
     function bqShowShare(d, opts) {
@@ -14602,11 +14600,9 @@
         const b = d.best;
         const tm = bqTierByCode(b.tier);
         box.style.display = '';
-        box.innerHTML = `<div style="font-size:13.5px;background:var(--bq-soft);border-radius:12px;padding:10px 12px">
-      🏛️ <b>명예의 전당</b> — 역대 최고 기록
-      <b style="color:var(--bq-p2);cursor:pointer" onclick="bqShowTierNicks('${esc(b.tier || '')}')">${esc(b.nickname)}</b> ·
-      <b style="color:var(--bq-p2)">${b.correct_count}/${b.q_total} · ${bqSec(b.total_time_ms)}초</b>
-      ${tm ? ` ${tm.icon || ''} ${esc(tm.label || '')}` : ''}</div>`;
+        box.innerHTML = `<div style="font-size:13.5px">🏛️ <b>명예의 전당</b> — 역대 최고 기록
+      <b style="color:var(--key-deep);cursor:pointer" onclick="bqShowTierNicks('${esc(b.tier || '')}')">${esc(b.nickname)}</b> ·
+      <b style="color:var(--key-deep)">${b.correct_count}/${b.q_total} · ${bqSec(b.total_time_ms)}초</b></div>`;
       } catch (e) { /* 명예의 전당은 없어도 랭킹 표시엔 지장 없으니 조용히 무시 */ }
     }
 
@@ -16955,19 +16951,19 @@
     <button class="btn xs primary" style="margin-top:10px" data-idx="${idx}" data-nick="${esc(nick)}" onclick="saveWhitelistUserGames(this)">저장</button>
     <hr class="sep" style="margin:10px 0 8px">
     <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px">🦁 블랙 퀴즈</div>
-    <button class="btn xs" data-nick="${esc(nick)}" onclick="adminResetQuizAttempts(this)">오늘 이용 횟수 초기화 (0회로)</button>
+    <button class="btn xs" data-nick="${esc(nick)}" onclick="adminResetQuizAttempts(this)">이용 횟수·전적 완전 초기화</button>
   </div>`;
     }
     async function adminResetQuizAttempts(btn) {
       const nick = btn.dataset.nick;
-      if (!confirm(`'${nick}' 님의 오늘 블랙 퀴즈 이용 횟수를 0회로 초기화할까요?\n오늘 진행한 도전 기록이 삭제되고 다시 도전할 수 있게 됩니다. (이미 확정된 최고 기록·랭킹은 그대로 유지됩니다)`)) return;
+      if (!confirm(`'${nick}' 님의 블랙 퀴즈 기록을 완전히 초기화할까요?\n오늘 이용 횟수가 0회로 돌아가고, 지금까지의 모든 도전 이력·최고 기록·랭킹·개인 통계가 함께 삭제됩니다.\n이 작업은 되돌릴 수 없습니다.`)) return;
       const { data, error } = await sb.rpc('quiz_admin_reset_attempts', { p_pass: adminPass(), p_nickname: nick });
       if (error) {
         if (/function|not find/i.test(error.message || '')) return toastMsg('⚠️ 블랙퀴즈_패치.sql을 먼저 실행해 주세요.');
         return toastMsg('⚠️ ' + cleanErr(error.message));
       }
       if (!data || data.ok === false) return toastMsg('⚠️ ' + ((data && data.msg) || '초기화에 실패했습니다.'));
-      toastMsg(`'${nick}' 님의 오늘 블랙 퀴즈 이용 횟수가 초기화되었습니다.`);
+      toastMsg(`'${nick}' 님의 블랙 퀴즈 기록이 모두 초기화되었습니다.`);
     }
     async function saveWhitelistUserGames(btn) {
       const idx = btn.dataset.idx, nick = btn.dataset.nick;
