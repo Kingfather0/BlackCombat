@@ -14329,6 +14329,17 @@
       const vEl = document.getElementById('bqTimeV');
       const bar = document.getElementById('bqBar');
       const barI = bar && bar.querySelector('i');
+      // 0초가 되는 "바로 그 찰나"에 이미 손가락은 버튼을 눌렀는데, 터치→클릭 이벤트가
+      // 브라우저 큐에서 실제로 처리되기까지는 수십~100여ms의 지연이 있을 수 있다. 이 순간
+      // requestAnimationFrame 루프가 먼저 돌아 bqPick(-1)(자동 시간초과)로 BQ.locked를
+      // 선점해버리면, 뒤늦게 도착한 클릭 핸들러는 bqPick 맨 앞의 locked 가드에 막혀 그대로
+      // 버려진다 — 사용자는 분명히 눌렀는데 시간초과가 뜨는 것처럼 보이는 원인이다.
+      // 그래서 0초에 도달해도 자동 시간초과를 즉시 확정하지 않고, 아주 짧은 유예
+      // (TIMEOUT_GRACE_MS) 동안 이미 들어와 있는 클릭이 먼저 처리될 기회를 준 다음에도
+      // 여전히 선택되지 않았을 때만 진짜 시간초과로 확정한다. 서버의 grace_ms(RTT 여유,
+      // 기본 600ms)보다 짧게 잡아 서버 판정 기준을 벗어나지 않는다.
+      const TIMEOUT_GRACE_MS = 220;
+      let timeoutPending = false;
       const loop = () => {
         if (BQ.state !== 'playing') return;
         const left = BQ.deadline - svrNow().getTime();
@@ -14340,7 +14351,15 @@
         if (vEl) vEl.textContent = String(Math.ceil(shown / 1000)).padStart(2, '0');
         if (barI) barI.style.transform = `scaleX(${shown / limitMs})`;
         if (bar) bar.classList.toggle('warn', shown <= 3000);
-        if (left <= 0) { bqStopTimer(); bqPick(-1); return; }
+        if (left <= 0) {
+          if (!timeoutPending) {
+            timeoutPending = true;
+            setTimeout(() => {
+              if (BQ.state === 'playing' && !BQ.locked) bqPick(-1);
+            }, TIMEOUT_GRACE_MS);
+          }
+          return;
+        }
         BQ.raf = requestAnimationFrame(loop);
       };
       loop();
