@@ -10457,39 +10457,47 @@
     //    이 열들이 화면에서 통째로 안 보이고 있었다. max를 15로 수정.
     // 그 외 28개 구역(A2/B2/D7/C4 제외)은 실측 결과가 기존 min/max/skip/rowWidths와 완전히
     // 일치해 변경하지 않았다.
+    // 2026-08-19 재검증 2차: 사용자가 A7에서 여전히 다른 값(1열 2석/2열 4석으로 나옴, 실제는 8석씩)을
+    // 발견해 "동일 질문 반복하게 하지 말고 한번에 제대로 하라"는 요청에 따라, 이번엔 화면을 스크린샷으로
+    // 눈으로 세는 대신 29CM이 좌석 배치를 그릴 때 쓰는 원본 데이터(정적 chart JSON — 실시간 잔여석과
+    // 무관하게 물리적 좌석 위치 자체를 담고 있어 이전 재검증에서 놓친 오차의 영향을 안 받음)를 32개
+    // 표준 구역 전부 직접 떼어와(각 placeId의 /api/order/unit/charts → seatChartJsonUrl → blocks[].seats,
+    // sts===1인 좌석만 "실좌석") y좌표로 열을 묶어 열마다 정확한 좌석수를 셌다. 모든 구역에서 합계가
+    // TK_LIVE_ZONES의 total과 정확히 일치함을 확인했고(예: A7 135석, A5 82석 등 1석도 안 틀림), min/max/
+    // skip도 전부 기존 값과 열 개수가 일치해 그대로 두고 rowWidths만 32개 구역 전 열에 채워 넣었다.
     const TK_LIVE_ROW_OVERRIDE = {
-      'D1': { min: 1, max: 15, aisleAfterRow: 7 },
-      'C8': { min: 1, max: 15, aisleAfterRow: 7 },
-      'D2': { min: 1, max: 15, aisleAfterRow: 7 },
-      'D3': { min: 3, max: 15, aisleAfterRow: 7 },
-      'D4': { min: 8, max: 11, aisleAfterRow: 7 },
-      'D5': { min: 8, max: 11, aisleAfterRow: 7 },
-      'D6': { min: 4, max: 15, skip: [5], aisleAfterRow: 7 },
-      'D7': { min: 2, max: 15, skip: [3, 5], aisleAfterRow: 7 },
-      'D8': { min: 1, max: 15, aisleAfterRow: 7 },
-      'A1': { min: 1, max: 15, aisleAfterRow: 7 },
-      'A2': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 8, 2: 8, 4: 8 } },
-      'A3': { min: 1, max: 15, aisleAfterRow: 7 },
-      'A4': { min: 3, max: 15, aisleAfterRow: 7 },
-      'A5': { min: 3, max: 15, aisleAfterRow: 7 },
-      'A6': { min: 1, max: 15, aisleAfterRow: 7 },
-      'A7': { min: 1, max: 15, aisleAfterRow: 7 },
-      'A8': { min: 1, max: 15, aisleAfterRow: 7 },
-      'B1': { min: 1, max: 15, aisleAfterRow: 7 },
-      'B2': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 4, 3: 8 } },
-      'B3': { min: 3, max: 15, aisleAfterRow: 7 },
-      'B4': { min: 3, max: 13, aisleAfterRow: 7 },
-      'B5': { min: 3, max: 12, aisleAfterRow: 7 },
-      'B6': { min: 3, max: 15, aisleAfterRow: 7 },
-      'B7': { min: 1, max: 15, aisleAfterRow: 7 },
-      'B8': { min: 1, max: 15, aisleAfterRow: 7 },
-      'C1': { min: 1, max: 15, aisleAfterRow: 7 },
-      'C2': { min: 1, max: 15, aisleAfterRow: 7 },
-      'C3': { min: 1, max: 15, aisleAfterRow: 7 },
-      'C4': { min: 3, max: 15, aisleAfterRow: 7 },
-      'C5': { min: 3, max: 15, aisleAfterRow: 7 },
-      'C6': { min: 1, max: 15, aisleAfterRow: 7 },
-      'C7': { min: 1, max: 15, aisleAfterRow: 7 },
+      'D1': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 8, 2: 8, 3: 8, 4: 8, 5: 9, 6: 9, 7: 10, 8: 7, 9: 7, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 5 } },
+      'C8': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 8, 2: 8, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 10, 9: 11, 10: 11, 11: 11, 12: 12, 13: 12, 14: 12, 15: 5 } },
+      'D2': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 4, 2: 4, 3: 8, 4: 8, 5: 9, 6: 9, 7: 10, 8: 7, 9: 7, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 10 } },
+      'D3': { min: 3, max: 15, aisleAfterRow: 7, rowWidths: { 3: 4, 4: 4, 5: 4, 6: 4, 7: 4, 8: 10, 9: 11, 10: 11, 11: 11, 12: 5, 13: 5, 14: 5, 15: 5 } },
+      'D4': { min: 8, max: 11, aisleAfterRow: 7, rowWidths: { 8: 7, 9: 7, 10: 8, 11: 8 } },
+      'D5': { min: 8, max: 11, aisleAfterRow: 7, rowWidths: { 8: 7, 9: 8, 10: 8, 11: 8 } },
+      'D6': { min: 4, max: 15, skip: [5], aisleAfterRow: 7, rowWidths: { 4: 4, 6: 5, 7: 5, 8: 10, 9: 11, 10: 11, 11: 11, 12: 5, 13: 5, 14: 5, 15: 5 } },
+      'D7': { min: 2, max: 15, skip: [3, 5], aisleAfterRow: 7, rowWidths: { 2: 4, 4: 8, 6: 8, 7: 10, 8: 7, 9: 7, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 10 } },
+      'D8': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 8, 2: 8, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 7, 9: 7, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 5 } },
+      'A1': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 8, 2: 8, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 10, 9: 11, 10: 11, 11: 11, 12: 12, 13: 12, 14: 12, 15: 5 } },
+      'A2': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 8, 2: 8, 3: 8, 4: 8, 5: 9, 6: 9, 7: 10, 8: 7, 9: 8, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 10 } },
+      'A3': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 4, 2: 4, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 7, 9: 7, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 10 } },
+      'A4': { min: 3, max: 15, aisleAfterRow: 7, rowWidths: { 3: 4, 4: 4, 5: 5, 6: 5, 7: 5, 8: 10, 9: 10, 10: 11, 11: 6, 12: 6, 13: 6, 14: 6, 15: 5 } },
+      'A5': { min: 3, max: 15, aisleAfterRow: 7, rowWidths: { 3: 4, 4: 4, 5: 4, 6: 5, 7: 5, 8: 10, 9: 11, 10: 11, 11: 5, 12: 6, 13: 6, 14: 6, 15: 5 } },
+      'A6': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 4, 2: 4, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 7, 9: 7, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 10 } },
+      'A7': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 8, 2: 8, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 7, 9: 8, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 10 } },
+      'A8': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 8, 2: 8, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 10, 9: 11, 10: 11, 11: 11, 12: 12, 13: 12, 14: 12, 15: 5 } },
+      'B1': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 8, 2: 8, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 7, 9: 8, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 5 } },
+      'B2': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 4, 2: 4, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 7, 9: 8, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 10 } },
+      'B3': { min: 3, max: 15, aisleAfterRow: 7, rowWidths: { 3: 4, 4: 4, 5: 4, 6: 5, 7: 5, 8: 10, 9: 11, 10: 11, 11: 11, 12: 12, 13: 12, 14: 12, 15: 5 } },
+      'B4': { min: 3, max: 13, aisleAfterRow: 7, rowWidths: { 3: 9, 4: 9, 5: 10, 6: 10, 7: 10, 8: 7, 9: 8, 10: 8, 11: 8, 12: 1, 13: 1 } },
+      'B5': { min: 3, max: 12, aisleAfterRow: 7, rowWidths: { 3: 9, 4: 9, 5: 10, 6: 10, 7: 10, 8: 7, 9: 8, 10: 8, 11: 8, 12: 1 } },
+      'B6': { min: 3, max: 15, aisleAfterRow: 7, rowWidths: { 3: 4, 4: 4, 5: 4, 6: 4, 7: 5, 8: 10, 9: 10, 10: 11, 11: 11, 12: 12, 13: 12, 14: 12, 15: 5 } },
+      'B7': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 4, 2: 4, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 7, 9: 7, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 10 } },
+      'B8': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 8, 2: 8, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 7, 9: 8, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 5 } },
+      'C1': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 8, 2: 8, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 10, 9: 11, 10: 11, 11: 11, 12: 12, 13: 12, 14: 12, 15: 5 } },
+      'C2': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 8, 2: 8, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 7, 9: 8, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 10 } },
+      'C3': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 4, 2: 4, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 7, 9: 8, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 10 } },
+      'C4': { min: 3, max: 15, aisleAfterRow: 7, rowWidths: { 3: 4, 4: 4, 5: 4, 6: 5, 7: 5, 8: 10, 9: 11, 10: 11, 11: 11, 12: 12, 13: 12, 14: 12, 15: 10 } },
+      'C5': { min: 3, max: 15, aisleAfterRow: 7, rowWidths: { 3: 4, 4: 4, 5: 5, 6: 5, 7: 5, 8: 10, 9: 11, 10: 11, 11: 11, 12: 12, 13: 12, 14: 12, 15: 10 } },
+      'C6': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 3, 2: 3, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 7, 9: 8, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 10 } },
+      'C7': { min: 1, max: 15, aisleAfterRow: 7, rowWidths: { 1: 8, 2: 8, 3: 8, 4: 9, 5: 9, 6: 9, 7: 10, 8: 7, 9: 8, 10: 8, 11: 8, 12: 9, 13: 12, 14: 12, 15: 10 } },
     };
     const TK_LIVE_GRADE_NAME = { '001': '블랙티넘', '002': '골드', '003': '플로어', '004': '선수 입장로', '005': '스탠다드', '006': '이코노미' };
     const TK_LIVE_GRADE_COLOR = { '001': '#bea886', '002': '#fabb3a', '003': '#7dcc7e', '004': '#275db3', '005': '#f48bbb', '006': '#9b8ef5' };
@@ -10595,16 +10603,23 @@
       const avgCount = present.length ? Math.round(present.reduce((s, r) => s + byRow[r].length, 0) / present.length) : 4;
       return rowNums.map(r => {
         let rowSeats;
+        // 이 열의 "진짜 좌석 수"는 29CM의 정적 좌석 배치 JSON(chart/*.json, 실시간 잔여석과 무관한
+        // 물리적 좌석 배치 원본)을 직접 떼어와 실측한 값이다(2026-08-19, 32개 표준 구역 전수 재검증 —
+        // 각 구역 총 좌석수가 TK_LIVE_ZONES.total과 정확히 일치함을 확인했다). API(preempt/seat/info)가
+        // 이 값보다 적게 주는 경우는 두 가지다: 1) 열 안 일부 좌석만 누락, 2) 열 자체가 통째로 누락
+        // (완전 매진이라 응답에서 아예 빠지는 경우 등). 예전엔 2번 상황에서 rowWidths를 무시하고 "가까운
+        // 열의 좌석수"로 어림짐작했는데, 이게 A7 1·2열(진짜 8석씩인데 2·4석으로 추정)처럼 실측값이
+        // 버젓이 있는데도 크게 틀리는 원인이었다 — 이제 있는 만큼 채워져 있든(부분 누락) 하나도 없든
+        // (전체 누락) rowWidths를 항상 최우선으로 써서 1..want 범위에서 없는 번호를 매진으로 채운다.
+        const want = override && override.rowWidths && override.rowWidths[r];
         if (byRow[r] && byRow[r].length) {
           // num은 29CM 화면상 왼쪽→오른쪽이 아니라 내림차순으로 렌더링됨(표준 구역 실측 확인) — 오름차순
           // 정렬 시 좌우가 뒤바뀌고, API가 특정 좌석 하나만 누락한 경우(예: 맨 앞 num) 뒤 좌석들이 한 칸씩
           // 당겨져 보이는 오차까지 함께 생겨 내림차순으로 교정한다(특수 구역은 반대로 오름차순).
           rowSeats = byRow[r].slice().sort((a, b) => asc ? a.num - b.num : b.num - a.num);
-          // 이 열의 "진짜 좌석 수"가 rowWidths에 실측되어 있는데 API가 그보다 적게 줬으면, 1번부터
-          // 빠진 번호를 찾아 매진(회색) 좌석으로 채워 넣는다 — 어느 쪽 끝이 빠졌는지는 알 수 없어도
-          // (예: B2 1열은 뒤쪽 3·4번만 왔고 앞쪽 1·2번이 빠짐, A2 4열은 반대로 앞쪽만 옴) 1..want
-          // 범위에서 없는 번호를 전부 채우면 두 경우 모두 올바른 자리에 채워진다.
-          const want = override && override.rowWidths && override.rowWidths[r];
+          // API가 rowWidths보다 적게 줬으면, 1번부터 빠진 번호를 찾아 매진(회색) 좌석으로 채워 넣는다 —
+          // 어느 쪽 끝이 빠졌는지는 알 수 없어도(예: B2 1열은 뒤쪽 3·4번만 왔고 앞쪽 1·2번이 빠짐, A2
+          // 4열은 반대로 앞쪽만 옴) 1..want 범위에서 없는 번호를 전부 채우면 두 경우 모두 맞게 채워진다.
           if (want && rowSeats.length < want) {
             const known = new Set(rowSeats.map(s => s.num));
             for (let n = 1; n <= want; n++) {
@@ -10612,7 +10627,11 @@
             }
             rowSeats.sort((a, b) => asc ? a.num - b.num : b.num - a.num);
           }
+        } else if (want) {
+          // 열이 통째로 누락됐어도 실측 rowWidths가 있으면 그걸 정답으로 써서 전부 매진 좌석으로 채운다.
+          rowSeats = Array.from({ length: want }, (_, k) => ({ row: r, num: k + 1, block: null, sold: true }));
         } else {
+          // rowWidths 실측값이 없는 열(현재는 모든 표준 구역이 다 채워져 있어 사실상 안전망)만 어림짐작한다.
           const nearest = present.length
             ? present.reduce((best, p) => Math.abs(p - r) < Math.abs(best - r) ? p : best, present[0])
             : null;
