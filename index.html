@@ -3434,6 +3434,20 @@
       width: 100%
     }
 
+    /* 블랙 퀴즈 플레이 화면 전용 스크롤 잠금 — 문제 풀이 중엔 화면이 살짝이라도 스크롤되면
+       안내(문제 번호/타이머)가 스크롤에 밀려 위쪽 헤더에 가려 안 보이게 되는 문제가 있어,
+       아예 스크롤 자체가 발생하지 않게 막는다. position:fixed를 쓰는 이유는 모바일
+       브라우저(특히 iOS Safari)에서 overflow:hidden만으로는 오버스크롤(고무줄 효과)이
+       완전히 막히지 않기 때문 — top을 JS에서 -스크롤위치로 고정해 시각적 점프 없이 잠그고,
+       풀 때 그 위치로 다시 스크롤 복원한다(bqLockScroll/bqUnlockScroll 참고). */
+    body.bq-scroll-lock {
+      overflow: hidden;
+      position: fixed;
+      left: 0;
+      right: 0;
+      width: 100%
+    }
+
     /* 블랙 배틀은 캔버스 기반 미니게임과 달리 내용 높이만큼만 카드가 커지는 구조라, 전체화면으로
    들어가도 카드 내용이 짧으면 화면 아래쪽에 빈 여백이 남는다. 전체화면 상태에서는 카드(.bgx) 자체가
    그 전체화면 컨테이너의 높이를 꽉 채우도록 세로 flex로 바꾸고, 대전 연출 영역(.bb-vs-wrap)이
@@ -7628,15 +7642,34 @@
     }
 
     .bq-stopwatch {
-      background: #e6f8ec;
-      color: #16a34a;
+      display: inline-flex;
+      align-items: baseline;
+      gap: 4px;
+      background: #d7f5e3;
+      border: 1.5px solid #97e0b6;
+      color: #0e8a41;
       font-weight: 900;
-      font-size: 13px;
-      letter-spacing: -.02em;
-      font-variant-numeric: tabular-nums;
-      padding: 6px 12px;
+      padding: 7px 13px;
       border-radius: 99px;
       white-space: nowrap
+    }
+
+    .bq-stopwatch .ic {
+      font-size: 12.5px
+    }
+
+    .bq-stopwatch .lbl,
+    .bq-stopwatch .u {
+      font-size: 11.5px;
+      color: #159a4c;
+      font-weight: 800
+    }
+
+    .bq-stopwatch b {
+      font-size: 17px;
+      letter-spacing: -.02em;
+      font-variant-numeric: tabular-nums;
+      color: #0e8a41
     }
 
     .bq-exit {
@@ -13880,7 +13913,23 @@
                          // 뜨는 시점(issued_at + timer_slack_ms)에 한 번만 고정된다. 서버의
                          // quiz_close_attempt 총 소요시간 계산과 정확히 같은 기준이다.
       swRaf: 0,
+      lockScrollY: 0,    // bqLockScroll 걸기 직전 스크롤 위치(px) — 풀 때 그대로 복원한다
     };
+
+    // 문제 풀이 화면 스크롤 잠금 — position:fixed로 body를 고정하면 시각적으로 스크롤이
+    // "0"으로 점프하므로, top을 -스크롤위치로 맞춰 화면이 안 움직인 것처럼 보이게 한다.
+    function bqLockScroll() {
+      if (document.body.classList.contains('bq-scroll-lock')) return;
+      BQ.lockScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      document.body.style.top = (-BQ.lockScrollY) + 'px';
+      document.body.classList.add('bq-scroll-lock');
+    }
+    function bqUnlockScroll() {
+      if (!document.body.classList.contains('bq-scroll-lock')) return;
+      document.body.classList.remove('bq-scroll-lock');
+      document.body.style.top = '';
+      window.scrollTo(0, BQ.lockScrollY);
+    }
 
     function bqRpcErr(e) {
       const m = (e && e.message) || '';
@@ -13940,7 +13989,7 @@
        ────────────────────────────────────────────────────────────── */
     function viewGameQuiz() {
       gmToken++; gmClear(); gmCurGame = 'quiz';
-      bqStopTimer(); bqStopStopwatch();
+      bqStopTimer(); bqStopStopwatch(); bqUnlockScroll();
       BQ.state = 'home';
       bqRenderHome();
     }
@@ -14352,6 +14401,7 @@
       if (BQ.swRaf) { cancelAnimationFrame(BQ.swRaf); BQ.swRaf = 0; }
       if (BQ.swAnchor) BQ.swRaf = requestAnimationFrame(bqStopwatchLoop);
       bqArmLeaveGuard();
+      bqLockScroll();
       $app.innerHTML = `<div class="bq"><div class="bq-play" id="bqPlay"></div></div>`;
       bqPaintQuestion(question, remainMs, true);
     }
@@ -14363,10 +14413,10 @@
     // 완전히 별개의 생명주기를 가진다.
     function bqStopwatchLoop() {
       if (BQ.state !== 'playing' && BQ.state !== 'feedback') { BQ.swRaf = 0; return; }
-      const el = document.getElementById('bqStopwatch');
+      const el = document.getElementById('bqSwV');
       if (el && BQ.swAnchor) {
         const ms = Math.max(0, svrNow().getTime() - BQ.swAnchor);
-        el.textContent = `소요 시간 : ${bqSec(ms)}초`;
+        el.textContent = bqSec(ms);
       }
       BQ.swRaf = requestAnimationFrame(bqStopwatchLoop);
     }
@@ -14386,11 +14436,11 @@
       el.innerHTML = `
     <div class="bq-ptop">
       <div class="bq-pno">문제 <b>${String(q.no).padStart(2, '0')}</b> / ${total}</div>
-      <div class="bq-stopwatch" id="bqStopwatch">소요 시간 : 0.0초</div>
+      <div class="bq-stopwatch" id="bqStopwatch"><span class="ic">⏱️</span><span class="lbl">소요</span> <b id="bqSwV">0.0</b><span class="u">초</span></div>
     </div>
     <div class="bq-timer"><span class="ic">⏰</span>
       <span class="v" id="bqTimeV">${String(secs).padStart(2, '0')}</span><span class="u">초</span>
-      <span style="margin-left:auto;font-size:12.5px;color:var(--muted);font-weight:800">
+      <span style="margin-left:10px;font-size:12.5px;color:var(--muted);font-weight:800">
         맞힌 개수 <b style="color:var(--bq-p2)">${BQ.correctSoFar}</b></span>
     </div>
     <div class="bq-bar" id="bqBar"><i style="transform:scaleX(1)"></i></div>
@@ -14598,6 +14648,7 @@
         }
       } catch (e) { /* 정리 실패해도 아래에서 반드시 화면은 빠져나간다 */ }
       finally {
+        bqUnlockScroll();
         location.hash = '#/game';
       }
     }
@@ -14607,7 +14658,7 @@
        ────────────────────────────────────────────────────────────── */
     async function bqRenderResult(attemptId) {
       const tk = gmToken;
-      bqStopTimer(); bqStopStopwatch(); bqDisarmLeaveGuard();
+      bqStopTimer(); bqStopStopwatch(); bqUnlockScroll(); bqDisarmLeaveGuard();
       BQ.state = 'result';
       $app.innerHTML = `<div class="bq"><div class="bq-card"><div class="empty">채점 중…</div></div></div>`;
 
