@@ -3259,7 +3259,8 @@
     }
 
     #gHall,
-    #bbHall {
+    #bbHall,
+    #bqHall {
       background: linear-gradient(135deg, #eaf2ff, #ffffff);
       border: 1px solid #cfe0f5
     }
@@ -8271,7 +8272,7 @@
     .bq-reset .v {
       font-size: 17px;
       font-weight: 900;
-      color: var(--bq-p2);
+      color: #dc2626;
       letter-spacing: -.02em
     }
 
@@ -13107,6 +13108,9 @@
           // 미니게임 3종(펀칭/러닝/점핑) 플레이 도중 뒤로가기 — 블랙 배틀과 동일한 팝업이되
           // "기록은 저장되지 않습니다."로 문구만 다르게 안내한다.
           bbShowLeaveConfirm(() => { location.hash = '#/game'; }, '기록은 저장되지 않습니다.');
+        } else if (typeof bqIsPlaying === 'function' && bqIsPlaying()) {
+          // 블랙 퀴즈 도전 도중 뒤로가기 — 이어하기로 재개할 수 없도록 그 자리에서 포기 처리한다
+          bbShowLeaveConfirm(() => bqLeaveAndForfeit(), '기록은 저장되지 않습니다.');
         }
       }
     });
@@ -13132,6 +13136,9 @@
         } else if (gmMiniGameIsPlaying()) {
           e.preventDefault();
           bbShowLeaveConfirm(() => { location.hash = '#/game'; }, '기록은 저장되지 않습니다.');
+        } else if (typeof bqIsPlaying === 'function' && bqIsPlaying()) {
+          e.preventDefault();
+          bbShowLeaveConfirm(() => bqLeaveAndForfeit(), '기록은 저장되지 않습니다.');
         }
       });
     })();
@@ -14010,7 +14017,7 @@
         <h3 style="margin:0">🏆 이번 주 랭킹</h3>
         <input id="bqRankSearch" placeholder="닉네임 검색 (순위 보기)" oninput="bqFilterRank(this.value)" style="flex:1;max-width:180px;min-width:120px;box-sizing:border-box;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:6px 10px;color:var(--text);outline:none;font-size:12.5px;font-weight:600">
       </div>
-      <div class="card" id="bqHall" style="display:none;margin-top:10px;margin-bottom:0;background:linear-gradient(135deg, #f3f7ff, var(--bq-soft))"></div>
+      <div class="card" id="bqHall" style="display:none;margin-top:10px;margin-bottom:0"></div>
       <div id="bqRankBox" style="margin-top:10px"><div class="empty">불러오는 중…</div></div>
     </div>
 
@@ -14311,10 +14318,13 @@
     function bqStartTimer(q) {
       if (BQ.state !== 'playing') return;
       const limitMs = (q && q.limit_ms) || 8000;
-      // 데드라인은 항상 서버가 발급한 issued_at + limit_ms(서버 시계 기준 절대 시각)로 고정한다.
-      // 카운트다운/전환 대기 등으로 화면 표시가 늦게 시작돼도 실제 판정 기준과 어긋나지 않는다.
+      const slackMs = (q && q.timer_slack_ms != null) ? q.timer_slack_ms : 3000;
+      // 데드라인은 항상 서버가 발급한 issued_at + timer_slack_ms(카운트다운/전환 대기 같은
+      // "죽은 시간" 면제분) + limit_ms(서버 시계 기준 절대 시각)로 고정한다. 카운트다운/전환
+      // 대기 등으로 화면 표시가 늦게 시작돼도 실제 판정 기준과 어긋나지 않는다 — 서버의
+      // quiz_submit_answer 도 같은 timer_slack_ms 만큼을 면제해주므로 100% 같은 기준이다.
       BQ.deadline = (q && q.issued_at)
-        ? (new Date(q.issued_at).getTime() + limitMs)
+        ? (new Date(q.issued_at).getTime() + slackMs + limitMs)
         : (svrNow().getTime() + limitMs);
       const vEl = document.getElementById('bqTimeV');
       const bar = document.getElementById('bqBar');
@@ -14322,9 +14332,14 @@
       const loop = () => {
         if (BQ.state !== 'playing') return;
         const left = BQ.deadline - svrNow().getTime();
-        if (vEl) vEl.textContent = String(Math.max(0, Math.ceil(left / 1000))).padStart(2, '0');
-        if (barI) barI.style.transform = `scaleX(${Math.max(0, Math.min(1, left / limitMs))})`;
-        if (bar) bar.classList.toggle('warn', left <= 3000);
+        // 실제 카운트다운/전환 대기가 slackMs보다 살짝 짧게 끝나면 left가 limitMs를 아주
+        // 잠깐 넘어설 수 있다(예: "06"이 찍혔다가 바로 "05"로 바뀌는 것처럼 보임) — 화면
+        // 표시만 limitMs로 잘라서 항상 정확히 limitMs부터 매끄럽게 내려가게 한다. 실제 판정은
+        // (clamp 전) left/deadline 기준 그대로라 화면 표시와 무관하게 정확하다.
+        const shown = Math.max(0, Math.min(limitMs, left));
+        if (vEl) vEl.textContent = String(Math.ceil(shown / 1000)).padStart(2, '0');
+        if (barI) barI.style.transform = `scaleX(${shown / limitMs})`;
+        if (bar) bar.classList.toggle('warn', shown <= 3000);
         if (left <= 0) { bqStopTimer(); bqPick(-1); return; }
         BQ.raf = requestAnimationFrame(loop);
       };
@@ -14391,39 +14406,41 @@
       }, d.correct ? 750 : 1050);
     }
 
-    /* ── 이탈 방지: 진행 중 뒤로가기/새로고침 ── */
+    /* ── 이탈 방지: 진행 중 뒤로가기/새로고침 ──
+       beforeunload(새로고침·탭 닫기)는 기존처럼 bqArmLeaveGuard/bqDisarmLeaveGuard가 맡고,
+       인앱 뒤로가기·헤더의 "게임 선택" 링크는 미니게임 3종과 동일하게 bbArmLeaveGuard의
+       더미 history 엔트리 + 공용 popstate 핸들러(bqIsPlaying 체크)로 처리한다. 그래서 두
+       가드를 항상 같이 켜고 끈다. */
     let bqGuardArmed = false;
     function bqBeforeUnload(e) { e.preventDefault(); e.returnValue = ''; return ''; }
     function bqArmLeaveGuard() {
+      bbArmLeaveGuard();
       if (bqGuardArmed) return;
       bqGuardArmed = true;
       window.addEventListener('beforeunload', bqBeforeUnload);
     }
     function bqDisarmLeaveGuard() {
+      bbDisarmLeaveGuard();
       bqGuardArmed = false;
       window.removeEventListener('beforeunload', bqBeforeUnload);
     }
-    function bqConfirmExit() {
-      const ov = document.createElement('div');
-      ov.className = 'modal-ov bb-confirm-ov';
-      ov.innerHTML = `<div class="bb-confirm">
-    <div class="bb-confirm-ic">⚠️</div>
-    <div class="bb-confirm-t">지금 나가시겠어요?</div>
-    <div class="bb-confirm-b">남은 문제는 <b style="color:var(--red)">오답 처리</b>되고,
-      이번 도전은 그대로 기록됩니다.<br>기회는 이미 소진되어 되돌릴 수 없어요.</div>
-    <div class="bb-confirm-actions">
-      <button type="button" class="bb-confirm-btn cancel">계속 풀기</button>
-      <button type="button" class="bb-confirm-btn danger">나가기</button>
-    </div></div>`;
-      const close = () => { try { ov.remove(); } catch (e) { } };
-      ov.onclick = e => { if (e.target === ov) close(); };
-      ov.querySelector('.cancel').onclick = close;
-      ov.querySelector('.danger').onclick = () => {
-        close(); bqStopTimer(); bqDisarmLeaveGuard();
-        BQ.state = 'result';
-        bqRenderResult(BQ.attempt && BQ.attempt.attempt_id);
-      };
-      overlayHost().append(ov);
+    // 지금 도전이 "살아있는" 상태인지 — 이 상태에서 벗어나려 하면 포기 확인 팝업을 띄운다
+    function bqIsPlaying() {
+      return (BQ.state === 'playing' || BQ.state === 'feedback') && !!(BQ.attempt && BQ.attempt.attempt_id);
+    }
+    // 포기하기 확정 — 서버에 이 도전을 종료 처리해 "이어하기"로 재개할 수 없게 만든다.
+    // 오늘 이용 횟수는 그대로 소진된 채로 남고(이미 시작한 도전이라 되돌려주지 않음),
+    // 최고 기록·랭킹·개인 통계에는 전혀 반영되지 않는다("기록은 저장되지 않습니다").
+    function bqLeaveAndForfeit() {
+      bqStopTimer();
+      const attemptId = BQ.attempt && BQ.attempt.attempt_id;
+      bqDisarmLeaveGuard();
+      BQ.state = 'idle';
+      if (attemptId) {
+        sb.rpc('quiz_forfeit_attempt', { p_nickname: gmMyNick, p_pin: gmMyPin, p_attempt: attemptId })
+          .catch(() => { /* 실패해도 방치된 도전은 20분 뒤 서버가 자동으로 정리한다 */ });
+      }
+      location.hash = '#/game';
     }
 
     /* ──────────────────────────────────────────────────────────────
