@@ -1,0 +1,60 @@
+name: 블랙 퀴즈 문제 생성
+
+# 랭킹(05:00)·전적(05:15) 갱신이 끝난 뒤에 돌아야 최신 데이터로 문제가 만들어진다.
+# 그래서 05:40 KST = 20:40 UTC(전날) 로 잡는다.
+on:
+  schedule:
+    - cron: '40 20 * * *'      # 매일 05:40 KST
+  workflow_dispatch:            # 수동 실행 (문제 급히 채워야 할 때)
+    inputs:
+      dry_run:
+        description: '업로드 없이 생성/검증만'
+        type: boolean
+        default: false
+
+concurrency:
+  group: quiz-pool
+  cancel-in-progress: false
+
+jobs:
+  build-pool:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node 준비
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 원천 데이터 확인
+        run: |
+          for f in fighters.json records.json; do
+            if [ ! -s "$f" ]; then echo "::error::$f 가 없거나 비어 있습니다"; exit 1; fi
+          done
+          node -e "
+            const f=require('./fighters.json'), r=require('./records.json');
+            console.log('fighters', f.updated_at, f.divisions.length + '체급');
+            console.log('records ', r.updated_at, Object.keys(r.records||{}).length + '명');
+          "
+
+      - name: 문제 생성 · 검증 · 업로드
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            node scripts/quiz-generate.js --stats
+          else
+            node scripts/quiz-generate.js --push
+          fi
+
+      - name: 생성 결과 아티팩트 보관
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quiz-preview
+          path: quiz-preview.json
+          retention-days: 7
