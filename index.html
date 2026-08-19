@@ -14696,18 +14696,11 @@
     async function bqLoadHof() {
       const box = document.getElementById('bqHall');
       if (!box) return;
-      try {
-        const res = await sb.rpc('quiz_get_hof', { p_nickname: gmMyNick || null, p_pass: adminPass() || null });
-        if (res.error) throw res.error;
-        const d = res.data;
-        if (!d || d.ok === false || !d.best) return;
-        const b = d.best;
-        const tm = bqTierByCode(b.tier);
-        box.style.display = '';
-        box.innerHTML = `<div style="font-size:13.5px">🏛️ <b>명예의 전당</b> — 역대 최고 기록
-      <b style="color:var(--key-deep);cursor:pointer" onclick="bqShowUserStats('${esc(b.nickname)}')">${esc(b.nickname)}</b> ·
-      <b style="color:var(--key-deep)">${b.correct_count}/${b.q_total} · ${bqSec(b.total_time_ms)}초</b></div>`;
-      } catch (e) { /* 명예의 전당은 없어도 랭킹 표시엔 지장 없으니 조용히 무시 */ }
+      // 6.105: 난이도를 여러 차례 조정하는 중이라, 쉬웠던 시절 기록이 "역대 최고"로 박제되는
+      // 게 불공평하다는 판단으로 — 난이도가 안정화될 때까지는 1등 닉네임/기록을 보여주지
+      // 않고 안내 문구만 띄운다. (서버 조회 없이 정적 텍스트만 표시)
+      box.style.display = '';
+      box.innerHTML = `<div style="font-size:13.5px">🏛️ <b>명예의 전당</b> — 밸런스 안정화 이후 선정 예정</div>`;
     }
 
     async function bqLoadRanking(limit) {
