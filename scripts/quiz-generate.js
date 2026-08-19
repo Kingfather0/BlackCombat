@@ -482,7 +482,7 @@ BOUTS.forEach(b => {
     .map(id => safeRecNick(id)).filter(Boolean);
   if (pool.length < 3) return;
   addQuestion({
-    question: `'${b.ev}'에서 ${ln} 선수를 꺾은 상대는 누구일까요?`,
+    question: `${ln} 선수를 꺾은 상대는 누구일까요?`,
     answer: wn,
     wrong: pickN(pool, 6, rngFrom('beat' + b.key)),
     category: 'BOUT', template_id: 'tpl_who_beat',
@@ -491,7 +491,7 @@ BOUTS.forEach(b => {
     sourceData: { event: b.ev, winner: wn, loser: ln },
     tags: [b.ev],
     sourceUpdatedAt: SOURCE_UPDATED.records,
-    explanation: `'${b.ev}'에서 ${wn} 선수가 ${ln} 선수에게 승리했습니다.`,
+    explanation: `${wn} 선수가 ${ln} 선수에게 승리했습니다.`,
   });
 });
 
@@ -501,7 +501,7 @@ BOUTS.forEach(b => {
   const wn = safeRecNick(b.winner), ln = safeRecNick(b.loser);
   if (!wn || !ln || !b.ev) return;
   addQuestion({
-    question: `'${b.ev}' — ${wn} 선수가 ${ln} 선수를 꺾은 방식은?`,
+    question: `${wn} 선수가 ${ln} 선수를 꺾은 방식은?`,
     answer: b.method,
     wrong: METHOD_BUCKETS.filter(m => m !== b.method),
     category: 'METHOD', template_id: 'tpl_method',
@@ -546,7 +546,10 @@ Object.keys(OPPONENTS).forEach(id => {
 });
 
 /* ── 템플릿 12. 이벤트 출전 선수 (NORMAL) ─────────────────────── */
+// 'C.L 01 - #3'처럼 정식 명칭이 아닌 내부 코드로 기록된 이벤트는 문제 문장에
+// 그대로 노출하면 사용자가 알아볼 수 없으므로(예: "C.L 02- #11"), 이 템플릿에서는 제외한다.
 Object.keys(EVENT_FIGHTERS).forEach(ev => {
+  if (/^C\.L\b/i.test(ev)) return;
   const ids = [...EVENT_FIGHTERS[ev]];
   if (ids.length < 4) return;
   const rnd = rngFrom('ev' + ev);
