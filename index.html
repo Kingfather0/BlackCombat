@@ -2425,6 +2425,8 @@
     #gArea,
     #gArea button,
     #gArea input,
+    .bq-stage,
+    .bq-stage button,
     .gmenu-head,
     .gcard,
     .gmenu-foot,
@@ -3631,6 +3633,11 @@
     /* --- 블랙 배틀 --- */
     .gcard-battle .gc-ico {
       background: linear-gradient(135deg, #3a3a42, #0c0c0f)
+    }
+
+    /* --- 블랙 퀴즈 --- */
+    .gcard-quiz .gc-ico {
+      background: linear-gradient(135deg, #f5c65f, #d99411)
     }
 
     .ga-battle {
@@ -6939,6 +6946,1383 @@
         font-size: 13.5px
       }
     }
+
+    /* ══════════════════════════════════════════════════════════════════
+       블랙 퀴즈 (BLACK QUIZ)
+       화이트 배경 + 퍼플 포인트. 정답=블루, 오답/시간초과=레드, 최고기록=골드.
+       모바일 한 손 조작 우선 — 선택지 버튼은 최소 높이 58px.
+       ══════════════════════════════════════════════════════════════════ */
+    .bq {
+      --bq-p: #2563eb;
+      --bq-p2: #1d4ed8;
+      --bq-soft: #e8effd;
+      --bq-line: #d7e3fb;
+      --bq-gold: #e0a217;
+      --bq-gold2: #b8790a;
+      --bq-blue: #2563eb;
+      --bq-red: #d33030;
+      padding-bottom: 28px;
+    }
+
+    .bq * {
+      -webkit-tap-highlight-color: transparent
+    }
+
+    .bq-card {
+      background: #fff;
+      border: 1.5px solid var(--bq-line);
+      border-radius: 20px;
+      box-shadow: 0 4px 16px rgba(30, 80, 170, .09);
+      padding: 18px;
+      margin-top: 14px
+    }
+
+    .bq-card>h3 {
+      font-size: 16px;
+      font-weight: 900;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      justify-content: space-between
+    }
+
+    /* ── 시작 스테이지 (블랙 러닝/펀칭과 동일한 타이틀 화면 구조) ── */
+    .bq-stage {
+      position: relative;
+      margin-top: 14px;
+      height: 510px;
+      border-radius: 18px;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      background:
+        radial-gradient(125% 78% at 50% 2%, #4d76c2 0%, #35589a 34%, #24406f 68%, #1b3159 100%);
+      box-shadow: 0 4px 18px rgba(30, 60, 120, .3)
+    }
+
+    /* 스포트라이트 광선 (무대 위에서 퍼지는 빛) */
+    .bq-rays {
+      position: absolute;
+      inset: -34% -22% 0;
+      background: repeating-conic-gradient(from 202deg at 50% 0%,
+          rgba(255, 255, 255, .15) 0deg 3.2deg,
+          rgba(255, 255, 255, 0) 3.2deg 10.5deg);
+      -webkit-mask: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, .5) 58%, transparent 90%);
+      mask: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, .5) 58%, transparent 90%);
+      pointer-events: none
+    }
+
+    /* 좌우 상단 하프톤 점 패턴 */
+    .bq-dots {
+      position: absolute;
+      top: 0;
+      width: 132px;
+      height: 200px;
+      background-image: radial-gradient(circle, rgba(255, 255, 255, .24) 1.4px, transparent 1.7px);
+      background-size: 11px 11px;
+      pointer-events: none
+    }
+
+    .bq-dots.l {
+      left: 0;
+      -webkit-mask: radial-gradient(120% 100% at 0% 0%, #000 30%, transparent 72%);
+      mask: radial-gradient(120% 100% at 0% 0%, #000 30%, transparent 72%)
+    }
+
+    .bq-dots.r {
+      right: 0;
+      -webkit-mask: radial-gradient(120% 100% at 100% 0%, #000 30%, transparent 72%);
+      mask: radial-gradient(120% 100% at 100% 0%, #000 30%, transparent 72%)
+    }
+
+    /* ── 하단 무대 구조: 커튼 패널 + 골드 아치 + 전구 + 광택 바닥 ── */
+    .bq-side {
+      position: absolute;
+      bottom: 0;
+      width: 46%;
+      height: 47%;
+      background: linear-gradient(180deg, rgba(58, 92, 158, .55), rgba(36, 62, 116, .9));
+      pointer-events: none
+    }
+
+    .bq-side.l {
+      left: 0;
+      border-radius: 0 78% 0 0
+    }
+
+    .bq-side.r {
+      right: 0;
+      border-radius: 78% 0 0 0
+    }
+
+    .bq-arch {
+      position: absolute;
+      bottom: -84px;
+      width: 232px;
+      height: 216px;
+      border-radius: 50% 50% 0 0 / 74% 74% 0 0;
+      border-top: 10px solid #f6c84c;
+      pointer-events: none
+    }
+
+    .bq-arch.l {
+      left: -88px;
+      transform: rotate(-8deg)
+    }
+
+    .bq-arch.r {
+      right: -88px;
+      transform: rotate(8deg)
+    }
+
+    /* 아치 안쪽 전구 줄 */
+    .bq-arch::after {
+      content: '';
+      position: absolute;
+      top: 17px;
+      left: 7%;
+      right: 7%;
+      height: 14px;
+      border-radius: 50% / 100% 100% 0 0;
+      background: radial-gradient(circle, #fffbe8 3.1px, rgba(255, 235, 165, .45) 4.2px, transparent 5px) 0 0/25px 14px repeat-x;
+      filter: drop-shadow(0 0 6px rgba(255, 220, 130, .95))
+    }
+
+    /* 아치 바깥쪽 두 번째 골드 라인 */
+    .bq-arch::before {
+      content: '';
+      position: absolute;
+      inset: -13px -13px auto;
+      height: 190px;
+      border-radius: 50% 50% 0 0 / 74% 74% 0 0;
+      border-top: 4px solid rgba(246, 200, 76, .55)
+    }
+
+    .bq-floor {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 86px;
+      background:
+        linear-gradient(180deg, rgba(200, 224, 255, .22) 0%, rgba(120, 160, 230, .06) 45%, rgba(140, 180, 240, .14) 100%);
+      border-top: 3px solid rgba(246, 200, 76, .6);
+      box-shadow: 0 -2px 14px rgba(246, 200, 76, .25)
+    }
+
+    /* 바닥 반사 하이라이트 */
+    .bq-floor::after {
+      content: '';
+      position: absolute;
+      left: 12%;
+      right: 12%;
+      top: 10px;
+      height: 44px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .22), transparent 70%);
+      filter: blur(6px)
+    }
+
+    /* ── 떠다니는 물음표 / 컨페티 ── */
+    .bq-q3d {
+      position: absolute;
+      font-family: 'Jua', 'Pretendard Variable', Pretendard, sans-serif;
+      font-weight: 900;
+      line-height: 1;
+      color: #ffc93c;
+      -webkit-text-stroke: 3px #1d2c50;
+      paint-order: stroke fill;
+      text-shadow: 0 5px 0 #1d2c50, 0 9px 14px rgba(8, 16, 40, .5);
+      animation: bqBob 3.6s ease-in-out infinite;
+      pointer-events: none
+    }
+
+    .bq-q3d.blue {
+      color: #6fb0fb
+    }
+
+    .bq-q3d.ghost {
+      color: rgba(255, 255, 255, .10);
+      -webkit-text-stroke: 0;
+      text-shadow: none;
+      animation-duration: 6.5s
+    }
+
+    .bq-conf {
+      position: absolute;
+      width: 9px;
+      height: 15px;
+      border-radius: 2px;
+      opacity: .9;
+      animation: bqBob 4.4s ease-in-out infinite;
+      pointer-events: none
+    }
+
+    /* "?!" 말풍선 */
+    .bq-bub {
+      position: absolute;
+      background: #16233f;
+      border: 2.5px solid #ffc93c;
+      border-radius: 11px;
+      padding: 4px 9px;
+      font-family: 'Jua', 'Pretendard Variable', Pretendard, sans-serif;
+      font-size: 15px;
+      font-weight: 900;
+      color: #ffc93c;
+      line-height: 1;
+      box-shadow: 0 5px 12px rgba(8, 16, 40, .45);
+      animation: bqBob 5s ease-in-out infinite;
+      pointer-events: none
+    }
+
+    .bq-bub::after {
+      content: '';
+      position: absolute;
+      left: 12px;
+      bottom: -8px;
+      width: 10px;
+      height: 10px;
+      background: #16233f;
+      border-right: 2.5px solid #ffc93c;
+      border-bottom: 2.5px solid #ffc93c;
+      transform: rotate(45deg);
+      border-radius: 0 0 3px 0
+    }
+
+    @keyframes bqBob {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(-6deg)
+      }
+
+      50% {
+        transform: translateY(-10px) rotate(6deg)
+      }
+    }
+
+    /* ── 타이틀 플레이트 (왕관 + 골드 테두리 간판) ── */
+    .bq-title {
+      position: relative;
+      display: inline-block;
+      padding: 9px 20px 11px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #24344f 0%, #16223c 100%);
+      border: 4px solid #f6c84c;
+      box-shadow:
+        0 0 0 3px #16223c,
+        0 9px 0 rgba(12, 20, 42, .55),
+        0 16px 26px rgba(6, 14, 34, .5),
+        inset 0 2px 0 rgba(255, 255, 255, .10);
+      transform: rotate(-1.4deg)
+    }
+
+    .bq-crown {
+      position: absolute;
+      top: -27px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 32px;
+      line-height: 1;
+      filter: drop-shadow(0 4px 5px rgba(8, 16, 40, .55));
+      z-index: 2
+    }
+
+    /* 타이틀 주변 반짝 광선 */
+    .bq-spark {
+      position: absolute;
+      width: 5px;
+      border-radius: 3px;
+      background: #ffd45e;
+      box-shadow: 0 0 8px rgba(255, 212, 94, .8)
+    }
+
+    /* 타이틀 오버레이 — #gTitle 과 동일한 구조/톤 */
+    .bq-stage-in {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(12, 26, 55, .12) 0%, rgba(12, 26, 55, 0) 30%, rgba(12, 26, 55, .32) 100%);
+      gap: 7px;
+      padding: 14px 16px 20px
+    }
+
+    /* 두툼하고 둥근 3D 레터링 — 참고 이미지의 간판 느낌 */
+    .bq-stage .gt-name {
+      font-family: 'Jua', 'Pretendard Variable', Pretendard, sans-serif;
+      font-weight: 900;
+      font-size: 40px;
+      line-height: 1.1;
+      color: #fff;
+      -webkit-text-stroke: 6px #16223c;
+      paint-order: stroke fill;
+      text-shadow: 0 4px 0 #16223c, 0 7px 0 rgba(10, 18, 38, .9), 0 13px 18px rgba(6, 14, 34, .45)
+    }
+
+    .bq-stage .gt-name em {
+      font-style: normal;
+      color: #ffc93c
+    }
+
+    .bq-stage .gt-sub {
+      color: #cfe0ff;
+      letter-spacing: 5px;
+      font-size: 12.5px;
+      margin-top: 3px;
+      text-shadow: 0 2px 5px rgba(8, 16, 40, .6)
+    }
+
+    .bq-stage .gt-desc {
+      font-size: 14px;
+      line-height: 1.75
+    }
+
+    .bq-stage .gt-hint {
+      color: #d8e8ff
+    }
+
+    /* 마스코트가 올라서는 포디움 */
+    .bq-podwrap {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center
+    }
+
+    .bq-podium {
+      position: relative;
+      width: 160px;
+      height: 34px;
+      margin-top: -28px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #1d2c50 0%, #14203c 48%, #0e1730 100%);
+      box-shadow: 0 0 0 3px #f6c84c, 0 12px 24px rgba(6, 14, 34, .55), inset 0 -3px 7px rgba(0, 0, 0, .4)
+    }
+
+    .bq-podium::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      top: 3px;
+      height: 16px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #fffdf6, #ece2c8);
+      box-shadow: inset 0 0 0 2px rgba(228, 182, 70, .85)
+    }
+
+    .bq-podium::after {
+      content: '';
+      position: absolute;
+      left: -20%;
+      right: -20%;
+      bottom: -13px;
+      height: 22px;
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(255, 226, 150, .35), transparent 70%);
+      filter: blur(4px)
+    }
+
+    /* 사자 셔츠의 "블랙컴뱃 잡담방" 글자가 보이도록 원본 이미지를 크게 쓴다 */
+    .bq-mascot {
+      height: 152px;
+      filter: drop-shadow(0 10px 18px rgba(20, 50, 100, .45));
+      animation: gFloat 3s ease-in-out infinite;
+      image-rendering: -webkit-optimize-contrast
+    }
+
+    /* 설명 문구의 강조어는 다른 게임 타이틀과 같은 톤으로 노랗게 */
+    .bq-stage .gt-desc b {
+      color: #ffd977
+    }
+
+    .bq-stage .g-start:disabled {
+      background: linear-gradient(180deg, #b9c3d2, #8e9aab 60%, #7b8899);
+      box-shadow: 0 6px 0 #5a6675, 0 10px 20px rgba(20, 50, 120, .25);
+      animation: none;
+      cursor: default
+    }
+
+    .bq-lock {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      z-index: 9;
+      background: rgba(16, 24, 38, .82);
+      color: #ffd977;
+      font-size: 11.5px;
+      font-weight: 900;
+      padding: 5px 11px;
+      border-radius: 99px;
+      box-shadow: 0 3px 8px rgba(10, 20, 40, .3)
+    }
+
+    /* ── 특징 3종 ── */
+    .bq-feats {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px
+    }
+
+    .bq-feat {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: #fff;
+      border: 1.5px solid var(--bq-line);
+      border-radius: 16px;
+      padding: 13px 14px
+    }
+
+    .bq-feat-i {
+      width: 40px;
+      height: 40px;
+      flex: 0 0 40px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 19px;
+      background: var(--bq-soft)
+    }
+
+    .bq-feat b {
+      display: block;
+      font-size: 14.5px;
+      font-weight: 800
+    }
+
+    .bq-feat span {
+      display: block;
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-top: 1px
+    }
+
+    /* ── 큰 CTA ── */
+    .bq-cta {
+      width: 100%;
+      margin-top: 16px;
+      padding: 17px 16px;
+      border: 0;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #4b8dff, #1d4ed8);
+      color: #fff;
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: -.01em;
+      cursor: pointer;
+      box-shadow: 0 6px 16px rgba(29, 78, 216, .32);
+      transition: transform .12s, box-shadow .12s
+    }
+
+    .bq-cta:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 8px rgba(29, 78, 216, .3)
+    }
+
+    .bq-cta:disabled {
+      background: #ccd6e4;
+      color: #7e8ba0;
+      box-shadow: none;
+      cursor: default
+    }
+
+    .bq-cta-sub {
+      text-align: center;
+      font-size: 12px;
+      color: var(--dim);
+      margin-top: 8px;
+      font-weight: 700
+    }
+
+    /* ── 오늘의 기록 ── */
+    .bq-runs {
+      display: grid;
+      gap: 8px
+    }
+
+    .bq-run {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 13px;
+      border-radius: 13px;
+      background: #f7f9fd;
+      border: 1.5px solid #e6edf8;
+      font-size: 14px
+    }
+
+    .bq-run.best {
+      background: linear-gradient(100deg, #fffaf0, #fff5e0);
+      border-color: #f2dfae
+    }
+
+    .bq-run.empty {
+      color: var(--dim);
+      font-weight: 700
+    }
+
+    .bq-run-no {
+      font-weight: 900;
+      color: var(--bq-p2);
+      flex: 0 0 46px;
+      font-size: 13px
+    }
+
+    .bq-run-sc {
+      font-weight: 900
+    }
+
+    .bq-run-tm {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 13px
+    }
+
+    .bq-run-star {
+      margin-left: auto;
+      color: var(--bq-gold2);
+      font-weight: 900;
+      font-size: 12.5px
+    }
+
+    /* ── 등급 안내 ── */
+    .bq-tiers {
+      display: grid;
+      gap: 9px
+    }
+
+    .bq-tier {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 11px 13px;
+      border-radius: 14px;
+      border: 1.5px solid #e6edf8;
+      background: #fbfcff
+    }
+
+    .bq-tier.t-S {
+      background: linear-gradient(100deg, #101826, #1b2740);
+      border-color: #2b3a57
+    }
+
+    .bq-tier.t-S .bq-tier-n {
+      color: #ffd977
+    }
+
+    .bq-tier.t-S .bq-tier-d {
+      color: #b9c6dd
+    }
+
+    .bq-tier.t-S .bq-tier-c {
+      background: #ffd977;
+      color: #1b2740
+    }
+
+    .bq-tier-c {
+      width: 26px;
+      height: 26px;
+      flex: 0 0 26px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 900;
+      background: var(--bq-soft);
+      color: var(--bq-p2)
+    }
+
+    .bq-tier-ic {
+      font-size: 20px
+    }
+
+    .bq-tier-b {
+      min-width: 0;
+      flex: 1
+    }
+
+    .bq-tier-n {
+      font-size: 14.5px;
+      font-weight: 900
+    }
+
+    .bq-tier-d {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 1px
+    }
+
+    .bq-tier-r {
+      flex: 0 0 auto;
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--dim);
+      text-align: right;
+      line-height: 1.35
+    }
+
+    .bq-tier.t-S .bq-tier-r {
+      color: #8494ae
+    }
+
+    /* ══════ 게임 화면 ══════ */
+    .bq-play {
+      min-height: 62vh;
+      display: flex;
+      flex-direction: column
+    }
+
+    .bq-ptop {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px
+    }
+
+    .bq-pno {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--muted)
+    }
+
+    .bq-pno b {
+      font-size: 28px;
+      color: var(--bq-p);
+      font-weight: 900;
+      letter-spacing: -.02em
+    }
+
+    .bq-exit {
+      border: 1.5px solid var(--border);
+      background: #fff;
+      border-radius: 11px;
+      padding: 7px 12px;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .bq-timer {
+      margin-top: 14px;
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+      font-weight: 900
+    }
+
+    .bq-timer .ic {
+      font-size: 15px
+    }
+
+    .bq-timer .v {
+      font-size: 20px;
+      letter-spacing: -.02em;
+      font-variant-numeric: tabular-nums
+    }
+
+    .bq-timer .u {
+      font-size: 13px;
+      color: var(--muted)
+    }
+
+    .bq-bar {
+      height: 9px;
+      border-radius: 99px;
+      background: #e4ecf8;
+      overflow: hidden;
+      margin-top: 8px
+    }
+
+    .bq-bar i {
+      display: block;
+      height: 100%;
+      width: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #7aaeff, #2563eb);
+      transform-origin: left center;
+      transition: transform .1s linear
+    }
+
+    .bq-bar.warn i {
+      background: linear-gradient(90deg, #fca5a5, #dc2626)
+    }
+
+    .bq-chips {
+      display: flex;
+      gap: 7px;
+      margin-top: 20px;
+      flex-wrap: wrap
+    }
+
+    .bq-chip {
+      font-size: 11.5px;
+      font-weight: 900;
+      padding: 5px 11px;
+      border-radius: 99px;
+      letter-spacing: .02em
+    }
+
+    .bq-chip.d-EASY {
+      background: #dcfce7;
+      color: #15803d
+    }
+
+    .bq-chip.d-NORMAL {
+      background: #dbeafe;
+      color: #1d4ed8
+    }
+
+    .bq-chip.d-HARD {
+      background: #fdefc9;
+      color: #a35c07
+    }
+
+    .bq-chip.d-HELL {
+      background: #16202f;
+      color: #ffd977
+    }
+
+    .bq-chip.cat {
+      background: #f3f4f6;
+      color: #4b5563
+    }
+
+    .bq-q {
+      font-size: 21px;
+      line-height: 1.42;
+      font-weight: 900;
+      letter-spacing: -.02em;
+      margin-top: 12px;
+      word-break: keep-all
+    }
+
+    .bq-opts {
+      display: grid;
+      gap: 10px;
+      margin-top: 20px
+    }
+
+    .bq-opt {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      width: 100%;
+      min-height: 58px;
+      padding: 12px 15px;
+      border-radius: 16px;
+      border: 2px solid #dfe7f5;
+      background: #fff;
+      text-align: left;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color .12s, background .12s, transform .1s;
+      touch-action: manipulation;
+      word-break: keep-all
+    }
+
+    .bq-opt:active {
+      transform: scale(.985)
+    }
+
+    .bq-opt-k {
+      width: 30px;
+      height: 30px;
+      flex: 0 0 30px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 13.5px;
+      font-weight: 900;
+      background: #e8effd;
+      color: var(--bq-p2)
+    }
+
+    /* 탭 직후 서버 판정을 기다리는 짧은 순간 — 정답(블루)과 혼동되지 않도록 중립 회색 */
+    .bq-opt.sel {
+      border-color: #9aa6b8;
+      background: #f2f4f7
+    }
+
+    .bq-opt.sel .bq-opt-k {
+      background: #9aa6b8;
+      color: #fff
+    }
+
+    .bq-opt.ok {
+      border-color: var(--bq-blue);
+      background: #eff5ff;
+      color: var(--bq-blue)
+    }
+
+    .bq-opt.ok .bq-opt-k {
+      background: var(--bq-blue);
+      color: #fff
+    }
+
+    .bq-opt.no {
+      border-color: var(--bq-red);
+      background: #fff1f1;
+      color: var(--bq-red)
+    }
+
+    .bq-opt.no .bq-opt-k {
+      background: var(--bq-red);
+      color: #fff
+    }
+
+    .bq-opt:disabled {
+      cursor: default
+    }
+
+    .bq-fb {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 19px;
+      font-weight: 900;
+      min-height: 28px;
+      letter-spacing: -.01em
+    }
+
+    .bq-fb.ok {
+      color: var(--bq-blue)
+    }
+
+    .bq-fb.no {
+      color: var(--bq-red)
+    }
+
+    /* 카운트다운 */
+    .bq-count {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      display: grid;
+      place-items: center;
+      background: rgba(255, 255, 255, .93);
+      backdrop-filter: blur(3px)
+    }
+
+    .bq-count b {
+      font-size: 88px;
+      font-weight: 900;
+      color: var(--bq-p);
+      letter-spacing: -.05em;
+      animation: bqPop .55s ease-out
+    }
+
+    @keyframes bqPop {
+      0% {
+        transform: scale(.5);
+        opacity: 0
+      }
+
+      45% {
+        transform: scale(1.12);
+        opacity: 1
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1
+      }
+    }
+
+    /* ══════ 결과 화면 ══════ */
+    .bq-res-top {
+      text-align: center;
+      padding: 6px 0 2px
+    }
+
+    .bq-res-lion {
+      width: 116px;
+      height: 116px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 14px rgba(30, 80, 170, .22))
+    }
+
+    .bq-res-sc {
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: -.03em;
+      margin-top: 2px
+    }
+
+    .bq-res-sc b {
+      color: var(--bq-p)
+    }
+
+    .bq-res-sc span {
+      font-size: 19px;
+      color: var(--muted);
+      margin-left: 4px
+    }
+
+    .bq-newbest {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-size: 12.5px;
+      font-weight: 900;
+      color: #fff;
+      background: linear-gradient(135deg, #4b8dff, #1d4ed8);
+      box-shadow: 0 4px 10px rgba(29, 78, 216, .3)
+    }
+
+    .bq-tiercard {
+      margin-top: 14px;
+      border-radius: 18px;
+      padding: 20px 16px;
+      text-align: center;
+      background: linear-gradient(160deg, #101826, #1b2740);
+      border: 1.5px solid #2b3a57;
+      box-shadow: 0 8px 22px rgba(16, 28, 48, .28)
+    }
+
+    .bq-tiercard .n {
+      font-size: 25px;
+      font-weight: 900;
+      color: #ffd977;
+      letter-spacing: -.02em
+    }
+
+    .bq-tiercard .d {
+      font-size: 12.5px;
+      color: #aebbd2;
+      margin-top: 5px;
+      font-weight: 700
+    }
+
+    .bq-tiercard .w {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .bq-tiercard .w i {
+      font-style: normal;
+      font-size: 19px;
+      color: #4d5f7d
+    }
+
+    .bq-tbl {
+      margin-top: 14px;
+      border: 1.5px solid var(--bq-line);
+      border-radius: 16px;
+      overflow: hidden
+    }
+
+    .bq-tr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 15px;
+      font-size: 14px;
+      border-bottom: 1px solid #edf2fb
+    }
+
+    .bq-tr:last-child {
+      border-bottom: 0
+    }
+
+    .bq-tr span {
+      color: var(--muted);
+      font-weight: 700
+    }
+
+    .bq-tr b {
+      font-weight: 900;
+      font-size: 15px
+    }
+
+    .bq-tr .sub {
+      font-size: 12px;
+      color: var(--dim);
+      font-weight: 700;
+      margin-left: 5px
+    }
+
+    .bq-badge-new {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 1px 7px;
+      border-radius: 99px;
+      background: var(--bq-gold);
+      color: #fff;
+      font-size: 10.5px;
+      font-weight: 900;
+      vertical-align: 2px
+    }
+
+    .bq-acts {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px
+    }
+
+    .bq-acts button {
+      flex: 1;
+      min-height: 52px;
+      border-radius: 15px;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+      border: 2px solid var(--bq-line);
+      background: #fff;
+      color: var(--bq-p2)
+    }
+
+    .bq-acts button.primary {
+      border: 0;
+      background: linear-gradient(135deg, #4b8dff, #1d4ed8);
+      color: #fff;
+      box-shadow: 0 5px 14px rgba(29, 78, 216, .3)
+    }
+
+    .bq-acts button:disabled {
+      background: #eef2f8;
+      color: #8d99ac;
+      border-color: #e2e9f4;
+      box-shadow: none;
+      cursor: default
+    }
+
+    /* 문항 리뷰 */
+    .bq-rev {
+      display: grid;
+      gap: 8px
+    }
+
+    .bq-rev-i {
+      border: 1.5px solid #e6edf8;
+      border-radius: 13px;
+      padding: 11px 13px;
+      background: #fbfcff
+    }
+
+    .bq-rev-h {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--dim)
+    }
+
+    .bq-rev-h .r {
+      margin-left: auto;
+      font-weight: 900
+    }
+
+    .bq-rev-h .r.ok {
+      color: var(--bq-blue)
+    }
+
+    .bq-rev-h .r.no {
+      color: var(--bq-red)
+    }
+
+    .bq-rev-q {
+      font-size: 14px;
+      font-weight: 800;
+      margin-top: 5px;
+      word-break: keep-all
+    }
+
+    .bq-rev-a {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-top: 4px;
+      font-weight: 700
+    }
+
+    .bq-rev-a b {
+      color: var(--bq-blue)
+    }
+
+    /* ══════ 랭킹 ══════ */
+    .bq-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 3px;
+      margin-bottom: 10px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none
+    }
+
+    .bq-tabs::-webkit-scrollbar {
+      display: none
+    }
+
+    .bq-tab {
+      flex: 0 0 auto;
+      border: 1.5px solid var(--bq-line);
+      background: #fff;
+      border-radius: 99px;
+      padding: 7px 13px;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap
+    }
+
+    .bq-tab.on {
+      background: var(--bq-p);
+      border-color: var(--bq-p);
+      color: #fff
+    }
+
+    .bq-rk-h,
+    .bq-rk {
+      display: grid;
+      grid-template-columns: 46px 1fr 62px 76px;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 8px;
+      font-size: 13.5px
+    }
+
+    .bq-rk-h {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--dim);
+      border-bottom: 1.5px solid #ecf1fa;
+      padding-bottom: 7px
+    }
+
+    .bq-rk {
+      border-bottom: 1px solid #f4f7fc
+    }
+
+    .bq-rk:last-child {
+      border-bottom: 0
+    }
+
+    .bq-rk.me {
+      background: #f0f6ff;
+      border: 2px solid var(--bq-p);
+      border-radius: 13px;
+      margin-top: 6px
+    }
+
+    .bq-rk .n {
+      font-weight: 900;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .bq-rk .r {
+      font-weight: 900;
+      color: var(--muted);
+      text-align: center
+    }
+
+    .bq-rk .s {
+      text-align: right;
+      font-weight: 900
+    }
+
+    .bq-rk .t {
+      text-align: right;
+      color: var(--muted);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums
+    }
+
+    /* ══════ 내 기록 ══════ */
+    .bq-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 9px
+    }
+
+    .bq-stat {
+      background: #f8fafd;
+      border: 1.5px solid #e8eef8;
+      border-radius: 14px;
+      padding: 12px 13px
+    }
+
+    .bq-stat span {
+      display: block;
+      font-size: 11.5px;
+      color: var(--muted);
+      font-weight: 800
+    }
+
+    .bq-stat b {
+      display: block;
+      font-size: 19px;
+      font-weight: 900;
+      margin-top: 2px;
+      letter-spacing: -.02em
+    }
+
+    .bq-cats {
+      display: grid;
+      gap: 9px;
+      margin-top: 4px
+    }
+
+    .bq-cat {
+      display: grid;
+      grid-template-columns: 74px 1fr 40px;
+      align-items: center;
+      gap: 9px;
+      font-size: 12.5px;
+      font-weight: 800
+    }
+
+    .bq-cat .bar {
+      height: 8px;
+      border-radius: 99px;
+      background: #e6edf8;
+      overflow: hidden
+    }
+
+    .bq-cat .bar i {
+      display: block;
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #7aaeff, #2563eb)
+    }
+
+    .bq-cat .v {
+      text-align: right;
+      color: var(--bq-p2)
+    }
+
+    /* 주간 리셋 */
+    .bq-reset {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(100deg, #f7faff, #e9f2ff);
+      border: 1.5px solid var(--bq-line);
+      border-radius: 16px;
+      padding: 13px 15px
+    }
+
+    .bq-reset .t {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800
+    }
+
+    .bq-reset .v {
+      font-size: 17px;
+      font-weight: 900;
+      color: var(--bq-p2);
+      letter-spacing: -.02em
+    }
+
+    .bq-reset img {
+      width: 42px;
+      height: 42px;
+      margin-left: auto;
+      object-fit: contain
+    }
+
+    .bq-note {
+      font-size: 11.5px;
+      color: var(--dim);
+      font-weight: 700;
+      margin-top: 10px;
+      line-height: 1.55
+    }
+
+    .bq-sharebox {
+      border-radius: 16px;
+      padding: 18px 16px;
+      text-align: center;
+      background: linear-gradient(160deg, #101826, #1b2740);
+      color: #fff
+    }
+
+    .bq-sharebox .l {
+      font-size: 11.5px;
+      color: #94a3bd;
+      font-weight: 800
+    }
+
+    .bq-sharebox .g {
+      font-size: 20px;
+      font-weight: 900;
+      color: #ffd977;
+      margin-top: 4px
+    }
+
+    .bq-sharebox .s {
+      font-size: 30px;
+      font-weight: 900;
+      margin-top: 6px
+    }
+
+    .bq-sharebox .m {
+      font-size: 13px;
+      color: #b9c6dd;
+      font-weight: 800;
+      margin-top: 2px
+    }
+
+    .bq-sharetext {
+      white-space: pre-wrap;
+      text-align: left;
+      background: #f5f8fd;
+      border: 1.5px solid var(--bq-line);
+      border-radius: 13px;
+      padding: 13px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.6;
+      margin-top: 12px;
+      user-select: text;
+      -webkit-user-select: text
+    }
+
+    @media (max-width:360px) {
+      .bq-hero-t {
+        font-size: 34px
+      }
+
+      .bq-q {
+        font-size: 19px
+      }
+
+      .bq-opt {
+        font-size: 15px;
+        min-height: 54px
+      }
+
+      .bq-rk-h,
+      .bq-rk {
+        grid-template-columns: 40px 1fr 54px 66px;
+        font-size: 12.5px
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+
+      .bq-count b,
+      .bq-bar i {
+        animation: none;
+        transition: none
+      }
+    }
+
   </style>
 </head>
 
@@ -7619,7 +9003,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-08-18T16:35:00+09:00';
+    const BUILD_ID = '2026-08-19T15:20:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -7629,6 +9013,9 @@
         if (!m || m[1] === BUILD_ID) return; // 최신 버전이거나 확인 불가 → 아무것도 안 함
         const busy = !!document.querySelector('.modal-ov')
           || (document.activeElement && /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName) && document.activeElement.value)
+          // 블랙 퀴즈 진행 중에 새로고침이 걸리면 풀던 도전이 통째로 날아간다 —
+          // 결과 화면에 도달할 때까지는 자동 새로고침을 보류한다.
+          || (typeof BQ !== 'undefined' && (BQ.state === 'playing' || BQ.state === 'feedback'))
           || /^#\/(t\/|admin)/.test(location.hash);
         if (busy) { toastMsg('🔄 새 버전이 있어요. 하던 작업을 마치고 새로고침 해주세요.'); return; }
         location.reload();
@@ -7806,7 +9193,7 @@
       // 게임 화면(러닝/펀칭/점핑/배틀) 4개일 때만 헤더의 "🎮 게임 선택" 링크를 보여준다.
       // 게임 메뉴(#/game)나 홈/랭킹/격잘알 등 다른 페이지에서는 숨긴다.
       const headerGS = document.getElementById('headerGameSelectLink');
-      if (headerGS) headerGS.style.display = (seg[0] === 'game' && ['run', 'punch', 'grow', 'battle'].includes(seg[1])) ? '' : 'none';
+      if (headerGS) headerGS.style.display = (seg[0] === 'game' && ['run', 'punch', 'grow', 'battle', 'quiz'].includes(seg[1])) ? '' : 'none';
       // 티켓 판매 현황 — 모든 방문자에게 공개.
       const navTickets = document.querySelector('[data-nav="tickets"]');
       if (navTickets) navTickets.style.display = '';
@@ -12318,6 +13705,7 @@
       if (sub === 'run') return viewGameRun();
       if (sub === 'grow') return viewGameJump();
       if (sub === 'battle') return viewGameBattle();
+      if (sub === 'quiz') return viewGameQuiz();
       return viewGameMenu();
     }
     function viewGameMenu() {
@@ -12345,10 +13733,12 @@
       <span class="gc-top" id="gTopBattle">🥇 불러오는 중…</span>
     </div>
     <span class="gc-go">PLAY</span>
-  </a>`;
+  </a>
+  <span id="gQuizCardWrap" style="display:none">${card('#/game/quiz', 'idle', '블랙 퀴즈', '오늘의 블붕이 시험! 10문제로 실력 증명', 'gTopQuiz', 'quiz')}</span>`;
       gmApplyPoses();
       loadMenuTops(wk);
       loadMenuBattleRecord();
+      loadMenuQuizTop();
     }
     async function loadMenuTops(wk) {
       const set = (id, txt) => { const el = document.getElementById(id); if (el) el.innerHTML = txt; };
@@ -12382,6 +13772,1050 @@
       } catch (e) {
         el.textContent = '랭킹 준비 중';
       }
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════
+       게임 5: 블랙 퀴즈 (BLACK QUIZ)
+
+       "매일 새로 뽑히는 10문제를 하루 3번까지 풀고, 가장 좋은 기록으로
+        블붕이 등급과 랭킹을 증명하는 데일리 퀴즈"
+
+       ⚠️ 이 화면은 채점을 하지 않는다.
+          정답 판정 · 풀이 시간 · 잔여 횟수 · 등급 · 랭킹은 전부 Supabase 함수
+          (블랙퀴즈_패치.sql)에서 계산한다. 클라이언트는 서버가 내려준 문항을
+          그리고, 사용자가 고른 "화면상 슬롯 번호"만 되돌려 보낸다.
+          - 문항 payload에는 정답이 들어있지 않다.
+          - 보기 순서는 도전(attempt)마다 서버가 섞는다.
+          - 타이머 표시는 화면용이고, 실제 시간초과 판정은 서버가 한다.
+       ══════════════════════════════════════════════════════════════════════ */
+    const BQ = {
+      state: 'idle',     // idle | home | playing | feedback | result
+      cfg: null,         // 서버가 내려준 규칙(문항 수/제한시간/등급표)
+      home: null,
+      attempt: null,     // { attempt_id, attempt_no, attempts_left, q_total }
+      q: null,           // 현재 문항
+      deadline: 0,       // 화면 타이머 종료 시각(ms) — 표시 전용
+      raf: 0,
+      locked: false,     // 중복 제출 방지
+      correctSoFar: 0,
+      rankScope: 'daily',
+      rankTier: '',
+    };
+
+    function bqRpcErr(e) {
+      const m = (e && e.message) || '';
+      if (/function|does not exist|not find|schema cache/i.test(m)) {
+        return '블랙퀴즈_패치.sql을 먼저 실행해 주세요. (관리자에게 문의)';
+      }
+      return cleanErr(m);
+    }
+    function bqSec(ms) { return (Math.round((ms || 0) / 100) / 10).toFixed(1); }
+    /* 참여자가 적을 때 "상위 100%"처럼 어색하게 보이지 않도록, 10명 미만이면 인원수로 표기 */
+    function bqRankSub(rank, total, pct) {
+      if (!rank || !total) return '';
+      if (total < 10 || pct == null) return `${total}명 중`;
+      return `상위 ${pct}%`;
+    }
+    function bqTierIcon(meta) { return (meta && meta.icon) || '🎯'; }
+    function bqTierLabel(meta) { return (meta && meta.label) || '-'; }
+
+    /* 주간 랭킹 리셋까지 남은 시간 (KST 월요일 0시) — 기존 gmResetLeft보다 자세히 */
+    function bqWeekResetLeft() {
+      const now = svrNow();
+      const k = new Date(now.getTime() + 9 * 3600 * 1000);
+      const day = (k.getUTCDay() + 6) % 7;
+      const next = new Date(Date.UTC(k.getUTCFullYear(), k.getUTCMonth(), k.getUTCDate() - day + 7));
+      const ms = Math.max(0, next.getTime() - k.getTime());
+      return {
+        d: Math.floor(ms / 86400000),
+        h: Math.floor(ms % 86400000 / 3600000),
+        m: Math.floor(ms % 3600000 / 60000),
+      };
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       진입점
+       ────────────────────────────────────────────────────────────── */
+    function viewGameQuiz() {
+      gmToken++; gmClear(); gmCurGame = 'quiz';
+      bqStopTimer();
+      BQ.state = 'home';
+      bqRenderHome();
+    }
+
+    async function bqRenderHome(opts) {
+      const tk = gmToken;
+      $app.innerHTML = `<div class="bq" id="bqRoot">${bqStageHTML({ ctaLabel: '불러오는 중…', disabled: true })}</div>`;
+
+      let d = null, err = '';
+      try {
+        const res = await sb.rpc('quiz_get_home', {
+          p_nickname: gmMyNick || '', p_pin: gmMyPin || '', p_pass: adminPass() || null,
+        });
+        if (res.error) throw res.error;
+        d = res.data;
+      } catch (e) { err = bqRpcErr(e); }
+      if (tk !== gmToken) return;
+
+      const root = document.getElementById('bqRoot');
+      if (!root) return;
+      if (!d) {
+        root.innerHTML = bqStageHTML({ ctaLabel: '오류', disabled: true })
+          + `<div class="bq-card"><div class="msg err" style="display:block">${esc(err)}</div></div>`;
+        bqBindStage();
+        return;
+      }
+      BQ.cfg = d;
+      BQ.home = d;
+
+      // ── 비공개(관리자 전용) 테스트 중이고 권한이 없으면 여기서 끝 ──
+      if (d.allowed === false) {
+        // 관리자 콘솔에는 로그인돼 있는데도 서버가 막았다면, 패치가 이 사이트의 관리자
+        // 비밀번호를 인식하지 못한 것이다 — 원인을 바로 알 수 있게 해결법까지 보여준다.
+        const adminButBlocked = !!adminPass();
+        root.innerHTML = bqStageHTML({
+          ctaLabel: '준비 중', disabled: true,
+          desc: '새로운 게임을 준비하고 있어요.<br>조금만 기다려 주세요!',
+          hint: '곧 잡담방에서 공개됩니다 🦁',
+        }) + (adminButBlocked ? `
+      <div class="bq-card">
+        <h3>⚠️ 관리자인데 잠겨 있나요?</h3>
+        <div class="bq-note" style="font-size:12.5px">
+          관리자 콘솔에는 로그인돼 있지만, 블랙퀴즈 패치가 이 사이트의 관리자 비밀번호를
+          인식하지 못했습니다. Supabase SQL Editor에서 아래 한 줄을 실행한 뒤 새로고침해 주세요.
+          <div class="bq-sharetext" style="font-size:12px">UPDATE quiz_config SET admin_pass = '관리자비밀번호' WHERE id = 1;</div>
+          확인용: <code>SELECT quiz_admin_check('관리자비밀번호');</code> 가 <b>true</b> 여야 정상입니다.
+        </div>
+      </div>` : '');
+        bqBindStage();
+        return;
+      }
+
+      const qTotal = d.q_total || 10;
+      const secs = Math.round((d.limit_ms || 8000) / 1000);
+      const daily = d.daily_attempts || 3;
+      const tiers = d.tiers || [];
+      const loggedIn = !!d.logged_in;
+      const left = loggedIn ? (d.attempts_left || 0) : daily;
+      const runs = (d.attempts || []);
+      const best = d.best;
+      const bestKey = best ? `${best.correct_count}|${best.total_time_ms}` : '';
+      const live = loggedIn && d.live_attempt;
+
+      const featHTML = `
+    <div class="bq-feats">
+      <div class="bq-feat"><div class="bq-feat-i">🗓️</div><div><b>매일 랜덤 ${qTotal}문제</b>
+        <span>난이도는 뒤로 갈수록 UP! EASY → NORMAL → HARD → HELL</span></div></div>
+      <div class="bq-feat"><div class="bq-feat-i">⏱️</div><div><b>문제당 ${secs}초 제한</b>
+        <span>시간이 지나면 자동 오답 처리 · 빨리 풀수록 순위 UP</span></div></div>
+      <div class="bq-feat"><div class="bq-feat-i">🏆</div><div><b>정답 수 &amp; 속도로 랭킹 결정</b>
+        <span>하루 ${daily}번 중 가장 좋은 기록이 공식 기록이 됩니다</span></div></div>
+    </div>`;
+
+      const runsHTML = !loggedIn
+        ? `<div class="bq-run empty">로그인하면 오늘의 기록이 여기에 쌓입니다.</div>`
+        : (runs.length ? runs.map(r => {
+          const done = r.status === 'COMPLETED' || r.status === 'ABANDONED';
+          const isBest = done && best && `${r.correct_count}|${r.total_time_ms}` === bestKey;
+          if (!done) return `<div class="bq-run"><span class="bq-run-no">${r.attempt_no}회차</span>
+            <span class="bq-run-tm">진행 중…</span></div>`;
+          return `<div class="bq-run${isBest ? ' best' : ''}">
+            <span class="bq-run-no">${r.attempt_no}회차</span>
+            <span class="bq-run-sc">${r.correct_count}/${r.q_total}</span>
+            <span class="bq-run-tm">· ${bqSec(r.total_time_ms)}초</span>
+            ${isBest ? '<span class="bq-run-star">★ 최고</span>' : ''}</div>`;
+        }).join('')
+          : `<div class="bq-run empty">아직 오늘 도전 기록이 없습니다.</div>`);
+
+      const tiersHTML = tiers.map((t, i2) => `
+    <div class="bq-tier t-${t.code}">
+      <span class="bq-tier-c">${i2 + 1}</span>
+      <span class="bq-tier-ic">${t.icon || ''}</span>
+      <span class="bq-tier-b"><span class="bq-tier-n">${esc(t.label || '')}</span>
+        <span class="bq-tier-d">${esc(t.desc || '')}</span></span>
+      <span class="bq-tier-r">${bqTierRange(tiers, i2, qTotal)}<br>
+        ${t.rank_public === false ? '순위 비공개' : '순위 공개'}</span>
+    </div>`).join('');
+
+      const ctaLabel = live ? '이어하기'
+        : (!loggedIn ? '로그인 필요'
+          : (left > 0 ? 'START' : '내일 다시!'));
+      const hint = !loggedIn ? '먼저 닉네임을 등록해 주세요'
+        : (live ? '진행 중인 도전이 있어요 — 이어서 풀 수 있습니다'
+          : (left > 0 ? `오늘 남은 기회 ${left}회 · 시작하면 1회가 소진됩니다`
+            : '오늘의 도전을 모두 사용했어요 · 매일 00:00 초기화'));
+
+      const rst = bqWeekResetLeft();
+
+      root.innerHTML = `
+    ${bqStageHTML({
+        ctaLabel, hint, locked: d.testing,
+        disabled: !loggedIn || (left <= 0 && !live),
+        desc: `오늘의 <b>블붕이 시험</b>! ${qTotal}문제 · 문제당 ${secs}초<br>하루 ${daily}번 중 최고 기록으로 등급을 증명하라`,
+      })}
+    <div class="bq-cta-sub">${loggedIn ? `오늘의 도전 <b style="color:var(--bq-p2)">${d.attempts_used || 0} / ${daily}</b> · ` : ''}매일 00:00 초기화</div>
+    ${featHTML}
+
+    <div class="bq-card">
+      <h3>📅 오늘의 기록
+        ${best ? `<span style="font-size:12px;color:var(--muted);font-weight:800">최고 ${best.correct_count}/${best.q_total} · ${bqSec(best.total_time_ms)}초</span>` : ''}</h3>
+      <div class="bq-runs">${runsHTML}</div>
+      ${best && best.rank ? `<div class="bq-note">현재 전체 <b>${best.rank}위</b> / ${best.total_players}명 · ${bqTierIcon(best.tier_meta)} ${esc(bqTierLabel(best.tier_meta))}</div>` : ''}
+    </div>
+
+    <div class="bq-card">
+      <h3>👑 오늘의 랭킹 <button class="bq-tab" id="bqGoRank" style="padding:5px 11px">전체 보기 ›</button></h3>
+      <div class="bq-tabs" id="bqRankTabs"></div>
+      <div id="bqRankBox"><div class="empty">불러오는 중…</div></div>
+    </div>
+
+    <div class="bq-card">
+      <h3>🏅 블붕이 등급 안내</h3>
+      <div class="bq-tiers">${tiersHTML}</div>
+      <div class="bq-note">등급은 <b>정답 수</b>로만 결정되며, 같은 등급 안에서는 <b>총 소요시간</b>이 짧은 순으로 순위를 정합니다.
+        하위 2개 등급은 재미를 위한 표현일 뿐이라 순위를 공개하지 않습니다.</div>
+    </div>
+
+    <div class="bq-card" id="bqMyBox">
+      <h3>📈 내 블퀴 기록</h3>
+      <div class="empty">${loggedIn ? '불러오는 중…' : '로그인하면 내 기록을 볼 수 있습니다.'}</div>
+    </div>
+
+    <div class="bq-card">
+      <div class="bq-reset">
+        <div><div class="t">주간 랭킹 리셋까지</div>
+          <div class="v">${rst.d}일 ${rst.h}시간 ${rst.m}분</div></div>
+        <img data-pose="idle" src="${GM_LION_SRC}" alt="">
+      </div>
+      <div class="bq-note">문제는 매일 새벽 최신 랭킹·전적 데이터로 새로 만들어집니다.
+        같은 날 같은 문제는 다시 나오지 않고, 사람마다 다른 문제가 출제됩니다.</div>
+    </div>`;
+      gmApplyPoses();
+      bqBindStage(() => (live ? bqResume() : bqConfirmStart()));
+
+      const go = document.getElementById('bqGoRank');
+      if (go) go.onclick = () => { BQ.rankScope = 'daily'; BQ.rankTier = ''; bqLoadRanking(200); };
+
+      bqRenderRankTabs();
+      bqLoadRanking(20);
+      if (loggedIn) bqLoadMyStats();
+    }
+
+    /* 스테이지의 설명서 버튼 / START 버튼 연결 */
+    function bqBindStage(onStart) {
+      try { gmApplyPoses(); } catch (e) { }
+      const rb = document.getElementById('bqRulesBtn');
+      if (rb) rb.onclick = bqOpenRules;
+      const btn = document.getElementById('bqStart');
+      if (btn && !btn.disabled && onStart) btn.onclick = onStart;
+    }
+
+    /* 시작 스테이지 — 블랙 러닝/펀칭의 타이틀 화면과 같은 구조(.gt-name/.gt-sub/.g-start)를
+       그대로 쓰되, 퀴즈에 맞는 배경(하늘·언덕·구름·가랜드·떠다니는 보기 기호)을 깐다.
+       사자는 캔버스로 다시 그린 포즈가 아니라 원본 이미지를 크게 써서, 셔츠의
+       "블랙컴뱃 잡담방" 글자가 읽히도록 한다. */
+    function bqStageHTML(o) {
+      o = o || {};
+      const label = o.ctaLabel || 'START';
+      return `
+  <h1 class="page" style="gap:6px">🦁 블랙 퀴즈
+    <button class="bb-rules-btn-top" id="bqRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button>
+    <span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰ 주간 랭킹 리셋까지 <b style="color:#dc2626">${gmResetLeft()}</b></span></h1>
+  <div class="bq-stage">
+    <div class="bq-rays"></div>
+    <div class="bq-dots l"></div><div class="bq-dots r"></div>
+
+    <span class="bq-q3d ghost" style="top:34%;left:18%;font-size:64px">?</span>
+    <span class="bq-q3d ghost" style="top:29%;right:17%;font-size:76px;animation-delay:1.2s">?</span>
+    <span class="bq-q3d ghost" style="top:52%;left:37%;font-size:50px;animation-delay:2.1s">?</span>
+    <span class="bq-q3d" style="top:11%;left:4%;font-size:42px">?</span>
+    <span class="bq-q3d blue" style="top:29%;left:2%;font-size:32px;animation-delay:.8s">?</span>
+    <span class="bq-q3d" style="top:8%;right:4%;font-size:45px;animation-delay:.4s">?</span>
+    <span class="bq-q3d blue" style="top:31%;right:3%;font-size:34px;animation-delay:1.6s">?</span>
+    <span class="bq-q3d" style="top:20%;left:9%;font-size:23px;-webkit-text-stroke:0;text-shadow:none;animation-delay:2.4s">💡</span>
+    <span class="bq-bub" style="top:23%;right:8%">?!</span>
+
+    <i class="bq-conf" style="top:16%;left:16%;background:#ffd45e;transform:rotate(24deg)"></i>
+    <i class="bq-conf" style="top:26%;right:22%;background:#6fb0fb;animation-delay:1.1s"></i>
+    <i class="bq-conf" style="top:36%;left:11%;background:#ffd45e;animation-delay:2s"></i>
+    <i class="bq-conf" style="top:44%;right:12%;background:#ffd45e;animation-delay:.6s"></i>
+    <i class="bq-conf" style="top:49%;left:24%;background:#6fb0fb;animation-delay:1.7s"></i>
+
+    <div class="bq-side l"></div><div class="bq-side r"></div>
+    <div class="bq-floor"></div>
+    <div class="bq-arch l"></div><div class="bq-arch r"></div>
+    ${o.locked ? '<span class="bq-lock">🔒 관리자 전용 · 비공개 테스트</span>' : ''}
+
+    <div class="bq-stage-in">
+      <div class="bq-title">
+        <span class="bq-crown">👑</span>
+        <i class="bq-spark" style="height:16px;top:-6px;left:-14px;transform:rotate(-38deg)"></i>
+        <i class="bq-spark" style="height:12px;top:12px;left:-22px;transform:rotate(-72deg)"></i>
+        <i class="bq-spark" style="height:16px;top:-6px;right:-14px;transform:rotate(38deg)"></i>
+        <i class="bq-spark" style="height:12px;top:12px;right:-22px;transform:rotate(72deg)"></i>
+        <div class="gt-name">블랙 <em>퀴즈</em></div>
+        <div class="gt-sub">BLACK QUIZ</div>
+      </div>
+      <div class="bq-podwrap">
+        <img class="bq-mascot" data-pose="quiz" src="${GM_LION_SRC}" alt="블랙 퀴즈">
+        <div class="bq-podium"></div>
+      </div>
+      <div class="gt-desc">${o.desc || '오늘의 <b>블붕이 시험</b>! 매일 새로 나오는 문제로<br>진짜 블컴 팬인지 증명하라'}</div>
+      <button class="g-start g-en" id="bqStart" ${o.disabled ? 'disabled' : ''}>${esc(label)}</button>
+      <div class="gt-hint">${o.hint || ''}</div>
+    </div>
+  </div>`;
+    }
+    function bqOpenRules() {
+      const c = BQ.cfg || {};
+      const q = c.q_total || 10, sec = Math.round((c.limit_ms || 8000) / 1000), d = c.daily_attempts || 3;
+      const ov = document.createElement('div');
+      ov.className = 'modal-ov';
+      ov.innerHTML = `<div class="modal" style="max-width:420px">
+    <div class="modal-h"><span><b>📖 블랙 퀴즈 설명서</b></span><button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-b"><div style="font-size:12.5px;line-height:1.8;color:var(--muted)">
+      <b style="color:var(--text)">규칙</b> 한 판은 <b>${q}문제</b>, 문제당 <b>${sec}초</b>, 하루 <b>${d}번</b>까지 도전할 수 있어요.<br>
+      <b style="color:var(--text)">난이도</b> 뒤로 갈수록 어려워집니다 — EASY → NORMAL → HARD → HELL<br>
+      <b style="color:var(--text)">채점</b> 시간이 지나면 자동으로 오답 처리돼요. 한 번 고르면 되돌릴 수 없습니다.<br>
+      <b style="color:var(--text)">기록</b> 하루 ${d}번 중 <b>가장 좋은 기록</b>이 공식 기록이 됩니다.<br>
+      <b style="color:var(--text)">순위</b> 정답 수가 많은 순 → 총 소요시간이 짧은 순 → 먼저 달성한 순<br>
+      <b style="color:var(--text)">등급</b> 정답 수로 정해지고, 같은 등급끼리 따로 순위를 매깁니다.<br>
+      <b style="color:var(--text)">문제</b> 매일 새벽 최신 랭킹·전적으로 새로 만들어지고, 같은 날 같은 문제는 다시 나오지 않아요. 사람마다 다른 문제가 나옵니다.<br>
+      <b style="color:var(--text)">랭킹 리셋</b> 일간은 매일 0시, 주간은 매주 월요일 0시 · 주간 리셋까지 <b style="color:#e0332a">${gmResetLeft()}</b>
+    </div></div></div>`;
+      ov.onclick = e => { if (e.target === ov) history.back(); };
+      pushModal(ov);
+    }
+
+    /* 등급 경계를 "9~10개" 형태로 표시 — 서버 tier_rules의 min 값으로 계산 */
+    function bqTierRange(tiers, i, qTotal) {
+      const min = tiers[i].min;
+      const upper = (i === 0) ? qTotal : (tiers[i - 1].min - 1);
+      return `기준 <b>${min === upper ? `${min}개` : `${min}~${upper}개`}</b>`;
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       시작 확인 — "시작하면 기회가 소진된다"를 반드시 먼저 알린다
+       ────────────────────────────────────────────────────────────── */
+    function bqConfirmStart() {
+      if (!gmMyNick || !gmMyPin) { toastMsgTop('먼저 닉네임을 등록해 주세요.'); return; }
+      const left = (BQ.home && BQ.home.attempts_left) || 0;
+      const q = (BQ.cfg && BQ.cfg.q_total) || 10;
+      const s = Math.round(((BQ.cfg && BQ.cfg.limit_ms) || 8000) / 1000);
+      const ov = document.createElement('div');
+      ov.className = 'modal-ov bb-confirm-ov';
+      ov.innerHTML = `<div class="bb-confirm">
+    <div class="bb-confirm-ic">🦁</div>
+    <div class="bb-confirm-t">오늘의 블랙 퀴즈를 시작할까요?</div>
+    <div class="bb-confirm-b">${q}문제 · 문제당 ${s}초 · 남은 기회 ${left}회<br>
+      <b style="color:var(--red)">시작하면 기회 1회가 바로 소진됩니다.</b><br>
+      중간에 나가도 그 시점까지의 결과로 기록돼요.</div>
+    <div class="bb-confirm-actions">
+      <button type="button" class="bb-confirm-btn cancel">취소</button>
+      <button type="button" class="bb-confirm-btn">시작하기</button>
+    </div></div>`;
+      const close = () => { try { ov.remove(); } catch (e) { } };
+      ov.onclick = e => { if (e.target === ov) close(); };
+      ov.querySelector('.cancel').onclick = close;
+      ov.querySelector('.bb-confirm-actions button:last-child').onclick = () => { close(); bqBegin(); };
+      overlayHost().append(ov);
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       RTT 측정 → 도전 시작
+       서버가 "응답을 보낸 시각 ~ 다음 호출이 도착한 시각"의 간격을 직접 재서
+       왕복 지연을 추정한다. 클라이언트가 보고하는 값은 쓰지 않는다.
+       (보정 상한이 서버에 300ms로 걸려 있어 조작 이득이 봉인된다)
+       ────────────────────────────────────────────────────────────── */
+    async function bqPingBurst() {
+      try {
+        for (let i = 0; i <= 2; i++) {
+          await sb.rpc('quiz_ping', { p_nickname: gmMyNick, p_pin: gmMyPin, p_seq: i });
+        }
+      } catch (e) { /* 실패해도 게임은 진행 — 보정이 0이 될 뿐 */ }
+    }
+
+    async function bqBegin() {
+      const tk = gmToken;
+      const btn = document.getElementById('bqStart');
+      if (btn) { btn.disabled = true; btn.textContent = '준비 중…'; }
+      await bqPingBurst();
+      if (tk !== gmToken) return;
+
+      let d = null, err = '';
+      try {
+        const res = await sb.rpc('quiz_start_attempt', {
+          p_nickname: gmMyNick, p_pin: gmMyPin, p_ua: navigator.userAgent || '',
+          p_pass: adminPass() || null,
+        });
+        if (res.error) throw res.error;
+        d = res.data;
+      } catch (e) { err = bqRpcErr(e); }
+      if (tk !== gmToken) return;
+
+      if (!d || d.ok === false) {
+        const msg = (d && d.msg) || err || '도전을 시작하지 못했습니다.';
+        toastMsgTop(msg);
+        bqRenderHome();
+        return;
+      }
+      BQ.attempt = d;
+      BQ.correctSoFar = 0;
+      bqEnterPlay(d.question, d);
+    }
+
+    async function bqResume() {
+      const tk = gmToken;
+      let d = null, err = '';
+      try {
+        const res = await sb.rpc('quiz_resume', {
+          p_nickname: gmMyNick, p_pin: gmMyPin, p_pass: adminPass() || null,
+        });
+        if (res.error) throw res.error;
+        d = res.data;
+      } catch (e) { err = bqRpcErr(e); }
+      if (tk !== gmToken) return;
+      if (!d || d.ok === false) {
+        if (d && d.code === 'NO_LIVE') { bqRenderHome(); return; }
+        toastMsgTop(err || '이어할 도전을 찾지 못했습니다.');
+        bqRenderHome(); return;
+      }
+      if (d.finished) { bqRenderResult(d.attempt_id); return; }
+      BQ.attempt = d;
+      BQ.correctSoFar = d.correct_so_far || 0;
+      bqEnterPlay(d.question, d, d.remain_ms);
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       게임 화면
+       ────────────────────────────────────────────────────────────── */
+    function bqEnterPlay(question, attempt, remainMs) {
+      BQ.state = 'playing';
+      BQ.q = question;
+      bqArmLeaveGuard();
+      $app.innerHTML = `<div class="bq"><div class="bq-play" id="bqPlay"></div></div>`;
+      bqPaintQuestion(question, remainMs, true);
+    }
+
+    function bqPaintQuestion(q, remainMs, withCountdown) {
+      const el = document.getElementById('bqPlay');
+      if (!el || !q) return;
+      BQ.q = q;
+      BQ.locked = false;
+      const total = q.total || (BQ.attempt && BQ.attempt.q_total) || 10;
+      const limit = q.limit_ms || (BQ.attempt && BQ.attempt.limit_ms) || 8000;
+      const secs = Math.ceil(limit / 1000);
+
+      el.innerHTML = `
+    <div class="bq-ptop">
+      <div class="bq-pno">문제 <b>${String(q.no).padStart(2, '0')}</b> / ${total}</div>
+      <button class="bq-exit" id="bqExit">나가기 ✕</button>
+    </div>
+    <div class="bq-timer"><span class="ic">⏰</span>
+      <span class="v" id="bqTimeV">${String(secs).padStart(2, '0')}</span><span class="u">초</span>
+      <span style="margin-left:auto;font-size:12.5px;color:var(--muted);font-weight:800">
+        맞힌 개수 <b style="color:var(--bq-p2)">${BQ.correctSoFar}</b></span>
+    </div>
+    <div class="bq-bar" id="bqBar"><i style="transform:scaleX(1)"></i></div>
+    <div class="bq-chips">
+      <span class="bq-chip d-${esc(q.difficulty)}">${esc(q.difficulty)}</span>
+      <span class="bq-chip cat">${esc(q.category_label || '')}</span>
+    </div>
+    <div class="bq-q">${esc(q.text)}</div>
+    <div class="bq-opts" id="bqOpts">
+      ${(q.choices || []).map((c, i) => `
+        <button class="bq-opt" data-slot="${i}" type="button">
+          <span class="bq-opt-k">${'ABCD'[i]}</span><span>${esc(c)}</span></button>`).join('')}
+    </div>
+    <div class="bq-fb" id="bqFb"></div>`;
+
+      document.getElementById('bqExit').onclick = bqConfirmExit;
+      el.querySelectorAll('.bq-opt').forEach(b => {
+        b.onclick = () => bqPick(+b.dataset.slot);
+      });
+
+      const leadIn = withCountdown ? 0 : ((BQ.cfg && BQ.cfg.lead_in_ms) || 800);
+      const budget = (remainMs != null ? remainMs : limit);
+      if (withCountdown) bqCountdown(() => bqStartTimer(budget, limit));
+      else setTimeout(() => bqStartTimer(budget, limit), leadIn);
+    }
+
+    /* 3·2·1 카운트다운 — 첫 문항을 이미 받아둔 뒤에만 돈다(로딩 지연으로 시간을 잃지 않게) */
+    function bqCountdown(done) {
+      const ov = document.createElement('div');
+      ov.className = 'bq-count';
+      ov.innerHTML = '<b>3</b>';
+      $app.append(ov);
+      let n = 3;
+      const tick = () => {
+        n--;
+        if (n <= 0) { try { ov.remove(); } catch (e) { } done(); return; }
+        ov.innerHTML = `<b>${n}</b>`;
+        gmDelay(tick, 700);
+      };
+      gmDelay(tick, 700);
+    }
+
+    function bqStartTimer(budgetMs, limitMs) {
+      if (BQ.state !== 'playing') return;
+      BQ.deadline = Date.now() + budgetMs;
+      const vEl = document.getElementById('bqTimeV');
+      const bar = document.getElementById('bqBar');
+      const barI = bar && bar.querySelector('i');
+      const loop = () => {
+        if (BQ.state !== 'playing') return;
+        const left = BQ.deadline - Date.now();
+        if (vEl) vEl.textContent = String(Math.max(0, Math.ceil(left / 1000))).padStart(2, '0');
+        if (barI) barI.style.transform = `scaleX(${Math.max(0, Math.min(1, left / limitMs))})`;
+        if (bar) bar.classList.toggle('warn', left <= 3000);
+        if (left <= 0) { bqStopTimer(); bqPick(-1); return; }
+        BQ.raf = requestAnimationFrame(loop);
+      };
+      loop();
+    }
+    function bqStopTimer() { if (BQ.raf) { cancelAnimationFrame(BQ.raf); BQ.raf = 0; } }
+
+    /* 선택 → 서버 제출 (slot -1 = 시간초과) */
+    async function bqPick(slot) {
+      if (BQ.locked || BQ.state !== 'playing') return;
+      BQ.locked = true;
+      bqStopTimer();
+      const tk = gmToken;
+      const q = BQ.q;
+      const opts = document.querySelectorAll('#bqOpts .bq-opt');
+      opts.forEach(b => { b.disabled = true; });
+      if (slot >= 0 && opts[slot]) opts[slot].classList.add('sel');
+
+      const clientMs = Math.max(0, Math.round((q.limit_ms || 8000) - (BQ.deadline - Date.now())));
+
+      let d = null, err = '';
+      try {
+        const res = await sb.rpc('quiz_submit_answer', {
+          p_nickname: gmMyNick, p_pin: gmMyPin,
+          p_attempt: BQ.attempt.attempt_id, p_no: q.no,
+          p_slot: slot, p_client_ms: clientMs,
+        });
+        if (res.error) throw res.error;
+        d = res.data;
+      } catch (e) { err = bqRpcErr(e); }
+      if (tk !== gmToken) return;
+
+      if (!d || d.ok === false) {
+        // 순서가 어긋났거나 세션이 끊긴 경우 — 서버 상태로 복구
+        const fb = document.getElementById('bqFb');
+        if (fb) { fb.className = 'bq-fb no'; fb.textContent = err || '전송에 실패했어요. 복구 중…'; }
+        gmDelay(() => bqResume(), 900);
+        return;
+      }
+
+      // ── 피드백 (게임 중에는 긴 해설을 보여주지 않는다) ──
+      BQ.state = 'feedback';
+      const fb = document.getElementById('bqFb');
+      const cs = d.correct_slot;
+      if (opts[cs]) opts[cs].classList.add('ok');
+      if (slot >= 0 && slot !== cs && opts[slot]) opts[slot].classList.add('no');
+      if (fb) {
+        if (d.timeout) { fb.className = 'bq-fb no'; fb.textContent = '⏰ 시간 초과!'; }
+        else if (d.correct) { fb.className = 'bq-fb ok'; fb.textContent = '정답!'; }
+        else { fb.className = 'bq-fb no'; fb.textContent = '오답!'; }
+      }
+      if (d.progress) BQ.correctSoFar = d.progress.correct || 0;
+      gmSnd(d.correct ? 'ding' : 'weak');
+
+      gmDelay(() => {
+        if (tk !== gmToken) return;
+        if (d.finished || !d.next_question) {
+          bqDisarmLeaveGuard();
+          bqRenderResult(BQ.attempt.attempt_id);
+        } else {
+          BQ.state = 'playing';
+          bqPaintQuestion(d.next_question, null, false);
+        }
+      }, d.correct ? 750 : 1050);
+    }
+
+    /* ── 이탈 방지: 진행 중 뒤로가기/새로고침 ── */
+    let bqGuardArmed = false;
+    function bqBeforeUnload(e) { e.preventDefault(); e.returnValue = ''; return ''; }
+    function bqArmLeaveGuard() {
+      if (bqGuardArmed) return;
+      bqGuardArmed = true;
+      window.addEventListener('beforeunload', bqBeforeUnload);
+    }
+    function bqDisarmLeaveGuard() {
+      bqGuardArmed = false;
+      window.removeEventListener('beforeunload', bqBeforeUnload);
+    }
+    function bqConfirmExit() {
+      const ov = document.createElement('div');
+      ov.className = 'modal-ov bb-confirm-ov';
+      ov.innerHTML = `<div class="bb-confirm">
+    <div class="bb-confirm-ic">⚠️</div>
+    <div class="bb-confirm-t">지금 나가시겠어요?</div>
+    <div class="bb-confirm-b">남은 문제는 <b style="color:var(--red)">오답 처리</b>되고,
+      이번 도전은 그대로 기록됩니다.<br>기회는 이미 소진되어 되돌릴 수 없어요.</div>
+    <div class="bb-confirm-actions">
+      <button type="button" class="bb-confirm-btn cancel">계속 풀기</button>
+      <button type="button" class="bb-confirm-btn danger">나가기</button>
+    </div></div>`;
+      const close = () => { try { ov.remove(); } catch (e) { } };
+      ov.onclick = e => { if (e.target === ov) close(); };
+      ov.querySelector('.cancel').onclick = close;
+      ov.querySelector('.danger').onclick = () => {
+        close(); bqStopTimer(); bqDisarmLeaveGuard();
+        BQ.state = 'result';
+        bqRenderResult(BQ.attempt && BQ.attempt.attempt_id);
+      };
+      overlayHost().append(ov);
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       결과 화면
+       ────────────────────────────────────────────────────────────── */
+    async function bqRenderResult(attemptId) {
+      const tk = gmToken;
+      bqStopTimer(); bqDisarmLeaveGuard();
+      BQ.state = 'result';
+      $app.innerHTML = `<div class="bq"><div class="bq-card"><div class="empty">채점 중…</div></div></div>`;
+
+      let d = null, err = '';
+      try {
+        const res = await sb.rpc('quiz_get_result', {
+          p_nickname: gmMyNick, p_pin: gmMyPin, p_attempt: attemptId,
+        });
+        if (res.error) throw res.error;
+        d = res.data;
+      } catch (e) { err = bqRpcErr(e); }
+      if (tk !== gmToken) return;
+      if (!d || d.ok === false) {
+        toastMsgTop(err || '결과를 불러오지 못했습니다.');
+        bqRenderHome(); return;
+      }
+      BQ.lastResult = d;
+
+      const tm = d.tier_meta || {};
+      const rate = d.q_total ? Math.round(d.correct_count * 100 / d.q_total) : 0;
+      const items = d.items || [];
+
+      $app.innerHTML = `<div class="bq">
+    <div class="bq-card">
+      <h3 style="justify-content:center">🎯 오늘의 결과</h3>
+      <div class="bq-res-top">
+        <img class="bq-res-lion" data-pose="${d.correct_count >= d.q_total * 0.7 ? 'punch' : 'idle'}" src="${GM_LION_SRC}" alt="">
+        <div class="bq-res-sc"><b>${d.correct_count}</b> <span>/ ${d.q_total} 정답</span></div>
+        ${d.is_new_best ? '<div class="bq-newbest">👑 오늘 신기록 달성!</div>' : ''}
+      </div>
+      <div class="bq-tiercard">
+        <div class="w"><i>❰</i><div>
+          <div class="n">${bqTierIcon(tm)} ${esc(bqTierLabel(tm))}</div>
+          <div class="d">${esc(tm.desc || '')}</div>
+        </div><i>❱</i></div>
+      </div>
+      <div class="bq-tbl">
+        <div class="bq-tr"><span>정답 수</span><b>${d.correct_count} / ${d.q_total}</b></div>
+        <div class="bq-tr"><span>총 소요시간</span><b>${bqSec(d.total_time_ms)}초${d.is_new_best ? '<span class="bq-badge-new">NEW</span>' : ''}</b></div>
+        <div class="bq-tr"><span>정답률</span><b>${rate}%</b></div>
+        <div class="bq-tr"><span>전체 순위</span><b>${d.rank ? `${d.rank}위` : '-'}<span class="sub">${bqRankSub(d.rank, d.total_players, d.percentile)}</span></b></div>
+        <div class="bq-tr"><span>${esc(bqTierLabel(tm))} 내 순위</span><b>${d.tier_rank_public ? (d.tier_rank ? `${d.tier_rank}위` : '-') : '비공개'}<span class="sub">${d.tier_rank_public && d.tier_total ? `${d.tier_total}명 중` : ''}</span></b></div>
+        <div class="bq-tr"><span>오늘의 도전</span><b>${d.attempts_used} / ${(BQ.cfg && BQ.cfg.daily_attempts) || 3}</b></div>
+      </div>
+      <div class="bq-acts">
+        <button id="bqShare">🔗 결과 공유하기</button>
+        <button class="primary" id="bqAgain" ${d.attempts_left > 0 ? '' : 'disabled'}>
+          ${d.attempts_left > 0 ? `다시 도전하기 (${d.attempts_left})` : '내일 다시 만나요'}</button>
+      </div>
+      ${d.best && d.best.correct_count != null ? `<div class="bq-note">오늘의 공식 기록(최고 기록)은
+        <b>${d.best.correct_count}/${d.q_total} · ${bqSec(d.best.total_time_ms)}초</b> 입니다.</div>` : ''}
+    </div>
+
+    <div class="bq-card">
+      <h3>📋 문제 다시보기</h3>
+      <div class="bq-rev">${items.map(it => `
+        <div class="bq-rev-i">
+          <div class="bq-rev-h"><span>${it.no}번</span>
+            <span class="bq-chip d-${esc(it.difficulty)}" style="padding:2px 8px;font-size:10.5px">${esc(it.difficulty)}</span>
+            <span>${esc(it.category_label || '')}</span>
+            <span class="r ${it.correct ? 'ok' : 'no'}">${it.correct ? '정답' : (it.timeout ? '시간초과' : '오답')} · ${bqSec(it.response_ms)}초</span></div>
+          <div class="bq-rev-q">${esc(it.text)}</div>
+          <div class="bq-rev-a">정답 <b>${esc(it.answer)}</b>${!it.correct && it.my_answer ? ` · 내 선택 ${esc(it.my_answer)}` : ''}
+            ${it.explanation ? `<br>${esc(it.explanation)}` : ''}</div>
+        </div>`).join('')}</div>
+    </div>
+
+    <div class="bq-acts" style="margin-top:14px">
+      <button id="bqHome">🏠 블랙 퀴즈 홈</button>
+      <button id="bqRankBtn">👑 랭킹 보기</button>
+    </div>
+  </div>`;
+      gmApplyPoses();
+
+      document.getElementById('bqShare').onclick = () => bqShowShare(d);
+      const again = document.getElementById('bqAgain');
+      if (again && !again.disabled) again.onclick = () => bqConfirmStart();
+      document.getElementById('bqHome').onclick = () => bqRenderHome();
+      document.getElementById('bqRankBtn').onclick = () => {
+        bqRenderHome().then(() => {
+          const el = document.getElementById('bqRankBox');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      };
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       결과 공유 — 바이럴의 핵심. 미리보기를 보여주고 확인받은 뒤 보낸다.
+       ────────────────────────────────────────────────────────────── */
+    function bqShareText(d) {
+      const tm = d.tier_meta || {};
+      const lines = [
+        '🦁 블랙 퀴즈 — 오늘의 블붕이 판정',
+        '',
+        `${bqTierIcon(tm)} ${bqTierLabel(tm)}`,
+        `${d.correct_count} / ${d.q_total} · ${bqSec(d.total_time_ms)}초`,
+      ];
+      if (d.tier_rank_public && d.tier_rank) lines.push(`${bqTierLabel(tm)} ${d.tier_rank}위`);
+      if (d.percentile != null && d.total_players >= 10) lines.push(`전체 상위 ${d.percentile}%`);
+      else if (d.rank && d.total_players) lines.push(`전체 ${d.total_players}명 중 ${d.rank}위`);
+      lines.push('', '너도 진짜 블붕이인지 확인해보세요 👇');
+      return lines.join('\n');
+    }
+    function bqShowShare(d) {
+      const tm = d.tier_meta || {};
+      const text = bqShareText(d);
+      const url = location.origin + location.pathname + '#/game/quiz';
+      const ov = document.createElement('div');
+      ov.className = 'modal-ov bb-confirm-ov';
+      ov.innerHTML = `<div class="bb-confirm" style="max-width:340px">
+    <div class="bq-sharebox">
+      <div class="l">오늘의 블붕이 판정</div>
+      <div class="g">${bqTierIcon(tm)} ${esc(bqTierLabel(tm))}</div>
+      <div class="s">${d.correct_count} / ${d.q_total}</div>
+      <div class="m">${bqSec(d.total_time_ms)}초${d.rank ? ` · ${bqRankSub(d.rank, d.total_players, d.percentile) === `상위 ${d.percentile}%` ? `상위 ${d.percentile}%` : `${d.rank}위`}` : ''}</div>
+    </div>
+    <div class="bq-sharetext" id="bqShareTxt">${esc(text)}\n${esc(url)}</div>
+    <div class="bb-confirm-actions" style="margin-top:12px">
+      <button type="button" class="bb-confirm-btn cancel">닫기</button>
+      <button type="button" class="bb-confirm-btn">공유하기</button>
+    </div></div>`;
+      const close = () => { try { ov.remove(); } catch (e) { } };
+      ov.onclick = e => { if (e.target === ov) close(); };
+      ov.querySelector('.cancel').onclick = close;
+      ov.querySelector('.bb-confirm-actions button:last-child').onclick = () => {
+        const how = bqDoShare(text, url);
+        if (how !== 'manual') close();
+      };
+      overlayHost().append(ov);
+    }
+    /* 공유 경로는 블랙 배틀의 검증된 방식을 그대로 따른다
+       (content:// 등 비정상 스킴에서 navigator.share를 호출하면 안드로이드에서 렌더러가 죽는 사례 있음) */
+    function bqDoShare(text, url) {
+      const protocol = window.__BB_PROMOTE_PROTOCOL_OVERRIDE || location.protocol;
+      const unsafeOrigin = /^(content|blob|about|data):$/.test(protocol);
+      try {
+        if (!unsafeOrigin && typeof navigator.share === 'function') {
+          navigator.share({ text, url }).catch(() => { });
+          return 'share';
+        }
+        if (!unsafeOrigin && navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+          navigator.clipboard.writeText(`${text}\n${url}`)
+            .then(() => toastMsg('결과가 복사되었습니다. 카톡방에 붙여넣어 주세요!'))
+            .catch(() => toastMsg('아래 문구를 직접 선택해 복사해 주세요!'));
+          return 'clipboard';
+        }
+      } catch (e) { }
+      toastMsg('아래 문구를 직접 선택해 복사해 주세요!');
+      return 'manual';
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       랭킹
+       ────────────────────────────────────────────────────────────── */
+    function bqRenderRankTabs() {
+      const box = document.getElementById('bqRankTabs');
+      if (!box) return;
+      const tiers = (BQ.cfg && BQ.cfg.tiers) || [];
+      const tabs = [
+        { k: 'daily|', l: '오늘 전체' },
+        { k: 'weekly|', l: '이번 주' },
+      ].concat(tiers.filter(t => t.rank_public !== false)
+        .map(t => ({ k: 'daily|' + t.code, l: `${t.icon} ${t.label}` })));
+      box.innerHTML = tabs.map(t => {
+        const on = (BQ.rankScope + '|' + BQ.rankTier) === t.k;
+        return `<button class="bq-tab${on ? ' on' : ''}" data-k="${t.k}">${esc(t.l)}</button>`;
+      }).join('');
+      box.querySelectorAll('.bq-tab').forEach(b => {
+        b.onclick = () => {
+          const [s, t] = b.dataset.k.split('|');
+          BQ.rankScope = s; BQ.rankTier = t || '';
+          bqRenderRankTabs(); bqLoadRanking(50);
+        };
+      });
+    }
+
+    async function bqLoadRanking(limit) {
+      const tk = gmToken;
+      const box = document.getElementById('bqRankBox');
+      if (!box) return;
+      box.innerHTML = '<div class="empty">불러오는 중…</div>';
+      let d = null;
+      try {
+        const res = await sb.rpc('quiz_get_ranking', {
+          p_scope: BQ.rankScope, p_tier: BQ.rankTier || null,
+          p_nickname: gmMyNick || null, p_limit: limit || 50,
+          p_pass: adminPass() || null,
+        });
+        if (res.error) throw res.error;
+        d = res.data;
+      } catch (e) {
+        if (tk === gmToken) box.innerHTML = `<div class="empty">${esc(bqRpcErr(e))}</div>`;
+        return;
+      }
+      if (tk !== gmToken) return;
+      if (!d || d.ok === false) { box.innerHTML = '<div class="empty">랭킹을 불러오지 못했습니다.</div>'; return; }
+
+      if (d.rank_public === false) {
+        box.innerHTML = `<div class="empty">${esc(d.notice || '이 등급은 순위를 공개하지 않습니다.')}
+      <br><b>${d.total || 0}명</b>이 이 등급에 있어요.</div>`;
+        return;
+      }
+      const rows = d.rows || [];
+      if (!rows.length) {
+        box.innerHTML = '<div class="empty">아직 기록이 없습니다.<br>첫 번째 도전자가 되어보세요!</div>';
+        return;
+      }
+      const medal = r => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : `${r}위`;
+      const inList = gmMyNick && rows.some(r => r.nickname === gmMyNick);
+      box.innerHTML = `
+    <div class="bq-rk-h"><span>순위</span><span>닉네임</span><span style="text-align:right">정답</span><span style="text-align:right">소요시간</span></div>
+    ${rows.map(r => `<div class="bq-rk${gmMyNick && r.nickname === gmMyNick ? ' me' : ''}">
+      <span class="r">${medal(r.rank)}</span>
+      <span class="n">${esc(r.nickname)}</span>
+      <span class="s">${r.correct_count}/${r.q_total}</span>
+      <span class="t">${bqSec(r.total_time_ms)}초</span></div>`).join('')}
+    ${(!inList && d.me) ? `<div class="bq-rk me">
+      <span class="r">${d.me.rank}위</span><span class="n">${esc(d.me.nickname)} (나)</span>
+      <span class="s">${d.me.correct_count}/${d.me.q_total}</span>
+      <span class="t">${bqSec(d.me.total_time_ms)}초</span></div>` : ''}
+    <div class="bq-note">총 ${d.total}명 · 정답 수 → 총 소요시간 → 달성 시각 순으로 정렬됩니다.</div>`;
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       내 기록
+       ────────────────────────────────────────────────────────────── */
+    async function bqLoadMyStats() {
+      const tk = gmToken;
+      const box = document.getElementById('bqMyBox');
+      if (!box) return;
+      let d = null;
+      try {
+        const res = await sb.rpc('quiz_get_my_stats', { p_nickname: gmMyNick, p_pin: gmMyPin });
+        if (res.error) throw res.error;
+        d = res.data;
+      } catch (e) { return; }
+      if (tk !== gmToken || !d || d.ok === false) return;
+
+      const tm = d.best_tier_meta || {};
+      const cats = d.categories || [];
+      // 아직 한 번도 안 푼 사람에게 "최고 등급 -" 같은 빈 값을 보여주지 않는다
+      if (!d.total_attempts) {
+        box.innerHTML = `<h3>📈 내 블퀴 기록</h3>
+      <div class="empty">아직 기록이 없습니다.<br>첫 도전을 마치면 등급·최단 기록·분야별 정답률이 쌓입니다!</div>`;
+        return;
+      }
+      box.innerHTML = `
+    <h3>📈 내 블퀴 기록</h3>
+    <div class="bq-run best" style="margin-bottom:10px">
+      <span style="font-size:22px">${bqTierIcon(tm)}</span>
+      <span><b style="font-size:15px">${esc(bqTierLabel(tm))}</b>
+        <span style="display:block;font-size:11.5px;color:var(--muted);font-weight:800">최고 등급</span></span>
+    </div>
+    <div class="bq-stats">
+      <div class="bq-stat"><span>최고 기록</span><b>${d.best_correct} / ${d.best_q_total || (BQ.cfg && BQ.cfg.q_total) || 10}</b></div>
+      <div class="bq-stat"><span>만점 최단 기록</span><b>${d.best_time_ms != null ? bqSec(d.best_time_ms) + '초' : '-'}</b></div>
+      <div class="bq-stat"><span>연속 도전</span><b>${d.streak_days}일</b></div>
+      <div class="bq-stat"><span>전체 참여</span><b>${d.total_attempts}회</b></div>
+    </div>
+    ${cats.length ? `<h3 style="margin-top:16px">분야별 정답률</h3>
+    <div class="bq-cats">${cats.slice(0, 8).map(c => `
+      <div class="bq-cat"><span>${esc(c.label)}</span>
+        <span class="bar"><i style="width:${Math.max(3, c.rate || 0)}%"></i></span>
+        <span class="v">${c.rate || 0}%</span></div>`).join('')}</div>` : ''}
+    <div class="bq-note">만점 달성 ${d.perfect_count}회 · 참여 ${d.total_days}일 · 최장 연속 ${d.max_streak_days}일</div>`;
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       관리자 — 문제 Pool 현황 / 문제별 통계
+       ────────────────────────────────────────────────────────────── */
+    async function bqRenderAdmin() {
+      const box = document.getElementById('bqAdminSec');
+      if (!box) return;
+      let d = null;
+      try {
+        const res = await sb.rpc('quiz_admin_pool_status', { p_pass: adminPass() });
+        if (res.error) throw res.error;
+        d = res.data;
+      } catch (e) {
+        box.innerHTML = `<div class="sec-title">🦁 블랙 퀴즈</div>
+      <div class="card"><div class="empty">${esc(bqRpcErr(e))}</div></div>`;
+        return;
+      }
+      if (!d || d.ok === false) {
+        box.innerHTML = `<div class="sec-title">🦁 블랙 퀴즈</div>
+      <div class="card">
+        <div style="font-weight:800;color:var(--red);margin-bottom:6px">⚠️ 블랙 퀴즈가 관리자 비밀번호를 인식하지 못했습니다.</div>
+        <div class="note">이 상태에서는 관리자에게도 블랙 퀴즈가 보이지 않습니다.
+          Supabase SQL Editor에서 아래 한 줄을 실행한 뒤 이 페이지를 새로고침해 주세요.
+          <div style="background:#f5f7fb;border:1.5px solid var(--border);border-radius:10px;padding:10px;margin-top:8px;font-size:12px;user-select:text">UPDATE quiz_config SET admin_pass = '관리자비밀번호' WHERE id = 1;</div>
+          확인용: <code>SELECT quiz_admin_check('관리자비밀번호');</code> → <b>true</b> 가 나와야 정상입니다.
+        </div>
+      </div>`;
+        return;
+      }
+      const bd = d.by_difficulty || {}, bs = d.by_state || {}, bc = d.by_category || {};
+      const cfg = d.config || {};
+      const min = cfg.min_pool_per_difficulty || {};
+      const lamp = (k) => {
+        const have = bd[k] || 0, want = min[k] || 0;
+        return have >= want * 2 ? '🟢' : have >= want ? '🟡' : '🔴';
+      };
+      const run = d.last_run;
+      const pub = !!d.public_enabled;
+      box.innerHTML = `
+    <div class="sec-title">🦁 블랙 퀴즈</div>
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:14px;font-weight:900">
+          공개 상태: <b style="color:${pub ? 'var(--green)' : '#d69411'}">${pub ? '🌐 전체 공개' : '🔒 관리자 전용 (비공개 테스트)'}</b></span>
+        <button class="btn small ${pub ? '' : 'primary'}" style="margin-left:auto"
+          onclick="bqAdminSetPublic(${pub ? 'false' : 'true'})">
+          ${pub ? '🔒 비공개로 전환' : '🌐 전체 공개하기'}</button>
+      </div>
+      <div class="note" style="margin-top:8px">
+        ${pub
+          ? '모든 방문자에게 게임 메뉴에 블랙 퀴즈 카드가 보이고, 누구나 플레이할 수 있습니다.'
+          : '관리자 비밀번호로 로그인한 브라우저에서만 카드가 보이고 플레이할 수 있습니다. 다른 사람은 <code>#/game/quiz</code>로 직접 들어와도 서버에서 막힙니다.'}
+        ${d.testers && d.testers.length ? `<br>추가 허용 닉네임: <b>${d.testers.map(esc).join(', ')}</b>` : ''}
+      </div>
+    </div>
+    <div class="sec-title">📚 문제 Pool</div>
+    <div class="card">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:13px;font-weight:800">
+        ${['EASY', 'NORMAL', 'HARD', 'HELL'].map(k =>
+        `<span style="background:#f4f1fc;border-radius:10px;padding:7px 11px">${lamp(k)} ${k} <b>${bd[k] || 0}</b>
+           <span style="color:var(--dim);font-weight:700">/최소 ${min[k] || 0}</span></span>`).join('')}
+      </div>
+      <div class="note" style="margin-top:8px">
+        상태: ${Object.keys(bs).map(k => `${k} ${bs[k]}`).join(' · ') || '-'}<br>
+        오늘 Pool ${d.today_pool}문항 · 오늘 참여 ${d.today_players}명 / 도전 ${d.today_attempts}회<br>
+        규칙: 하루 ${cfg.daily_attempts}회 · ${cfg.questions_per_attempt}문제 · 문제당 ${cfg.seconds_per_question}초
+      </div>
+      ${run ? `<div class="note" style="margin-top:6px">최근 생성(${esc(String(run.run_date))}):
+        생성 ${run.generated} / 등록 ${run.approved} / 탈락 ${run.rejected} — <b>${esc(run.status)}</b>
+        ${run.message ? `<br>${esc(run.message)}` : ''}</div>` : ''}
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn xs" onclick="bqAdminList('ACTIVE')">문제 목록</button>
+        <button class="btn xs" onclick="bqAdminList('INACTIVE')">중지된 문제</button>
+        <button class="btn xs" onclick="bqAdminKpi()">📊 KPI</button>
+      </div>
+      <div id="bqAdminBody" style="margin-top:10px"></div>
+      <div class="note" style="margin-top:8px">문제는 GitHub Actions(<code>quiz-pool.yml</code>)가 매일 05:40 KST에
+        최신 랭킹·전적으로 다시 만듭니다. 카테고리: ${Object.keys(bc).map(k => `${k} ${bc[k]}`).join(' · ') || '-'}</div>
+    </div>`;
+    }
+    async function bqAdminSetPublic(makePublic) {
+      const msg = makePublic
+        ? '블랙 퀴즈를 전체 공개할까요?\n모든 방문자에게 즉시 보이게 됩니다.'
+        : '블랙 퀴즈를 다시 비공개(관리자 전용)로 되돌릴까요?';
+      if (!confirm(msg)) return;
+      try {
+        const { data, error } = await sb.rpc('quiz_admin_set_visibility',
+          { p_pass: adminPass(), p_public: makePublic, p_testers: null });
+        if (error) throw error;
+        if (!data || data.ok === false) throw new Error('권한이 없습니다.');
+        toastMsg(makePublic ? '🌐 블랙 퀴즈를 전체 공개했습니다.' : '🔒 블랙 퀴즈를 비공개로 전환했습니다.');
+        bqRenderAdmin();
+      } catch (e) { toastMsg(bqRpcErr(e)); }
+    }
+    async function bqAdminList(state) {
+      const body = document.getElementById('bqAdminBody');
+      if (!body) return;
+      body.innerHTML = '<div class="empty">불러오는 중…</div>';
+      try {
+        const { data, error } = await sb.rpc('quiz_admin_question_list', {
+          p_pass: adminPass(), p_state: state, p_limit: 40, p_offset: 0,
+        });
+        if (error) throw error;
+        const rows = (data && data.rows) || [];
+        if (!rows.length) { body.innerHTML = '<div class="empty">해당 문제가 없습니다.</div>'; return; }
+        body.innerHTML = `<div class="note" style="margin-bottom:6px">${state} 총 ${data.total}문항 (최근 40개)</div>` +
+          rows.map(r => `<div style="border-bottom:1px solid var(--border);padding:7px 0;font-size:12.5px">
+        <div style="font-weight:800">[${esc(r.difficulty)}/${esc(r.category)}] ${esc(r.question)}</div>
+        <div style="color:var(--muted);font-weight:700">정답 ${esc(r.answer)} ·
+          노출 ${r.exposure}회${r.correct_rate != null ? ` · 정답률 ${r.correct_rate}%` : ''}${r.avg_ms != null ? ` · 평균 ${(r.avg_ms / 1000).toFixed(1)}초` : ''}${r.timeout_rate != null ? ` · 시간초과 ${r.timeout_rate}%` : ''}
+          ${r.state !== 'ACTIVE' && r.disabled_by ? `<span style="color:var(--red)">· ${r.disabled_by === 'ADMIN' ? '관리자 중지' : '데이터 변동으로 자동 중지'}</span>` : ''}
+          <button class="btn xs" style="margin-left:6px" onclick="bqAdminToggle(${r.question_id},'${r.state === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'}')">${r.state === 'ACTIVE' ? '중지' : '재개'}</button>
+        </div></div>`).join('');
+      } catch (e) { body.innerHTML = `<div class="empty">${esc(bqRpcErr(e))}</div>`; }
+    }
+    async function bqAdminToggle(qid, state) {
+      try {
+        const { error } = await sb.rpc('quiz_admin_set_question', {
+          p_pass: adminPass(), p_question_id: qid, p_state: state, p_difficulty: null,
+        });
+        if (error) throw error;
+        toastMsg(state === 'ACTIVE' ? '문제를 다시 사용합니다.' : '문제를 중지했습니다.');
+        bqAdminList(state === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE');
+      } catch (e) { toastMsg(bqRpcErr(e)); }
+    }
+    async function bqAdminKpi() {
+      const body = document.getElementById('bqAdminBody');
+      if (!body) return;
+      body.innerHTML = '<div class="empty">불러오는 중…</div>';
+      try {
+        const { data, error } = await sb.rpc('quiz_admin_kpi', { p_pass: adminPass(), p_days: 14 });
+        if (error) throw error;
+        const rows = (data && data.daily) || [];
+        if (!rows.length) { body.innerHTML = '<div class="empty">아직 데이터가 없습니다.</div>'; return; }
+        body.innerHTML = rows.map(r => `<div style="display:flex;gap:8px;font-size:12.5px;font-weight:700;padding:4px 0;border-bottom:1px solid var(--border)">
+      <span style="width:78px">${esc(String(r.quiz_date))}</span>
+      <span>참여 <b>${r.players}</b>명</span><span>도전 ${r.attempts}회</span>
+      <span>완주 ${r.completion_rate != null ? r.completion_rate + '%' : '-'}</span>
+      <span>3회 도전 ${r.full_use_rate != null ? r.full_use_rate + '%' : '-'}</span>
+      <span>평균 ${r.avg_correct != null ? r.avg_correct : '-'}점</span></div>`).join('');
+      } catch (e) { body.innerHTML = `<div class="empty">${esc(bqRpcErr(e))}</div>`; }
+    }
+
+    // 블랙 퀴즈는 아직 비공개(관리자 전용) 테스트 중일 수 있으므로, 카드는 기본으로 숨겨 두고
+    // 서버에 권한을 물어본 뒤에만 노출한다. (클라이언트에서 숨기는 것만으로는 #/game/quiz
+    // 딥링크로 들어올 수 있어, 서버 함수에서도 동일하게 막고 있다.)
+    async function loadMenuQuizTop() {
+      const wrap = document.getElementById('gQuizCardWrap');
+      if (!wrap) return;
+      let vis = null;
+      try {
+        const { data, error } = await sb.rpc('quiz_visibility',
+          { p_nickname: gmMyNick || null, p_pass: adminPass() || null });
+        if (error) throw error;
+        vis = data;
+      } catch (e) { return; }              // 패치 미실행 등 → 카드를 그냥 숨긴 채로 둔다
+      if (!vis || !vis.allowed) return;
+      wrap.style.display = '';
+      if (vis.testing) {
+        const b = wrap.querySelector('.gc-b b');
+        if (b) b.innerHTML = '블랙 퀴즈 <span style="font-size:11px;color:#d69411">🔒 비공개</span>';
+      }
+
+      const el = document.getElementById('gTopQuiz');
+      if (!el) return;
+      try {
+        const { data, error } = await sb.rpc('quiz_get_ranking',
+          { p_scope: 'daily', p_tier: null, p_nickname: gmMyNick || null, p_limit: 1,
+            p_pass: adminPass() || null });
+        if (error) throw error;
+        const rows = (data && data.rows) || [];
+        if (!rows.length) { el.textContent = '오늘 기록 없음 — 1위에 도전!'; return; }
+        const r = rows[0];
+        el.innerHTML = `오늘 🥇 <b style="color:var(--text)">${esc(r.nickname)}</b> ${r.correct_count}/${r.q_total} · ${bqSec(r.total_time_ms)}초`;
+      } catch (e) { el.textContent = '랭킹 준비 중'; }
     }
 
     /* ---------- 게임 1: 펀치머신 ---------- */
@@ -12846,7 +15280,11 @@
     function gmPoseDataURL(pose) {
       if (!gmLionOK) return null;
       if (gmPoseCache[pose]) return gmPoseCache[pose];
-      const cv = document.createElement('canvas'); cv.width = 240; cv.height = 240;
+      // 'quiz' 포즈는 블랙 퀴즈 타이틀에서 크게(150px+) 쓰이므로 2배 해상도로 그린다 —
+      // 그래야 티셔츠의 "블랙컴뱃 잡담방" 글자가 뭉개지지 않고 읽힌다.
+      const HI = (pose === 'quiz');
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = HI ? 480 : 240;
       const ctx = cv.getContext('2d');
       try {
         if (pose === 'run') {
@@ -12883,6 +15321,8 @@
           ctx.beginPath(); ctx.moveTo(154, 124); ctx.lineTo(202, 124); ctx.stroke();
           ctx.beginPath(); ctx.moveTo(150, 156); ctx.lineTo(194, 184); ctx.stroke();
           ctx.restore();
+        } else if (pose === 'quiz') {
+          gmLionSprite(ctx, 240, 452, 344, {});
         } else {
           gmLionSprite(ctx, 120, 224, 170, {});
         }
@@ -17337,6 +19777,7 @@
     </div>
     ${rows.join('') || '<div class="empty">대회가 없습니다.</div>'}
     ${statsHTML}
+    <div id="bqAdminSec"></div>
     <div class="sec-title">👥 유저 관리 <span style="color:var(--dim);font-size:12px;font-weight:700">오픈톡방 유저만 신규 등록 가능</span></div>
     <div class="card" style="max-width:420px">
       <div class="field" style="margin-top:0">
