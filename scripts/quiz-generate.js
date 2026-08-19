@@ -309,7 +309,7 @@ divisions.forEach(d => {
         sourceKey: `country:${cc}:pick${k}`,
         sourceData: { country: cc, nick },
         tags: [COUNTRY[cc]],
-        explanation: `${nick} 선수${J.eun(nick)} ${COUNTRY[cc]} 국적입니다.`,
+        explanation: `${nick} 선수는 ${COUNTRY[cc]} 국적입니다.`,
       });
     });
   });
@@ -328,7 +328,7 @@ RANKED.forEach(f => {
     sourceKey: `fighter:${f.nick}:division`,
     sourceData: { nick: f.nick, division: f.division, rank: f.rank },
     tags: [f.division],
-    explanation: `${f.nick} 선수${J.eun(f.nick)} ${f.division} 랭킹 ${f.rank === 'C' ? '챔피언' : f.rank + '위'}입니다.`,
+    explanation: `${f.nick} 선수는 ${f.division} 랭킹 ${f.rank === 'C' ? '챔피언' : f.rank + '위'}입니다.`,
   });
 });
 
@@ -371,7 +371,7 @@ RANKED.forEach(f => {
     sourceKey: `fighter:${f.nick}:country`,
     sourceData: { nick: f.nick, country: f.country },
     tags: [ko],
-    explanation: `${f.nick} 선수${J.eun(f.nick)} ${ko} 국적입니다.`,
+    explanation: `${f.nick} 선수는 ${ko} 국적입니다.`,
   });
 });
 
@@ -427,7 +427,7 @@ divisions.forEach(d => {
     sourceKey: `div:${d.div}:notin`,
     sourceData: { division: d.div, outsider: answer, insiders: three },
     tags: [d.div],
-    explanation: `${answer} 선수${J.eun(answer)} ${(nickToFighter[answer] || {}).division || '다른 체급'} 소속입니다.`,
+    explanation: `${answer} 선수는 ${(nickToFighter[answer] || {}).division || '다른 체급'} 소속입니다.`,
   });
 });
 
@@ -446,7 +446,7 @@ RANKED.forEach(f => {
     sourceKey: `fighter:${f.nick}:rank`,
     sourceData: { nick: f.nick, division: f.division, rank: n },
     tags: [f.division, '랭킹'],
-    explanation: `${f.nick} 선수${J.eun(f.nick)} 현재 ${f.division} ${n}위입니다. (랭킹은 매일 갱신됩니다)`,
+    explanation: `${f.nick} 선수는 현재 ${f.division} ${n}위입니다. (랭킹은 매일 갱신됩니다)`,
   });
 });
 
@@ -571,7 +571,7 @@ Object.keys(EVENT_FIGHTERS).forEach(ev => {
     sourceData: { event: ev, fighter: ans, size: ids.length },
     tags: [ev],
     sourceUpdatedAt: SOURCE_UPDATED.records,
-    explanation: `${ans} 선수${J.eun(ans)} '${ev}'에 출전했습니다.`,
+    explanation: `${ans} 선수는 '${ev}'에 출전했습니다.`,
   });
 });
 
@@ -648,6 +648,292 @@ if (RANKHIST && RANKHIST.dates && RANKHIST.fighters) {
     });
   }
 }
+
+/* ── 템플릿 15. 족보 (선수 > 족보 탭과 완전히 같은 규칙으로 계산) ──────────
+   규칙(사이트 족보 탭과 동일): 상대전적에서 다승자가 부모(아버지/어머니 — 여성부는
+   어머니/딸 쪽 호칭), 소승자가 자식. 동률(예: 1승1패)이면 "호적 정리"로 관계가
+   없다. 다른 체급 상대는 족보 화면에도 안 나오므로 여기서도 같은 체급 로스터끼리만
+   잇는다. 조부모·증조부모처럼 여러 세대를 올라가는 질문은, 체인 중간에 부모나
+   자식이 2명 이상인 사람이 끼면 정답이 여러 개가 될 수 있어(예: 아버지가 2명이면
+   "할아버지"도 2명), 체인의 매 단계가 "정확히 1명"으로만 이어질 때만 문제를 만든다. */
+(function () {
+  const h2hWins = new Map();   // 'winnerId|loserId' -> 그 조합 승수
+  BOUTS.forEach(b => {
+    if (!b.winner || !b.loser) return;
+    const k = b.winner + '|' + b.loser;
+    h2hWins.set(k, (h2hWins.get(k) || 0) + 1);
+  });
+  const seenPair = new Set();
+  const famEdges = [];   // {parent, child, division} — 닉네임 기준, 같은 체급 로스터끼리만
+  h2hWins.forEach((_, k) => {
+    const [x, y] = k.split('|');
+    const pair = x < y ? x + '|' + y : y + '|' + x;
+    if (seenPair.has(pair)) return;
+    seenPair.add(pair);
+    const wx = h2hWins.get(x + '|' + y) || 0, wy = h2hWins.get(y + '|' + x) || 0;
+    if (wx === wy) return;   // 동률 → 호적 정리(관계 없음)
+    const parentId = wx > wy ? x : y, childId = wx > wy ? y : x;
+    const pn = safeRecNick(parentId), cn = safeRecNick(childId);
+    if (!pn || !cn) return;
+    const pf = nickToFighter[pn], cf = nickToFighter[cn];
+    if (!pf || !cf || pf.division !== cf.division) return;   // 다른 체급끼리는 족보에서 제외
+    famEdges.push({ parent: pn, child: cn, division: pf.division });
+  });
+
+  const parentOf = {}, childOf = {};
+  famEdges.forEach(e => {
+    (parentOf[e.child] = parentOf[e.child] || []).push(e.parent);
+    (childOf[e.parent] = childOf[e.parent] || []).push(e.child);
+  });
+
+  // 체인의 매 단계가 정확히 1명일 때만 유일한 조상/자손을 반환 (모호하면 null)
+  function chainUnique(map, nick, gens) {
+    let cur = nick;
+    for (let i = 0; i < gens; i++) {
+      const next = map[cur];
+      if (!next || next.length !== 1) return null;
+      cur = next[0];
+    }
+    return cur !== nick ? cur : null;
+  }
+  // X와 어떻게든(조상/자손, 몇 대가 됐든) 이어진 모든 선수 — 오답 후보에서 제외해
+  // "사실은 친척인데 오답으로 나오는" 사고를 막는다.
+  function allRelations(nick) {
+    const seen = new Set(); const q = [nick];
+    while (q.length) {
+      const cur = q.shift();
+      (parentOf[cur] || []).forEach(p => { if (!seen.has(p)) { seen.add(p); q.push(p); } });
+      (childOf[cur] || []).forEach(c => { if (!seen.has(c)) { seen.add(c); q.push(c); } });
+    }
+    seen.delete(nick);
+    return seen;
+  }
+
+  const REL = {
+    1: { up: ['아버지', '어머니'], down: ['아들', '딸'] },
+    2: { up: ['할아버지', '할머니'], down: ['손자', '손녀'] },
+    3: { up: ['증조할아버지', '증조할머니'], down: ['증손자', '증손녀'] },
+    4: { up: ['고조할아버지', '고조할머니'], down: ['고손자', '고손녀'] },
+  };
+  const GEN_DIFF = { 1: 'NORMAL', 2: 'HARD', 3: 'HELL', 4: 'HELL' };
+  const allNicks = [...new Set([...Object.keys(parentOf), ...Object.keys(childOf)])];
+
+  allNicks.forEach(nick => {
+    const f = nickToFighter[nick];
+    if (!f) return;
+    const isFemale = f.division === '여성부';
+    const rel = allRelations(nick);
+    const divPool = RANKED.filter(x => x.division === f.division && x.nick !== nick && !rel.has(x.nick)).map(x => x.nick);
+    const widePool = RANKED.filter(x => x.nick !== nick && !rel.has(x.nick)).map(x => x.nick);
+    const pool = divPool.length >= 3 ? divPool : widePool;
+    if (pool.length < 3) return;
+
+    [1, 2, 3, 4].forEach(g => {
+      const up = chainUnique(parentOf, nick, g);
+      if (up) {
+        const label = isFemale ? REL[g].up[1] : REL[g].up[0];
+        addQuestion({
+          question: `블랙컴뱃 족보상 ${nick} 선수의 ${label}${J.eun(label)} 누구일까요?`,
+          answer: up,
+          wrong: pickN(pool, 6, rngFrom('jokbo_up' + g + nick)),
+          category: 'JOKBO', template_id: `tpl_jokbo_up${g}`, difficulty: GEN_DIFF[g],
+          sourceKey: `jokbo:${nick}:up${g}`,
+          sourceData: { nick, division: f.division, relation: label, target: up, generation: g },
+          tags: [f.division, '족보'],
+          sourceUpdatedAt: SOURCE_UPDATED.records,
+          explanation: `블랙컴뱃 족보 규칙(상대전적 다승자가 부모)에 따라, ${up} 선수는 ${nick} 선수의 ${label}입니다.`,
+        });
+      }
+      const down = chainUnique(childOf, nick, g);
+      if (down) {
+        const label = isFemale ? REL[g].down[1] : REL[g].down[0];
+        addQuestion({
+          question: `블랙컴뱃 족보상 ${nick} 선수의 ${label}${J.eun(label)} 누구일까요?`,
+          answer: down,
+          wrong: pickN(pool, 6, rngFrom('jokbo_down' + g + nick)),
+          category: 'JOKBO', template_id: `tpl_jokbo_down${g}`, difficulty: GEN_DIFF[g],
+          sourceKey: `jokbo:${nick}:down${g}`,
+          sourceData: { nick, division: f.division, relation: label, target: down, generation: g },
+          tags: [f.division, '족보'],
+          sourceUpdatedAt: SOURCE_UPDATED.records,
+          explanation: `블랙컴뱃 족보 규칙(상대전적 다승자가 부모)에 따라, ${down} 선수는 ${nick} 선수의 ${label}입니다.`,
+        });
+      }
+    });
+
+    // 자식/부모가 여럿인 경우 — "다음 중 ○○의 아들이/아버지가 아닌 선수는?" 형태로 바꿔
+    // 데이터를 살린다(1차 관계로 한정 — 다세대는 체인이 길수록 헷갈릴 위험이 커서 제외).
+    const kids = childOf[nick] || [];
+    if (kids.length >= 3) {
+      const kidLabel = isFemale ? '딸' : '아들';
+      const outsider = pickN(pool, 1, rngFrom('jokbo_notchild' + nick))[0];
+      if (outsider) {
+        addQuestion({
+          question: `블랙컴뱃 족보상 다음 중 ${nick} 선수의 ${kidLabel}이 아닌 선수는 누구일까요?`,
+          answer: outsider,
+          wrong: pickN(kids, 3, rngFrom('jokbo_notchild_w' + nick)),
+          category: 'JOKBO', template_id: 'tpl_jokbo_not_child', difficulty: 'HARD',
+          sourceKey: `jokbo:${nick}:notchild`,
+          sourceData: { nick, division: f.division, kids, outsider },
+          tags: [f.division, '족보'],
+          sourceUpdatedAt: SOURCE_UPDATED.records,
+          explanation: `${nick} 선수의 족보상 ${kidLabel}은 ${kids.join(', ')}입니다. ${outsider} 선수는 해당하지 않습니다.`,
+        });
+      }
+    }
+    const dads = parentOf[nick] || [];
+    if (dads.length >= 3) {
+      const dadLabel = isFemale ? '어머니' : '아버지';
+      const outsider = pickN(pool, 1, rngFrom('jokbo_notparent' + nick))[0];
+      if (outsider) {
+        addQuestion({
+          question: `블랙컴뱃 족보상 다음 중 ${nick} 선수의 ${dadLabel}가 아닌 선수는 누구일까요?`,
+          answer: outsider,
+          wrong: pickN(dads, 3, rngFrom('jokbo_notparent_w' + nick)),
+          category: 'JOKBO', template_id: 'tpl_jokbo_not_parent', difficulty: 'HARD',
+          sourceKey: `jokbo:${nick}:notparent`,
+          sourceData: { nick, division: f.division, dads, outsider },
+          tags: [f.division, '족보'],
+          sourceUpdatedAt: SOURCE_UPDATED.records,
+          explanation: `${nick} 선수의 족보상 ${dadLabel}는 ${dads.join(', ')}입니다. ${outsider} 선수는 해당하지 않습니다.`,
+        });
+      }
+    }
+  });
+})();
+
+/* ── 템플릿 16. 업적 — 연승/현재연승/무패/최단피니시 (선수 > 업적 탭과 동일 집계) ──
+   BOUTS(경기 단위로 흩어진 목록)로는 "그 선수 본인 기준" 시간순을 보장할 수 없어
+   연승이 잘못 계산되므로, 반드시 각 선수 본인의 records.json 원본 리스트(REC[id])를
+   그대로 써서 사이트 업적 탭(rhComputeStats)과 완전히 같은 방식으로 집계한다. */
+(function () {
+  const finishRe = /(\d)R\s*(\d+):(\d+)/;
+  const stats = {};   // id -> {nick, n, w, l, dr, maxStreak, curStreak, fast:{r,s,ev}|null}
+  Object.keys(REC).forEach(id => {
+    const nick = safeRecNick(id);
+    if (!nick) return;
+    const matches = REC[id] || [];
+    if (!matches.length) return;
+    const st = { nick, n: matches.length, w: 0, l: 0, dr: 0, maxStreak: 0, curStreak: 0, fast: null };
+    let streak = 0;
+    matches.slice().reverse().forEach(m => {   // 과거 → 최근 순으로 뒤집어서 연승을 센다
+      if (m.res === 'W') {
+        st.w++; streak++; st.maxStreak = Math.max(st.maxStreak, streak);
+        const tm = String(m.m || '').match(finishRe);
+        if (tm) {
+          const key = [+tm[1], +tm[2] * 60 + +tm[3]];
+          if (!st.fast || key[0] < st.fast.r || (key[0] === st.fast.r && key[1] < st.fast.s))
+            st.fast = { r: key[0], s: key[1], ev: m.ev || '' };
+        }
+      } else if (m.res === 'L') { st.l++; streak = 0; }
+      else if (m.res === 'D') { st.dr++; }
+    });
+    st.curStreak = streak;
+    stats[id] = st;
+  });
+  const ids = Object.keys(stats);
+
+  // 16-a. 역대 최다 연승 TOP1
+  (function () {
+    const ranked = ids.slice().sort((a, b) => stats[b].maxStreak - stats[a].maxStreak);
+    if (ranked.length < 6 || stats[ranked[0]].maxStreak < 2) return;
+    if (stats[ranked[1]].maxStreak === stats[ranked[0]].maxStreak) { reject('10_공동1위'); return; }
+    const top = ranked[0];
+    addQuestion({
+      question: '공식 전적 기록 기준, 역대 최다 연승 선수는?',
+      answer: stats[top].nick,
+      wrong: ranked.slice(1, 9).map(id => stats[id].nick),
+      category: 'RECORD', template_id: 'tpl_most_streak', difficulty: 'HELL',
+      sourceKey: 'agg:maxStreak:top',
+      sourceData: { top: stats[top].nick, value: stats[top].maxStreak },
+      tags: ['기록', '연승'],
+      sourceUpdatedAt: SOURCE_UPDATED.records,
+      explanation: `${stats[top].nick} 선수가 역대 최다 ${stats[top].maxStreak}연승으로 1위입니다.`,
+    });
+  })();
+
+  // 16-b. 현재 연승 중 TOP1
+  (function () {
+    const ranked = ids.slice().sort((a, b) => stats[b].curStreak - stats[a].curStreak);
+    if (ranked.length < 6 || stats[ranked[0]].curStreak < 2) return;
+    if (stats[ranked[1]].curStreak === stats[ranked[0]].curStreak) { reject('10_공동1위'); return; }
+    const top = ranked[0];
+    addQuestion({
+      question: '공식 전적 기록 기준, 현재 가장 긴 연승을 이어가고 있는 선수는?',
+      answer: stats[top].nick,
+      wrong: ranked.slice(1, 9).map(id => stats[id].nick),
+      category: 'RECORD', template_id: 'tpl_current_streak', difficulty: 'HARD',
+      sourceKey: 'agg:curStreak:top',
+      sourceData: { top: stats[top].nick, value: stats[top].curStreak },
+      tags: ['기록', '연승'],
+      sourceUpdatedAt: SOURCE_UPDATED.records,
+      explanation: `${stats[top].nick} 선수가 현재 ${stats[top].curStreak}연승을 달리고 있습니다.`,
+    });
+  })();
+
+  // 16-c. 특정 선수의 "역대 최다 연승 횟수" 맞히기 — 실제 값에 가까운 오답 숫자로 헷갈리게
+  ids.forEach(id => {
+    const st = stats[id];
+    if (st.maxStreak < 2) return;
+    const cand = [];
+    [-2, -1, 1, 2, 3].forEach(d => { const v = st.maxStreak + d; if (v >= 1 && v !== st.maxStreak) cand.push(`${v}연승`); });
+    if (cand.length < 3) return;
+    addQuestion({
+      question: `${st.nick} 선수의 역대 최다 연승 기록은?`,
+      answer: `${st.maxStreak}연승`,
+      wrong: pickN(cand, 6, rngFrom('streakn' + id)),
+      category: 'RECORD', template_id: 'tpl_streak_number', difficulty: nickToFighter[st.nick] ? 'HARD' : 'HELL',
+      sourceKey: `fighter:${id}:maxstreak`,
+      sourceData: { nick: st.nick, maxStreak: st.maxStreak },
+      tags: ['기록', '연승'],
+      sourceUpdatedAt: SOURCE_UPDATED.records,
+      explanation: `${st.nick} 선수의 역대 최다 연승 기록은 ${st.maxStreak}연승입니다.`,
+    });
+  });
+
+  // 16-d. 무패 행진 중인 선수 찾기 (3전 이상, 패·무 없음) — 대표 1명만(문항 텍스트가
+  // 같아지면 검증 8(유사 문항)에서 뒤 항목이 자동으로 걸러지므로 애초에 1개만 만든다)
+  (function () {
+    const undefeated = ids.filter(id => stats[id].l === 0 && stats[id].dr === 0 && stats[id].n >= 3);
+    const defeated = ids.filter(id => stats[id].l > 0);
+    if (!undefeated.length || defeated.length < 3) return;
+    const top = undefeated.slice().sort((a, b) => stats[b].w - stats[a].w)[0];
+    addQuestion({
+      question: '공식 전적 기록 기준, 다음 중 아직 단 한 번도 패배한 적이 없는(무패) 선수는?',
+      answer: stats[top].nick,
+      wrong: pickN(defeated.map(x => stats[x].nick), 6, rngFrom('undefeated')),
+      category: 'RECORD', template_id: 'tpl_undefeated', difficulty: 'HARD',
+      sourceKey: `fighter:${top}:undefeated`,
+      sourceData: { nick: stats[top].nick, w: stats[top].w, n: stats[top].n },
+      tags: ['기록', '무패'],
+      sourceUpdatedAt: SOURCE_UPDATED.records,
+      explanation: `${stats[top].nick} 선수는 공식 전적 ${stats[top].n}전 ${stats[top].w}승으로 아직 패배가 없습니다.`,
+    });
+  })();
+
+  // 16-e. 최단 피니시 TOP1 (라운드 → 초 순으로 가장 빠른 승리)
+  (function () {
+    const withFast = ids.filter(id => stats[id].fast);
+    if (withFast.length < 6) return;
+    const ranked = withFast.slice().sort((a, b) => {
+      const fa = stats[a].fast, fb = stats[b].fast;
+      return fa.r - fb.r || fa.s - fb.s;
+    });
+    const top = ranked[0], f0 = stats[top].fast, second = stats[ranked[1]].fast;
+    if (second.r === f0.r && second.s === f0.s) { reject('10_공동1위'); return; }
+    addQuestion({
+      question: '공식 전적 기록 기준, 가장 빠르게 경기를 끝낸(최단 피니시) 선수는?',
+      answer: stats[top].nick,
+      wrong: ranked.slice(1, 9).map(id => stats[id].nick),
+      category: 'RECORD', template_id: 'tpl_fastest_finish', difficulty: 'HELL',
+      sourceKey: 'agg:fastest:top',
+      sourceData: { top: stats[top].nick, r: f0.r, s: f0.s, ev: f0.ev },
+      tags: ['기록', '피니시'],
+      sourceUpdatedAt: SOURCE_UPDATED.records,
+      explanation: `${stats[top].nick} 선수가 ${f0.r}라운드 ${Math.floor(f0.s / 60)}:${String(f0.s % 60).padStart(2, '0')}에 경기를 끝내 최단 피니시 기록을 보유하고 있습니다.`,
+    });
+  })();
+})();
 
 /* ══════════════════════════════════════════════════════════════════════
    4. 최종 검증 — 중복 제거 및 품질 필터
