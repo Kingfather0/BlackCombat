@@ -9649,7 +9649,7 @@
       },
       {
         div: '웰터급', list: [
-          ['C', '공석', '', 0, 0, 0, ''], [1, '헌츠맨', 'Sultan Omarov', 9, 0, 0, 'ru'], [2, '레오파드', 'Luan Santiago', 24, 8, 0, 'br'],
+          ['C', '공석', '', 0, 0, 0, ''], [1, '헌츠맨', 'Sultan Omarov', 9, 0, 0, 'bh'], [2, '레오파드', 'Luan Santiago', 24, 8, 0, 'br'],
           [3, '킹콩', '오일학', 5, 4, 0, 'kr'], [4, '동백', '진태호', 13, 9, 0, 'kr'], [5, '사무라이', 'Patrick Kelvin', 10, 2, 0, 'br'],
           [6, '코리안 갱스터', '박원식', 16, 9, 1, 'kr'], [7, '바이킹', 'Lucas Marques', 19, 6, 0, 'br'], [8, '엄지장군', '여동주', 5, 1, 0, 'kr'],
           [9, '젠틀맨', 'Fabricio Azevedo', 12, 4, 0, 'br'], [10, '블랙맘바', '김율', 9, 9, 0, 'kr'], [11, '너드', 'Sander Silva', 4, 0, 0, 'br'],
@@ -13976,6 +13976,7 @@
         }).join('')
           : `<div class="bq-run empty">아직 오늘 도전 기록이 없습니다.</div>`);
 
+      const tierCounts = d.tier_counts || {};
       const tiersHTML = tiers.map((t, i2) => `
     <div class="bq-tier t-${t.code}" style="cursor:pointer" onclick="bqShowTierNicks('${esc(t.code)}')">
       <span class="bq-tier-c">${i2 + 1}</span>
@@ -13983,7 +13984,7 @@
       <span class="bq-tier-b"><span class="bq-tier-n">${esc(t.label || '')}</span>
         <span class="bq-tier-d">${esc(t.desc || '')}</span></span>
       <span class="bq-tier-r">${bqTierRange(tiers, i2, qTotal)}<br>
-        순위 보기</span>
+        ${tierCounts[t.code] || 0}명</span>
     </div>`).join('');
 
       const ctaLabel = live ? '이어하기'
