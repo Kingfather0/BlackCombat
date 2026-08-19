@@ -2985,9 +2985,9 @@
     }
 
     .gc-new {
-      display: inline-block;
-      vertical-align: middle;
-      margin-left: 6px;
+      position: absolute;
+      top: 10px;
+      left: 10px;
       background: linear-gradient(135deg, #ff7a7a, #e11d48);
       color: #fff;
       font-size: 10px;
@@ -13865,9 +13865,10 @@
       const wk = gameWeekKey(svrNow());
       const card = (href, img, name, desc, topId, acc, badge) => `
   <a class="gcard gcard-${acc}" href="${href}">
+    ${badge ? `<span class="gc-new">${esc(badge)}</span>` : ''}
     <div class="gc-ico"><img data-pose="${img}" src="${GM_LION_SRC}" alt=""></div>
     <div class="gc-b">
-      <b>${name}${badge ? `<span class="gc-new">${esc(badge)}</span>` : ''}</b>
+      <b>${name}</b>
       <span>${desc}</span>
       <span class="gc-top" id="${topId}">🥇 불러오는 중…</span>
     </div>
