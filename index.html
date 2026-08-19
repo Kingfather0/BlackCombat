@@ -14284,9 +14284,12 @@
       });
 
       const leadIn = withCountdown ? 0 : ((BQ.cfg && BQ.cfg.lead_in_ms) || 800);
-      const budget = (remainMs != null ? remainMs : limit);
-      if (withCountdown) bqCountdown(() => bqStartTimer(budget, limit));
-      else setTimeout(() => bqStartTimer(budget, limit), leadIn);
+      // 3·2·1 카운트다운(첫 문항)이나 다음 문항 전환 대기(leadIn) 동안에도 서버의 issued_at
+      // 기준 시계는 계속 흐른다. 그 시간을 클라이언트가 "덤"으로 다시 채워주면(예전엔 항상
+      // limit 그대로 새로 시작) 화면엔 시간이 남은 것처럼 보이는데 서버는 이미 초과 판정을
+      // 내리는 불일치가 생긴다 — bqStartTimer 가 issued_at 기준으로 데드라인을 고정해서 푼다.
+      if (withCountdown) bqCountdown(() => bqStartTimer(q));
+      else setTimeout(() => bqStartTimer(q), leadIn);
     }
 
     /* 3·2·1 카운트다운 — 첫 문항을 이미 받아둔 뒤에만 돈다(로딩 지연으로 시간을 잃지 않게) */
@@ -14305,15 +14308,20 @@
       gmDelay(tick, 700);
     }
 
-    function bqStartTimer(budgetMs, limitMs) {
+    function bqStartTimer(q) {
       if (BQ.state !== 'playing') return;
-      BQ.deadline = Date.now() + budgetMs;
+      const limitMs = (q && q.limit_ms) || 8000;
+      // 데드라인은 항상 서버가 발급한 issued_at + limit_ms(서버 시계 기준 절대 시각)로 고정한다.
+      // 카운트다운/전환 대기 등으로 화면 표시가 늦게 시작돼도 실제 판정 기준과 어긋나지 않는다.
+      BQ.deadline = (q && q.issued_at)
+        ? (new Date(q.issued_at).getTime() + limitMs)
+        : (svrNow().getTime() + limitMs);
       const vEl = document.getElementById('bqTimeV');
       const bar = document.getElementById('bqBar');
       const barI = bar && bar.querySelector('i');
       const loop = () => {
         if (BQ.state !== 'playing') return;
-        const left = BQ.deadline - Date.now();
+        const left = BQ.deadline - svrNow().getTime();
         if (vEl) vEl.textContent = String(Math.max(0, Math.ceil(left / 1000))).padStart(2, '0');
         if (barI) barI.style.transform = `scaleX(${Math.max(0, Math.min(1, left / limitMs))})`;
         if (bar) bar.classList.toggle('warn', left <= 3000);
@@ -14335,7 +14343,7 @@
       opts.forEach(b => { b.disabled = true; });
       if (slot >= 0 && opts[slot]) opts[slot].classList.add('sel');
 
-      const clientMs = Math.max(0, Math.round((q.limit_ms || 8000) - (BQ.deadline - Date.now())));
+      const clientMs = Math.max(0, Math.round((q.limit_ms || 8000) - (BQ.deadline - svrNow().getTime())));
 
       let d = null, err = '';
       try {
@@ -14605,7 +14613,7 @@
         const tm = bqTierByCode(b.tier);
         box.style.display = '';
         box.innerHTML = `<div style="font-size:13.5px">🏛️ <b>명예의 전당</b> — 역대 최고 기록
-      <b style="color:var(--key-deep);cursor:pointer" onclick="bqShowTierNicks('${esc(b.tier || '')}')">${esc(b.nickname)}</b> ·
+      <b style="color:var(--key-deep);cursor:pointer" onclick="bqShowUserStats('${esc(b.nickname)}')">${esc(b.nickname)}</b> ·
       <b style="color:var(--key-deep)">${b.correct_count}/${b.q_total} · ${bqSec(b.total_time_ms)}초</b></div>`;
       } catch (e) { /* 명예의 전당은 없어도 랭킹 표시엔 지장 없으니 조용히 무시 */ }
     }
@@ -14644,11 +14652,11 @@
     <div class="bq-rk-h"><span>순위</span><span>닉네임</span><span style="text-align:right">정답</span><span style="text-align:right">소요시간</span></div>
     ${rows.map(r => `<div class="bq-rk${gmMyNick && r.nickname === gmMyNick ? ' me' : ''}" data-nick="${esc(r.nickname)}">
       <span class="r">${medal(r.rank)}</span>
-      <span class="n">${esc(r.nickname)}${tierTag(r.tier)}</span>
+      <span class="n" style="cursor:pointer" onclick="bqShowUserStats('${esc(r.nickname)}')">${esc(r.nickname)}${tierTag(r.tier)}</span>
       <span class="s">${r.correct_count}/${r.q_total}</span>
       <span class="t">${bqSec(r.total_time_ms)}초</span></div>`).join('')}
     ${(!inList && d.me) ? `<div class="bq-rk me" data-nick="${esc(d.me.nickname)}">
-      <span class="r">${d.me.rank}위</span><span class="n">${esc(d.me.nickname)} (나)${tierTag(d.me.tier)}</span>
+      <span class="r">${d.me.rank}위</span><span class="n" style="cursor:pointer" onclick="bqShowUserStats('${esc(d.me.nickname)}')">${esc(d.me.nickname)} (나)${tierTag(d.me.tier)}</span>
       <span class="s">${d.me.correct_count}/${d.me.q_total}</span>
       <span class="t">${bqSec(d.me.total_time_ms)}초</span></div>` : ''}
     <div class="bq-note">총 ${d.total}명 · 정답 수 → 총 소요시간 → 달성 시각 순으로 정렬됩니다.</div>`;
@@ -14664,7 +14672,7 @@
           box.innerHTML += `<div class="grk-prev">
         <div class="gp-t">📜 지난 주 랭킹 (${gmWeekLabel(d2.week_key)})</div>
         ${prev.map((r, i) => `<div class="gp-r"><span>${pm[i] || (i + 1) + '위'}</span>
-          <b><span style="cursor:pointer" onclick="bqShowTierNicks('${esc(r.tier || '')}')">${esc(r.nickname)}</span></b>
+          <b><span style="cursor:pointer" onclick="bqShowUserStats('${esc(r.nickname)}')">${esc(r.nickname)}</span></b>
           <span style="font-weight:800">${r.correct_count}/${r.q_total} · ${bqSec(r.total_time_ms)}초</span></div>`).join('')}
       </div>`;
         }
@@ -14681,6 +14689,7 @@
     <div class="modal-h"><span><b>${tm ? esc(tm.icon || '') + ' ' + esc(tm.label || '') : '등급'}</b></span><button class="modal-x" onclick="history.back()">✕</button></div>
     <div class="modal-b"><div id="bqTierNickBody"><div class="empty">불러오는 중…</div></div></div>
   </div>`;
+      ov.onclick = e => { if (e.target === ov) history.back(); };
       pushModal(ov);
       const body = ov.querySelector('#bqTierNickBody');
       try {
@@ -14701,7 +14710,7 @@
           ? '<div class="empty">아직 이 등급에 아무도 없습니다.</div>'
           : rows.map(r => `<div class="bq-rk">
         <span class="r">${r.rank}위</span>
-        <span class="n">${esc(r.nickname)}</span>
+        <span class="n"><button type="button" onclick="bqShowUserStats('${esc(r.nickname)}')" style="background:#eef2f8;color:#39445a;border:0;padding:4px 11px;border-radius:99px;font-size:12.5px;font-weight:800;cursor:pointer">${esc(r.nickname)}</button></span>
         <span class="s">${r.correct_count}/${r.q_total}</span>
         <span class="t">${bqSec(r.total_time_ms)}초</span></div>`).join('');
       } catch (e) {
@@ -14712,28 +14721,14 @@
     /* ──────────────────────────────────────────────────────────────
        내 기록
        ────────────────────────────────────────────────────────────── */
-    async function bqLoadMyStats() {
-      const tk = gmToken;
-      const box = document.getElementById('bqMyStatsBody');
-      if (!box) return;
-      let d = null;
-      try {
-        const res = await sb.rpc('quiz_get_my_stats', { p_nickname: gmMyNick, p_pin: gmMyPin });
-        if (res.error) throw res.error;
-        d = res.data;
-      } catch (e) { return; }
-      if (tk !== gmToken || !d || d.ok === false) return;
-      BQ.myStats = d;   // 공유하기 버튼에서 재사용
-
+    // "나의 기록"과 다른 유저의 공개 기록(bqShowUserStats) 화면이 동일한 모양을 쓰도록 마크업을 공용화한다
+    function bqStatsBodyHTML(d) {
+      if (!d || !d.total_attempts) {
+        return `<div class="empty">아직 기록이 없습니다.<br>첫 도전을 마치면 등급·최단 기록·분야별 정답률이 쌓입니다!</div>`;
+      }
       const tm = d.best_tier_meta || {};
       const cats = d.categories || [];
-      // 아직 한 번도 안 푼 사람에게 "최고 등급 -" 같은 빈 값을 보여주지 않는다
-      if (!d.total_attempts) {
-        box.innerHTML = `<div class="empty">아직 기록이 없습니다.<br>첫 도전을 마치면 등급·최단 기록·분야별 정답률이 쌓입니다!</div>`;
-        return;
-      }
-      box.classList.remove('empty');
-      box.innerHTML = `
+      return `
     <div class="bq-run best" style="margin-bottom:10px">
       <span style="font-size:22px">${bqTierIcon(tm)}</span>
       <span><b style="font-size:15px">${esc(bqTierLabel(tm))}</b>
@@ -14751,6 +14746,54 @@
         <span class="bar"><i style="width:${Math.max(3, c.rate || 0)}%"></i></span>
         <span class="v">${c.rate || 0}%</span></div>`).join('')}</div>` : ''}
     <div class="bq-note">만점 달성 ${d.perfect_count}회 · 참여 ${d.total_days}일 · 최장 연속 ${d.max_streak_days}일</div>`;
+    }
+
+    async function bqLoadMyStats() {
+      const tk = gmToken;
+      const box = document.getElementById('bqMyStatsBody');
+      if (!box) return;
+      let d = null;
+      try {
+        const res = await sb.rpc('quiz_get_my_stats', { p_nickname: gmMyNick, p_pin: gmMyPin });
+        if (res.error) throw res.error;
+        d = res.data;
+      } catch (e) { return; }
+      if (tk !== gmToken || !d || d.ok === false) return;
+      BQ.myStats = d;   // 공유하기 버튼에서 재사용
+      box.classList.remove('empty');
+      box.innerHTML = bqStatsBodyHTML(d);
+    }
+
+    /* 랭킹표·명예의 전당·등급 팝업 등 어디서든 닉네임을 누르면 그 사람의 공개 기록을 볼 수 있다.
+       등급 팝업(bqShowTierNicks) 안에서 누른 경우처럼 이미 모달이 떠 있으면 그 위에 새로 쌓지
+       않고 같은 모달 내용을 갈아끼운다 — history 스택과 열린 모달 개수를 1:1로 유지하기 위함. */
+    async function bqShowUserStats(nick) {
+      if (!nick) return;
+      let ov = document.querySelector('.modal-ov');
+      const isNew = !ov;
+      if (isNew) {
+        ov = document.createElement('div');
+        ov.className = 'modal-ov';
+        ov.onclick = e => { if (e.target === ov) history.back(); };
+      }
+      ov.innerHTML = `<div class="modal" style="max-width:420px">
+    <div class="modal-h"><span><b>${esc(nick)} 기록</b></span><button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-b"><div id="bqUserStatsBody"><div class="empty">불러오는 중…</div></div></div>
+  </div>`;
+      if (isNew) pushModal(ov);
+      const body = ov.querySelector('#bqUserStatsBody');
+      try {
+        const res = await sb.rpc('quiz_get_public_stats', {
+          p_target: nick, p_viewer: gmMyNick || null, p_pass: adminPass() || null,
+        });
+        if (res.error) throw res.error;
+        const d = res.data;
+        if (!body) return;
+        if (!d || d.ok === false) { body.innerHTML = '<div class="empty">기록을 불러오지 못했습니다.</div>'; return; }
+        body.innerHTML = bqStatsBodyHTML(d);
+      } catch (e) {
+        if (body) body.innerHTML = `<div class="empty">${esc(bqRpcErr(e))}</div>`;
+      }
     }
 
     /* ──────────────────────────────────────────────────────────────
