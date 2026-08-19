@@ -14856,18 +14856,13 @@
       </div>`;
         return;
       }
-      const bd = d.by_difficulty || {}, bs = d.by_state || {}, bc = d.by_category || {};
-      const cfg = d.config || {};
-      const min = cfg.min_pool_per_difficulty || {};
-      const lamp = (k) => {
-        const have = bd[k] || 0, want = min[k] || 0;
-        return have >= want * 2 ? '🟢' : have >= want ? '🟡' : '🔴';
-      };
-      const run = d.last_run;
       const pub = !!d.public_enabled;
+      // 6.104: "📚 문제 Pool" 통계 카드(난이도별 개수·KPI·문제 목록 등)는 다른 관리자들도
+      // 볼 수 있는 화면이라 굳이 노출할 필요 없는 내부 운영 정보라, 웹페이지에서는 숨기고
+      // 공개 여부 전환 카드만 남긴다. (관련 데이터는 필요할 때 SQL로 직접 조회)
       box.innerHTML = `
     <div class="sec-title">🦁 블랙 퀴즈</div>
-    <div class="card" style="margin-bottom:12px">
+    <div class="card">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <span style="font-size:14px;font-weight:900">
           공개 상태: <b style="color:${pub ? 'var(--green)' : '#d69411'}">${pub ? '🌐 전체 공개' : '🔒 관리자 전용 (비공개 테스트)'}</b></span>
@@ -14881,30 +14876,6 @@
           : '관리자 비밀번호로 로그인한 브라우저에서만 카드가 보이고 플레이할 수 있습니다. 다른 사람은 <code>#/game/quiz</code>로 직접 들어와도 서버에서 막힙니다.'}
         ${d.testers && d.testers.length ? `<br>추가 허용 닉네임: <b>${d.testers.map(esc).join(', ')}</b>` : ''}
       </div>
-    </div>
-    <div class="sec-title">📚 문제 Pool</div>
-    <div class="card">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:13px;font-weight:800">
-        ${['EASY', 'NORMAL', 'HARD', 'HELL'].map(k =>
-        `<span style="background:#f4f1fc;border-radius:10px;padding:7px 11px">${lamp(k)} ${k} <b>${bd[k] || 0}</b>
-           <span style="color:var(--dim);font-weight:700">/최소 ${min[k] || 0}</span></span>`).join('')}
-      </div>
-      <div class="note" style="margin-top:8px">
-        상태: ${Object.keys(bs).map(k => `${k} ${bs[k]}`).join(' · ') || '-'}<br>
-        오늘 Pool ${d.today_pool}문항 · 오늘 참여 ${d.today_players}명 / 도전 ${d.today_attempts}회<br>
-        규칙: 하루 ${cfg.daily_attempts}회 · ${cfg.questions_per_attempt}문제 · 문제당 ${cfg.seconds_per_question}초
-      </div>
-      ${run ? `<div class="note" style="margin-top:6px">최근 생성(${esc(String(run.run_date))}):
-        생성 ${run.generated} / 등록 ${run.approved} / 탈락 ${run.rejected} — <b>${esc(run.status)}</b>
-        ${run.message ? `<br>${esc(run.message)}` : ''}</div>` : ''}
-      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
-        <button class="btn xs" onclick="bqAdminList('ACTIVE')">문제 목록</button>
-        <button class="btn xs" onclick="bqAdminList('INACTIVE')">중지된 문제</button>
-        <button class="btn xs" onclick="bqAdminKpi()">📊 KPI</button>
-      </div>
-      <div id="bqAdminBody" style="margin-top:10px"></div>
-      <div class="note" style="margin-top:8px">문제는 GitHub Actions(<code>quiz-pool.yml</code>)가 매일 05:40 KST에
-        최신 랭킹·전적으로 다시 만듭니다. 카테고리: ${Object.keys(bc).map(k => `${k} ${bc[k]}`).join(' · ') || '-'}</div>
     </div>`;
     }
     async function bqAdminSetPublic(makePublic) {
