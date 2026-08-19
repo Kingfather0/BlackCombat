@@ -13074,7 +13074,11 @@
     }
     function bbDisarmLeaveGuard() { bbLeaveGuardArmed = false; }
     function bbShowLeaveConfirm(onLeave, bodyText) {
-      if (document.querySelector('.bb-leave-confirm-ov')) return; // 이미 떠 있으면 중복 표시 방지
+      // 예전엔 이미 떠 있으면 그냥 return 해서 중복 표시를 막았는데, 어떤 경로로든 이전
+      // 오버레이가 DOM에 남아있는데 클릭 핸들러가 씹혀서 안 닫힌 채로 남으면(예: 빠르게
+      // 연타) 그 다음부터는 "게임 선택"을 눌러도 계속 조용히 아무 일도 안 일어나는(먹통)
+      // 상태가 된다 — 남아있던 걸 먼저 지우고 새로 띄우는 방식으로 바꿔 이 먹통을 막는다.
+      document.querySelectorAll('.bb-leave-confirm-ov').forEach(el => el.remove());
       const ov = document.createElement('div');
       ov.className = 'modal-ov bb-confirm-ov bb-leave-confirm-ov';
       ov.innerHTML = `<div class="bb-confirm">
@@ -13959,7 +13963,8 @@
       const runs = (d.attempts || []);
       const best = d.best;
       const bestKey = best ? `${best.correct_count}|${best.total_time_ms}` : '';
-      const live = loggedIn && d.live_attempt;
+      // "이어하기"는 제공하지 않는다 — 화면을 벗어나면 서버가 남은 도전을 바로 포기 처리해
+      // d.live_attempt는 항상 null로 내려온다(quiz_get_home 참고). START만 남긴다.
 
       const runsHTML = !loggedIn
         ? `<div class="bq-run empty">로그인하면 오늘의 기록이 여기에 쌓입니다.</div>`
@@ -13987,13 +13992,11 @@
         ${tierCounts[t.code] || 0}명</span>
     </div>`).join('');
 
-      const ctaLabel = live ? '이어하기'
-        : (!loggedIn ? '로그인 필요'
-          : (left > 0 ? 'START' : '내일 다시!'));
+      const ctaLabel = !loggedIn ? '로그인 필요'
+        : (left > 0 ? 'START' : '내일 다시!');
       const hint = !loggedIn ? '먼저 닉네임을 등록해 주세요'
-        : (live ? '진행 중인 도전이 있어요 — 이어서 풀 수 있습니다'
-          : (left > 0 ? `오늘 남은 기회 ${left}회 · 시작하면 1회가 소진됩니다`
-            : '오늘의 도전을 모두 사용했어요 · 매일 00:00 초기화'));
+        : (left > 0 ? `오늘 남은 기회 ${left}회 · 시작하면 1회가 소진됩니다`
+          : '오늘의 도전을 모두 사용했어요 · 매일 00:00 초기화');
 
       const rst = bqWeekResetLeft();
       const usedAll = loggedIn && (d.attempts_used || 0) >= daily;
@@ -14001,7 +14004,7 @@
       root.innerHTML = `
     ${bqStageHTML({
         ctaLabel, hint, locked: d.testing,
-        disabled: !loggedIn || (left <= 0 && !live),
+        disabled: !loggedIn || left <= 0,
         desc: `오늘의 <b>블붕이 시험</b>! ${qTotal}문제 · 문제당 ${secs}초<br><b>찐블붕이</b>만 살아남는다! 블붕력을 시험하라`,
       })}
     <div class="bq-cta-sub">${loggedIn ? `오늘의 도전 <b style="color:${usedAll ? '#dc2626' : 'var(--bq-p2)'}">${d.attempts_used || 0} / ${daily}</b> · ` : ''}<span style="color:#dc2626">매일 00:00 초기화</span></div>
@@ -14043,7 +14046,7 @@
         같은 날 같은 문제는 다시 나오지 않고, 사람마다 다른 문제가 출제됩니다.</div>
     </div>`;
       gmApplyPoses();
-      bqBindStage(() => (live ? bqResume() : bqConfirmStart()));
+      bqBindStage(() => bqConfirmStart());
 
       const myShare = document.getElementById('bqMyShare');
       if (myShare) myShare.onclick = () => {
