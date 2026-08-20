@@ -11174,7 +11174,7 @@
       const hm = t => new Date(t).toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
       const durMin = Math.round(ev.intervalH * 60);
       const durStr = ev.intervalH > 1.05 ? `${Math.round(ev.intervalH)}시간` : (durMin < 55 ? `${durMin}분` : '1시간');
-      const l1 = `⚡ ${dateStr} ${hm(ev.tPrev)}~${hm(ev.tCur)} · ${durStr} 새 ${ev.drop.toLocaleString()}석 급감 — 일괄 발권 의심`;
+      const l1 = `⚡ ${dateStr} ${hm(ev.tPrev)}~${hm(ev.tCur)} · 잔여석 ${durStr} 새 ${ev.drop.toLocaleString()}석 급감(대량 구매·발권 추정)`;
       if (brief) return l1;
       const gLabel = k => /석/.test(k) ? k : k + '석';
       const l2 = ev.gradeDrops.length ? `· ${ev.gradeDrops.map(g => `${gLabel(g.k)} -${g.n.toLocaleString()}석`).join(', ')}` : '';
@@ -12353,10 +12353,11 @@
       // 알림 카드를 붙인다 — 가장 최근 1건만 상세로, 그보다 오래된 건 건수만 요약(새 급감이
       // 생기면 그 1건으로 교체된다).
       const bulkTopHTML = allBulkEvents.length ? (() => {
-        // ⚡ 급감 알림은 "지금 벌어지고 있는 일"을 알리는 용도라, 발생 후 3시간까지만 페이지
-        // 최상단(전체 좌석 아래)에 노출하고 그 뒤엔 자동으로 내린다(2026-08-20 요청).
+        // ⚡ 급감 알림은 "지금 벌어지고 있는 일"을 알리는 용도라, 발생 후 24시간까지만 페이지
+        // 최상단(전체 좌석 아래)에 노출하고 그 뒤엔 자동으로 내린다(2026-08-20 요청 — 3시간 →
+        // 5시간을 거쳐 하루에 한 번 들어오는 유저도 볼 수 있게 24시간으로 확정).
         // 지난 급감 이력은 아래 판매 추이(시간별) 차트의 ⚡ 점에서 기존처럼 계속 확인할 수 있다.
-        const FRESH_MS = 3 * 3600 * 1000;
+        const FRESH_MS = 24 * 3600 * 1000;
         const fresh = allBulkEvents.filter(ev => (svrNow().getTime() - new Date(ev.tCur).getTime()) <= FRESH_MS);
         if (!fresh.length) return '';
         const recent = fresh.slice(-1);
