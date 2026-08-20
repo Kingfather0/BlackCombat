@@ -11603,7 +11603,7 @@
           <button type="button" class="tk-row1-refresh" id="tkRow1RefreshBtn" onclick="tkRow1Refresh()" ${pending ? 'disabled' : ''}>↻ 새로고침</button>
         </div>
         <div class="tk-row1-list">${body}</div>
-        <div class="tk-row1-note">잔여(컬러) = 지금 예매 가능 · 매진(회색) · 구역을 누르면 그 구역 전체 좌석을 볼 수 있습니다<br>※ 스탠드 구역 기준(${rNum}열이 있는 ${data.length}개 구역) — 플로어/블랙티넘 등 특수 구역은 열 구조가 달라 제외<br>※ 취소표는 수시로 나옵니다 — ↻ 새로고침으로 방금 풀린 좌석을 바로 확인하세요</div>`;
+        <div class="tk-row1-note">잔여(컬러) = 지금 예매 가능 · 매진(회색) · 구역을 누르면 그 구역 전체 좌석을 볼 수 있습니다<br>※ 스탠다드/이코노미 구역 기준 — 플로어/블랙티넘 등 특수 구역은 열 구조가 달라 제외<br>※ 취소표는 수시로 나옵니다 — ↻ 새로고침으로 방금 풀린 좌석을 바로 확인하세요</div>`;
     }
     function tkRow1OpenModal() {
       tkRowFinderRow = 1; // 버튼으로 새로 열 때는 항상 기본값(1열)부터
