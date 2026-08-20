@@ -257,7 +257,7 @@ async function computeTotalsToRecord(grades, roundLabel) {
   try {
     const params = new URLSearchParams({
       event_key: `eq.${EVENT_KEY}`,
-      select: 'grades,totals',
+      select: 'grades,totals,meta',
       order: 'captured_at.desc',
       limit: '200',
     });
@@ -275,6 +275,7 @@ async function computeTotalsToRecord(grades, roundLabel) {
     //  3) maxRemain  — 등급별로 지금까지 목격된 최대 잔여석(총원 소급 추정용)
     const known = new Set();
     let prevTotals = null;
+    let prevExact = null; // 북마클릿이 실제 좌석 데이터에서 센 정확한 등급별 총원(meta.gradeTotals)
     const maxRemain = {};
     for (const r of rows) {
       for (const k of Object.keys(r.grades || {})) {
@@ -284,7 +285,13 @@ async function computeTotalsToRecord(grades, roundLabel) {
       }
       for (const k of Object.keys(r.totals || {})) known.add(k);
       if (!prevTotals && r.totals && Object.keys(r.totals).length) prevTotals = r.totals;
+      if (!prevExact && r.meta && r.meta.gradeTotals && Object.keys(r.meta.gradeTotals).length) prevExact = r.meta.gradeTotals;
     }
+    // 실측값(북마클릿 캡처)이 있으면 추정치 위에 덮어써서 "알고 있는 총원"의 기준으로 삼는다 —
+    // 이 함수가 낡은 추정치를 근거로 실측보다 작은 총원을 다시 기록하는 일을 막는다.
+    // (실사례: 추가 오픈된 VIP 플로어 1열/2열을 최대 잔여석 기준 31/40석으로 추정했지만
+    //  실측은 35/45석 — 첫 수집 전에 이미 몇 석이 팔린 만큼 추정이 항상 작거나 같다.)
+    if (prevExact) prevTotals = Object.assign({}, prevTotals || {}, prevExact);
     // 총원을 새로 알게 되거나 고쳐야 하는 등급을 찾는다. 세 가지 경우:
     //  A) 완전히 처음 보는 등급(추가 오픈 직후의 첫 수집) — 지금 잔여석 = 총원으로 추정
     //  B) 잔여석은 이미 쌓이고 있는데 총원만 모르는 등급 — 이 백필 로직이 생기기 전에 추가
