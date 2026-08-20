@@ -12524,7 +12524,7 @@
           <button type="button" class="btn xs" onclick="toggleTkRevenue(this)">💰 예상 매출 보기 ▾</button>
           <div class="tk-rev-body" style="display:none">
             ${twoTier ? `
-            <div class="tk-rev-top"><span>💰 예상 매출(미분류 ${holdSeats.toLocaleString()}석 제외)</span><span class="tk-rev-sum" style="font-size:15px;font-weight:800">${revNetSum.toLocaleString()}원</span></div>
+            <div class="tk-rev-top"><span>💰 예상 매출(미분류 ${holdSeats.toLocaleString()}석 제외)</span><span class="tk-rev-sum" style="color:var(--text);font-size:15px;font-weight:800">${revNetSum.toLocaleString()}원</span></div>
             <div class="tk-rev-top" style="margin-top:4px"><span>💰 예상 매출(미분류 포함 시 상한)</span><span class="tk-rev-sum" style="font-size:15px;font-weight:800">${revSum.toLocaleString()}원</span></div>` : `
             <div class="tk-rev-top"><span>💰 예상 매출</span><span class="tk-rev-sum">${revSum.toLocaleString()}원</span></div>`}
             ${revRows.join('')}
