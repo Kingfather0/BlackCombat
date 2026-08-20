@@ -64,14 +64,35 @@ const ORDER_API_BASE = 'https://ticket.29cm.co.kr/api'; // 좌석배치(전체 �
 const VERIFIED_TOTAL_OVERRIDE = {
   // 비앤디 블랙컴뱃 4강: 일본 vs 미국 (2026-08-29)
   // 자동 탐지값(좌석배치도 API 합산)은 3,891석으로 실제보다 762석 적게 나왔던 것을 아래 값으로
-  // 바로잡습니다. 등급별 세부 총원(totals)은 이 버그의 영향을 그대로 받을 수 있어 오버라이드하지
-  // 않고 fetchSeatBreakdown()의 자동 탐지값을 참고용으로만 둡니다 — "총 N석 중 M석 판매"처럼
-  // 전체 합계를 보여주는 부분(overallTotal/sellableTotal)만 바로잡는 것이 목적입니다.
+  // 바로잡습니다. 처음엔 등급별 세부 총원(totals)까지는 오버라이드하지 않고 fetchSeatBreakdown()의
+  // 자동 탐지값(합계 3,877석 — 등급별로도 버그 영향을 그대로 받아 실제보다 적음)을 참고용으로만
+  // 뒀었는데, 2026-08-18에 38개 구역을 이번엔 "구역별 등급"까지 함께 확인해 등급별 진짜 총원도
+  // 구했으므로 totals도 함께 오버라이드합니다 (아래 6개 등급 합계 = 4,653석으로 overallTotal과
+  // 정확히 일치 — 구역마다 등급이 섞이지 않고 하나로만 배정되어 있어 구역 단위 합산이 그대로
+  // 등급별 총원이 됩니다).
   1246: {
     overallTotal: 4653,
     sellableTotal: 4653,
     noGradeTotal: 0,
-    verifiedNote: '2026-08-18 38개 구역 전수 시각 확인(Konva 렌더링 좌석 수 집계)',
+    // 2026-08-20 갱신: 29CM이 이날 17:50(KST) 판매 도중 신규 등급 "시야방해석"(gradeCode 007)을
+    // 만들어, 기존 등급의 미판매 좌석 딱 300석을 재분류했다 — 우리 10분 주기 기록으로 원 등급별
+    // 이동량이 1석 단위까지 정확히 확인됨(17:41→17:50 스냅샷: 스탠다드 -155, 골드 -83,
+    // 선수 입장로 -62 = 정확히 +300 시야방해석, 총 잔여 합계는 불변). 그만큼을 각 등급 총원에서
+    // 빼고 시야방해석 총원 300을 새로 둔다(합계는 그대로 4,653석). 이 보정 전에는 잔여석만 줄어든
+    // 스탠다드/골드/선수입장로의 "판매 수"가 이동량만큼 부풀려 보였다.
+    // 참고: 재분류된 300석은 좌석배치도 API(preempt/seat/info) 응답에서 통째로 사라져(전 구역
+    // 전수 재조회로 확인 — 총 누락 762석 → 1,062석으로 정확히 +300) 구역별 실시간 좌석
+    // 화면에서는 회색(매진)으로 보인다. 이는 기존에 확인된 API 누락 버그와 같은 계열이다.
+    totals: {
+      '블랙티넘': 48,
+      '골드': 391,
+      '플로어': 214,
+      '선수 입장로': 254,
+      '스탠다드': 2349,
+      '이코노미': 1097,
+      '시야방해석': 300,
+    },
+    verifiedNote: '2026-08-18 38개 구역 전수 시각 확인 + 2026-08-20 시야방해석 300석 재분류 반영',
   },
 };
 
@@ -109,13 +130,8 @@ function formatRoundLabel(isoDateTime) {
   return `${y}.${mo}.${d}(${dow}) ${h12}:${mi} ${ampm}`;
 }
 
-// 20초 안에 응답이 없으면 요청을 그냥 실패 처리한다 — 29CM이 판매 일시중지/재개처럼 내부
-// 작업 중일 때 응답을 아예 안 주고 연결만 붙들고 있는 경우가 있었는데, 그러면 이 fetch가
-// 타임아웃 없이 무한정 매달려서 워크플로우 실행 자체가 몇 시간이고 "In progress"로 남는다.
-// (워크플로우 쪽에도 timeout-minutes/concurrency 안전장치를 같이 넣어뒀지만, 여기서 먼저
-// 빠르게 실패해야 로그에 원인이 남고 다음 스케줄 실행도 정상적으로 돌 수 있다.)
 async function getJSON(url) {
-  const res = await fetch(url, { credentials: 'omit', signal: AbortSignal.timeout(20000) });
+  const res = await fetch(url, { credentials: 'omit' });
   if (!res.ok) throw new Error(`요청 실패 (${res.status}): ${url}`);
   const json = await res.json();
   if (json.resultCode !== '200') throw new Error(`API 응답 오류: ${json.resultMessage || JSON.stringify(json)}`);
@@ -185,7 +201,6 @@ async function fetchExistingSnapshotCount(roundLabel) {
     if (roundLabel) params.set('round_label', `eq.${roundLabel}`);
     const res = await fetch(`${SUPABASE_URL}/rest/v1/ticket_snapshots?${params.toString()}`, {
       headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
-      signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) return null;
     const rows = await res.json().catch(() => null);
@@ -209,7 +224,6 @@ async function setCurrentTicketEvent() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
       body: JSON.stringify({ p_secret: TICKET_BOT_SECRET, p_event_key: EVENT_KEY }),
-      signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) console.log('ℹ️ "지금 event_key" 갱신에 실패했습니다(패치를 아직 안 돌렸다면 정상) — 계속 진행합니다.');
     else console.log(`🔗 사이트가 자동으로 볼 event_key를 "${EVENT_KEY}"로 갱신했습니다.`);
@@ -231,7 +245,6 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       p_note: note || null,
       p_meta: meta && Object.keys(meta).length ? meta : null,
     }),
-    signal: AbortSignal.timeout(20000),
   });
   if (!res.ok) {
     const bodyText = await res.text().catch(() => '');
@@ -319,6 +332,16 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       const grades = {};
       for (const q of quantityList) {
         const gradeName = gradeDisplayName(q.seatGradeName, q.seatGradeCode);
+        // quantityList에는 실제로 판매하지 않는 "유령" 등급이 항상 잔여 0으로 섞여 나올 때가
+        // 있습니다 (이 행사의 "시야방해석"이 그 예 — 실제 29CM 판매 페이지에는 뜨지도 않고
+        // 가격 정보(seatGradePriceList)도 없는데, API의 quantityList에는 항상 잔여 0으로 잡혀
+        // 사이트에 "매진"으로 잘못 표시됐습니다). 가격 정보가 없는 등급은 판매 대상이 아니라고
+        // 보고 기록에서 제외합니다 (gradePrices 자체가 비어있으면 — 즉 이 API가 가격을 아예
+        // 안 주는 다른 행사면 — 이 필터를 걸지 않고 예전처럼 전부 기록합니다, 안전망).
+        if (Object.keys(gradePrices).length && gradePrices[gradeName] == null) {
+          console.log(`ℹ️ "${gradeName}" 등급은 가격 정보가 없어(=실제 판매 대상 아님) 기록에서 제외합니다.`);
+          continue;
+        }
         grades[gradeName] = { remain: q.turnClassificationRemainingProductQuantity };
       }
       const roundLabel = formatRoundLabel(turn.turnDateTime);
@@ -328,9 +351,24 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
       let totals, note;
       let turnMeta = meta;
       if (verifiedOverride) {
-        // 이 상품은 좌석배치도 API의 누락 버그가 확인되어, 자동 탐지 대신 수동 검증값을 씁니다
-        // (등급별 세부는 여전히 버그 영향을 받을 수 있어 자동 탐지값을 참고용으로만 남겨둡니다).
-        totals = breakdown ? breakdown.totals : undefined;
+        // 이 상품은 좌석배치도 API의 누락 버그가 확인되어, 자동 탐지 대신 수동 검증값을 씁니다.
+        // verifiedOverride.totals(등급별 총원)까지 채워둔 행사면 그것을 그대로 쓰고, 아직 없는
+        // 행사면(등급별 매칭 전) breakdown의 자동 탐지값을 참고용으로만 씁니다(안전망).
+        totals = verifiedOverride.totals || (breakdown ? breakdown.totals : undefined);
+        // 안전망(2026-08-20 추가): 판매 도중 29CM이 새 등급을 만들어내는 실사례("시야방해석"
+        // 300석 재분류)가 있었다 — 잔여석 목록에는 있는데 수동 검증 총원에 아직 없는 등급이
+        // 보이면, 일단 "지금 잔여석 = 총원"으로 추정해 넣어 화면에 총원/판매율이 비지 않게 하고,
+        // 로그로 크게 알려 수동 검증값(VERIFIED_TOTAL_OVERRIDE) 갱신을 유도한다. 이 추정은
+        // 새 등급 쪽만 채울 뿐 기존 등급 총원 차감(재분류 이동량)까지는 알 수 없으므로,
+        // 정확한 보정은 여전히 사람이 이동량을 확인해 오버라이드를 고쳐야 한다.
+        if (totals) {
+          const missing = Object.keys(grades).filter((g) => totals[g] == null && grades[g] && grades[g].remain != null);
+          if (missing.length) {
+            totals = { ...totals };
+            for (const g of missing) totals[g] = grades[g].remain;
+            console.log(`⚠️ [${roundLabel}] 수동 검증 총원에 없는 새 등급 발견: ${missing.join(', ')} — 잔여석을 총원으로 임시 추정했습니다. VERIFIED_TOTAL_OVERRIDE를 실측으로 갱신해 주세요!`);
+          }
+        }
         note = `총원은 수동 검증값 사용(29CM 좌석배치도 API 누락 버그 확인됨, ${verifiedOverride.verifiedNote}) — 잔여석은 실시간 API`;
         turnMeta = { ...meta, overallTotal: verifiedOverride.overallTotal, sellableTotal: verifiedOverride.sellableTotal, noGradeTotal: verifiedOverride.noGradeTotal };
         console.log(
