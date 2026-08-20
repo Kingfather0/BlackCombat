@@ -234,12 +234,89 @@ async function fetchExistingSnapshotCount(roundLabel) {
 // 주의: 이미 판매가 어느 정도 진행된 뒤에 자동화를 처음 켠 경우에는 이 방식이 정확하지 않다
 // (그 시점의 잔여석을 총원으로 잘못 볼 수 있음) — 그런 경우엔 그냥 총원 없이(null) 넘어가고,
 // 지금까지처럼 잔여석만 보여주는 기존 방식 그대로 동작한다(회귀 없음).
-async function estimateTotalsIfFirstSnapshot(grades, roundLabel) {
+//
+// 2026-08-20 추가: "판매 도중 새 등급이 풀리는" 경우도 처리한다. 실제 사례 — 로드FC가 경기를
+// 앞두고 낮 12시에 VIP 플로어(1열)/(2열) 좌석을 추가 오픈했는데, 기존 로직은 "회차의 첫
+// 기록"에서만 총원을 추정해서 뒤늦게 등장한 새 등급은 총원을 영영 모르는 채로 남았다(사이트에
+// 판매율 막대 없음, 전체 좌석 합계에도 미반영 — 북마클릿을 수동으로 다시 돌려야만 채워졌다).
+// 이제 직전 기록들에 한 번도 없던 등급이 새로 나타나면, 그 등급의 "처음 목격 시점 잔여석 =
+// 총원"으로 추정해(추가 오픈 직후의 첫 수집이므로 실제 총원과 거의 같다) 기존에 알고 있던
+// 총원에 합쳐서 기록한다. 새 등급이 없으면 totals를 아예 기록하지 않는다(null) — 사이트는
+// "totals가 담긴 가장 최근 기록"을 총원의 기준으로 쓰기 때문에, 일부 등급만 담긴 totals를
+// 함부로 기록하면 북마클릿이 좌석맵을 실제로 세어 넣어둔 정확한 총원을 덮어쓰게 된다.
+// 같은 이유로 합칠 때도 기존에 알던 값을 그대로 두고 새 등급만 보탠다.
+async function computeTotalsToRecord(grades, roundLabel) {
   const priorCount = await fetchExistingSnapshotCount(roundLabel);
-  if (priorCount !== 0) return null; // 이미 기록이 있거나, 확인 자체에 실패한 경우엔 추정하지 않는다
-  const totals = {};
-  for (const g of Object.keys(grades)) totals[g] = grades[g].remain;
-  return totals;
+  if (priorCount === null) return null; // 확인 자체에 실패 — 추정하지 않는다(안전)
+  if (priorCount === 0) {
+    const totals = {};
+    for (const g of Object.keys(grades)) totals[g] = grades[g].remain;
+    console.log(`🆕 ${roundLabel ? `[${roundLabel}] ` : ''}첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다:`, JSON.stringify(totals));
+    return totals;
+  }
+  try {
+    const params = new URLSearchParams({
+      event_key: `eq.${EVENT_KEY}`,
+      select: 'grades,totals',
+      order: 'captured_at.desc',
+      limit: '200',
+    });
+    if (roundLabel) params.set('round_label', `eq.${roundLabel}`);
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/ticket_snapshots?${params.toString()}`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    });
+    if (!res.ok) return null;
+    const rows = await res.json().catch(() => null);
+    if (!Array.isArray(rows) || !rows.length) return null;
+    // 최근 기록(최대 200건)에서 세 가지를 모은다:
+    //  1) known    — 잔여/총원 어느 쪽에든 한 번이라도 등장한 등급(일시적 API 누락으로 기존
+    //                등급을 새 등급으로 오인하지 않기 위해 여러 기록을 함께 본다)
+    //  2) prevTotals — 가장 최근에 알아낸 등급별 총원(북마클릿 캡처 또는 이 함수의 과거 기록)
+    //  3) maxRemain  — 등급별로 지금까지 목격된 최대 잔여석(총원 소급 추정용)
+    const known = new Set();
+    let prevTotals = null;
+    const maxRemain = {};
+    for (const r of rows) {
+      for (const k of Object.keys(r.grades || {})) {
+        known.add(k);
+        const v = r.grades[k];
+        if (v && v.remain != null) maxRemain[k] = Math.max(maxRemain[k] != null ? maxRemain[k] : -1, v.remain);
+      }
+      for (const k of Object.keys(r.totals || {})) known.add(k);
+      if (!prevTotals && r.totals && Object.keys(r.totals).length) prevTotals = r.totals;
+    }
+    // 총원을 새로 알게 되거나 고쳐야 하는 등급을 찾는다. 세 가지 경우:
+    //  A) 완전히 처음 보는 등급(추가 오픈 직후의 첫 수집) — 지금 잔여석 = 총원으로 추정
+    //  B) 잔여석은 이미 쌓이고 있는데 총원만 모르는 등급 — 이 백필 로직이 생기기 전에 추가
+    //     오픈된 등급(실사례: VIP 플로어 1열/2열 — 북마클릿의 등급 총원/가격 소스에도 새
+    //     등급이 안 담겨 있어 수동 캡처로도 총원이 안 채워졌다). 오픈 이후 목격된 최대
+    //     잔여석을 총원으로 소급 추정한다(오픈 직후 기록일수록 실제 총원에 가깝다).
+    //  C) 알고 있던 총원보다 잔여석이 더 커진 등급 = 기존 등급에 좌석이 추가로 풀림 — 총원을
+    //     그만큼 올려잡는다(안 그러면 판매수가 음수가 되어 표시가 깨진다).
+    const changes = {};
+    const why = [];
+    for (const g of Object.keys(grades)) {
+      const v = grades[g];
+      if (!v || v.remain == null) continue;
+      const seenMax = Math.max(v.remain, maxRemain[g] != null ? maxRemain[g] : -1);
+      if (seenMax <= 0) continue; // 목격된 좌석이 0뿐인 등급은 총원 추정이 무의미
+      const knownTotal = prevTotals ? prevTotals[g] : null;
+      if (!known.has(g)) {
+        changes[g] = v.remain; why.push(`${g}: 신규 등장(잔여 ${v.remain} = 총원)`);
+      } else if (prevTotals && knownTotal == null) {
+        changes[g] = seenMax; why.push(`${g}: 총원 미기록 소급(최대 잔여 ${seenMax} = 총원)`);
+      } else if (knownTotal != null && seenMax > knownTotal) {
+        changes[g] = seenMax; why.push(`${g}: 좌석 추가 감지(총원 ${knownTotal} → ${seenMax})`);
+      }
+    }
+    if (!Object.keys(changes).length) return null; // 바꿀 게 없으면 총원을 아예 기록하지 않는다(기존 값 보존)
+    const merged = Object.assign({}, prevTotals || {}, changes);
+    console.log(`🆕 ${roundLabel ? `[${roundLabel}] ` : ''}등급별 총원 갱신 — ${why.join(' / ')}`);
+    console.log('   기록할 총원:', JSON.stringify(merged));
+    return merged;
+  } catch (_) {
+    return null;
+  }
 }
 
 // 사이트가 "지금 어떤 event_key를 봐야 하는지"를 index.html에 손대지 않고도 알 수 있도록,
@@ -415,8 +492,7 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
         if (Object.keys(grades).length === 0) continue;
         const sched = capturedScheduleByPlaySeq.get(playSeq);
         const roundLabel = sched ? formatRoundLabel(sched.playDate, sched.playTime) : `${TARGET_DATE} (playSeq ${playSeq})`;
-        const totals = await estimateTotalsIfFirstSnapshot(grades, roundLabel);
-        if (totals) console.log(`🆕 [${roundLabel}] 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다:`, JSON.stringify(totals));
+        const totals = await computeTotalsToRecord(grades, roundLabel);
         // 이 회차의 API 좌표(goodsCode/playSeq)를 meta에 같이 남긴다 — 사이트의 "수동 갱신"
         // 버튼이 5분 스케줄을 기다리지 않고 예매 사이트에서 즉석으로 잔여석을 조회할 때 쓴다.
         const metaForRound = capturedGoodsCode
@@ -442,8 +518,7 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
         if (Object.keys(grades).length === 0) {
           throw new Error('날짜는 클릭했지만 등급별 잔여석 정보를 화면에서 찾지 못했습니다.');
         }
-        const totals = await estimateTotalsIfFirstSnapshot(grades, null);
-        if (totals) console.log('🆕 이 회차의 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다:', JSON.stringify(totals));
+        const totals = await computeTotalsToRecord(grades, null);
         await postSnapshot(grades, null, '회차 구분 없이 페이지 전체에서 추출', totals, meta);
         recorded++;
       } else {
@@ -452,8 +527,7 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
           const grades = parseGrades(line);
           if (Object.keys(grades).length === 0) continue;
           const roundLabel = formatRoundLabel(TARGET_DATE, timeMatch[0]);
-          const totals = await estimateTotalsIfFirstSnapshot(grades, roundLabel);
-          if (totals) console.log(`🆕 [${roundLabel}] 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다:`, JSON.stringify(totals));
+          const totals = await computeTotalsToRecord(grades, roundLabel);
           await postSnapshot(grades, roundLabel, null, totals, meta);
           recorded++;
         }
