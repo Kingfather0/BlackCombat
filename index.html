@@ -1244,8 +1244,9 @@
       }
     }
 
-    /* ── "1열 바로 찾기" — 무대에서 가장 가까운 1열 좌석만 전 구역에서 한눈에 모아본다 ──
-       사람들이 취소표를 노리고 구역을 하나하나 눌러 1열을 확인하는 불편을 없애는 기능. */
+    /* ── "맨 앞열 바로 찾기" — 구역별 무대 최근접 열 좌석만 전 구역에서 한눈에 모아본다 ──
+       사람들이 취소표를 노리고 구역을 하나하나 눌러 앞열을 확인하는 불편을 없애는 기능.
+       구역마다 시작 열이 달라(대부분 1열, 일부 2·3·4·8열) 절대 열 번호가 아닌 구역별 min 열 기준. */
     .tk-row1-btn {
       width: 100%;
       margin: 0 0 10px;
@@ -1349,6 +1350,19 @@
     .tk-row1-zone b {
       flex: 0 0 30px;
       font-size: 13px
+    }
+
+    /* 맨 앞열 모드에서 구역명 옆에 붙는 열 번호 — 구역마다 시작 열이 달라(1·2·3·4·8열)
+       지금 보고 있는 줄이 몇 열인지 바로 알 수 있게 표시 */
+    .tk-row1-rowtag {
+      flex: 0 0 auto;
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--muted);
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 5px;
     }
 
     .tk-row1-seats {
@@ -11531,38 +11545,53 @@
       const modal = document.getElementById('tk-live-modal');
       if (modal) modal.style.display = 'none';
     }
-    /* ── "1열 바로 찾기" ──
-       무대(CAGE)에서 가장 가까운 1열 좌석만 32개 표준 구역 전체에서 한눈에 모아 보여준다.
-       취소표를 노리는 사람들이 구역을 하나하나 눌러가며 1열을 확인하던 불편을 없애는 기능.
-       1열이 존재하는 구역 = TK_LIVE_ROW_OVERRIDE.min이 1인 구역(실측 기준 19개).
+    /* ── "맨 앞열 바로 찾기" ──
+       무대(CAGE)에서 가장 가까운 좌석만 32개 표준 구역 전체에서 한눈에 모아 보여준다.
+       취소표를 노리는 사람들이 구역을 하나하나 눌러가며 앞열을 확인하던 불편을 없애는 기능.
+       주의: 구역마다 시작 열이 다르다(실측 TK_LIVE_ROW_OVERRIDE.min 기준) — 대부분 1열이지만
+       A4·A5·B3·B4·B5·B6·C4·C5·D3은 3열, D7은 2열, D6은 4열, D4·D5는 8열이 그 구역의 가장
+       앞(무대 최근접) 열이다. 그래서 필터는 절대 열 번호가 아니라 "무대에서 몇 번째
+       열인가"(상대 순서) 기준이다 — 맨 앞열(1번째)·두 번째 열·세 번째 열… 식으로 고르면
+       구역마다 각자의 해당 열을 찾아 보여주고, 실제 열 번호는 구역명 옆 배지로 표시한다.
        특수 구역(플로어/블랙티넘/골드/선수입장로)은 열 구조가 달라 여기 포함하지 않는다 —
-       무대와의 거리로는 더 가깝지만 "스탠드 1열"을 찾는 용도와는 별개라 안내 문구로만 밝힌다.
+       무대와의 거리로는 더 가깝지만 "스탠드 앞열"을 찾는 용도와는 별개라 안내 문구로만 밝힌다.
        좌석 데이터는 구역별 실시간 좌석과 같은 window.__tkLiveResults를 그대로 쓰므로 추가
-       API 비용이 없고, 팝업 안의 ↻ 새로고침은 1열이 있는 구역만 다시 불러와 빠르게 갱신한다. */
-    // 팝업에서 보고 있는 열 — 기본은 1열이고, 팝업 안 "열 선택" 필터로 2~15열도 볼 수 있다.
+       API 비용이 없고, 팝업 안의 ↻ 새로고침은 표시 중인 구역만 다시 불러와 빠르게 갱신한다. */
+    // 팝업에서 보고 있는 순서 — 1=맨 앞열(기본), 2=두 번째 열, … 15=열다섯 번째 열
     let tkRowFinderRow = 1;
-    // 해당 열이 실제로 존재하는 표준 구역만 — 실측 min~max 범위 안이고 skip(진짜 빈 열)이 아닌 구역
-    function tkRow1Zones(row) {
-      const r = row || tkRowFinderRow;
+    // 필터 라벨 — 열 번호가 아니라 "무대에서 몇 번째"를 뜻한다
+    const TK_ROW1_ORDINALS = ['맨 앞열', '두 번째 열', '세 번째 열', '네 번째 열', '다섯 번째 열', '여섯 번째 열', '일곱 번째 열', '여덟 번째 열', '아홉 번째 열', '열 번째 열', '열한 번째 열', '열두 번째 열', '열세 번째 열', '열네 번째 열', '열다섯 번째 열'];
+    // 구역의 실존 열 목록(앞→뒤 순) — 실측 min~max 범위에서 skip(진짜 빈 열)을 뺀 것
+    function tkZoneRowList(o) {
+      const rows = [];
+      for (let r = o.min; r <= o.max; r++) if (!(o.skip || []).includes(r)) rows.push(r);
+      return rows;
+    }
+    // 표시할 구역 목록 — n(앞에서 n번째 열)이 실제로 존재하는 구역만. 각 항목에 그 구역의
+    // 실제 열 번호(row)를 함께 담아 이후 단계가 구역별로 다른 열을 그릴 수 있게 한다.
+    function tkRow1Zones(nth) {
+      const n = nth || tkRowFinderRow;
       const out = [];
       TK_LIVE_ZONES.forEach((z, i) => {
         const o = TK_LIVE_ROW_OVERRIDE[z.name];
-        if (o && o.min <= r && r <= o.max && !(o.skip || []).includes(r)) out.push({ zone: z, idx: i });
+        if (!o) return;
+        const rows = tkZoneRowList(o);
+        if (rows.length >= n) out.push({ zone: z, idx: i, row: rows[n - 1] });
       });
       return out;
     }
-    function tkRow1Data(row) {
-      const rNum = row || tkRowFinderRow;
-      return tkRow1Zones(rNum).map(({ zone, idx }) => {
+    function tkRow1Data(nth) {
+      const rSel = nth || tkRowFinderRow;
+      return tkRow1Zones(rSel).map(({ zone, idx, row: rNum }) => {
         const result = window.__tkLiveResults[idx];
-        if (!result) return { zone, idx, loaded: false };
-        if (!result.ok || !result.seats || !result.seats.length) return { zone, idx, loaded: true, ok: false };
+        if (!result) return { zone, idx, row: rNum, loaded: false };
+        if (!result.ok || !result.seats || !result.seats.length) return { zone, idx, row: rNum, loaded: true, ok: false };
         const r1 = tkGroupSeatRows(result.seats, zone).find(r => r.row === rNum);
         const seats = (r1 && r1.seats) || [];
-        return { zone, idx, loaded: true, ok: true, seats, remain: seats.filter(s => !s.sold).length };
+        return { zone, idx, row: rNum, loaded: true, ok: true, seats, remain: seats.filter(s => !s.sold).length };
       });
     }
-    // 지도 카드의 버튼 배지는 팝업의 열 필터와 무관하게 항상 "1열" 기준 — 버튼 이름과 일치시킨다
+    // 지도 카드의 버튼 배지는 팝업의 열 필터와 무관하게 항상 "맨 앞열"(1번째) 기준 — 버튼 이름과 일치시킨다
     function tkRow1BadgeUpdate() {
       const el = document.getElementById('tkRow1Badge');
       if (!el) return;
@@ -11573,7 +11602,7 @@
       el.textContent = remain > 0 ? `잔여 ${remain}석` : '잔여 없음';
       el.classList.toggle('zero', remain === 0);
     }
-    // 팝업의 열 필터 변경 — 1열 외 다른 열(2~15열)도 같은 방식으로 검색할 수 있다
+    // 팝업의 필터 변경 — 맨 앞열(1번째) 외에 두 번째~열다섯 번째 열도 같은 방식으로 검색할 수 있다
     function tkRowFinderSetRow(v) {
       const r = parseInt(v, 10);
       if (!r || r < 1 || r > 15) return;
@@ -11584,12 +11613,13 @@
       }
     }
     function tkRow1ModalHTML() {
-      const rNum = tkRowFinderRow;
-      const data = tkRow1Data(rNum);
+      const rSel = tkRowFinderRow;
+      const data = tkRow1Data(rSel);
       const pending = data.some(d => !d.loaded);
       const remain = data.reduce((s, d) => s + (d.ok ? d.remain : 0), 0);
-      const rowSelect = `<select class="tk-row1-select" onchange="tkRowFinderSetRow(this.value)" title="확인할 열 선택">${Array.from({ length: 15 }, (_, k) => `<option value="${k + 1}" ${k + 1 === rNum ? 'selected' : ''}>${k + 1}열</option>`).join('')}</select>`;
-      const head = `<div class="tk-live-modal-head"><b>${rNum}열 바로 찾기</b><span style="color:var(--dim);font-size:12px">${rNum === 1 ? '무대 최근접 열' : `무대에서 ${rNum}번째 열`}</span><button type="button" class="tk-live-modal-close" onclick="tkLiveZoneCloseDetail()">✕</button></div>`;
+      const rowSelect = `<select class="tk-row1-select" onchange="tkRowFinderSetRow(this.value)" title="무대에서 몇 번째 열을 볼지 선택">${TK_ROW1_ORDINALS.map((label, k) => `<option value="${k + 1}" ${k + 1 === rSel ? 'selected' : ''}>${label}</option>`).join('')}</select>`;
+      const rowWord = TK_ROW1_ORDINALS[rSel - 1];
+      const head = `<div class="tk-live-modal-head"><b>${rowWord} 바로 찾기</b><span style="color:var(--dim);font-size:12px">${rSel === 1 ? '구역별 무대 최근접 열' : `구역별 무대에서 ${rSel}번째 열`}</span><button type="button" class="tk-live-modal-close" onclick="tkLiveZoneCloseDetail()">✕</button></div>`;
       // 잔여 있는 구역을 맨 위로(그 안에서는 잔여 많은 순), 그 아래 매진 구역, 로딩/실패는 맨 뒤
       const sorted = data.slice().sort((a, b) => {
         const ra = a.ok ? a.remain : -1, rb = b.ok ? b.remain : -1;
@@ -11601,24 +11631,25 @@
         const color = TK_LIVE_GRADE_COLOR[d.zone.gradeCode];
         if (!d.loaded) return `<div class="tk-row1-zone"><b>${esc(d.zone.name)}</b><span style="font-size:11.5px;color:var(--dim)">불러오는 중…</span></div>`;
         if (!d.ok) return `<div class="tk-row1-zone"><b>${esc(d.zone.name)}</b><span style="font-size:11.5px;color:var(--dim)">불러오기 실패</span></div>`;
-        const seatsHtml = d.seats.map(s => `<i style="background:${s.sold ? '#dadde2' : color}" title="${esc(d.zone.name)} ${rNum}열 ${s.num}번 · ${s.sold ? '매진' : '잔여'}"></i>`).join('');
+        const seatsHtml = d.seats.map(s => `<i style="background:${s.sold ? '#dadde2' : color}" title="${esc(d.zone.name)} ${d.row}열 ${s.num}번 · ${s.sold ? '매진' : '잔여'}"></i>`).join('');
         const remainHtml = d.remain > 0
           ? `<span class="tk-row1-remain">잔여 ${d.remain}석</span>`
           : `<span class="tk-row1-remain none">매진</span>`;
+        const rowTag = `<span class="tk-row1-rowtag">${d.row}열</span>`;
         return `<div class="tk-row1-zone${d.remain > 0 ? ' has' : ''}" onclick="tkLiveZoneOpenDetail(${d.idx})" title="${esc(d.zone.name)} 구역 전체 좌석 보기">
-          <b>${esc(d.zone.name)}</b><span class="tk-row1-seats">${seatsHtml}</span>${remainHtml}</div>`;
+          <b>${esc(d.zone.name)}</b>${rowTag}<span class="tk-row1-seats">${seatsHtml}</span>${remainHtml}</div>`;
       }).join('');
       return `${head}
         <div class="tk-row1-top">
           ${rowSelect}
-          <span class="tk-row1-sum">${pending ? `${rNum}열 현황 불러오는 중…` : (remain > 0 ? `지금 예매 가능한 ${rNum}열 <b>${remain}석</b>` : `지금 예매 가능한 ${rNum}열 좌석이 없습니다`)}</span>
+          <span class="tk-row1-sum">${pending ? `${rowWord} 현황 불러오는 중…` : (remain > 0 ? `지금 예매 가능한 ${rowWord} <b>${remain}석</b>` : `지금 예매 가능한 ${rowWord} 좌석이 없습니다`)}</span>
           <button type="button" class="tk-row1-refresh" id="tkRow1RefreshBtn" onclick="tkRow1Refresh()" ${pending ? 'disabled' : ''}>↻ 새로고침</button>
         </div>
         <div class="tk-row1-list">${body}</div>
-        <div class="tk-row1-note">잔여(컬러) = 지금 예매 가능 · 매진(회색) · 구역을 누르면 그 구역 전체 좌석을 볼 수 있습니다<br>※ 스탠다드/이코노미 구역 기준 — 플로어/블랙티넘 등 특수 구역은 열 구조가 달라 제외<br>※ 취소표는 수시로 나옵니다 — ↻ 새로고침으로 방금 풀린 좌석을 바로 확인하세요</div>`;
+        <div class="tk-row1-note">잔여(컬러) = 지금 예매 가능 · 매진(회색) · 구역을 누르면 그 구역 전체 좌석을 볼 수 있습니다<br>※구역마다 시작 열이 달라, 구역명 옆에 표시된 열이 그 구역의 실제 열 번호입니다<br>※ 스탠다드/이코노미 구역 기준 — 플로어/블랙티넘 등 특수 구역은 열 구조가 달라 제외<br>※ 취소표는 수시로 나옵니다 — ↻ 새로고침으로 방금 풀린 좌석을 바로 확인하세요</div>`;
     }
     function tkRow1OpenModal() {
-      tkRowFinderRow = 1; // 버튼으로 새로 열 때는 항상 기본값(1열)부터
+      tkRowFinderRow = 1; // 버튼으로 새로 열 때는 항상 기본값(맨 앞열)부터
       let modal = document.getElementById('tk-live-modal');
       if (!modal) {
         modal = document.createElement('div');
@@ -12513,7 +12544,7 @@
       const liveZonesHTML = liveZonesEnabled ? `
       <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">새로고침 시 최신 현황 갱신</span></div>
       <div class="card">
-        <button type="button" class="tk-row1-btn" onclick="tkRow1OpenModal()">1열 바로 찾기 <span class="tk-row1-badge" id="tkRow1Badge">불러오는 중…</span></button>
+        <button type="button" class="tk-row1-btn" onclick="tkRow1OpenModal()">맨 앞열 바로 찾기 <span class="tk-row1-badge" id="tkRow1Badge">불러오는 중…</span></button>
         <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">매진(회색) 잔여(컬러) · 29CM API 좌석 누락 버그로 대략적인 비중 확인용<br>정확한 좌석은 29CM에서 확인 · 구역 선택 시 좌석 상세 팝업</div>
         <div class="tk-live-map-wrap" id="tk-live-map-wrap">
           <svg id="tk-live-map-svg" viewBox="168 50 719 719" class="tk-live-map-svg" preserveAspectRatio="xMidYMid meet">
