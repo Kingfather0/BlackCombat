@@ -1,220 +1,203 @@
-// 티켓 판매 현황 자동 기록 스크립트 (GitHub Actions에서 주기적으로 실행)
+// 티켓 판매 현황 자동 기록 스크립트 — 29CM 버전 (GitHub Actions에서 주기적으로 실행)
 //
-// NOL티켓/인터파크 같은 예매 페이지는 좌석 잔여 수량을 자바스크립트로 그려주기
-// 때문에 일반적인 fetch로는 볼 수 없습니다. 그래서 이 스크립트는 진짜 브라우저
-// (Playwright)로 페이지를 열어서, 사람이 보는 것과 똑같은 화면 텍스트를 읽습니다.
+// scripts/ticket-watch.js(NOL/인터파크용)와 결과물은 완전히 동일합니다 — 같은 Supabase
+// record_ticket_snapshot 함수를 호출해서 같은 ticket_snapshots 테이블에 기록하므로,
+// index.html 쪽 표시 코드는 전혀 손댈 필요가 없습니다. 다른 점은 "잔여석을 어떻게 알아내는가"
+// 뿐입니다.
 //
-// 동작 순서:
-//   1. TICKET_URL 접속
-//   2. 달력에서 TARGET_DATE(공연/경기 날짜) 클릭
-//   3. 화면에 나온 회차별 "OO석 N" 같은 잔여 좌석 요약을 긁어서 파싱
-//   4. Supabase record_ticket_snapshot 함수를 호출해 기록
+// NOL은 화면을 실제 브라우저(Playwright)로 열어서 봐야 하지만, 29CM 티켓
+// (ticket.29cm.co.kr)은 로그인 없이도 접근 가능한 공개 JSON API를 그대로 제공합니다
+// (2026-08-17 직접 확인: 쿠키 없이 fetch해도 200 응답, 로그인 화면으로 튕기지 않음).
+// 그래서 이 스크립트는 브라우저 없이 순수 HTTP 요청만으로 동작합니다 (더 가볍고 빠르고
+// 화면 구조 변경에도 덜 취약함).
+//
+// 확인된 API 흐름 (productMasterCode는 내부 상품코드로, 우리가 아는 카탈로그 번호와 다릅니다):
+//   1. GET /api/public/product/ticket/item/code?itemId={catalogId}
+//        → { data: productMasterCode }
+//        (catalogId는 https://ticket.29cm.co.kr/catalog/{catalogId} 의 그 숫자)
+//   2. GET /api/public/product/ticket/info?productMasterCode={pmc}
+//        → 상품명/장소/가격/판매기간/공지사항 등 행사 메타 정보
+//   3. GET /api/public/product/ticket/turn/info?productMasterCode={pmc}
+//        → 회차(날짜/시간) 목록, 좌석 배치도가 있는 placeId도 여기서 얻는다
+//   4. GET /api/public/product/ticket/turn/detail/seat/info?productMasterCode={pmc}&turnSequence={turn}
+//        → 그 회차의 등급별 잔여석(quantityList)
+//   5. GET /api/preempt/seat/info?productMasterCode={pmc}&turnSequence={turn}&placeId={placeId}
+//        → 좌석 하나하나의 등급/판매상태가 담긴 전체 좌석배치(seatAssignUnits). 여기 있는
+//          좌석을 등급별로 세면 "등급별 총원"을 추측이 아니라 정확한 숫자로 알 수 있다
+//          (NOL 티켓을 로드FC 판매 중간에 웹사이트 코드를 직접 뜯어서 총 좌석 수를 확인했던
+//          것과 같은 방식 — 2026-08-17 직접 확인: 이 상품은 VIP 100석 + 일반 442석 + 그 외
+//          공개 판매 대상이 아닌 8석 = 총 550석으로, quantityList의 잔여석과도 정확히 들어맞음).
+//          이 방식 덕분에 판매 도중에 추적을 시작해도(이미 일부 매진된 등급이 있어도) 총원이
+//          항상 정확하다 — "처음 기록 = 총원"으로 추측하던 이전 방식보다 훨씬 신뢰할 수 있다.
 //
 // 필요한 환경변수:
-//   TICKET_URL          예매 페이지 주소 (예: https://nol.yanolja.com/ticket/products/26010059)
-//   TARGET_DATE          잡을 날짜, YYYY-MM-DD 형식 (예: 2026-07-26)
-//   EVENT_KEY             이 행사를 구분하는 키 (예: bc_2026_07_lotte) — 사이트 표시용
+//   ITEM_ID_29CM        29CM 티켓 상품 번호 (예: https://ticket.29cm.co.kr/catalog/3998565 → 3998565)
+//   EVENT_KEY            이 행사를 구분하는 키 (예: bc_2026_29cm) — 사이트 표시용
+//   TARGET_DATE          (선택) 경기/공연일 YYYY-MM-DD. 비우면 API에서 받은 공연일로 자동 판단.
 //   SUPABASE_URL           기존 사이트와 동일한 값
 //   SUPABASE_ANON_KEY      기존 사이트와 동일한 값
-//   TICKET_BOT_SECRET      티켓현황_패치.sql 에서 설정한 "봇 전용 비밀키"
+//   TICKET_BOT_SECRET      티켓현황_패치.sql 에서 설정한 "봇 전용 비밀키" (ticket-watch.js와 동일)
+//   SET_CURRENT           'false'면 "사이트가 지금 볼 event_key" 포인터를 갱신하지 않는다.
+//                          (메인 대회와 동시에 보조 대회를 기록할 때 메인 화면을 뺏지 않기 위한 옵션)
 //
 // 실패해도 사이트 자체는 멈추지 않습니다 — 이번 회차 기록만 건너뜁니다.
-// 실패 원인 파악용으로 ticket-debug.png 스크린샷을 남깁니다(워크플로에서 아티팩트로 업로드).
-//
-// ※ 참고: 티켓 사이트 화면 구조는 언제든 바뀔 수 있습니다. 실제 티켓이 오픈된 뒤
-//   workflow_dispatch(수동 실행)로 먼저 한 번 테스트해보고, 잘 안 잡히면 이 파일의
-//   findAndClickDate() / parseGrades() 부분을 화면 구조에 맞게 손봐야 할 수도 있습니다.
 
-const { chromium } = require('playwright');
-
-const TICKET_URL = process.env.TICKET_URL;
-const TARGET_DATE = process.env.TARGET_DATE; // '2026-07-26'
+const ITEM_ID_29CM = process.env.ITEM_ID_29CM;
 const EVENT_KEY = process.env.EVENT_KEY;
+const TARGET_DATE = process.env.TARGET_DATE; // 없으면 API의 공연일로 대체
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const TICKET_BOT_SECRET = process.env.TICKET_BOT_SECRET;
-// SET_CURRENT: 'false'면 "사이트가 지금 볼 event_key" 포인터를 갱신하지 않는다.
-// 메인 대회(예: 블랙컴뱃)와 보조 대회(예: 지난 대회로 내려간 로드FC)를 동시에 기록할 때,
-// 보조 대회 기록이 사이트 메인 화면을 뺏어가지 않게 하기 위한 옵션. (기본값: 갱신함)
 const SET_CURRENT = process.env.SET_CURRENT !== 'false';
+
+const API_BASE = 'https://ticket.29cm.co.kr/api/public/product/ticket';
+const ORDER_API_BASE = 'https://ticket.29cm.co.kr/api'; // 좌석배치(전체 좌석 수) 조회용 — /public 하위가 아님
+
+// 수동 검증된 총원 오버라이드 (productMasterCode별) — 아래 fetchSeatBreakdown()이 쓰는
+// preempt/seat/info(좌석배치도) API는 "통로 인접 열" 좌석 일부를 구조적으로 누락시키는 버그가
+// 있음을 확인했습니다 (2026-08-18, 이 행사의 38개 구역 전체를 브라우저에서 직접 열어 캔버스에
+// 실제로 그려진 좌석(Konva Rect)을 세어 좌석배치도 API 응답과 대조 — 골드/플로어석W/C4/A1
+// 구역 등 대부분에서 API 쪽이 실제보다 적게 나옴, 총 762석 차이). 이 버그는 API가 고쳐지지
+// 않는 한 자동 탐지로는 절대 바로잡을 수 없으므로, 이렇게 수동으로 확인된 총원을 우선 적용하는
+// 안전장치를 둡니다. 여기 없는 productMasterCode는 기존처럼 fetchSeatBreakdown() 자동 탐지를
+// 그대로 씁니다 — 다른 행사에는 영향이 없습니다.
+const VERIFIED_TOTAL_OVERRIDE = {
+  // 비앤디 블랙컴뱃 4강: 일본 vs 미국 (2026-08-29)
+  // 자동 탐지값(좌석배치도 API 합산)은 3,891석으로 실제보다 762석 적게 나왔던 것을 아래 값으로
+  // 바로잡습니다. 처음엔 등급별 세부 총원(totals)까지는 오버라이드하지 않고 fetchSeatBreakdown()의
+  // 자동 탐지값(합계 3,877석 — 등급별로도 버그 영향을 그대로 받아 실제보다 적음)을 참고용으로만
+  // 뒀었는데, 2026-08-18에 38개 구역을 이번엔 "구역별 등급"까지 함께 확인해 등급별 진짜 총원도
+  // 구했으므로 totals도 함께 오버라이드합니다 (아래 6개 등급 합계 = 4,653석으로 overallTotal과
+  // 정확히 일치 — 구역마다 등급이 섞이지 않고 하나로만 배정되어 있어 구역 단위 합산이 그대로
+  // 등급별 총원이 됩니다).
+  1246: {
+    overallTotal: 4653,
+    sellableTotal: 4653,
+    noGradeTotal: 0,
+    // 2026-08-20 갱신: 29CM이 이날 17:50(KST) 판매 도중 신규 등급 "시야방해석"(gradeCode 007)을
+    // 만들어, 기존 등급의 미판매 좌석 딱 300석을 재분류했다 — 우리 10분 주기 기록으로 원 등급별
+    // 이동량이 1석 단위까지 정확히 확인됨(17:41→17:50 스냅샷: 스탠다드 -155, 골드 -83,
+    // 선수 입장로 -62 = 정확히 +300 시야방해석, 총 잔여 합계는 불변). 그만큼을 각 등급 총원에서
+    // 빼고 시야방해석 총원 300을 새로 둔다(합계는 그대로 4,653석). 이 보정 전에는 잔여석만 줄어든
+    // 스탠다드/골드/선수입장로의 "판매 수"가 이동량만큼 부풀려 보였다.
+    // 참고: 재분류된 300석은 좌석배치도 API(preempt/seat/info) 응답에서 통째로 사라져(전 구역
+    // 전수 재조회로 확인 — 총 누락 762석 → 1,062석으로 정확히 +300) 구역별 실시간 좌석
+    // 화면에서는 회색(매진)으로 보인다. 이는 기존에 확인된 API 누락 버그와 같은 계열이다.
+    totals: {
+      '블랙티넘': 48,
+      '골드': 391,
+      '플로어': 214,
+      '선수 입장로': 254,
+      '스탠다드': 2349,
+      '이코노미': 1097,
+      '시야방해석': 300,
+    },
+    verifiedNote: '2026-08-18 38개 구역 전수 시각 확인 + 2026-08-20 시야방해석 300석 재분류 반영',
+  },
+};
 
 function bail(msg) {
   console.error('❌ ' + msg);
   process.exit(1);
 }
 
-if (!TICKET_URL) bail('TICKET_URL 환경변수가 없습니다.');
-if (!TARGET_DATE || !/^\d{4}-\d{2}-\d{2}$/.test(TARGET_DATE)) bail('TARGET_DATE 환경변수가 없거나 형식이 잘못됐습니다. (예: 2026-07-26)');
+if (!ITEM_ID_29CM) bail('ITEM_ID_29CM 환경변수가 없습니다. (예: https://ticket.29cm.co.kr/catalog/3998565 → 3998565)');
 if (!EVENT_KEY) bail('EVENT_KEY 환경변수가 없습니다.');
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) bail('SUPABASE_URL / SUPABASE_ANON_KEY 환경변수가 없습니다.');
 if (!TICKET_BOT_SECRET) bail('TICKET_BOT_SECRET 환경변수가 없습니다.');
 
-// 티켓 판매는 경기 당일(TARGET_DATE)로 끝나므로, 그 다음 날부터는 기록을 자동 정지한다.
-// (Variables를 지우거나 스케줄을 끄는 걸 잊어도 의미 없는 기록/실패가 쌓이지 않게 하는 안전장치.
-//  경기 당일까지는 정상 기록됨. 한국시간 기준으로 판단한다.)
-const kstToday = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
-if (kstToday > TARGET_DATE) {
-  console.log(`⏹️ ${EVENT_KEY}: 경기일(${TARGET_DATE})이 지나 티켓 판매가 종료되었습니다 — 기록을 정지합니다. (오늘: ${kstToday} KST)`);
-  process.exit(0);
+// "2026. 08. 29" / "2026-08-29" 같은 값을 NOL 쪽(ticket-watch.js)과 동일한 "2026.08.29"
+// 형식으로 짧게 바꾼다. 상단 행사 정보 카드의 "📅" 줄에 쓰인다 — 예전엔 turnDateTimeKrViewList의
+// 긴 문장("2026년 8월 29일 (토) 오후 07시 00분")을 그대로 썼지만, 로드FC(NOL) 쪽과 표기가
+// 달라 보기 불편하다는 피드백에 맞춰 통일한다.
+function formatDateShortKo(dateStr) {
+  const m = String(dateStr || '').match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+  if (!m) return null;
+  const [, y, mo, d] = m;
+  return `${y}.${String(mo).padStart(2, '0')}.${String(d).padStart(2, '0')}`;
 }
 
-const targetDayNum = String(parseInt(TARGET_DATE.split('-')[2], 10));
-
-// 회차 이름을 "YYYY.MM.DD(요일) h:mm AM/PM" 형식으로 통일해서 만든다.
-// (북마클릿이 로그인 후 실제 좌석맵 화면에서 그대로 읽어오는 표기와 정확히 같은 형식으로
-//  맞춰야, 이 자동 스크립트가 기록한 회차와 북마클릿으로 수동 기록한 같은 회차가
-//  round_label 문자열이 달라서 서로 다른 회차로 갈라지는 일이 없다.)
-function formatRoundLabel(dateStr, timeStr) {
-  const dm = String(dateStr || '').match(/(\d{4})-(\d{2})-(\d{2})/);
-  const tm = String(timeStr || '').match(/(\d{1,2}):(\d{2})/);
-  if (!dm || !tm) return `${dateStr || ''} ${timeStr || ''}`.trim(); // 형식이 예상과 다르면 원본 그대로(안전망)
-  const [, y, mo, d] = dm;
-  const h = parseInt(tm[1], 10);
-  const mi = tm[2];
+// 회차 이름을 ticket-watch.js(NOL)와 똑같은 "YYYY.MM.DD(요일) h:mm AM/PM" 형식으로 만든다.
+// (round_label 형식이 서로 다르면 같은 회차를 기록해도 갈라져 보일 수 있어서 통일해둔다)
+function formatRoundLabel(isoDateTime) {
+  const m = String(isoDateTime || '').match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!m) return String(isoDateTime || '');
+  const [, y, mo, d, hh, mi] = m;
   const dow = ['일', '월', '화', '수', '목', '금', '토'][new Date(Number(y), Number(mo) - 1, Number(d)).getDay()];
+  const h = parseInt(hh, 10);
   const ampm = h < 12 ? 'AM' : 'PM';
   let h12 = h % 12; if (h12 === 0) h12 = 12;
   return `${y}.${mo}.${d}(${dow}) ${h12}:${mi} ${ampm}`;
 }
 
-async function tryFindDateButton(page) {
-  const candidates = await page.$$(
-    '[class*="calendar"] button, [class*="Calendar"] button, [class*="date"] button, [role="gridcell"] button, td button, [role="gridcell"], td[class*="day"]'
-  );
-  for (const el of candidates) {
-    const text = (await el.innerText().catch(() => '')).trim();
-    if (text !== targetDayNum) continue;
-    const disabled = await el.isDisabled().catch(() => false);
-    const classAttr = (await el.getAttribute('class').catch(() => '')) || '';
-    const ariaDisabled = (await el.getAttribute('aria-disabled').catch(() => '')) || '';
-    if (disabled || ariaDisabled === 'true') continue;
-    if (/disabled|other-month|outside|dim|inactive/i.test(classAttr)) continue;
-    return el;
-  }
-  return null;
+async function getJSON(url) {
+  const res = await fetch(url, { credentials: 'omit' });
+  if (!res.ok) throw new Error(`요청 실패 (${res.status}): ${url}`);
+  const json = await res.json();
+  if (json.resultCode !== '200') throw new Error(`API 응답 오류: ${json.resultMessage || JSON.stringify(json)}`);
+  return json.data;
 }
 
-async function findAndClickDate(page) {
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const btn = await tryFindDateButton(page);
-    if (btn) return btn;
-    const nextBtn = await page
-      .$('[aria-label*="다음"], [class*="next"]:not([class*="disabled"]), button:has-text("›"), button:has-text(">")')
-      .catch(() => null);
-    if (!nextBtn) break;
-    await nextBtn.click().catch(() => {});
-    await page.waitForTimeout(600);
-  }
-  return null;
+// 29CM API가 주는 등급명("VIP 티켓", "일반 티켓" 등)에서 뒤에 붙는 "티켓"을 떼어 사이트
+// 표시용 등급명("VIP", "일반")으로 통일한다. grades/totals/gradePrices 세 곳 모두 이 이름을
+// 키로 써야 index.html에서 서로 매칭되므로, 한 곳에서만 정의해서 어긋나지 않게 한다.
+function gradeDisplayName(seatGradeName, seatGradeCode) {
+  return String(seatGradeName || '').replace(/\s*티켓$/, '').trim() || seatGradeCode;
 }
 
-function parseGrades(text) {
-  // "VIP석 5", "R석: 22", "S석 매진" 등 다양한 표기를 최대한 넓게 잡는다.
-  const grades = {};
-  const re = /([A-Za-z가-힣]{1,6}석)\s*[:\-]?\s*(매진|\d[\d,]*)/g;
-  let m;
-  while ((m = re.exec(text))) {
-    const gradeName = m[1].replace(/석$/, '');
-    const remain = m[2] === '매진' ? 0 : parseInt(m[2].replace(/,/g, ''), 10);
-    grades[gradeName] = { remain };
-  }
-  return grades;
+// 29CM 상품명(productName) 맨 앞에 판매자가 내부 구분용으로 붙여둔 "[개인결제창]" 같은
+// 대괄호 태그가 그대로 섞여 오는 경우가 있어, 사이트에는 그 태그를 떼고 실제 행사명만
+// 보여준다. 태그 표기는 행사마다 다를 수 있어("[사전예매]" 등) 특정 문구를 지우는 대신
+// "맨 앞 대괄호 한 덩어리"를 통째로 떼는 규칙으로 처리한다.
+function stripLeadingTag(name) {
+  return String(name || '').replace(/^\s*\[[^\]]*\]\s*/, '').trim();
 }
 
-// 티켓 제목/장소/기간/오픈안내를 화면 텍스트에서 최대한 뽑아낸다.
-// NOL 상품 페이지는 보통 이런 구조로 나온다 (실제 관찰된 원문):
-//   뮤지컬 〈엘리자벳〉
-//   08.20(목) 11:00
-//   D-10 3차티켓오픈
-//   장소
-//   블루스퀘어 우리은행홀
-//   기간
-//   2026.08.16 ~ 2026.11.15
-//   ...
-//   3차 티켓오픈 : 8월 20일(목) 오전 11시
-// 못 찾은 항목은 그냥 비워두고, 부르는 쪽(postSnapshot 호출부)에서 null로 넘어가면
-// 사이트가 알아서 기존 값(TICKET_INFO 기본값)으로 대체해서 보여준다.
-function extractMeta(bodyText, pageTitle, h1Title) {
-  const meta = {};
-  const lines = bodyText.split('\n').map((s) => s.trim()).filter(Boolean);
-
-  // "장소"/"기간" 라벨 줄 다음에 값이 여러 줄로 나뉘어 나오는 경우가 있다
-  // (예: "장소" 다음 줄에 "블루스퀘어", 그 다음 줄에 "우리은행홀"이 따로 나옴 →
-  // 합쳐서 "블루스퀘어 우리은행홀"이 되어야 함). 다음 라벨 줄이 나올 때까지 이어붙인다.
-  // 페이지에 같은 이름의 라벨이 여러 번 나올 수도 있어서(예: 상단 탭 메뉴에도 "장소"라는
-  // 글자가 있음), 처음으로 값을 제대로 찾은 것만 쓰고 그 이후 중복은 무시한다.
-  const labelSet = new Set(['장소', '기간', '시간', '연령', '일반 예매']);
-  for (let i = 0; i < lines.length; i++) {
-    const isPlace = lines[i] === '장소' && meta.place == null;
-    const isPeriod = lines[i] === '기간' && meta.dateText == null;
-    if (!isPlace && !isPeriod) continue;
-    const collected = [];
-    let j = i + 1;
-    while (j < lines.length && !labelSet.has(lines[j]) && collected.length < 3) {
-      collected.push(lines[j]);
-      j++;
+// 좌석배치도(seatAssignUnits)를 세어서 다음 세 가지를 정확하게 구한다 (NOL 티켓을 판매
+// 중간에 웹사이트 코드를 직접 뜯어서 "전체 좌석 수 vs 실제 판매 대상 좌석 수"를 구분했던 것과
+// 같은 방식 — index.html이 이미 meta.overallTotal/sellableTotal/noGradeTotal 세 값을 받아
+// "ⓘ 좌석 기준" 안내 박스를 그리도록 만들어져 있으므로, 그 형식 그대로 채워 넣는다):
+//   - totals: 등급별 총원 (quantityList에 있는, 즉 공개 판매 대상인 등급만)
+//   - overallTotal: 좌석배치도에 있는 좌석 전체 개수 (등급 배정 여부와 무관하게 전부)
+//   - sellableTotal: 그중 공개 판매 대상 등급(quantityList에 있는 등급)에 속한 좌석 수
+//   - noGradeTotal: overallTotal - sellableTotal (판매 대상이 아닌/등급 미배정 좌석 수)
+// 실패하면(엔드포인트가 막히는 등) null을 반환하고, 그 경우 호출부가
+// estimateTotalsIfFirstSnapshot()으로 대체한다(안전망 — 회귀 없음).
+async function fetchSeatBreakdown(productMasterCode, turnSequence, placeId, quantityList) {
+  if (!placeId) return null;
+  try {
+    const data = await getJSON(
+      `${ORDER_API_BASE}/preempt/seat/info?productMasterCode=${productMasterCode}&turnSequence=${turnSequence}&placeId=${placeId}`
+    );
+    const units = data && data.seatAssignUnits;
+    if (!Array.isArray(units) || units.length === 0) return null;
+    const countByCode = {};
+    for (const u of units) {
+      const code = u.seatGradeCode;
+      if (code == null) continue;
+      countByCode[code] = (countByCode[code] || 0) + 1;
     }
-    if (!collected.length) continue;
-    if (isPlace) meta.place = collected.join(' ');
-    else meta.dateText = collected.join(' ');
-  }
-
-  const openMatch = bodyText.match(
-    /(\d+차)?\s*티켓\s*오픈\s*[:：]?\s*(\d{1,2}월\s*\d{1,2}일\([가-힣]\)\s*(?:오전|오후)?\s*\d{1,2}시(?:\s*\d{1,2}분)?)/
-  );
-  if (openMatch) meta.openText = (openMatch[1] ? openMatch[1] + ' ' : '') + openMatch[2];
-
-  const skipExact = ['로그인', '회원가입', '장바구니', '메뉴', '검색', '고객센터', 'NOL', '홈', '일반 예매', '인터파크', '마이', '찜', '최근 본 상품'];
-  const skipPattern = /^(일반\s*예매|장소|기간|시간|연령|D-\d+|\d{1,2}\.\d{1,2}|\d{1,2}월|\d{1,2}차|오픈예정|오픈\s*안내|(NOL|인터파크)\s*(티켓)?$|\d+\s*\/\s*\d+$)/;
-
-  // 제목: 실측 결과 NOL 상품 페이지는 항상 <h1> 태그 하나에 행사명을 정확히 담고 있다
-  // (2026-08-19 https://nol.yanolja.com/ticket/products/26011375 실측: h1 = "굽네 ROAD FC 078
-  // with K-POP"). 화면 텍스트를 줄 단위로 훑어 "그럴듯한 첫 줄"을 추측하는 기존 방식은 상단
-  // 네비게이션 구성이 바뀔 때마다("NOL 티켓" 브랜드 줄 → "마이/찜/장바구니/최근 본 상품" 메뉴
-  // 줄 → 이미지 카운터 "1/1" 등) 매번 새로운 오탐 사례가 나오는 두더지잡기였다. h1은 페이지
-  // 구조상 행사명 전용 자리라 훨씬 안정적이므로 최우선으로 쓰고, 혹시 h1을 못 찾은 경우에만
-  // 아래 줄 단위 추측 → 탭 제목(document.title) 순으로 안전망을 둔다.
-  if (h1Title) {
-    const h1 = String(h1Title).trim();
-    if (h1 && h1.length >= 2 && h1.length <= 80 && !skipExact.includes(h1) && !skipPattern.test(h1)) {
-      meta.title = h1;
+    const totals = {};
+    let sellableTotal = 0;
+    for (const q of quantityList) {
+      const gradeName = gradeDisplayName(q.seatGradeName, q.seatGradeCode);
+      const count = countByCode[q.seatGradeCode];
+      if (count != null) { totals[gradeName] = count; sellableTotal += count; }
     }
+    if (!Object.keys(totals).length) return null;
+    const overallTotal = units.length;
+    return { totals, overallTotal, sellableTotal, noGradeTotal: Math.max(0, overallTotal - sellableTotal) };
+  } catch (e) {
+    console.log('ℹ️ 좌석배치도에서 총원을 세는 데 실패했습니다 (' + (e.message || e) + ') — 대체 방식으로 넘어갑니다.');
+    return null;
   }
-
-  // 안전망 1: h1을 못 찾았거나 못 믿을 값이었던 경우, 페이지 맨 위쪽 줄들 중 메뉴/버튼/날짜
-  // 표기가 아닌 첫 번째 그럴듯한 줄을 후보로 삼는다. (사이트 구조가 바뀌면 다시 어긋날 수 있음)
-  if (!meta.title) {
-    for (const l of lines.slice(0, 15)) {
-      if (l.length < 2 || l.length > 60) continue;
-      if (skipExact.includes(l)) continue;
-      if (skipPattern.test(l)) continue;
-      meta.title = l;
-      break;
-    }
-  }
-
-  // 안전망 2: 그래도 못 찾은 경우, 브라우저 탭 제목(document.title)에서 뽑아본다. 사이트들이
-  // 보통 "행사명 - NOL 티켓" / "행사명 | 인터파크" 처럼 행사명을 맨 앞에 두고 사이트명을 뒤에
-  // 구분자로 붙이므로, 맨 앞 구분자 이전 조각을 쓰고 그 조각 자체가 브랜드명뿐이면 버린다.
-  if (!meta.title && pageTitle) {
-    const head = String(pageTitle).split(/\s*[-|::·]\s*/)[0].trim();
-    if (head && head.length >= 2 && head.length <= 60 && !skipExact.includes(head) && !/^(NOL|인터파크)(\s*티켓)?$/.test(head)) {
-      meta.title = head;
-    }
-  }
-
-  return meta;
 }
 
-// 같은 event_key + round_label로 이미 기록된 스냅샷이 있는지 확인한다.
-// (총원 자동 추정에 쓰임 — 아래 참고)
+// 위 방식이 실패했을 때만 쓰는 예전 방식(안전망): ticket-watch.js(NOL)와 같은 방식으로, 이
+// 회차를 통틀어 우리가 "처음으로" 기록하는 순간이면 그때의 잔여석 = 총원으로 추측한다.
 async function fetchExistingSnapshotCount(roundLabel) {
   try {
-    const params = new URLSearchParams({
-      event_key: `eq.${EVENT_KEY}`,
-      select: 'id',
-      limit: '1',
-    });
+    const params = new URLSearchParams({ event_key: `eq.${EVENT_KEY}`, select: 'id', limit: '1' });
     if (roundLabel) params.set('round_label', `eq.${roundLabel}`);
     const res = await fetch(`${SUPABASE_URL}/rest/v1/ticket_snapshots?${params.toString()}`, {
       headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
@@ -227,125 +210,23 @@ async function fetchExistingSnapshotCount(roundLabel) {
   }
 }
 
-// 등급별 "총 좌석수"는 예매 사이트 화면 어디에도 직접 나오지 않는다(잔여석만 보여줌).
-// 대신, 이 회차를 통틀어 우리가 "처음으로" 기록하는 순간이라면 그때의 잔여석 = 총원이라고
-// 볼 수 있다(아직 아무도 안 샀을 가능성이 가장 높은 시점이므로). 이후 회차에는 그 총원을
-// 기준으로 실제 판매 수/비율을 계산한다.
-// 주의: 이미 판매가 어느 정도 진행된 뒤에 자동화를 처음 켠 경우에는 이 방식이 정확하지 않다
-// (그 시점의 잔여석을 총원으로 잘못 볼 수 있음) — 그런 경우엔 그냥 총원 없이(null) 넘어가고,
-// 지금까지처럼 잔여석만 보여주는 기존 방식 그대로 동작한다(회귀 없음).
-//
-// 2026-08-20 추가: "판매 도중 새 등급이 풀리는" 경우도 처리한다. 실제 사례 — 로드FC가 경기를
-// 앞두고 낮 12시에 VIP 플로어(1열)/(2열) 좌석을 추가 오픈했는데, 기존 로직은 "회차의 첫
-// 기록"에서만 총원을 추정해서 뒤늦게 등장한 새 등급은 총원을 영영 모르는 채로 남았다(사이트에
-// 판매율 막대 없음, 전체 좌석 합계에도 미반영 — 북마클릿을 수동으로 다시 돌려야만 채워졌다).
-// 이제 직전 기록들에 한 번도 없던 등급이 새로 나타나면, 그 등급의 "처음 목격 시점 잔여석 =
-// 총원"으로 추정해(추가 오픈 직후의 첫 수집이므로 실제 총원과 거의 같다) 기존에 알고 있던
-// 총원에 합쳐서 기록한다. 새 등급이 없으면 totals를 아예 기록하지 않는다(null) — 사이트는
-// "totals가 담긴 가장 최근 기록"을 총원의 기준으로 쓰기 때문에, 일부 등급만 담긴 totals를
-// 함부로 기록하면 북마클릿이 좌석맵을 실제로 세어 넣어둔 정확한 총원을 덮어쓰게 된다.
-// 같은 이유로 합칠 때도 기존에 알던 값을 그대로 두고 새 등급만 보탠다.
-async function computeTotalsToRecord(grades, roundLabel) {
+async function estimateTotalsIfFirstSnapshot(grades, roundLabel) {
   const priorCount = await fetchExistingSnapshotCount(roundLabel);
-  if (priorCount === null) return null; // 확인 자체에 실패 — 추정하지 않는다(안전)
-  if (priorCount === 0) {
-    const totals = {};
-    for (const g of Object.keys(grades)) totals[g] = grades[g].remain;
-    console.log(`🆕 ${roundLabel ? `[${roundLabel}] ` : ''}첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다:`, JSON.stringify(totals));
-    return totals;
-  }
-  try {
-    const params = new URLSearchParams({
-      event_key: `eq.${EVENT_KEY}`,
-      select: 'grades,totals,meta',
-      order: 'captured_at.desc',
-      limit: '200',
-    });
-    if (roundLabel) params.set('round_label', `eq.${roundLabel}`);
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/ticket_snapshots?${params.toString()}`, {
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
-    });
-    if (!res.ok) return null;
-    const rows = await res.json().catch(() => null);
-    if (!Array.isArray(rows) || !rows.length) return null;
-    // 최근 기록(최대 200건)에서 세 가지를 모은다:
-    //  1) known    — 잔여/총원 어느 쪽에든 한 번이라도 등장한 등급(일시적 API 누락으로 기존
-    //                등급을 새 등급으로 오인하지 않기 위해 여러 기록을 함께 본다)
-    //  2) prevTotals — 가장 최근에 알아낸 등급별 총원(북마클릿 캡처 또는 이 함수의 과거 기록)
-    //  3) maxRemain  — 등급별로 지금까지 목격된 최대 잔여석(총원 소급 추정용)
-    const known = new Set();
-    let prevTotals = null;
-    let prevExact = null; // 북마클릿이 실제 좌석 데이터에서 센 정확한 등급별 총원(meta.gradeTotals)
-    const maxRemain = {};
-    for (const r of rows) {
-      for (const k of Object.keys(r.grades || {})) {
-        known.add(k);
-        const v = r.grades[k];
-        if (v && v.remain != null) maxRemain[k] = Math.max(maxRemain[k] != null ? maxRemain[k] : -1, v.remain);
-      }
-      for (const k of Object.keys(r.totals || {})) known.add(k);
-      if (!prevTotals && r.totals && Object.keys(r.totals).length) prevTotals = r.totals;
-      if (!prevExact && r.meta && r.meta.gradeTotals && Object.keys(r.meta.gradeTotals).length) prevExact = r.meta.gradeTotals;
-    }
-    // 실측값(북마클릿 캡처)이 있으면 추정치 위에 덮어써서 "알고 있는 총원"의 기준으로 삼는다 —
-    // 이 함수가 낡은 추정치를 근거로 실측보다 작은 총원을 다시 기록하는 일을 막는다.
-    // (실사례: 추가 오픈된 VIP 플로어 1열/2열을 최대 잔여석 기준 31/40석으로 추정했지만
-    //  실측은 35/45석 — 첫 수집 전에 이미 몇 석이 팔린 만큼 추정이 항상 작거나 같다.)
-    if (prevExact) prevTotals = Object.assign({}, prevTotals || {}, prevExact);
-    // 총원을 새로 알게 되거나 고쳐야 하는 등급을 찾는다. 세 가지 경우:
-    //  A) 완전히 처음 보는 등급(추가 오픈 직후의 첫 수집) — 지금 잔여석 = 총원으로 추정
-    //  B) 잔여석은 이미 쌓이고 있는데 총원만 모르는 등급 — 이 백필 로직이 생기기 전에 추가
-    //     오픈된 등급(실사례: VIP 플로어 1열/2열 — 북마클릿의 등급 총원/가격 소스에도 새
-    //     등급이 안 담겨 있어 수동 캡처로도 총원이 안 채워졌다). 오픈 이후 목격된 최대
-    //     잔여석을 총원으로 소급 추정한다(오픈 직후 기록일수록 실제 총원에 가깝다).
-    //  C) 알고 있던 총원보다 잔여석이 더 커진 등급 = 기존 등급에 좌석이 추가로 풀림 — 총원을
-    //     그만큼 올려잡는다(안 그러면 판매수가 음수가 되어 표시가 깨진다).
-    const changes = {};
-    const why = [];
-    for (const g of Object.keys(grades)) {
-      const v = grades[g];
-      if (!v || v.remain == null) continue;
-      const seenMax = Math.max(v.remain, maxRemain[g] != null ? maxRemain[g] : -1);
-      if (seenMax <= 0) continue; // 목격된 좌석이 0뿐인 등급은 총원 추정이 무의미
-      const knownTotal = prevTotals ? prevTotals[g] : null;
-      if (!known.has(g)) {
-        changes[g] = v.remain; why.push(`${g}: 신규 등장(잔여 ${v.remain} = 총원)`);
-      } else if (prevTotals && knownTotal == null) {
-        changes[g] = seenMax; why.push(`${g}: 총원 미기록 소급(최대 잔여 ${seenMax} = 총원)`);
-      } else if (knownTotal != null && seenMax > knownTotal) {
-        changes[g] = seenMax; why.push(`${g}: 좌석 추가 감지(총원 ${knownTotal} → ${seenMax})`);
-      }
-    }
-    if (!Object.keys(changes).length) return null; // 바꿀 게 없으면 총원을 아예 기록하지 않는다(기존 값 보존)
-    const merged = Object.assign({}, prevTotals || {}, changes);
-    console.log(`🆕 ${roundLabel ? `[${roundLabel}] ` : ''}등급별 총원 갱신 — ${why.join(' / ')}`);
-    console.log('   기록할 총원:', JSON.stringify(merged));
-    return merged;
-  } catch (_) {
-    return null;
-  }
+  if (priorCount !== 0) return null;
+  const totals = {};
+  for (const g of Object.keys(grades)) totals[g] = grades[g].remain;
+  return totals;
 }
 
-// 사이트가 "지금 어떤 event_key를 봐야 하는지"를 index.html에 손대지 않고도 알 수 있도록,
-// 실행할 때마다 "지금 이 경기를 추적 중"이라고 Supabase에 알려둔다. 이 호출 자체가 실패해도
-// (예: 아직 티켓현황_자동event_key_패치.sql을 안 돌렸다면) 전체 스크립트를 멈추지는 않는다 —
-// 그 경우 사이트는 기존처럼 index.html에 하드코딩된 TICKET_EVENT_KEY로 대체 동작한다.
 async function setCurrentTicketEvent() {
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/set_current_ticket_event`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      },
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
       body: JSON.stringify({ p_secret: TICKET_BOT_SECRET, p_event_key: EVENT_KEY }),
     });
-    if (!res.ok) {
-      console.log('ℹ️ "지금 event_key" 갱신에 실패했습니다(패치를 아직 안 돌렸다면 정상) — 계속 진행합니다.');
-    } else {
-      console.log(`🔗 사이트가 자동으로 볼 event_key를 "${EVENT_KEY}"로 갱신했습니다.`);
-    }
+    if (!res.ok) console.log('ℹ️ "지금 event_key" 갱신에 실패했습니다(패치를 아직 안 돌렸다면 정상) — 계속 진행합니다.');
+    else console.log(`🔗 사이트가 자동으로 볼 event_key를 "${EVENT_KEY}"로 갱신했습니다.`);
   } catch (_) {
     console.log('ℹ️ "지금 event_key" 갱신 중 오류 — 계속 진행합니다.');
   }
@@ -354,11 +235,7 @@ async function setCurrentTicketEvent() {
 async function postSnapshot(grades, roundLabel, note, totals, meta) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/record_ticket_snapshot`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
+    headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
     body: JSON.stringify({
       p_secret: TICKET_BOT_SECRET,
       p_event_key: EVENT_KEY,
@@ -376,178 +253,151 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
 }
 
 (async () => {
-  // 클라우드플레어 등 봇 차단을 피하려고, 일반적인 데스크톱 크롬 사용자처럼 보이도록
-  // User-Agent/언어/시간대를 지정하고 자동화 흔적(navigator.webdriver 등)을 숨긴다.
-  const browser = await chromium.launch({
-    args: ['--disable-blink-features=AutomationControlled'],
-  });
-  const context = await browser.newContext({
-    viewport: { width: 1280, height: 900 },
-    locale: 'ko-KR',
-    timezoneId: 'Asia/Seoul',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    extraHTTPHeaders: { 'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7' },
-  });
-  await context.addInitScript(() => {
-    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-  });
-  const page = await context.newPage();
   let recorded = 0;
-
-  // NOL은 화면에 회차/잔여석을 그려주기 전에, 자체 API에서 깨끗한 JSON으로 그 데이터를
-  // 받아온다는 걸 진단 과정에서 확인했다 (/ticket/products/api/remaining-seats,
-  // /ticket/products/api/schedules). 화면 텍스트를 정규식으로 긁는 것보다 이 응답을
-  // 직접 읽는 게 훨씬 정확하고 화면 구조가 바뀌어도 잘 안 깨지므로, 날짜/회차를 클릭하는
-  // 동안 이 응답들이 지나가면 가로채서 저장해둔다. (여기서 못 잡으면 기존처럼 화면 텍스트
-  // 파싱으로 자동 대체됨 — 안전망은 그대로 유지)
-  const capturedRemainByPlaySeq = new Map(); // playSeq -> {VIP:{remain:5}, ...}
-  const capturedScheduleByPlaySeq = new Map(); // playSeq -> {playDate, playTime, saleOpenTime}
-  let capturedGoodsCode = null; // 사이트의 "수동 갱신(실시간 조회)" 버튼이 쓸 API 주소 재료
-  page.on('response', async (res) => {
-    try {
-      const url = res.url();
-      if (/\/api\/remaining-seats/.test(url)) {
-        try { capturedGoodsCode = new URL(url).searchParams.get('goodsCode') || capturedGoodsCode; } catch (_) {}
-        const json = await res.json().catch(() => null);
-        if (json && Array.isArray(json.remainSeat)) {
-          for (const row of json.remainSeat) {
-            const seq = row.playSeq;
-            if (!seq || !row.seatGradeName) continue;
-            const gradeName = String(row.seatGradeName).replace(/석$/, '');
-            const prev = capturedRemainByPlaySeq.get(seq) || {};
-            prev[gradeName] = { remain: row.remainCnt };
-            capturedRemainByPlaySeq.set(seq, prev);
-          }
-        }
-      } else if (/\/api\/schedules/.test(url)) {
-        const json = await res.json().catch(() => null);
-        if (json && Array.isArray(json.content)) {
-          for (const row of json.content) {
-            if (row.playSeq) capturedScheduleByPlaySeq.set(row.playSeq, row);
-          }
-        }
-      }
-    } catch (_) {}
-  });
   try {
-    console.log('▶ 기록 대상 event_key:', EVENT_KEY);
-    if (SET_CURRENT) await setCurrentTicketEvent();
-    else console.log('ℹ️ 보조 대회 기록 모드(SET_CURRENT=false) — 사이트 메인 표시는 건드리지 않고 데이터만 쌓습니다.');
-    console.log('▶ 티켓 페이지 접속:', TICKET_URL);
-    // networkidle(요청이 완전히 잠잠해질 때까지 대기)은 채팅위젯/광고/분석 스크립트가
-    // 계속 백그라운드 통신을 하는 요즘 사이트에서는 영영 안 걸릴 수 있어 타임아웃이 잦다.
-    // 대신 HTML만 로드되면 넘어가고, 뒤이어 자바스크립트 렌더링 시간을 넉넉히 기다린다.
-    await page.goto(TICKET_URL, { waitUntil: 'domcontentloaded', timeout: 45000 });
-    await page.waitForTimeout(4000);
+    console.log('▶ 기록 대상 event_key:', EVENT_KEY, '/ 29CM itemId:', ITEM_ID_29CM);
 
-    // 진단용: 스크린샷을 따로 안 받아도 로그만 보고 "지금 실제로 브라우저가 뭘 보고 있는지"
-    // 바로 알 수 있도록, 페이지 제목과 화면 텍스트 앞부분을 그대로 출력해둔다.
-    const pageTitle = await page.title().catch(() => '(제목 없음)');
-    const diagText = (await page.innerText('body').catch(() => '')).replace(/\s+/g, ' ').trim().slice(0, 600);
-    console.log('🔎 페이지 제목:', pageTitle);
-    console.log('🔎 화면 텍스트(앞부분 600자):', diagText || '(비어 있음 — 아무 텍스트도 못 읽었습니다)');
+    const productMasterCode = await getJSON(`${API_BASE}/item/code?itemId=${encodeURIComponent(ITEM_ID_29CM)}`);
+    if (!productMasterCode) throw new Error('productMasterCode를 찾지 못했습니다 (itemId가 올바른지 확인하세요).');
+    console.log('🔎 productMasterCode:', productMasterCode);
 
-    // 실제 상품 화면이 아니라 클라우드플레어 등의 봇 차단 페이지가 뜬 경우, 명확하게 구분해서 알린다
-    // ("판매 종료"와는 다른 문제 — 접속 자체가 막힌 것이므로 재시도/우회가 필요함).
-    if (/UNDER CONSTRUCTION|RayID|일시적으로 서비스를 이용하실 수 없습니다/i.test(diagText + ' ' + pageTitle)) {
-      throw new Error('봇 차단 페이지가 표시되었습니다 (실제 티켓 페이지가 아님). 접속 IP가 자동화 트래픽으로 감지되어 막힌 것으로 보입니다.');
+    const info = await getJSON(`${API_BASE}/info?productMasterCode=${productMasterCode}`);
+
+    // 경기/공연일이 지났으면 자동으로 기록을 정지한다 (ticket-watch.js와 동일한 안전장치).
+    const eventEndDate = (TARGET_DATE && /^\d{4}-\d{2}-\d{2}$/.test(TARGET_DATE))
+      ? TARGET_DATE
+      : String(info.productRunEndDate || '').replace(/\./g, '-').replace(/\s+/g, '');
+    const kstToday = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    if (eventEndDate && kstToday > eventEndDate) {
+      console.log(`⏹️ ${EVENT_KEY}: 경기일(${eventEndDate})이 지나 티켓 판매가 종료되었습니다 — 기록을 정지합니다. (오늘: ${kstToday} KST)`);
+      process.exit(0);
     }
 
-    // 제목/장소/기간/오픈안내는 달력을 누르기 전, 페이지 상단에 이미 나와 있는 경우가 많다.
-    // (날짜를 클릭하면 회차별 잔여석이 나오는 것과는 별개 정보라 여기서 미리 읽어둔다)
-    const fullBodyText = await page.innerText('body').catch(() => '');
-    // 2026-08-19: 줄 단위 추측이 상단 네비게이션 변화("NOL 티켓" → "마이/찜/장바구니" 등)에
-    // 계속 오탐을 내서, 실제 행사명이 항상 담기는 <h1> 태그를 최우선 소스로 함께 넘긴다.
-    const h1Title = await page.locator('h1').first().innerText({ timeout: 3000 }).catch(() => '');
-    const meta = extractMeta(fullBodyText, pageTitle === '(제목 없음)' ? '' : pageTitle, h1Title);
-    // 예매 페이지 주소도 기록에 남긴다 — 사이트의 "예매하러 가기" 버튼이 이 값을 우선 사용해서,
-    // 행사가 바뀔 때마다 index.html의 하드코딩 주소(TICKET_INFO.buyUrl)를 고칠 필요가 없어진다.
-    meta.buyUrl = TICKET_URL;
-    // 출처 표시용 — 예전 기록(이 필드가 생기기 전)엔 없지만, index.html 쪽에서 없으면
-    // 'NOL 티켓'으로 대체해서 보여주므로 화면은 그대로 유지된다.
-    meta.platform = 'NOL 티켓';
+    // "기간"에 해당하는 짧은 날짜 표기 — 로드FC(NOL) 쪽과 동일하게 "2026.08.29" 형식으로
+    // 통일한다(시작일과 종료일이 다르면 "시작 ~ 종료"로). openText(티켓 오픈 안내)는 요청에 따라
+    // 더 이상 채우지 않는다 — index.html은 이 값이 없으면 그 줄을 그냥 표시하지 않는다.
+    const startShort = formatDateShortKo(info.productRunStartDate);
+    const endShort = formatDateShortKo(info.productRunEndDate);
+    const dateText = startShort && endShort && startShort !== endShort
+      ? `${startShort} ~ ${endShort}`
+      : (startShort || endShort || null);
+    // 등급별 정가 — NOL(로드FC 등)은 이 값을 자동으로 못 구해서 북마클릿으로 수동 캡처했지만,
+    // 29CM은 상품 정보 API(seatGradePriceList)가 이미 등급별 가격을 공개로 내려주므로 자동으로
+    // 채운다. index.html의 잔여 좌석 카드는 meta.gradePrices가 있으면 등급명 옆에 가격을,
+    // 없으면 그냥 가격 없이 보여준다(북마클릿 캡처가 있는 NOL 회차와 동일한 방식).
+    // 등급별 공식 색상(seatGradeColorCode)도 가격과 같은 방식으로 자동으로 채운다 — 29CM 판매
+    // 페이지가 실제로 쓰는 등급 색과 사이트 표시를 통일하기 위함(예: 안내 프리뷰/구역도 이미지의
+    // 등급 색과 우리 사이트의 등급별 판매 비율 도넛 색을 맞춤).
+    const gradePrices = {};
+    const gradeColors = {};
+    if (Array.isArray(info.seatGradePriceList)) {
+      for (const g of info.seatGradePriceList) {
+        const gradeName = gradeDisplayName(g.seatGradeName, g.seatGradeCode);
+        if (g.seatGradePrice != null) gradePrices[gradeName] = g.seatGradePrice;
+        if (g.seatGradeColorCode) gradeColors[gradeName] = g.seatGradeColorCode;
+      }
+    }
+    const meta = {
+      title: stripLeadingTag(info.productName) || info.productName || null,
+      place: info.placeName || null,
+      dateText,
+      buyUrl: `https://ticket.29cm.co.kr/catalog/${ITEM_ID_29CM}`,
+      platform: '29CM',
+      api: { productMasterCode },
+      gradePrices: Object.keys(gradePrices).length ? gradePrices : undefined,
+      gradeColors: Object.keys(gradeColors).length ? gradeColors : undefined,
+    };
     console.log('🔎 자동 추출된 행사 정보:', JSON.stringify(meta));
 
-    const dateBtn = await findAndClickDate(page);
-    if (!dateBtn) {
-      // 달력이 아예 없는 상황(판매 종료/판매 예정 등)인지 먼저 확인한다.
-      // 이런 경우는 스크립트나 화면 구조 문제가 아니라 "지금은 기록할 게 없다"는 정상 상태이므로,
-      // 실패(빨간 X)로 처리하지 않고 조용히 종료한다.
-      const preText = await page.innerText('body').catch(() => '');
-      if (/판매\s*종료/.test(preText)) {
-        console.log('ℹ️ 이 상품은 판매가 종료된 상태입니다. 기록할 내용이 없어 정상 종료합니다.');
-        await browser.close();
-        process.exit(0);
-      }
-      if (/판매\s*(예정|대기|전)|오픈\s*예정/.test(preText)) {
-        console.log('ℹ️ 아직 판매 시작 전(오픈 예정) 상태로 보입니다. 기록할 내용이 없어 정상 종료합니다.');
-        await browser.close();
-        process.exit(0);
-      }
-      throw new Error(
-        `달력에서 ${targetDayNum}일 버튼을 찾지 못했습니다. (판매 종료/예정 문구도 없었습니다 — 화면 구조가 예상과 다를 수 있습니다)`
-      );
+    if (SET_CURRENT) await setCurrentTicketEvent();
+    else console.log('ℹ️ 보조 대회 기록 모드(SET_CURRENT=false) — 사이트 메인 표시는 건드리지 않고 데이터만 쌓습니다.');
+
+    const turns = await getJSON(`${API_BASE}/turn/info?productMasterCode=${productMasterCode}`);
+    if (!Array.isArray(turns) || turns.length === 0) {
+      console.log('ℹ️ 등록된 회차가 없습니다 (아직 티켓 오픈 전이거나 판매 종료된 상태일 수 있습니다). 기록할 내용이 없어 정상 종료합니다.');
+      process.exit(0);
     }
-    await dateBtn.click();
-    await page.waitForTimeout(2000); // API 응답이 도착할 시간을 조금 더 준다
+    console.log(`🔎 ${turns.length}개 회차 확인됨`);
 
-    if (capturedRemainByPlaySeq.size > 0) {
-      // NOL 자체 API에서 잔여석 JSON을 직접 받았으면, 화면 텍스트를 긁는 것보다 이게 훨씬
-      // 정확하고 화면 구조 변경에도 안 깨지므로 이쪽을 우선 사용한다.
-      console.log(`🔗 API에서 ${capturedRemainByPlaySeq.size}개 회차의 잔여석 응답을 직접 받았습니다 (화면 텍스트 대신 이걸 우선 사용).`);
-      for (const [playSeq, grades] of capturedRemainByPlaySeq) {
-        if (Object.keys(grades).length === 0) continue;
-        const sched = capturedScheduleByPlaySeq.get(playSeq);
-        const roundLabel = sched ? formatRoundLabel(sched.playDate, sched.playTime) : `${TARGET_DATE} (playSeq ${playSeq})`;
-        const totals = await computeTotalsToRecord(grades, roundLabel);
-        // 이 회차의 API 좌표(goodsCode/playSeq)를 meta에 같이 남긴다 — 사이트의 "수동 갱신"
-        // 버튼이 5분 스케줄을 기다리지 않고 예매 사이트에서 즉석으로 잔여석을 조회할 때 쓴다.
-        const metaForRound = capturedGoodsCode
-          ? Object.assign({}, meta, { api: { goodsCode: capturedGoodsCode, playSeq } })
-          : meta;
-        await postSnapshot(grades, roundLabel, 'NOL API 응답에서 직접 추출', totals, metaForRound);
-        recorded++;
+    for (const turn of turns) {
+      const detail = await getJSON(
+        `${API_BASE}/turn/detail/seat/info?productMasterCode=${productMasterCode}&turnSequence=${turn.turnSequence}`
+      );
+      const row = Array.isArray(detail) ? detail.find((d) => d.turnSequence === turn.turnSequence) || detail[0] : null;
+      const quantityList = row && row.quantityList;
+      if (!Array.isArray(quantityList) || quantityList.length === 0) {
+        console.log(`ℹ️ 회차(turnSequence=${turn.turnSequence})의 잔여석 정보를 찾지 못해 건너뜁니다.`);
+        continue;
       }
-    } else {
-      // 안전망: API 응답을 못 잡았을 경우, 기존처럼 화면 텍스트를 정규식으로 긁는다.
-      console.log('ℹ️ API 응답을 못 잡았습니다 — 화면 텍스트 파싱 방식으로 대체합니다.');
-      const bodyText = await page.innerText('body').catch(() => '');
-      // 회차(시간)별로 줄을 나눠서, 시간 표기 + 등급/잔여석이 함께 있는 줄만 추린다.
-      const lines = bodyText
-        .split('\n')
-        .map((s) => s.trim())
-        .filter(Boolean);
-      const roundLines = lines.filter((l) => /\d{1,2}:\d{2}/.test(l) && /석/.test(l));
-
-      if (roundLines.length === 0) {
-        // 회차 목록이 한 줄로 안 묶여 있을 수도 있으니, 페이지 전체에서 한 번 더 시도한다.
-        const grades = parseGrades(bodyText);
-        if (Object.keys(grades).length === 0) {
-          throw new Error('날짜는 클릭했지만 등급별 잔여석 정보를 화면에서 찾지 못했습니다.');
+      const grades = {};
+      for (const q of quantityList) {
+        const gradeName = gradeDisplayName(q.seatGradeName, q.seatGradeCode);
+        // quantityList에는 실제로 판매하지 않는 "유령" 등급이 항상 잔여 0으로 섞여 나올 때가
+        // 있습니다 (이 행사의 "시야방해석"이 그 예 — 실제 29CM 판매 페이지에는 뜨지도 않고
+        // 가격 정보(seatGradePriceList)도 없는데, API의 quantityList에는 항상 잔여 0으로 잡혀
+        // 사이트에 "매진"으로 잘못 표시됐습니다). 가격 정보가 없는 등급은 판매 대상이 아니라고
+        // 보고 기록에서 제외합니다 (gradePrices 자체가 비어있으면 — 즉 이 API가 가격을 아예
+        // 안 주는 다른 행사면 — 이 필터를 걸지 않고 예전처럼 전부 기록합니다, 안전망).
+        if (Object.keys(gradePrices).length && gradePrices[gradeName] == null) {
+          console.log(`ℹ️ "${gradeName}" 등급은 가격 정보가 없어(=실제 판매 대상 아님) 기록에서 제외합니다.`);
+          continue;
         }
-        const totals = await computeTotalsToRecord(grades, null);
-        await postSnapshot(grades, null, '회차 구분 없이 페이지 전체에서 추출', totals, meta);
-        recorded++;
+        grades[gradeName] = { remain: q.turnClassificationRemainingProductQuantity };
+      }
+      const roundLabel = formatRoundLabel(turn.turnDateTime);
+      const placeId = turn.placeId || row.placeId;
+      const breakdown = await fetchSeatBreakdown(productMasterCode, turn.turnSequence, placeId, quantityList);
+      const verifiedOverride = VERIFIED_TOTAL_OVERRIDE[productMasterCode];
+      let totals, note;
+      let turnMeta = meta;
+      if (verifiedOverride) {
+        // 이 상품은 좌석배치도 API의 누락 버그가 확인되어, 자동 탐지 대신 수동 검증값을 씁니다.
+        // verifiedOverride.totals(등급별 총원)까지 채워둔 행사면 그것을 그대로 쓰고, 아직 없는
+        // 행사면(등급별 매칭 전) breakdown의 자동 탐지값을 참고용으로만 씁니다(안전망).
+        totals = verifiedOverride.totals || (breakdown ? breakdown.totals : undefined);
+        // 안전망(2026-08-20 추가): 판매 도중 29CM이 새 등급을 만들어내는 실사례("시야방해석"
+        // 300석 재분류)가 있었다 — 잔여석 목록에는 있는데 수동 검증 총원에 아직 없는 등급이
+        // 보이면, 일단 "지금 잔여석 = 총원"으로 추정해 넣어 화면에 총원/판매율이 비지 않게 하고,
+        // 로그로 크게 알려 수동 검증값(VERIFIED_TOTAL_OVERRIDE) 갱신을 유도한다. 이 추정은
+        // 새 등급 쪽만 채울 뿐 기존 등급 총원 차감(재분류 이동량)까지는 알 수 없으므로,
+        // 정확한 보정은 여전히 사람이 이동량을 확인해 오버라이드를 고쳐야 한다.
+        if (totals) {
+          const missing = Object.keys(grades).filter((g) => totals[g] == null && grades[g] && grades[g].remain != null);
+          if (missing.length) {
+            totals = { ...totals };
+            for (const g of missing) totals[g] = grades[g].remain;
+            console.log(`⚠️ [${roundLabel}] 수동 검증 총원에 없는 새 등급 발견: ${missing.join(', ')} — 잔여석을 총원으로 임시 추정했습니다. VERIFIED_TOTAL_OVERRIDE를 실측으로 갱신해 주세요!`);
+          }
+        }
+        note = `총원은 수동 검증값 사용(29CM 좌석배치도 API 누락 버그 확인됨, ${verifiedOverride.verifiedNote}) — 잔여석은 실시간 API`;
+        turnMeta = { ...meta, overallTotal: verifiedOverride.overallTotal, sellableTotal: verifiedOverride.sellableTotal, noGradeTotal: verifiedOverride.noGradeTotal };
+        console.log(
+          `✅ [${roundLabel}] 수동 검증된 총원 오버라이드 적용: 총 ${verifiedOverride.overallTotal}석 (${verifiedOverride.verifiedNote})`
+        );
+      } else if (breakdown) {
+        totals = breakdown.totals;
+        note = '29CM 공개 API에서 직접 추출 (좌석배치도로 등급별 총원 확인)';
+        turnMeta = { ...meta, overallTotal: breakdown.overallTotal, sellableTotal: breakdown.sellableTotal, noGradeTotal: breakdown.noGradeTotal };
+        console.log(
+          `🎯 [${roundLabel}] 좌석배치도에서 등급별 총원을 정확히 확인했습니다:`, JSON.stringify(totals),
+          `(전체 ${breakdown.overallTotal}석 중 판매대상 ${breakdown.sellableTotal}석, 미배정 ${breakdown.noGradeTotal}석)`
+        );
       } else {
-        for (const line of roundLines) {
-          const timeMatch = line.match(/\d{1,2}:\d{2}/);
-          const grades = parseGrades(line);
-          if (Object.keys(grades).length === 0) continue;
-          const roundLabel = formatRoundLabel(TARGET_DATE, timeMatch[0]);
-          const totals = await computeTotalsToRecord(grades, roundLabel);
-          await postSnapshot(grades, roundLabel, null, totals, meta);
-          recorded++;
-        }
+        // 안전망: 좌석배치도 조회가 실패했을 때만, 이번이 첫 기록이면 잔여석을 총원으로 추측한다.
+        // 이 경우 overallTotal/sellableTotal/noGradeTotal은 알 수 없으므로 지어내지 않고 생략한다.
+        totals = await estimateTotalsIfFirstSnapshot(grades, roundLabel);
+        note = '29CM 공개 API에서 직접 추출';
+        if (totals) console.log(`🆕 [${roundLabel}] 첫 기록으로 보여, 지금 잔여석을 총원으로 기록합니다(추정치):`, JSON.stringify(totals));
       }
+      await postSnapshot(grades, roundLabel, note, totals, turnMeta);
+      console.log(`✅ [${roundLabel}] 기록 완료:`, JSON.stringify(grades));
+      recorded++;
     }
 
     if (recorded === 0) throw new Error('파싱된 회차가 없어 기록하지 못했습니다.');
-    console.log(`✅ ${recorded}개 회차 기록 완료`);
+    console.log(`✅ 총 ${recorded}개 회차 기록 완료`);
   } catch (err) {
-    await page.screenshot({ path: 'ticket-debug.png', fullPage: true }).catch(() => {});
     console.error('❌ ' + (err && err.message ? err.message : String(err)));
-    await browser.close();
     process.exit(1);
   }
-  await browser.close();
 })();
