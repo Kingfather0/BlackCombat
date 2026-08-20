@@ -10632,7 +10632,7 @@
         return a.localeCompare(b, 'ko');
       });
     }
-    function gradeRowsHTML(grades, totals, prices) {
+    function gradeRowsHTML(grades, totals, prices, holds) {
       const keys = sortGradeKeysByPrice(Object.keys(grades || {}), prices);
       if (!keys.length) return '<div class="empty" style="padding:8px 0">등급별 정보 없음</div>';
       // 위쪽 "전체 좌석"과 표현을 통일: 항상 "남은 좌석 수"와 "판매율"을 같이 보여준다
@@ -10651,8 +10651,12 @@
         const remainText = isSoldOut ? '매진' : (remain === 0 ? '0석' : (remain != null ? esc(remain.toLocaleString()) + '석 남음' : '-'));
         const priceText = price != null ? `<span style="font-size:11.5px;color:var(--dim);font-weight:600;margin-left:6px">${price.toLocaleString()}원</span>` : '';
         // 등급별 총원을 모르는 경우엔 별도 안내 없이 잔여석만 깔끔하게 보여준다.
+        // 예상 매출 내역과 동일한 스타일로, 미분류(주최측 시스템 밖) 좌석이 섞인 등급에는
+        // "(미분류 N석 포함)" 주석을 판매 줄 끝에 붙인다(2026-08-20 요청 — BC_2026_0829 전용).
+        const holdCnt = holds && holds[k];
+        const holdTag = holdCnt ? ` <span style="color:var(--dim);font-size:10.5px;font-weight:600">(미분류 ${holdCnt}석 포함)</span>` : '';
         const statusLine = soldPct != null
-          ? `<div class="tk-bar"><i style="width:${soldPct}%"></i></div><div class="tk-pct">${soldPct}% 판매 <span class="tk-pct-sub">(총 ${total.toLocaleString()}석 중 ${(total - remain).toLocaleString()}석 판매)</span></div>`
+          ? `<div class="tk-bar"><i style="width:${soldPct}%"></i></div><div class="tk-pct">${soldPct}% 판매 <span class="tk-pct-sub">(총 ${total.toLocaleString()}석 중 ${(total - remain).toLocaleString()}석 판매)</span>${holdTag}</div>`
           : '';
         // 등급명이 이미 "~석"으로 끝나면(예: 시야방해석) 뒤에 "석"을 또 붙이지 않는다("시야방해석석" 방지).
         const gradeLabel = /석$/.test(k) ? k : k + '석';
@@ -12289,7 +12293,7 @@
         <div class="sub" style="margin-top:6px;font-size:11px;color:var(--dim);line-height:1.8">
           ※ 총 좌석(4,653석) 중 <b>762석</b>은 29CM의 등급·잔여석·좌석배치도 API 어디에도 잡히지 않는 <b>미분류 좌석</b>입니다.<br>
           &nbsp;&nbsp;· 전 구역 실측 좌석수와 API 집계의 차이로 확인 — 구역별 등급 기준 스탠다드 440 · 골드 174 · 플로어 78 · 이코노미 70석<br>
-          &nbsp;&nbsp;· 일반 예매 화면에서 선택·구매할 수 없는 좌석이라, 이 화면의 "판매" 수치에는 <b>소진으로 포함</b>되고<br>
+          &nbsp;&nbsp;· 일반 예매 화면에서 선택·구매할 수 없는 <b>매진(회색)</b>된 좌석이라, 이 화면의 "판매" 수치에는 <b>소진으로 포함</b>되고<br>
           &nbsp;&nbsp;&nbsp;&nbsp;아래 구역별 실시간 좌석에서도 <b>회색(매진)으로 표시</b>됩니다.<br>
           <br>
           ※ <b>시야방해석 등급</b>은 8/20 저녁 몇 시간 동안 나타났다가 원복된 이력이 있습니다.<br>
@@ -12415,8 +12419,8 @@
           <button type="button" class="btn xs" onclick="toggleTkRevenue(this)">💰 예상 매출 보기 ▾</button>
           <div class="tk-rev-body" style="display:none">
             ${twoTier ? `
-            <div class="tk-rev-top"><span>💰 예상 매출(미분류 ${holdSeats.toLocaleString()}석 제외)</span><span class="tk-rev-sum" style="color:var(--red)">${revNetSum.toLocaleString()}원</span></div>
-            <div class="tk-rev-top" style="margin-top:4px"><span>💰 예상 매출(미분류 포함 시 상한)</span><span class="tk-rev-sum">${revSum.toLocaleString()}원</span></div>` : `
+            <div class="tk-rev-top"><span>💰 예상 매출(미분류 ${holdSeats.toLocaleString()}석 제외)</span><span class="tk-rev-sum" style="color:var(--red);font-size:15px;font-weight:800">${revNetSum.toLocaleString()}원</span></div>
+            <div class="tk-rev-top" style="margin-top:4px"><span>💰 예상 매출(미분류 포함 시 상한)</span><span class="tk-rev-sum" style="font-size:15px;font-weight:800">${revSum.toLocaleString()}원</span></div>` : `
             <div class="tk-rev-top"><span>💰 예상 매출</span><span class="tk-rev-sum">${revSum.toLocaleString()}원</span></div>`}
             ${revRows.join('')}
             <div class="tk-rev-note">※ 좌석 등급별 정가 × 판매 수량 기준 추정 매출입니다.${twoTier ? ' 미분류 762석(29CM 판매 API에 잡히지 않아 일반 예매 불가 — 스탠다드 440·골드 174·플로어 78·이코노미 70석)은 유료 판매 여부를 확인할 수 없어 제외한 값과 포함한 값을 함께 표시합니다.' : ' 초대권·이벤트 티켓은 구분되지 않습니다.'}${skipped ? ' (총원/가격 정보가 없는 등급은 제외)' : ''}</div>
@@ -12428,7 +12432,7 @@
       <div class="card tk-card">
         ${showRoundLabel && r.round_label ? `<div class="tk-round">${esc(r.round_label)}</div>` : ''}
         ${gradePieHTML(r.grades, gradeTotals, gradePrices, gradeColors)}
-        ${gradeRowsHTML(r.grades, gradeTotals, gradePrices)}
+        ${gradeRowsHTML(r.grades, gradeTotals, gradePrices, TK_UNCLASSIFIED_HOLDS)}
         ${revenueHTML}
       </div>`;
       }).join('');
