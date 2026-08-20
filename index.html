@@ -16241,21 +16241,63 @@
         body.innerHTML = `<div class="empty">${esc(bqRpcErr(e))}</div>`;
       }
     }
+    /* 제출 문제의 난이도 추천 — 관리자가 매번 감으로 고르기 어렵다는 요청으로 추가.
+       게임의 실제 난이도 배치(보통 1 · 어려움 2 · 헬 2, EASY 슬롯 없음) 기준에 맞춰
+       NORMAL/HARD/HELL 중 하나를 규칙 기반으로 추천하고 근거를 함께 보여준다.
+       (추천일 뿐 최종 선택은 여전히 관리자 몫 — 드롭다운 기본값으로만 미리 골라둔다) */
+    function bqSuggestDifficulty(s) {
+      const q = String(s.question || '');
+      const all = [s.answer, s.wrong1, s.wrong2, s.wrong3].map(x => String(x || ''));
+      let level = 1; // 1=NORMAL, 2=HARD, 3=HELL
+      const why = [];
+      if (/생일|출생|태어난|나이|몇\s*년\s*생/.test(q)) { level = 3; why.push('생일·출생 등 지엽적 날짜 암기'); }
+      else if (/몇\s*승|몇\s*패|전적|몇\s*초|몇\s*라운드|랭킹\s*몇\s*위|데뷔|몇\s*번째/.test(q)) { level = 2; why.push('세부 기록·숫자 암기'); }
+      if (/페널티|규정|계체|반칙|실격|감점|몰수|룰/.test(q)) { level = Math.max(level, 2); why.push('규정·룰 세부 사항'); }
+      if (/부제|슬로건|포스터|대회명/.test(q) && level < 2) { why.push('대회 정보(팬 기본 상식)'); }
+      // 보기끼리 숫자만 다르거나 문구가 거의 같아 헷갈리는 구성이면 한 단계 상향
+      const norm = all.map(a => a.replace(/[\d,.\s%]+/g, '#'));
+      const confusing = new Set(norm).size < norm.length;
+      if (confusing && level < 3) { level++; why.push('보기가 서로 비슷해 헷갈림'); }
+      const diff = level >= 3 ? 'HELL' : level === 2 ? 'HARD' : 'NORMAL';
+      return { diff, why: why.length ? why.join(' · ') : '팬이라면 알 만한 일반 상식형' };
+    }
     function bqSubmissionRowHTML(s, status) {
-      const opts = ['EASY', 'NORMAL', 'HARD', 'HELL']
-        .map(d => `<option value="${d}" ${d === 'NORMAL' ? 'selected' : ''}>${d}</option>`).join('');
+      // EASY는 실제 게임 난이도 슬롯(보통1·어려움2·헬2)에 없어 골라도 출제되지 않는 죽은
+      // 난이도라 선택지에서 뺀다(문제 은행의 EASY는 풀 고갈 시 비상 대체용으로만 남아있음).
+      const rec = status === 'PENDING' ? bqSuggestDifficulty(s) : null;
+      const opts = ['NORMAL', 'HARD', 'HELL']
+        .map(d => `<option value="${d}" ${rec && d === rec.diff ? 'selected' : ''}>${d}</option>`).join('');
       return `<div class="card" style="margin-top:8px;padding:10px 12px">
     <div style="font-weight:800;font-size:13px">${esc(s.question)}</div>
     <div class="note" style="margin-top:4px">정답: <b style="color:var(--green)">${esc(s.answer)}</b> · 오답: ${esc(s.wrong1)}, ${esc(s.wrong2)}, ${esc(s.wrong3)}</div>
     <div class="note" style="margin-top:2px">제출자: ${esc(s.nickname)} · ${new Date(s.created_at).toLocaleString('ko-KR')}
       ${s.reject_reason ? `<br>거절 사유: ${esc(s.reject_reason)}` : ''}</div>
+    ${rec ? `<div class="note" style="margin-top:4px">💡 추천 난이도: <b style="color:var(--key-deep)">${rec.diff}</b> <span style="color:var(--dim)">— ${esc(rec.why)}</span></div>` : ''}
     ${status === 'PENDING' ? `
     <div style="display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap">
       <select id="bqsub-diff-${s.id}" class="btn xs" style="padding:4px 8px">${opts}</select>
       <button class="btn xs primary" onclick="bqReviewSubmission(${s.id},'APPROVE')">✅ 승인</button>
       <button class="btn xs" style="color:#c62828" onclick="bqReviewSubmission(${s.id},'REJECT')">❌ 거절</button>
-    </div>` : ''}
+    </div>` : `
+    <div style="margin-top:8px">
+      <button class="btn xs" style="color:#c62828" onclick="bqDeleteSubmission(${s.id}, '${esc(status)}')">🗑 제거</button>
+    </div>`}
   </div>`;
+    }
+    // 검토가 끝난(승인됨/거절됨) 제출 제거 — 승인된 문제는 실제 출제도 함께 중단된다.
+    async function bqDeleteSubmission(id, status) {
+      const isApproved = status === 'APPROVED';
+      const msg = isApproved
+        ? '이 제출을 제거할까요?\n승인되어 등록된 실제 문제도 즉시 출제 중단됩니다.\n(이미 이 문제를 푼 유저들의 기록은 그대로 유지됩니다)'
+        : '이 거절 기록을 목록에서 제거할까요?';
+      if (!confirm(msg)) return;
+      try {
+        const { data, error } = await sb.rpc('quiz_admin_delete_submission', { p_pass: adminPass(), p_id: id });
+        if (error) throw error;
+        if (!data || data.ok === false) throw new Error((data && data.msg) || '처리에 실패했습니다.');
+        toastMsg(isApproved ? '🗑 제거했습니다 — 해당 문제는 더 이상 출제되지 않습니다.' : '🗑 거절 기록을 제거했습니다.');
+        bqRenderSubmissions(status);
+      } catch (e) { toastMsg(bqRpcErr(e)); }
     }
     async function bqReviewSubmission(id, action) {
       let reason = null;
