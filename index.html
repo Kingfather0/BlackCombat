@@ -12258,7 +12258,13 @@
       // 알림 카드를 붙인다 — 가장 최근 1건만 상세로, 그보다 오래된 건 건수만 요약(새 급감이
       // 생기면 그 1건으로 교체된다).
       const bulkTopHTML = allBulkEvents.length ? (() => {
-        const recent = allBulkEvents.slice(-1);
+        // ⚡ 급감 알림은 "지금 벌어지고 있는 일"을 알리는 용도라, 발생 후 3시간까지만 페이지
+        // 최상단(전체 좌석 아래)에 노출하고 그 뒤엔 자동으로 내린다(2026-08-20 요청).
+        // 지난 급감 이력은 아래 판매 추이(시간별) 차트의 ⚡ 점에서 기존처럼 계속 확인할 수 있다.
+        const FRESH_MS = 3 * 3600 * 1000;
+        const fresh = allBulkEvents.filter(ev => (svrNow().getTime() - new Date(ev.tCur).getTime()) <= FRESH_MS);
+        if (!fresh.length) return '';
+        const recent = fresh.slice(-1);
         const olderCnt = allBulkEvents.length - recent.length;
         return recent.map(ev => `<div class="tk-bulk-alert">${esc(tkBulkAlertText(ev))}</div>`).join('')
           + (olderCnt > 0 ? `<div class="sub" style="margin-top:5px;font-size:11px;color:var(--dim)">이 외 급감 의심 ${olderCnt}건 — 아래 판매 추이(시간별)의 ⚡ 점에서 확인할 수 있습니다.</div>` : '');
@@ -12280,7 +12286,7 @@
       //    62)이 신규 등급(6만원)으로 재분류됨. 좌석배치도에는 아직 미반영이라 현재 구매 불가.
       // 이 사건에 국한된 안내이므로 다른 event_key로는 노출되지 않게 범위를 좁힌다.
       const totalBugFixNoteHTML = (eventKey === 'BC_2026_0829') ? `
-        <div class="sub" style="margin-top:6px;font-size:11px;color:var(--dim)">
+        <div class="sub" style="margin-top:6px;font-size:11px;color:var(--dim);line-height:1.8">
           ※ 총 좌석(4,653석) 중 <b>762석</b>은 29CM의 등급·잔여석·좌석배치도 API 어디에도 잡히지 않는 <b>미분류 좌석</b>입니다.<br>
           &nbsp;&nbsp;· 전 구역 실측 좌석수와 API 집계의 차이로 확인 — 구역별 등급 기준 스탠다드 440 · 골드 174 · 플로어 78 · 이코노미 70석<br>
           &nbsp;&nbsp;· 일반 예매 화면에서 선택·구매할 수 없는 좌석이라, 이 화면의 "판매" 수치에는 <b>소진으로 포함</b>되고<br>
@@ -12291,8 +12297,8 @@
           &nbsp;&nbsp;&nbsp;&nbsp;신규 등급 "시야방해석"(정가 60,000원 등록)으로 재분류됨. 이 동안 해당 좌석은 좌석배치도<br>
           &nbsp;&nbsp;&nbsp;&nbsp;API에서도 빠져 선택·구매가 불가한 상태였습니다.<br>
           &nbsp;&nbsp;· 같은 날 ~22:40 — 300석 전부가 원래 등급으로 <b>원상복구</b>됨(구역별 좌석 집계도 복구 확인).<br>
-          &nbsp;&nbsp;· 현재 — 시야방해석 등급 자체는 29CM API에 <b>잔여 0석으로 등록된 채 남아있어</b>, 이후 다시<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;활성화되는지 계속 관측 중입니다(잔여가 0보다 커지면 이 화면에 자동으로 다시 표시됩니다).
+          &nbsp;&nbsp;· 현재 — 시야방해석 등급 자체는 29CM API에 <b>잔여 0석으로 등록된 채 남아있어</b> 아래 잔여 좌석<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;목록에도 0석으로 표시하며, 다시 활성화되면(잔여 증가) 수치가 자동으로 추적됩니다.
         </div>` : '';
       // 카드 좌측 상단에는 "언제 기준 데이터인지"(가장 최근 기록 시각)를 매진 예측 카드 제목과
       // 같은 크기·폰트·컬러(tk-trend-title)로 보여주고, 그 줄 우측에 "ⓘ 좌석 기준" 버튼을 둔다.
@@ -12409,8 +12415,8 @@
           <button type="button" class="btn xs" onclick="toggleTkRevenue(this)">💰 예상 매출 보기 ▾</button>
           <div class="tk-rev-body" style="display:none">
             ${twoTier ? `
-            <div class="tk-rev-top"><span>💰 예상 매출(미분류 ${holdSeats.toLocaleString()}석 제외)</span><span class="tk-rev-sum">${revNetSum.toLocaleString()}원</span></div>
-            <div class="tk-rev-top" style="margin-top:4px"><span style="color:var(--muted)">예상 매출(미분류 포함 시 상한)</span><span style="color:var(--muted);font-weight:800">${revSum.toLocaleString()}원</span></div>` : `
+            <div class="tk-rev-top"><span>💰 예상 매출(미분류 ${holdSeats.toLocaleString()}석 제외)</span><span class="tk-rev-sum" style="color:var(--red)">${revNetSum.toLocaleString()}원</span></div>
+            <div class="tk-rev-top" style="margin-top:4px"><span>💰 예상 매출(미분류 포함 시 상한)</span><span class="tk-rev-sum">${revSum.toLocaleString()}원</span></div>` : `
             <div class="tk-rev-top"><span>💰 예상 매출</span><span class="tk-rev-sum">${revSum.toLocaleString()}원</span></div>`}
             ${revRows.join('')}
             <div class="tk-rev-note">※ 좌석 등급별 정가 × 판매 수량 기준 추정 매출입니다.${twoTier ? ' 미분류 762석(29CM 판매 API에 잡히지 않아 일반 예매 불가 — 스탠다드 440·골드 174·플로어 78·이코노미 70석)은 유료 판매 여부를 확인할 수 없어 제외한 값과 포함한 값을 함께 표시합니다.' : ' 초대권·이벤트 티켓은 구분되지 않습니다.'}${skipped ? ' (총원/가격 정보가 없는 등급은 제외)' : ''}</div>
@@ -12501,7 +12507,7 @@
       <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">새로고침 시 최신 현황 갱신</span></div>
       <div class="card">
         <button type="button" class="tk-row1-btn" onclick="tkRow1OpenModal()">1열 바로 찾기 <span class="tk-row1-badge" id="tkRow1Badge">불러오는 중…</span></button>
-        <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">매진(회색) 잔여(컬러) · 29CM API 좌석 누락 버그로 대략적인 비중 확인용<br>정확한 좌석은 29CM에서 확인 · 구역 선택 시 좌석 상세 팝업<br>※ 시야방해석으로 전환된 좌석(300석)은 29CM API가 구역 좌석 정보에서 제외해 회색(매진)으로 보일 수 있습니다</div>
+        <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">매진(회색) 잔여(컬러) · 29CM API 좌석 누락 버그로 대략적인 비중 확인용<br>정확한 좌석은 29CM에서 확인 · 구역 선택 시 좌석 상세 팝업</div>
         <div class="tk-live-map-wrap" id="tk-live-map-wrap">
           <svg id="tk-live-map-svg" viewBox="168 50 719 719" class="tk-live-map-svg" preserveAspectRatio="xMidYMid meet">
             <defs>${tkLiveClipDefsHTML()}</defs>
