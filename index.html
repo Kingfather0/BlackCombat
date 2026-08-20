@@ -12271,11 +12271,29 @@
       // 좌석 선택 화면에서 정확한 총원을 확인하면 이 줄은 지워도 된다 (2026-08-18 임시 조치).
       const estimateNoteHTML = (hasTotal && !hasBreakdown) ? `
         <div class="sub" style="margin-top:6px;font-size:11px;color:var(--dim)">※ 현재 ${sumTotal.toLocaleString()}석은 선예매 오픈 시점 잔여석 합계(총 좌석 API 미존재) · 17시 일반 예매 오픈 후 갱신 예정</div>` : '';
-      // 안내: 2026-08-18 확인된 29CM 좌석배치도 API 집계 누락 버그로 한때 총 좌석수/등급별
-      // 수치가 실제보다 적게 표시됐던 사실을 밝혀둔다. 이 사건에 국한된 안내이므로 다른
-      // event_key로는 노출되지 않게 이 행사(BC_2026_0829)로만 범위를 좁힌다.
+      // 안내: 이 행사(BC_2026_0829)에서 확인된 두 가지 특수 상황을 밝혀둔다(2026-08-20 갱신).
+      // 1) 미분류 762석 — 29CM 공개 API(등급/잔여/좌석배치도) 어디에도 안 잡히는 좌석. 구역별
+      //    실측(4,653석)과의 차이로 역산했고, 등급별 분해는 스탠다드 440·골드 174·플로어 78·
+      //    이코노미 70(합계 762, 1석 오차 없이 검산됨). 주최측 보유분(초대권·멤버십 배포·관계자석
+      //    등)으로 추정되며, 일반 구매가 불가능하므로 이 화면에서는 "소진"으로 집계된다.
+      // 2) 시야방해석 300석 — 8/20 17:50 기존 등급의 미판매 좌석(스탠다드 155·골드 83·선수입장로
+      //    62)이 신규 등급(6만원)으로 재분류됨. 좌석배치도에는 아직 미반영이라 현재 구매 불가.
+      // 이 사건에 국한된 안내이므로 다른 event_key로는 노출되지 않게 범위를 좁힌다.
       const totalBugFixNoteHTML = (eventKey === 'BC_2026_0829') ? `
-        <div class="sub" style="margin-top:6px;font-size:11px;color:var(--dim)">※ 집계 초반 29CM 좌석배치도 API의 집계 누락 버그로 실제보다 최대 762석 적게 표시되었습니다.<br>현재는 총원·등급별 수치 모두 정확한 값으로 바로잡았으며, 과거 판매율 그래프도 수정값 기준으로 자동 재계산됩니다.</div>` : '';
+        <div class="sub" style="margin-top:6px;font-size:11px;color:var(--dim)">
+          ※ 총 좌석(4,653석) 중 <b>762석</b>은 29CM의 등급·잔여석·좌석배치도 API 어디에도 잡히지 않는 <b>미분류 좌석</b>입니다.<br>
+          &nbsp;&nbsp;· 전 구역 실측 좌석수와 API 집계의 차이로 확인 — 구역별 등급 기준 스탠다드 440 · 골드 174 · 플로어 78 · 이코노미 70석<br>
+          &nbsp;&nbsp;· 일반 예매 화면에서 선택·구매할 수 없는 좌석이라, 이 화면의 "판매" 수치에는 <b>소진으로 포함</b>되고<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;아래 구역별 실시간 좌석에서도 <b>회색(매진)으로 표시</b>됩니다.<br>
+          <br>
+          ※ <b>시야방해석 등급</b>은 8/20 저녁 몇 시간 동안 나타났다가 원복된 이력이 있습니다.<br>
+          &nbsp;&nbsp;· 17:41~17:50 — 기존 등급의 미판매 좌석 300석(스탠다드 155 · 골드 83 · 선수입장로 62)이<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;신규 등급 "시야방해석"(정가 60,000원 등록)으로 재분류됨. 이 동안 해당 좌석은 좌석배치도<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;API에서도 빠져 선택·구매가 불가한 상태였습니다.<br>
+          &nbsp;&nbsp;· 같은 날 ~22:40 — 300석 전부가 원래 등급으로 <b>원상복구</b>됨(구역별 좌석 집계도 복구 확인).<br>
+          &nbsp;&nbsp;· 현재 — 시야방해석 등급 자체는 29CM API에 <b>잔여 0석으로 등록된 채 남아있어</b>, 이후 다시<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;활성화되는지 계속 관측 중입니다(잔여가 0보다 커지면 이 화면에 자동으로 다시 표시됩니다).
+        </div>` : '';
       // 카드 좌측 상단에는 "언제 기준 데이터인지"(가장 최근 기록 시각)를 매진 예측 카드 제목과
       // 같은 크기·폰트·컬러(tk-trend-title)로 보여주고, 그 줄 우측에 "ⓘ 좌석 기준" 버튼을 둔다.
       // 숫자 줄은 카드 폭 전체를 그대로 쓰므로 모바일에서도 글자가 줄어들지 않는다.
@@ -12356,29 +12374,46 @@
           return roundT || own;
         })();
         // 예상 매출: 등급별 (총원 - 잔여) × 정가. 총원과 가격을 모두 아는 등급만 합산한다.
+        // 2026-08-20: 이 행사(BC_2026_0829)에서 "미분류 762석"(29CM 판매 API 어디에도 잡히지
+        // 않는 좌석 — 용도는 데이터로 확인 불가, 위 totalBugFixNoteHTML 주석 참고)이 등급별로
+        // 정확히 분해 확인되어, 매출을 두 갈래로 보여준다: ① 미분류 제외(일반 예매 집계 기준),
+        // ② 미분류 포함(전량 정가 판매로 볼 때의 상한). 분해값은 구역별
+        // 실측 누락(1,062석)에서 시야방해석 재분류(300석)를 등급별로 차감해 얻었고 합계가
+        // 762로 1석 오차 없이 검산된 값이다.
+        const TK_UNCLASSIFIED_HOLDS = (eventKey === 'BC_2026_0829')
+          ? { '스탠다드': 440, '골드': 174, '플로어': 78, '이코노미': 70 } : null;
         const gradePrices = pricesByRound.get(roundKey) || null;
         const gradeColors = colorsByRound.get(roundKey) || null;
         let revenueHTML = '';
         if (gradeTotals && gradePrices) {
-          let revSum = 0; const revRows = []; let skipped = false;
+          let revSum = 0, revNetSum = 0, holdSeats = 0;
+          const revRows = []; let skipped = false;
           sortGradeKeysByPrice(Object.keys(gradeTotals), gradePrices).forEach(k => {
             const total = gradeTotals[k];
             const remain = r.grades && r.grades[k] ? r.grades[k].remain : null;
             const price = gradePrices[k];
             if (total == null || remain == null || price == null) { skipped = true; return; }
             const sold = Math.max(0, total - remain);
+            const hold = (TK_UNCLASSIFIED_HOLDS && TK_UNCLASSIFIED_HOLDS[k]) || 0;
+            const soldNet = Math.max(0, sold - hold);
             const amt = sold * price;
             revSum += amt;
-            revRows.push(`<div class="tk-rev-row"><span>${esc(k)}석 ${sold.toLocaleString()}석 × ${price.toLocaleString()}원</span><span>${amt.toLocaleString()}원</span></div>`);
+            revNetSum += soldNet * price;
+            holdSeats += Math.min(hold, sold);
+            revRows.push(`<div class="tk-rev-row"><span>${esc(k)}석 ${sold.toLocaleString()}석 × ${price.toLocaleString()}원${hold ? ` <span style="color:var(--dim);font-size:10.5px">(미분류 ${hold}석 포함)</span>` : ''}</span><span>${amt.toLocaleString()}원</span></div>`);
           });
           if (revRows.length) {
+            const twoTier = TK_UNCLASSIFIED_HOLDS && holdSeats > 0;
             revenueHTML = `
         <div class="tk-rev">
           <button type="button" class="btn xs" onclick="toggleTkRevenue(this)">💰 예상 매출 보기 ▾</button>
           <div class="tk-rev-body" style="display:none">
-            <div class="tk-rev-top"><span>💰 예상 매출</span><span class="tk-rev-sum">${revSum.toLocaleString()}원</span></div>
+            ${twoTier ? `
+            <div class="tk-rev-top"><span>💰 예상 매출(미분류 ${holdSeats.toLocaleString()}석 제외)</span><span class="tk-rev-sum">${revNetSum.toLocaleString()}원</span></div>
+            <div class="tk-rev-top" style="margin-top:4px"><span style="color:var(--muted)">예상 매출(미분류 포함 시 상한)</span><span style="color:var(--muted);font-weight:800">${revSum.toLocaleString()}원</span></div>` : `
+            <div class="tk-rev-top"><span>💰 예상 매출</span><span class="tk-rev-sum">${revSum.toLocaleString()}원</span></div>`}
             ${revRows.join('')}
-            <div class="tk-rev-note">※ 초대권·이벤트 티켓은 구분되지 않으므로, 좌석 등급별 정가 × 판매 수량 기준으로 계산한 추정 매출입니다.${skipped ? ' (총원/가격 정보가 없는 등급은 제외)' : ''}</div>
+            <div class="tk-rev-note">※ 좌석 등급별 정가 × 판매 수량 기준 추정 매출입니다.${twoTier ? ' 미분류 762석(29CM 판매 API에 잡히지 않아 일반 예매 불가 — 스탠다드 440·골드 174·플로어 78·이코노미 70석)은 유료 판매 여부를 확인할 수 없어 제외한 값과 포함한 값을 함께 표시합니다.' : ' 초대권·이벤트 티켓은 구분되지 않습니다.'}${skipped ? ' (총원/가격 정보가 없는 등급은 제외)' : ''}</div>
           </div>
         </div>`;
           }
