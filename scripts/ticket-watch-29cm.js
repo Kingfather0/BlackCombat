@@ -93,6 +93,10 @@ const VERIFIED_TOTAL_OVERRIDE = {
       '스탠다드': 2504,
       '이코노미': 1097,
     },
+    // 관측 대상 등급: 유령 등급 필터(가격 없음 + 잔여 0 → 기록 제외)의 예외. 시야방해석은
+    // 위 이력처럼 실좌석이 드나든 적 있는 "살아있는" 등급이라, 잔여 0이어도 계속 기록해서
+    // 사이트에 0석으로 표시하고 재활성화(잔여 증가)를 바로 알아챌 수 있게 한다(2026-08-20 요청).
+    watchGrades: ['시야방해석'],
     verifiedNote: '2026-08-18 38개 구역 전수 시각 확인(Konva 렌더링 좌석 수 집계, 구역별 등급까지 매칭)',
   },
 };
@@ -344,7 +348,8 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
         // 잡혔던 사례가 있었습니다(이후 원복). 실좌석이 들어와 있는 등급을 가격 미등록이라는
         // 이유로 숨기면 그 좌석들이 통계에서 통째로 사라져 전체 잔여/판매 수가 틀어집니다.
         const remainQty = q.turnClassificationRemainingProductQuantity;
-        if (Object.keys(gradePrices).length && gradePrices[gradeName] == null && !(remainQty > 0)) {
+        const watchGrades = (VERIFIED_TOTAL_OVERRIDE[productMasterCode] && VERIFIED_TOTAL_OVERRIDE[productMasterCode].watchGrades) || [];
+        if (Object.keys(gradePrices).length && gradePrices[gradeName] == null && !(remainQty > 0) && !watchGrades.includes(gradeName)) {
           console.log(`ℹ️ "${gradeName}" 등급은 가격 정보가 없고 잔여도 0이라(=유령 등급) 기록에서 제외합니다.`);
           continue;
         }
