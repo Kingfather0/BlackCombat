@@ -8556,7 +8556,7 @@
       // 헷갈리지 않도록 사이트 상단 메뉴에 실제로 쓰는 단어(홈/티켓/랭킹/격잘알/게임)와 동일하게 표기한다.
       const seg = String(path || '').replace(/^#\//, '').split('/');
       if (seg[0] === 'game') {
-        const gameMap = { run: '게임 - 블랙 러닝', punch: '게임 - 블랙 펀칭', grow: '게임 - 블랙 점핑', battle: '게임 - 블랙 배틀' };
+        const gameMap = { run: '게임 - 블랙 러닝', punch: '게임 - 블랙 펀칭', grow: '게임 - 블랙 점핑', battle: '게임 - 블랙 배틀', quiz: '게임 - 블랙 퀴즈' };
         return gameMap[seg[1]] || '게임';
       }
       const map = {
