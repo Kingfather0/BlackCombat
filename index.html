@@ -10680,8 +10680,8 @@
         const remainText = isSoldOut ? '매진' : (remain === 0 ? '0석' : (remain != null ? esc(remain.toLocaleString()) + '석 남음' : '-'));
         const priceText = price != null ? `<span style="font-size:11.5px;color:var(--dim);font-weight:600;margin-left:6px">${price.toLocaleString()}원</span>` : '';
         // 등급별 총원을 모르는 경우엔 별도 안내 없이 잔여석만 깔끔하게 보여준다.
-        // 예상 매출 내역과 동일한 스타일로, 미분류(주최측 시스템 밖) 좌석이 섞인 등급에는
-        // "(미분류 N석 포함)" 주석을 판매 줄 끝에 붙인다(2026-08-20 요청 — BC_2026_0829 전용).
+        // 예상 매출 내역과 동일한 스타일로, 미분류(미배정) 좌석이 섞인 등급에는
+        // "(미분류 N석 포함)" 주석을 판매 줄 끝에 붙인다(TK_HOLDS_BY_EVENT 등록 행사 공통).
         const holdCnt = holds && holds[k];
         const holdTag = holdCnt ? ` <span style="color:var(--dim);font-size:10.5px;font-weight:600">(미분류 ${holdCnt}석 포함)</span>` : '';
         const statusLine = soldPct != null
@@ -10831,6 +10831,47 @@
       clearTimeout(window.__tkPieTimer);
       window.__tkPieTimer = setTimeout(tkFitPies, 120);
     });
+    // ── 등급 미배정(미분류) 좌석의 "판매(소진) 포함" 설정 ──
+    // 일반 예매 화면에서 회색(매진)으로 표시되어 유저 눈에 매진과 구분되지 않음이 실측으로
+    // 확인된 행사만 등록한다. holds = 등급별 미배정 좌석 수(실측 분해값, 합계 검산 완료).
+    // includedInTotals = 기록된 등급별 총원에 이 좌석들이 이미 포함되어 있는지:
+    //  - BC_2026_0829(29CM): 총원이 전 구역 실측 4,653석 기준이라 이미 포함 → 표시 시 더하지 않음.
+    //    (762석 분해: 구역별 실측 누락에서 시야방해석 재분류분을 차감해 얻은 값)
+    //  - road_2026_0811(NOL): 기록 총원이 "판매 대상" 3,150석 기준이라 미포함 → 표시 시점에
+    //    등급별로 더해 분모를 전체 3,699석으로 통일한다(블랙컴뱃과 같은 집계 기준).
+    //    (549석 분해: 2026-08-20 좌석 데이터 전수 실측 — S-N1 66·S-L1 276·S-K1/F1/C1 각 6·
+    //     S-D1 20 = S석 380, M2 131·C2 10 = 일반석 141, VIP 1열 13·2열 15. S-L1은 통째로
+    //     미배정이라 구역명 접두어(S-)와 위치(양옆 모두 S석 구역)로 S석 판정.)
+    // revNote = 예상 매출 하단 안내문에 붙는 행사별 설명 문구.
+    const TK_HOLDS_BY_EVENT = {
+      'BC_2026_0829': {
+        includedInTotals: true,
+        holds: { '스탠다드': 440, '골드': 174, '플로어': 78, '이코노미': 70 },
+        revNote: ' 미분류 762석(29CM 판매 API에 잡히지 않아 일반 예매 불가 — 스탠다드 440·골드 174·플로어 78·이코노미 70석)은 유료 판매 여부를 확인할 수 없어 제외한 값과 포함한 값을 함께 표시합니다.',
+      },
+      'road_2026_0811': {
+        includedInTotals: false,
+        holds: { 'S석(지정석)': 380, '일반석(지정석)': 141, 'VIP 플로어(1열)': 13, 'VIP 플로어(2열)': 15 },
+        revNote: ' 등급 미배정 549석(예매 화면에서 회색(매진) 표시 — S석 380·일반석 141·VIP 플로어 1열 13·2열 15석)은 유료 판매 여부를 확인할 수 없어 제외한 값과 포함한 값을 함께 표시합니다.',
+      },
+    };
+    // 현재 렌더링 중인 행사의 설정 — 렌더 시작 시 eventKey가 정해지는 순간 채워진다.
+    // (렌더는 한 번에 한 행사만 그리므로 모듈 변수로 둬도 충돌하지 않는다)
+    let tkHoldsCfg = null;
+    // 미배정 좌석이 기록 총원에 빠져 있는 행사(includedInTotals:false)에서만, 등급별 총원에
+    // 미배정 좌석을 더한 사본을 돌려준다 — 분모/판매 수치를 "전체 좌석" 기준으로 만들기 위함.
+    function tkApplyHolds(totals) {
+      if (!tkHoldsCfg || tkHoldsCfg.includedInTotals || !totals) return totals;
+      const m = Object.assign({}, totals);
+      Object.keys(tkHoldsCfg.holds).forEach(k => { m[k] = (m[k] || 0) + tkHoldsCfg.holds[k]; });
+      return m;
+    }
+    // 분모 선택 헬퍼 — 미배정을 소진 포함하는 행사(includedInTotals:false)는 "전체 좌석"
+    // (overallTotal)을 우선 쓰고, 그 외에는 기존대로 "판매 대상"(sellableTotal)을 우선 쓴다.
+    function tkPickTotal(sellableTotal, overallTotal) {
+      if (tkHoldsCfg && !tkHoldsCfg.includedInTotals) return overallTotal != null ? overallTotal : sellableTotal;
+      return sellableTotal != null ? sellableTotal : overallTotal;
+    }
     // 회차 하나의 시간대별 판매율 기록으로 아주 단순한 추이(꺾은선) 그래프를 그린다.
     // 기록이 2개 미만이면(선을 그릴 수 없으므로) 아무것도 표시하지 않는다.
     // fallbackOverall: 이 기록 자체에는 정확한 전체 총원(meta.overallTotal)이 없지만, 같은 회차의
@@ -10843,7 +10884,7 @@
       const grades = r.grades || {}, totals = r.totals || {};
       const sellableTotal = (r.meta && r.meta.sellableTotal != null) ? r.meta.sellableTotal : (fallbackSellable != null ? fallbackSellable : null);
       const overallTotal = (r.meta && r.meta.overallTotal != null) ? r.meta.overallTotal : (fallbackOverall != null ? fallbackOverall : null);
-      const effectiveTotal = sellableTotal != null ? sellableTotal : overallTotal;
+      const effectiveTotal = tkPickTotal(sellableTotal, overallTotal);
       let total = 0, remain = 0, has = false;
       if (effectiveTotal != null) {
         total = effectiveTotal;
@@ -12098,6 +12139,9 @@
       // index.html을 다시 고쳐서 올릴 필요가 없다. 아직 한 번도 안 갱신됐다면(패치를 안 돌렸거나,
       // 자동 스크립트가 아직 한 번도 안 돌았다면) 기존처럼 하드코딩된 값으로 안전하게 대체된다.
       const eventKey = previewKey || (await fetchCurrentTicketEventKey()) || TICKET_EVENT_KEY;
+      // 이 행사의 미배정(미분류) 좌석 설정을 렌더 전에 확정한다 — 이후의 분모 선택
+      // (tkPickTotal)과 등급별 총원 보정(tkApplyHolds)이 전부 이 값을 본다.
+      tkHoldsCfg = TK_HOLDS_BY_EVENT[eventKey] || null;
       let rows; try { rows = await fetchTicketSnapshots(eventKey); } catch (e) { return fail(e); }
 
       // 경기 "기간"이 지난 티켓은 새 티켓 등록을 기다리지 않고 자동으로 "지난 티켓"으로
@@ -12284,9 +12328,10 @@
           sumOverallForNote += overallTotal; sumSellableForNote += sellableTotal; sumNoGradeForNote += noGradeTotal;
           hasBreakdown = true;
         }
-        // 판매율/잔여 계산의 분모는 "판매 대상 좌석"(sellableTotal)을 최우선으로 쓰고,
-        // 그 값이 없는(구버전 캡처만 있는) 회차에 한해 "전체 좌석"(overallTotal)으로 대체한다.
-        const effectiveTotal = sellableTotal != null ? sellableTotal : overallTotal;
+        // 판매율/잔여 계산의 분모 — 기본은 "판매 대상 좌석"(sellableTotal) 우선이지만,
+        // 미배정 좌석을 소진으로 포함하는 행사(tkHoldsCfg.includedInTotals:false)는
+        // "전체 좌석"(overallTotal)을 우선 쓴다. tkPickTotal 헬퍼가 이 선택을 담당한다.
+        const effectiveTotal = tkPickTotal(sellableTotal, overallTotal);
         if (effectiveTotal != null) {
           const remainSum = Object.keys(grades).reduce((s, k) => s + ((grades[k] && grades[k].remain) || 0), 0);
           sumTotal += effectiveTotal; sumRemainForTotal += remainSum; hasTotal = true;
@@ -12345,6 +12390,16 @@
           <div class="tk-note-li">· 같은 날 ~22:40 — 300석 전부가 원래 등급으로 <b>원상복구</b>됨(구역별 좌석 집계도 복구 확인).</div>
           <div class="tk-note-li">· 현재 — 시야방해석 등급 자체는 29CM API에 <b>잔여 0석으로 등록된 채 남아있어</b> 아래 잔여 좌석 목록에도 0석으로 표시하며, 다시 활성화되면(잔여 증가) 수치가 자동으로 추적됩니다.</div>
         </div>` : '';
+      // 안내: 로드FC(road_2026_0811)의 등급 미배정 549석 — 좌석 데이터 실측으로 등급별 분포까지
+      // 확인됐고, 예매 화면에서 판매된 좌석과 같은 회색(매진)으로 그려짐이 확인되어(2026-08-20
+      // 좌석맵 실측: 회색 938 = 실판매 389 + 미배정 549) 블랙컴뱃과 같은 기준으로 소진에 포함한다.
+      const roadNoGradeNoteHTML = (eventKey === 'road_2026_0811') ? `
+        <div class="sub" style="margin-top:6px;font-size:11px;color:var(--dim);line-height:1.8">
+          <div style="color:var(--red)">※ 등급 미배정 549석은 회색(매진) 표시 좌석으로, 블랙컴뱃과 같은 기준으로 등급별 판매(소진)에 포함했습니다.</div>
+          <div style="margin-top:4px">※ 총 좌석(3,699석) 중 <b>549석</b>은 NOL 좌석 데이터에 등급·가격이 배정되지 않은 <b>등급 미배정(미분류)</b> 좌석입니다.</div>
+          <div class="tk-note-li">· 전 좌석 실측 데이터로 확인 — 구역별 등급 기준 S석 380 · 일반석 141 · VIP 플로어 1열 13 · 2열 15석</div>
+          <div class="tk-note-li">· 일반 예매 화면에서 선택·구매할 수 없는 <b>회색(매진)</b> 표시된 좌석이라, 이 화면의 "판매" 수치에는 <b>소진으로 포함</b>됩니다. (예상 매출은 구분해서 집계)</div>
+        </div>` : '';
       // 카드 좌측 상단에는 "언제 기준 데이터인지"(가장 최근 기록 시각)를 매진 예측 카드 제목과
       // 같은 크기·폰트·컬러(tk-trend-title)로 보여주고, 그 줄 우측에 "ⓘ 좌석 기준" 버튼을 둔다.
       // 숫자 줄은 카드 폭 전체를 그대로 쓰므로 모바일에서도 글자가 줄어들지 않는다.
@@ -12353,8 +12408,11 @@
       const totalInfoBoxHTML = showTotalInfo ? `
         <div id="tk-total-info" style="display:none;background:#f4f6fa;border-radius:9px;padding:9px 12px;margin-top:9px;font-size:11.5px;color:var(--muted);line-height:1.8">
           <div>· 전체 좌석 ${sumOverallForNote.toLocaleString()}석 중 실제 티켓 페이지에 판매 대상으로 열려있는 좌석은 ${sumSellableForNote.toLocaleString()}석입니다.</div>
+          ${(tkHoldsCfg && !tkHoldsCfg.includedInTotals) ? `
+          <div>· 나머지 ${sumNoGradeForNote.toLocaleString()}석은 등급 미배정(no-grade) 좌석으로, 예매 화면에서 회색(매진)으로 표시됩니다.</div>
+          <div>· 블랙컴뱃과 같은 기준으로, 이 화면의 판매 수치에는 소진으로 포함해 집계합니다.</div>` : `
           <div>· 나머지 ${sumNoGradeForNote.toLocaleString()}석은 등급 미배정(no-grade) 좌석으로, 판매 대상에서 제외되어 있습니다.</div>
-          <div>· 미판매 좌석이 판매로 전환 시 ${meta.platform === '29CM' ? '자동 갱신됩니다' : '갱신할 예정입니다'}.</div>
+          <div>· 미판매 좌석이 판매로 전환 시 ${meta.platform === '29CM' ? '자동 갱신됩니다' : '갱신할 예정입니다'}.</div>`}
         </div>` : '';
       const totalBarHTML = totalTitleHTML + ((hasTotal && sumTotal > 0) ? (() => {
         const sold = sumTotal - sumRemainForTotal;
@@ -12369,6 +12427,7 @@
         <div class="tk-bar tk-total-bar"><i style="width:${Math.min(100, Math.max(0, pct))}%"></i></div>
         ${estimateNoteHTML}
         ${totalBugFixNoteHTML}
+        ${roadNoGradeNoteHTML}
         ${bulkTopHTML}
         ${totalInfoBoxHTML}
       </div>`;
@@ -12384,9 +12443,11 @@
       latestRows.forEach(r => {
         const key = r.round_label || '__default__';
         const fc = tkSelloutForecast(rows.filter(x => (x.round_label || '__default__') === key), bulkByRound.get(key) || []);
-        // 매진 문구용 총 좌석수 — "판매 대상 좌석"(sellableTotal)을 우선 쓰고(전석 매진은 판매
-        // 대상 기준으로 판단하는 게 맞으므로), 그 값을 모르면 전체 좌석(overallTotal)으로 대체한다.
-        const fcTotal = sellableByRound.has(key) ? sellableByRound.get(key) : (overallByRound.has(key) ? overallByRound.get(key) : null);
+        // 매진 문구용 총 좌석수 — 기본은 "판매 대상 좌석"(sellableTotal) 우선이지만, 미배정을
+        // 소진 포함하는 행사는 화면 다른 곳과 기준이 갈라지지 않게 "전체 좌석"을 우선 쓴다.
+        const fcTotal = tkPickTotal(
+          sellableByRound.has(key) ? sellableByRound.get(key) : null,
+          overallByRound.has(key) ? overallByRound.get(key) : null);
         const labelHTML = latestRows.length > 1 && r.round_label ? `<span style="color:var(--dim);font-weight:700">${esc(r.round_label)}</span> · ` : '';
         const line = tkForecastLine(fc, periodEnd, fcTotal, labelHTML);
         if (line) fcParts.push(line);
@@ -12400,7 +12461,7 @@
         </div>
         ${fcParts.join('<hr class="sep" style="margin:8px 0">')}
         <div id="tk-fc-info" style="display:none;background:#f4f6fa;border-radius:9px;padding:9px 12px;margin-top:9px;font-size:11.5px;color:var(--muted);line-height:1.8">
-          <div>· 총 좌석수는 '판매 대상 좌석' 기준(등급 미배정 좌석 제외)</div>
+          <div>· 총 좌석수는 ${(tkHoldsCfg && !tkHoldsCfg.includedInTotals) ? `'전체 좌석' 기준(등급 미배정 좌석을 소진으로 포함)` : `'판매 대상 좌석' 기준(등급 미배정 좌석 제외)`}</div>
           <div>· 매진 예상일은 현재 잔여석 ÷ 하루 판매 속도로 계산</div>
           <div>· 판매 속도는 최근 3일 회귀 추세선 기준</div>
           <div>· 일괄 발권(이벤트표 등)은 잔여석에만 반영, 판매 속도엔 미포함</div>
@@ -12421,19 +12482,22 @@
         const gradeTotals = (() => {
           const own = (r.totals && Object.keys(r.totals).length) ? r.totals : null;
           const roundT = totalsByRound.get(roundKey) || null;
-          if (own && roundT) return Object.assign({}, own, roundT);
-          return roundT || own;
+          const merged = (own && roundT) ? Object.assign({}, own, roundT) : (roundT || own);
+          // 미배정 좌석이 기록 총원에 빠져 있는 행사(로드FC)는 여기서 등급별로 더해,
+          // 아래 판매율/도넛/매출이 전부 "전체 좌석" 기준으로 잡히게 한다.
+          return tkApplyHolds(merged);
         })();
         // 예상 매출: 등급별 (총원 - 잔여) × 정가. 총원과 가격을 모두 아는 등급만 합산한다.
-        // 2026-08-20: 이 행사(BC_2026_0829)에서 "미분류 762석"(29CM 판매 API 어디에도 잡히지
-        // 않는 좌석 — 용도는 데이터로 확인 불가, 위 totalBugFixNoteHTML 주석 참고)이 등급별로
-        // 정확히 분해 확인되어, 매출을 두 갈래로 보여준다: ① 미분류 제외(일반 예매 집계 기준),
-        // ② 미분류 포함(전량 정가 판매로 볼 때의 상한). 분해값은 구역별
-        // 실측 누락(1,062석)에서 시야방해석 재분류(300석)를 등급별로 차감해 얻었고 합계가
-        // 762로 1석 오차 없이 검산된 값이다.
-        const TK_UNCLASSIFIED_HOLDS = (eventKey === 'BC_2026_0829')
-          ? { '스탠다드': 440, '골드': 174, '플로어': 78, '이코노미': 70 } : null;
-        const gradePrices = pricesByRound.get(roundKey) || null;
+        // 미분류(미배정) 좌석이 실측 분해된 행사(TK_HOLDS_BY_EVENT 참고)는 매출을 두 갈래로
+        // 보여준다: ① 미분류 제외(일반 예매 집계 기준), ② 미분류 포함(전량 정가 판매 시 상한).
+        const TK_UNCLASSIFIED_HOLDS = tkHoldsCfg ? tkHoldsCfg.holds : null;
+        const gradePrices = (() => {
+          const p = pricesByRound.get(roundKey) || null;
+          // 로드FC: 가격이 담긴 캡처(8/11)에는 그 뒤에 오픈된 VIP 플로어 1·2열 가격이 없어,
+          // NOL 상품 페이지 가격표(2026-08-20 확인)로 빠진 등급만 보충한다. 기록값이 우선.
+          const fb = (eventKey === 'road_2026_0811') ? { 'VIP 플로어(1열)': 500000, 'VIP 플로어(2열)': 350000 } : null;
+          return fb ? Object.assign({}, fb, p || {}) : p;
+        })();
         const gradeColors = colorsByRound.get(roundKey) || null;
         let revenueHTML = '';
         if (gradeTotals && gradePrices) {
@@ -12464,7 +12528,7 @@
             <div class="tk-rev-top" style="margin-top:4px"><span>💰 예상 매출(미분류 포함 시 상한)</span><span class="tk-rev-sum" style="font-size:15px;font-weight:800">${revSum.toLocaleString()}원</span></div>` : `
             <div class="tk-rev-top"><span>💰 예상 매출</span><span class="tk-rev-sum">${revSum.toLocaleString()}원</span></div>`}
             ${revRows.join('')}
-            <div class="tk-rev-note">※ 좌석 등급별 정가 × 판매 수량 기준 추정 매출입니다.${twoTier ? ' 미분류 762석(29CM 판매 API에 잡히지 않아 일반 예매 불가 — 스탠다드 440·골드 174·플로어 78·이코노미 70석)은 유료 판매 여부를 확인할 수 없어 제외한 값과 포함한 값을 함께 표시합니다.' : ' 초대권·이벤트 티켓은 구분되지 않습니다.'}${skipped ? ' (총원/가격 정보가 없는 등급은 제외)' : ''}</div>
+            <div class="tk-rev-note">※ 좌석 등급별 정가 × 판매 수량 기준 추정 매출입니다.${twoTier ? (tkHoldsCfg && tkHoldsCfg.revNote || '') : ' 초대권·이벤트 티켓은 구분되지 않습니다.'}${skipped ? ' (총원/가격 정보가 없는 등급은 제외)' : ''}</div>
           </div>
         </div>`;
           }
@@ -12505,7 +12569,7 @@
         const sellableTotal = (r.meta && r.meta.sellableTotal != null)
           ? r.meta.sellableTotal
           : sellableByRound.get(roundKeyH);
-        const effectiveTotal = sellableTotal != null ? sellableTotal : overallTotal;
+        const effectiveTotal = tkPickTotal(sellableTotal, overallTotal);
         Object.keys(grades).forEach(k => {
           const remain = grades[k] && grades[k].remain;
           hRemainAll += (remain || 0);
@@ -12535,8 +12599,9 @@
         const rTotals = (() => {
           const own = (r.totals && Object.keys(r.totals).length) ? r.totals : null;
           const roundT = totalsByRound.get(roundKey) || null;
-          if (own && roundT) return Object.assign({}, own, roundT);
-          return roundT || own;
+          const merged = (own && roundT) ? Object.assign({}, own, roundT) : (roundT || own);
+          // 카톡 공유 문구의 등급별 총원도 화면과 같은 기준(미배정 포함)으로 맞춘다
+          return tkApplyHolds(merged);
         })();
         Object.keys(r.grades || {}).forEach(k => {
           const v = r.grades[k] && r.grades[k].remain;
