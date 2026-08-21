@@ -7796,7 +7796,8 @@
     }
 
     .bq-tier.t-S .bq-tier-r {
-      color: #8494ae
+      /* 1등(찐블붕이) 행의 우측 "기준/명" 텍스트도 등급명과 같은 금색으로 통일 (2026-08-21 요청) */
+      color: #ffd977
     }
 
     /* ══════ 게임 화면 ══════ */
@@ -15198,15 +15199,21 @@
           : `<div class="bq-run empty">아직 오늘 도전 기록이 없습니다.</div>`);
 
       const tierCounts = d.tier_counts || {};
-      const tiersHTML = tiers.map((t, i2) => `
+      // 등급별 인원 옆에 전체 참여자 대비 비율을 붙인다 — 예: 8명(21.1%) (2026-08-21 요청)
+      const tierTotal = tiers.reduce((s, t) => s + (tierCounts[t.code] || 0), 0);
+      const tiersHTML = tiers.map((t, i2) => {
+        const cnt = tierCounts[t.code] || 0;
+        const pctTag = tierTotal > 0 ? `(${(cnt / tierTotal * 100).toFixed(1)}%)` : '';
+        return `
     <div class="bq-tier t-${t.code}" style="cursor:pointer" onclick="bqShowTierNicks('${esc(t.code)}')">
       <span class="bq-tier-c">${i2 + 1}</span>
       <span class="bq-tier-ic">${t.icon || ''}</span>
       <span class="bq-tier-b"><span class="bq-tier-n">${esc(t.label || '')}</span>
         <span class="bq-tier-d">${esc(t.desc || '')}</span></span>
       <span class="bq-tier-r">${bqTierRange(tiers, i2, qTotal)}<br>
-        ${tierCounts[t.code] || 0}명</span>
-    </div>`).join('');
+        ${cnt}명${pctTag}</span>
+    </div>`;
+      }).join('');
 
       const ctaLabel = !loggedIn ? '로그인 필요'
         : (left > 0 ? 'START' : '내일 다시!');
