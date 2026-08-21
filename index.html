@@ -12367,7 +12367,9 @@
       })() : '';
       // "판매 대상"과 "전체 좌석"이 다른(=판매 대상이 아닌 좌석이 있는) 회차가 하나라도 있을 때만
       // "ⓘ 좌석 기준" 토글을 보여준다 — 둘이 같으면 안내할 차이가 없으므로 굳이 노출하지 않는다.
-      const showTotalInfo = hasBreakdown && sumNoGradeForNote > 0;
+      // 단, 미배정 좌석을 소진 포함으로 처리하는 행사(로드FC 등 tkHoldsCfg 미포함형)는 전체 좌석
+      // 아래에 블랙컴뱃과 같은 형식의 상세 설명란이 이미 붙으므로 중복인 이 토글은 노출하지 않는다.
+      const showTotalInfo = hasBreakdown && sumNoGradeForNote > 0 && !(tkHoldsCfg && !tkHoldsCfg.includedInTotals);
       // 임시 안내: 정확한 좌석배치도 기반 총원(breakdown)이 아니라 "선예매 오픈 시점 잔여석
       // 합계" 추정치로만 총원을 알고 있을 때, 그 사실을 짧게 밝혀둔다. 17시 일반예매 전환 후
       // 좌석 선택 화면에서 정확한 총원을 확인하면 이 줄은 지워도 된다 (2026-08-18 임시 조치).
