@@ -12503,9 +12503,14 @@
         const TK_UNCLASSIFIED_HOLDS = tkHoldsCfg ? tkHoldsCfg.holds : null;
         const gradePrices = (() => {
           const p = pricesByRound.get(roundKey) || null;
-          // 로드FC: 가격이 담긴 캡처(8/11)에는 그 뒤에 오픈된 VIP 플로어 1·2열 가격이 없어,
-          // NOL 상품 페이지 가격표(2026-08-20 확인)로 빠진 등급만 보충한다. 기록값이 우선.
-          const fb = (eventKey === 'road_2026_0811') ? { 'VIP 플로어(1열)': 500000, 'VIP 플로어(2열)': 350000 } : null;
+          // 로드FC: 가격 정보가 담긴 유일한 캡처(8/11)는 잘못된 총원(3,070)을 담고 있어 DB에서
+          // 삭제 대상이라, 전 등급 정가를 NOL 상품 페이지 가격표(2026-08-20 실측 확인)로 여기
+          // 고정해둔다. 기록에 가격이 있으면 그 값이 우선하고, 없는 등급만 이 표로 보충한다.
+          const fb = (eventKey === 'road_2026_0811') ? {
+            'VIP 플로어(1열)': 500000, 'VIP 플로어(2열)': 350000, 'VIP 플로어(3열)': 220000,
+            'VIP 플로어(4열)': 198000, 'VIP 플로어(5열)': 176000, 'VIP 플로어(6열)': 176000,
+            'S석(지정석)': 150000, '일반석(지정석)': 88000,
+          } : null;
           return fb ? Object.assign({}, fb, p || {}) : p;
         })();
         const gradeColors = colorsByRound.get(roundKey) || null;
