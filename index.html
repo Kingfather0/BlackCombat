@@ -414,7 +414,8 @@
     }
 
     .field input,
-    .field select {
+    .field select,
+    .field textarea {
       width: 100%;
       background: #fff;
       border: 1.5px solid var(--border);
@@ -422,10 +423,13 @@
       padding: 12px 13px;
       color: var(--text);
       outline: none;
-      font-size: 16px
+      font-size: 16px;
+      box-sizing: border-box;
+      font-family: inherit
     }
 
-    .field input:focus {
+    .field input:focus,
+    .field textarea:focus {
       border-color: var(--key)
     }
 
@@ -10227,6 +10231,28 @@
       if (a.end) return fmtAnnDT(a.end);
       return '';
     }
+    // 공지 본문(선택)을 가볍게 서식화해서 그린다 — 관리자 입력 그대로:
+    //   "## 제목" → 큰 섹션 제목 / "### 제목" → 소제목(파란색) / "- 내용" → 글머리(행잉 들여쓰기)
+    //   그 외 줄은 일반 문단, 빈 줄은 간격. 모든 내용은 esc()로 이스케이프 후 조립하므로 안전하다.
+    function annBodyHTML(text) {
+      return String(text || '').split(/\r?\n/).map(line => {
+        const t = line.trim();
+        if (!t) return '<div style="height:6px"></div>';
+        if (t.startsWith('## ')) return `<div style="font-weight:900;font-size:14px;color:var(--text);margin-top:12px">${esc(t.slice(3))}</div>`;
+        if (t.startsWith('### ')) return `<div style="font-weight:800;font-size:13px;color:var(--key-deep);margin-top:9px">${esc(t.slice(4))}</div>`;
+        if (t.startsWith('- ')) return `<div class="tk-note-li" style="margin-top:3px">· ${esc(t.slice(2))}</div>`;
+        return `<div style="margin-top:3px">${esc(t)}</div>`;
+      }).join('');
+    }
+    // 본문 접기/펼치기 — 내용이 길어서 기본은 접어두고 버튼으로 연다("ⓘ 좌석 기준"과 같은 취지)
+    function annToggleBody(id) {
+      const box = document.getElementById('ann-body-' + id);
+      const btn = document.getElementById('ann-body-btn-' + id);
+      if (!box) return;
+      const open = box.style.display === 'none';
+      box.style.display = open ? 'block' : 'none';
+      if (btn) btn.textContent = open ? '📋 접기 ▴' : '📋 자세히 보기 ▾';
+    }
     function announcementCardHTML(a) {
       const period = annPeriodText(a);
       const lines = [period ? `📅 ${period}` : '', a.venue ? `📍 ${a.venue}` : '', a.price ? `💰 ${a.price}` : ''].filter(Boolean);
@@ -10236,6 +10262,9 @@
         <button type="button" class="tk-share-btn" onclick="annShareOne('${a.id}')" style="padding:5px 11px;font-size:12px;flex-shrink:0">💬 공지 공유</button>
       </div>
       ${lines.length ? `<div style="font-size:13px;margin-top:6px;color:var(--muted);font-weight:600;line-height:1.6">${lines.map(esc).join('<br>')}</div>` : ''}
+      ${a.body ? `
+      <button type="button" class="btn xs" id="ann-body-btn-${a.id}" style="margin-top:10px" onclick="annToggleBody('${a.id}')">📋 자세히 보기 ▾</button>
+      <div id="ann-body-${a.id}" style="display:none;background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:12.5px;color:var(--muted);line-height:1.75">${annBodyHTML(a.body)}</div>` : ''}
       ${a.link ? `<a class="btn primary small" style="margin-top:10px" href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">${esc(a.linkText || '예매하러 가기')}</a>` : ''}
     </div>`;
     }
@@ -10332,6 +10361,7 @@
       document.getElementById('ann-end').value = isoToLocalInput(editing && editing.end);
       document.getElementById('ann-venue').value = editing ? (editing.venue || '') : '';
       document.getElementById('ann-price').value = editing ? (editing.price || '') : '';
+      document.getElementById('ann-body').value = editing ? (editing.body || '') : '';
       document.getElementById('ann-link').value = editing ? (editing.link || '') : '';
       document.getElementById('ann-linktext').value = editing ? (editing.linkText || '') : '';
       document.getElementById('ann-edit-id').value = editing ? editing.id : '';
@@ -10349,6 +10379,7 @@
       const end = document.getElementById('ann-end').value;
       const venue = document.getElementById('ann-venue').value.trim();
       const price = document.getElementById('ann-price').value.trim();
+      const body = document.getElementById('ann-body').value.trim();
       const link = document.getElementById('ann-link').value.trim();
       const linkText = document.getElementById('ann-linktext').value.trim();
       const editId = document.getElementById('ann-edit-id').value;
@@ -10360,7 +10391,7 @@
       const item = {
         id: editId || ('ann_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
         title, start: start ? new Date(start).toISOString() : '', end: end ? new Date(end).toISOString() : '',
-        venue, price, link, linkText
+        venue, price, body, link, linkText
       };
       const next = editId ? ANNOUNCEMENTS.map(a => a.id === editId ? item : a) : ANNOUNCEMENTS.concat([item]);
       const error = await saveAnnouncements(next);
@@ -21563,6 +21594,7 @@
       <div class="field"><label>종료 (비우면 계속 노출)</label><input id="ann-end" type="datetime-local"></div>
       <div class="field"><label>장소 (선택)</label><input id="ann-venue" placeholder="예: 잠실 실내체육관"></div>
       <div class="field"><label>가격 (선택)</label><input id="ann-price" placeholder="예: 5만원 ~ 12만원"></div>
+      <div class="field"><label>본문 (선택) — 길면 홈에서 "📋 자세히 보기" 버튼으로 접혀 나옵니다. ## 큰제목 / ### 소제목 / - 항목 형식 지원</label><textarea id="ann-body" style="min-height:150px;resize:vertical" placeholder="## 1부&#10;### 경기명&#10;- 내용 요약&#10;- 내용 요약"></textarea></div>
       <div class="field"><label>링크 (선택)</label><input id="ann-link" placeholder="https://..."></div>
       <div class="field"><label>버튼 문구 (선택, 비우면 "예매하러 가기")</label><input id="ann-linktext" placeholder="예: 예매하러 가기 / 자세히 보기"></div>
       <input type="hidden" id="ann-edit-id">
