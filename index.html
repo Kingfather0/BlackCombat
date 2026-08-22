@@ -15168,12 +15168,14 @@
       BQ.cfg = d;
       BQ.home = d;
 
-      // ── 비공개(관리자 전용) 테스트 중이고 권한이 없으면 여기서 끝 ──
+      // ── 비공개(관리자 전용) 상태이고 권한이 없으면 "점검 중" 안내만 보여주고 끝 ──
+      // (론칭 전엔 "준비 중"이었지만, 공개 후 일시적으로 비공개 전환하는 경우가 생겨
+      //  2026-08-21 요청으로 점검 안내로 변경 — 숨기는 대신 상태를 알려준다)
       if (d.allowed === false) {
         root.innerHTML = bqStageHTML({
-          ctaLabel: '준비 중', disabled: true,
-          desc: '새로운 게임을 준비하고 있어요.<br>조금만 기다려 주세요!',
-          hint: '곧 잡담방에서 공개됩니다 🦁',
+          ctaLabel: '점검 중', disabled: true,
+          desc: '블랙 퀴즈 <b>점검 중</b>입니다.<br>잠시 후 다시 열립니다!',
+          hint: '점검이 끝나면 바로 다시 공개됩니다 🦁',
         });
         bqBindStage();
         return;
@@ -16565,7 +16567,17 @@
         if (error) throw error;
         vis = data;
       } catch (e) { return; }              // 패치 미실행 등 → 카드를 그냥 숨긴 채로 둔다
-      if (!vis || !vis.allowed) return;
+      if (!vis) return;
+      // 비공개 전환 시 예전엔 카드를 아예 숨겼지만, 이제 "점검 중" 상태로 보여준다(2026-08-21 요청).
+      // 카드를 눌러 들어가도 퀴즈 화면이 같은 점검 안내를 띄우므로 딥링크와도 일관된다.
+      if (!vis.allowed) {
+        wrap.style.display = '';
+        const b0 = wrap.querySelector('.gc-b b');
+        if (b0) b0.innerHTML = '블랙 퀴즈 <span style="font-size:11px;color:#d69411">🛠 점검 중</span>';
+        const el0 = document.getElementById('gTopQuiz');
+        if (el0) el0.textContent = '점검 중입니다 — 잠시 후 다시 열립니다';
+        return;
+      }
       wrap.style.display = '';
       if (vis.testing) {
         const b = wrap.querySelector('.gc-b b');
