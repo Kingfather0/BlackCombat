@@ -15335,7 +15335,7 @@
     <span class="gc-go">PLAY</span>
   </a>`;
       $app.innerHTML = `
-  <span id="gQuizCardWrap" style="display:none">${card('#/game/quiz', 'idle', '블랙 퀴즈', '오늘의 블붕이 시험! 블붕력을 증명하라!', 'gTopQuiz', 'quiz')}</span>
+  <span id="gQuizCardWrap" style="display:none">${card('#/game/quiz', 'idle', '블랙 퀴즈', '오늘의 블붕이 시험!', 'gTopQuiz', 'quiz')}</span>
   ${card('#/game/run', 'run', '블랙 러닝', '점프·더블점프로 장애물을 뚫고 달려라!', 'gTopRun', 'run')}
   ${card('#/game/punch', 'punch', '블랙 펀칭', '타이밍에 딱 맞춰 최강 펀치 10방!', 'gTopPunch', 'punch')}
   ${card('#/game/grow', 'jump', '블랙 점핑', '발판을 통통 밟고 하늘 끝까지!', 'gTopGrow', 'grow')}
@@ -16479,10 +16479,10 @@
       stats.forEach((s, i) => {
         if (i > 0) { x.strokeStyle = '#edf0f5'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(sx, 158); x.lineTo(sx, 246); x.stroke(); }
         x.fillStyle = '#1d4ed8';
-        gmFitFont(x, s[1], colW - 14, '900', 40, 22);
-        x.fillText(s[1], sx + colW / 2, 190);
-        x.fillStyle = '#8a95a5'; x.font = '800 18px Pretendard, sans-serif';
-        x.fillText(s[0], sx + colW / 2, 230);
+        gmFitFont(x, s[1], colW - 10, '900', 46, 24);
+        x.fillText(s[1], sx + colW / 2, 192);
+        x.fillStyle = '#8a95a5'; x.font = '800 20px Pretendard, sans-serif';
+        x.fillText(s[0], sx + colW / 2, 232);
         sx += colW;
       });
       x.textAlign = 'left';
@@ -18944,10 +18944,11 @@
       loadGameRank(gameWeekKey(svrNow()), G.res.game);
     }
     // 게임 공용 카카오 카드 — 게임명·닉네임·대표 수치(블루, 크게)·보조 문구 (미니멀 톤)
-    // 그려질 마스코트 포즈 이미지를 캔버스 우측 여백에 얹는 공용 헬퍼 (실패해도 카드는 그대로 진행)
-    async function gmDrawSharePose(x, pose) {
+    // 캔버스 우측 여백에 이미지(마스코트 포즈든, 다른 아이콘이든)를 얹는 공용 헬퍼
+    // (실패해도 카드는 그대로 진행)
+    async function gmDrawShareImg(x, dataUrl, size) {
+      size = size || 232;
       try {
-        const dataUrl = (typeof gmPoseDataURL === 'function') ? gmPoseDataURL(pose) : null;
         if (!dataUrl) return;
         const img = await new Promise(res => {
           const im = new Image();
@@ -18955,11 +18956,12 @@
           im.onerror = () => res(null);
           im.src = dataUrl;
         });
-        if (img) {
-          const S = 232;
-          x.drawImage(img, 800 - S - 44, 200 - S / 2, S, S);
-        }
+        if (img) x.drawImage(img, 800 - size - 44, 200 - size / 2, size, size);
       } catch (e) { }
+    }
+    async function gmDrawSharePose(x, pose) {
+      const dataUrl = (typeof gmPoseDataURL === 'function') ? gmPoseDataURL(pose) : null;
+      await gmDrawShareImg(x, dataUrl);
     }
     // 텍스트가 좌측 컨텐츠 영역(우측 마스코트 이미지 폭 제외)을 넘지 않도록 폰트 크기를 줄여서 맞춘다
     function gmFitFont(x, text, maxWidth, weight, size, minSize) {
@@ -18970,13 +18972,30 @@
       }
       return size;
     }
+    // 블랙 배틀 공유 카드 우측 아이콘 — 사자 마스코트 대신 게임 메뉴 카드와 똑같은 상성표
+    // (타격→방어→태클→타격) 다이어그램을 그대로 그린다 (2026-08-24, bbCycleHtml의 SVG와 동일)
+    function gmBattleIconDataURL() {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 190">
+<defs><marker id="bbArrowShare" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><polygon points="0 0,7 3,0 6" fill="#e0a020"/></marker></defs>
+<line x1="115" y1="57" x2="157" y2="126" stroke="#e0a020" stroke-width="3" marker-end="url(#bbArrowShare)"/>
+<line x1="144" y1="153" x2="58" y2="153" stroke="#e0a020" stroke-width="3" marker-end="url(#bbArrowShare)"/>
+<line x1="42" y1="128" x2="84" y2="59" stroke="#e0a020" stroke-width="3" marker-end="url(#bbArrowShare)"/>
+<circle cx="100" cy="32" r="27" fill="#eef2f8" stroke="#c7d2e0" stroke-width="2"/>
+<text x="100" y="42" text-anchor="middle" font-size="24">👊</text>
+<circle cx="173" cy="153" r="27" fill="#eef2f8" stroke="#c7d2e0" stroke-width="2"/>
+<text x="173" y="163" text-anchor="middle" font-size="24">🛡️</text>
+<circle cx="27" cy="153" r="27" fill="#eef2f8" stroke="#c7d2e0" stroke-width="2"/>
+<text x="27" y="163" text-anchor="middle" font-size="24">🤼</text>
+</svg>`;
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
     // 블랙 배틀 전용 — "N등" 큰 글자(파란색, 전적 대신 순위) + 전적·승률(회색, 블랙 퀴즈 카드 톤) +
-    // 우측 마스코트 포즈. 헤더 레이블도 "OOO의 블랙 배틀 최고기록" 형식으로 통일한다 (2026-08-24)
-    async function gmDrawShareCard(nick, rank, wins, losses, draws, winRate, pose) {
+    // 우측 상성표 아이콘. 헤더 레이블도 "OOO의 블랙 배틀 최고기록" 형식으로 통일한다 (2026-08-24)
+    async function gmDrawShareCard(nick, rank, wins, losses, draws, winRate) {
       const { c, x } = kkoCardBase(
         `${nick ? nick + '의 ' : ''}블랙 배틀 최고기록`, '블랙컴뱃 잡담방',
         new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }));
-      await gmDrawSharePose(x, pose || 'battle');
+      await gmDrawShareImg(x, gmBattleIconDataURL(), 220);
       x.fillStyle = '#1d4ed8'; x.font = '900 72px Pretendard, sans-serif';
       x.fillText(rank ? `${rank}등` : '-', 48, 176);
       x.fillStyle = '#525d6b'; x.font = '800 21px Pretendard, sans-serif';
@@ -18985,26 +19004,25 @@
       x.fillText(`승률 ${winRate != null ? Math.round(winRate) : 0}%`, 48, 270);
       return c;
     }
-    // 미니게임(러닝/펀칭/점핑) 전용 — "N등 · 점수"를 한 줄(파란색)로, 그 아래 랭킹 목록과 동일한
-    // 세부 스탯(러닝 거리·골드 등)을 회색으로, 우측엔 게임 메뉴 카드와 같은 마스코트 포즈 (2026-08-24:
-    // "OOO의 이번주 최고 기록" 문구는 없애고 랭킹 리스트 한 줄 형식을 그대로 옮겨온다)
-    async function gmDrawWeeklyShareCard(gameLabel, nick, weekLabel, rank, totalPlayers, score, unit, pose, subText) {
+    // 미니게임(러닝/펀칭/점핑) 전용 — 상단에 "OOO의 이번주 최고 기록" 헤딩(회색), 그 아래
+    // "N등 · 점수"를 한 줄(파란색)로, 우측엔 게임 메뉴 카드와 같은 마스코트 포즈 (2026-08-24:
+    // 랭킹 텍스트 위에 헤딩을 다시 배치하고, 러닝 거리·골드 등 세부 스탯은 카톡 카드 본문
+    // 텍스트(desc)로 옮겨 캔버스에는 넣지 않는다)
+    async function gmDrawWeeklyShareCard(gameLabel, nick, weekLabel, rank, totalPlayers, score, unit, pose) {
       const { c, x } = kkoCardBase(`${gameLabel}${nick ? ' — ' + nick : ''}`, '블랙컴뱃 잡담방',
         new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }));
       await gmDrawSharePose(x, pose);
-      // 좌측: "N등 · 점수" 한 줄(파란색) — 우측 마스코트(232px+44px 여백) 앞까지만 차지하도록 자동 축소
+      // 좌측: "OOO의 이번주 최고 기록" 헤딩 → "N등 · 점수" 한 줄(파란색) → 참여 인원
+      x.fillStyle = '#525d6b'; x.font = '800 22px Pretendard, sans-serif';
+      x.fillText(`${nick ? nick + '의 ' : ''}${weekLabel} 최고 기록`, 48, 122);
       const mainText = `${rank}등 · ${(+score).toLocaleString()}${unit}`;
       const maxW = 800 - 232 - 44 - 48 - 16;
       gmFitFont(x, mainText, maxW, '900', 50, 30);
       x.fillStyle = '#1d4ed8';
-      x.fillText(mainText, 48, 176);
-      if (subText) {
-        x.fillStyle = '#8a95a5'; x.font = '800 22px Pretendard, sans-serif';
-        x.fillText(subText, 48, 232);
-      }
+      x.fillText(mainText, 48, 200);
       if (totalPlayers) {
         x.fillStyle = '#b6bfcc'; x.font = '700 17px Pretendard, sans-serif';
-        x.fillText(`${totalPlayers.toLocaleString()}명 중`, 48, 272);
+        x.fillText(`${totalPlayers.toLocaleString()}명 중`, 48, 240);
       }
       return c;
     }
@@ -19267,10 +19285,10 @@
             ? `Lv.${targetRow.kos || 0} 달성 · 🔥${targetRow.combo || 0}콤보`
             : `🔥최대 ${targetRow.combo || 0}콤보`;
         const card = await gmDrawWeeklyShareCard(gname, nick, weekLabel, rank || wkAll.length + 1,
-          wkAll.length, score, unit, poses[game] || 'idle', subText);
+          wkAll.length, score, unit, poses[game] || 'idle');
         const ok = await kkoShareCanvasCard(card, {
           title: `${gname} — ${nick}`,
-          desc: `${nick}의 ${weekLabel} 최고 기록 · 랭킹 ${rank || '-'}등 · ${score.toLocaleString()}${unit}`,
+          desc: subText,
           btnText: '도전하러 가기',
           path: `#/game/${game || 'run'}`,
         });
@@ -20360,7 +20378,7 @@
           winRate = (w + l) > 0 ? Math.round((w / (w + l)) * 100) : 0;
         }
         const ok = rec && await kkoShareCanvasCard(
-          await gmDrawShareCard(nickname, rank, rec.wins, rec.losses, rec.draws, winRate, 'battle'), {
+          await gmDrawShareCard(nickname, rank, rec.wins, rec.losses, rec.draws, winRate), {
           title: `${nickname}의 블랙 배틀 최고기록`,
           desc: `전적 ${rec.wins}승 ${rec.losses}패 ${rec.draws || 0}무 · 승률 ${winRate != null ? Math.round(winRate) : 0}%`,
           btnText: '대결하러 가기',
