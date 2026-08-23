@@ -15040,7 +15040,7 @@
         const { data, error } = await sb.rpc('get_hot_game', { p_hours: 24 });
         if (error || !data) return;
         const a = document.querySelector(`.gcard[href="${data}"]`);
-        if (a && !a.querySelector('.gc-new')) a.insertAdjacentHTML('afterbegin', '<span class="gc-new">🔥 HOT</span>');
+        if (a && !a.querySelector('.gc-new')) a.insertAdjacentHTML('afterbegin', '<span class="gc-new">HOT</span>');
       } catch (e) { }
     }
     async function loadMenuTops(wk) {
