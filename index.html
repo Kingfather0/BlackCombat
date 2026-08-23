@@ -14279,18 +14279,27 @@
       const { c, x } = kkoCardBase(t.title,
         live ? '블랙컴뱃 잡담방 · 실시간 결과 반영 중' : '블랙컴뱃 잡담방 · 승부예측 진행 중',
         `참여 ${parts.length}명`);
-      // 좌측 정렬 스택 — 라이브: 사이트 배지와 같은 빨간 알약(🔴 LIVE 진행 중) / 평소: D-day 블루 텍스트
-      if (live) {
+      // 좌측 정렬 스택 — 라이브: 빨간 알약(🔴 LIVE 진행 중) / 결과 확정: 사이트 배지와 같은
+      // 연분홍 알약(🏁 결과 확정) / 평소: D-day 블루 텍스트
+      const fin = tState(t) === 'final';
+      const pill = (txt, bgCol, txtCol, shadowCol, sideText) => {
         x.font = '900 24px Pretendard, sans-serif';
-        const txt = '🔴 LIVE 진행 중';
         const tw = x.measureText(txt).width;
-        x.save(); x.shadowColor = 'rgba(225,29,72,.35)'; x.shadowBlur = 14; x.shadowOffsetY = 4;
-        x.fillStyle = '#e11d48'; x.beginPath();
+        x.save();
+        if (shadowCol) { x.shadowColor = shadowCol; x.shadowBlur = 14; x.shadowOffsetY = 4; }
+        x.fillStyle = bgCol; x.beginPath();
         if (x.roundRect) x.roundRect(48, 90, tw + 44, 50, 25); else x.rect(48, 90, tw + 44, 50);
         x.fill(); x.restore();
-        x.fillStyle = '#fff'; x.fillText(txt, 70, 117);
-        x.fillStyle = '#525d6b'; x.font = '800 21px Pretendard, sans-serif';
-        x.fillText(`${scoredN}/${matches.length}경기 결과 반영`, 48 + tw + 44 + 20, 117);
+        x.fillStyle = txtCol; x.fillText(txt, 70, 117);
+        if (sideText) {
+          x.fillStyle = '#525d6b'; x.font = '800 21px Pretendard, sans-serif';
+          x.fillText(sideText, 48 + tw + 44 + 20, 117);
+        }
+      };
+      if (live) {
+        pill('🔴 LIVE 진행 중', '#e11d48', '#ffffff', 'rgba(225,29,72,.35)', `${scoredN}/${matches.length}경기 결과 반영`);
+      } else if (fin) {
+        pill('🏁 결과 확정', '#fdecec', '#a51c1c', null, t.event_at || t.event_date ? fmtEventDT(t) : '');
       } else {
         x.fillStyle = '#1d4ed8'; x.font = '900 62px Pretendard, sans-serif';
         if (ddayTxt) x.fillText(ddayTxt, 48, 128);
