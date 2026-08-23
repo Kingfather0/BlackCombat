@@ -14504,14 +14504,14 @@
             const extra = Math.max(0, rank1All.length - 1);
             const nameLine = `🥇 ${mainName}${extra > 0 ? ` 외 ${extra}명` : ''}`;
             const totalLine = `🎁 총 ${total}명 당첨`;
-            // 옆으로 나란히 붙이면 좁아져서 작게 찌그러지므로, 각자 줄을 통째로 써서 둘 다
-            // 크게 보이게 한다.
+            x.font = '800 20px Pretendard, sans-serif';
+            const totalW = x.measureText(totalLine).width;
             x.fillStyle = '#1d4ed8';
-            gmFitFont(x, nameLine, 704, '900', 46, 26);
-            x.fillText(nameLine, 48, 230);
-            x.fillStyle = '#525d6b';
-            gmFitFont(x, totalLine, 704, '800', 27, 18);
-            x.fillText(totalLine, 48, 274);
+            gmFitFont(x, nameLine, 704 - totalW - 20, '900', 44, 24);
+            x.fillText(nameLine, 48, 240);
+            x.textAlign = 'right'; x.fillStyle = '#1b2430'; x.font = '800 20px Pretendard, sans-serif';
+            x.fillText(totalLine, 752, 240);
+            x.textAlign = 'left';
           } else {
             x.fillStyle = '#1d4ed8'; x.font = '900 30px Pretendard, sans-serif';
             x.fillText('✅ 선물 추첨 완료', 48, 240);
