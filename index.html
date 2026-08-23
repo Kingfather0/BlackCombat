@@ -19046,50 +19046,67 @@
       loadGameRank(gameWeekKey(svrNow()), G.res.game);
     }
     // 게임 공용 카카오 카드 — 게임명·닉네임·대표 수치(블루, 크게)·보조 문구 (미니멀 톤)
-    function gmDrawShareCard(gameLabel, nick, bigValue, bigLabel, extraLine) {
-      const { c, x } = kkoCardBase(`${gameLabel}${nick ? ' — ' + nick : ''}`, '블랙컴뱃 잡담방',
-        new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }));
-      x.fillStyle = '#1d4ed8'; x.font = '900 72px Pretendard, sans-serif';
-      x.fillText(String(bigValue), 48, 164);
-      x.fillStyle = '#98a3b3'; x.font = '800 20px Pretendard, sans-serif';
-      x.fillText(bigLabel || '', 48, 230);
-      if (extraLine) {
-        x.fillStyle = '#525d6b'; x.font = '800 19px Pretendard, sans-serif';
-        x.fillText(extraLine, 48, 296);
-      }
-      return c;
-    }
-    // 미니게임(러닝/펀칭/점핑) 전용 — "OOO의 이번주 최고 기록 · 랭킹 N등 · 점수" 형식 +
-    // 게임 메뉴 카드와 같은 사자 마스코트 포즈를 우측에 함께 그린다 (2026-08-23)
-    async function gmDrawWeeklyShareCard(gameLabel, nick, weekLabel, rank, totalPlayers, score, unit, pose) {
-      const { c, x } = kkoCardBase(`${gameLabel}${nick ? ' — ' + nick : ''}`, '블랙컴뱃 잡담방',
-        new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }));
-      // 우측: 게임 메뉴 카드와 동일한 마스코트 포즈 (실패해도 카드 자체는 그대로 진행)
+    // 그려질 마스코트 포즈 이미지를 캔버스 우측 여백에 얹는 공용 헬퍼 (실패해도 카드는 그대로 진행)
+    async function gmDrawSharePose(x, pose) {
       try {
         const dataUrl = (typeof gmPoseDataURL === 'function') ? gmPoseDataURL(pose) : null;
-        if (dataUrl) {
-          const img = await new Promise(res => {
-            const im = new Image();
-            im.onload = () => res(im);
-            im.onerror = () => res(null);
-            im.src = dataUrl;
-          });
-          if (img) {
-            const S = 232;
-            x.drawImage(img, 800 - S - 44, 200 - S / 2, S, S);
-          }
+        if (!dataUrl) return;
+        const img = await new Promise(res => {
+          const im = new Image();
+          im.onload = () => res(im);
+          im.onerror = () => res(null);
+          im.src = dataUrl;
+        });
+        if (img) {
+          const S = 232;
+          x.drawImage(img, 800 - S - 44, 200 - S / 2, S, S);
         }
       } catch (e) { }
-      // 좌측: "OOO의 이번주 최고 기록" 헤딩 + "N등" 큰 글자 + 점수
-      x.fillStyle = '#525d6b'; x.font = '800 23px Pretendard, sans-serif';
-      x.fillText(`${nick ? nick + '의 ' : ''}${weekLabel} 최고 기록`, 48, 122);
-      x.fillStyle = '#1d4ed8'; x.font = '900 66px Pretendard, sans-serif';
-      x.fillText(`${rank}등`, 48, 212);
-      x.fillStyle = '#1b2430'; x.font = '900 32px Pretendard, sans-serif';
-      x.fillText(`${(+score).toLocaleString()}${unit}`, 48, 270);
+    }
+    // 텍스트가 좌측 컨텐츠 영역(우측 마스코트 이미지 폭 제외)을 넘지 않도록 폰트 크기를 줄여서 맞춘다
+    function gmFitFont(x, text, maxWidth, weight, size, minSize) {
+      while (size > minSize) {
+        x.font = `${weight} ${size}px Pretendard, sans-serif`;
+        if (x.measureText(text).width <= maxWidth) break;
+        size -= 2;
+      }
+      return size;
+    }
+    // 블랙 배틀 전용 — "N등" 큰 글자(파란색, 전적 대신 순위) + 전적·승률(회색, 블랙 퀴즈 카드 톤) +
+    // 우측 마스코트 포즈. 헤더 레이블도 "OOO의 블랙 배틀 최고기록" 형식으로 통일한다 (2026-08-24)
+    async function gmDrawShareCard(nick, rank, wins, losses, draws, winRate, pose) {
+      const { c, x } = kkoCardBase(
+        `${nick ? nick + '의 ' : ''}블랙 배틀 최고기록`, '블랙컴뱃 잡담방',
+        new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }));
+      await gmDrawSharePose(x, pose || 'battle');
+      x.fillStyle = '#1d4ed8'; x.font = '900 72px Pretendard, sans-serif';
+      x.fillText(rank ? `${rank}등` : '-', 48, 176);
+      x.fillStyle = '#525d6b'; x.font = '800 21px Pretendard, sans-serif';
+      x.fillText(`${wins || 0}승 ${losses || 0}패 ${draws || 0}무`, 48, 236);
+      x.fillStyle = '#98a3b3'; x.font = '800 18px Pretendard, sans-serif';
+      x.fillText(`승률 ${winRate != null ? Math.round(winRate) : 0}%`, 48, 270);
+      return c;
+    }
+    // 미니게임(러닝/펀칭/점핑) 전용 — "N등 · 점수"를 한 줄(파란색)로, 그 아래 랭킹 목록과 동일한
+    // 세부 스탯(러닝 거리·골드 등)을 회색으로, 우측엔 게임 메뉴 카드와 같은 마스코트 포즈 (2026-08-24:
+    // "OOO의 이번주 최고 기록" 문구는 없애고 랭킹 리스트 한 줄 형식을 그대로 옮겨온다)
+    async function gmDrawWeeklyShareCard(gameLabel, nick, weekLabel, rank, totalPlayers, score, unit, pose, subText) {
+      const { c, x } = kkoCardBase(`${gameLabel}${nick ? ' — ' + nick : ''}`, '블랙컴뱃 잡담방',
+        new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }));
+      await gmDrawSharePose(x, pose);
+      // 좌측: "N등 · 점수" 한 줄(파란색) — 우측 마스코트(232px+44px 여백) 앞까지만 차지하도록 자동 축소
+      const mainText = `${rank}등 · ${(+score).toLocaleString()}${unit}`;
+      const maxW = 800 - 232 - 44 - 48 - 16;
+      gmFitFont(x, mainText, maxW, '900', 50, 30);
+      x.fillStyle = '#1d4ed8';
+      x.fillText(mainText, 48, 176);
+      if (subText) {
+        x.fillStyle = '#8a95a5'; x.font = '800 22px Pretendard, sans-serif';
+        x.fillText(subText, 48, 232);
+      }
       if (totalPlayers) {
-        x.fillStyle = '#98a3b3'; x.font = '800 18px Pretendard, sans-serif';
-        x.fillText(`${totalPlayers.toLocaleString()}명 중`, 48, 308);
+        x.fillStyle = '#b6bfcc'; x.font = '700 17px Pretendard, sans-serif';
+        x.fillText(`${totalPlayers.toLocaleString()}명 중`, 48, 272);
       }
       return c;
     }
@@ -19345,8 +19362,14 @@
         const wkAll = all.filter(r => r.week === targetRow.week).sort((a, b) => (+b.score || 0) - (+a.score || 0));
         const rank = wkAll.findIndex(r => r.nickname === nick) + 1;
         const score = +targetRow.score || 0;
+        // 이번 주 랭킹 목록(loadGameRank의 sub2)과 완전히 같은 형식의 세부 스탯을 그대로 가져온다
+        const subText = game === 'run'
+          ? `🏃 ${(targetRow.combo || 0).toLocaleString()}m · 🪙 ${targetRow.kos || 0}개`
+          : game === 'grow'
+            ? `Lv.${targetRow.kos || 0} 달성 · 🔥${targetRow.combo || 0}콤보`
+            : `🔥최대 ${targetRow.combo || 0}콤보`;
         const card = await gmDrawWeeklyShareCard(gname, nick, weekLabel, rank || wkAll.length + 1,
-          wkAll.length, score, unit, poses[game] || 'idle');
+          wkAll.length, score, unit, poses[game] || 'idle', subText);
         const ok = await kkoShareCanvasCard(card, {
           title: `${gname} — ${nick}`,
           desc: `${nick}의 ${weekLabel} 최고 기록 · 랭킹 ${rank || '-'}등 · ${score.toLocaleString()}${unit}`,
@@ -20423,13 +20446,25 @@
       if (kkbBB) kkbBB.onclick = async (e) => {
         e.stopPropagation();
         kkbBB.disabled = true; kkbBB.textContent = '카드 만드는 중…';
-        let rec = null;
-        try { const r = await sb.rpc('bb_pvp_get_record', { p_nickname: nickname }); if (r.data && r.data.ok) rec = r.data; } catch (err) { }
-        const ok = rec && await kkoShareCanvasCard(gmDrawShareCard('블랙 배틀', nickname,
-          `${rec.wins}승 ${rec.losses}패`, '누적 전적',
-          `연승 ${rec.winStreak} · 최고 연승 ${rec.bestWinStreak || rec.winStreak}`), {
-          title: `블랙 배틀 — ${nickname}`,
-          desc: `누적 전적 ${rec.wins}승 ${rec.losses}패 · 연승 ${rec.winStreak}`,
+        let rec = null, rank = null, winRate = null;
+        try {
+          const [r1, r2] = await Promise.all([
+            sb.rpc('bb_pvp_get_record', { p_nickname: nickname }),
+            sb.rpc('bb_pvp_get_leaderboard', { p_limit: 200 }),
+          ]);
+          if (r1.data && r1.data.ok) rec = r1.data;
+          const rows = Array.isArray(r2.data) ? r2.data : [];
+          const idx = rows.findIndex(r => r.nickname === nickname);
+          if (idx >= 0) { rank = idx + 1; winRate = rows[idx].winRate; }
+        } catch (err) { }
+        if (rec && winRate == null) {
+          const w = rec.wins || 0, l = rec.losses || 0;
+          winRate = (w + l) > 0 ? Math.round((w / (w + l)) * 100) : 0;
+        }
+        const ok = rec && await kkoShareCanvasCard(
+          await gmDrawShareCard(nickname, rank, rec.wins, rec.losses, rec.draws, winRate, 'battle'), {
+          title: `${nickname}의 블랙 배틀 최고기록`,
+          desc: `전적 ${rec.wins}승 ${rec.losses}패 ${rec.draws || 0}무 · 승률 ${winRate != null ? Math.round(winRate) : 0}%`,
           btnText: '대결하러 가기',
           path: '#/game/battle',
         });
