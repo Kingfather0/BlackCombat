@@ -8875,6 +8875,36 @@
       cursor: default
     }
 
+    /* 2026-08-23: "결과 공유하기" 버튼 — 카톡 아이콘 + 노란 배경으로 카카오 색상에 맞춤 */
+    #bqShare {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #fee500;
+      border: 1.5px solid #fee500;
+      color: #191919
+    }
+
+    #bqShare:hover:not(:disabled) {
+      background: #f7dc00;
+      border-color: #f7dc00
+    }
+
+    #bqShare::before {
+      content: '';
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background-color: #fee500;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Cellipse cx='18' cy='15.5' rx='11' ry='8' fill='%23191919'/%3E%3Cpath d='M10.5 21.5 L8 28 L16 22.5 Z' fill='%23191919'/%3E%3C/svg%3E");
+      background-size: 78%;
+      background-repeat: no-repeat;
+      background-position: center;
+      box-shadow: 0 0 0 1.5px rgba(25,25,25,.16) inset;
+    }
+
     /* 문항 리뷰 */
     .bq-rev {
       display: grid;
@@ -16356,7 +16386,7 @@
         <div class="bq-tr"><span>오늘의 도전</span><b>${d.attempts_used} / ${(BQ.cfg && BQ.cfg.daily_attempts) || 3}</b></div>
       </div>
       <div class="bq-acts">
-        <button id="bqShare">💬 결과 공유하기</button>
+        <button id="bqShare">결과 공유하기</button>
         <button class="primary" id="bqAgain" ${d.attempts_left > 0 ? '' : 'disabled'}>
           ${d.attempts_left > 0 ? '다시 도전하기' : '내일 다시 만나요'}</button>
       </div>
@@ -16528,16 +16558,11 @@
     <button type="button" id="bqKkoShare" class="kko-btn" aria-label="카톡 공유" title="카톡 공유" style="display:flex;margin:12px auto 0"></button>
     <div class="bb-confirm-actions" style="margin-top:8px">
       <button type="button" class="bb-confirm-btn cancel">닫기</button>
-      <button type="button" class="bb-confirm-btn ok">텍스트로 공유</button>
     </div></div>`;
       const close = () => { try { ov.remove(); } catch (e) { } };
       ov.onclick = e => { if (e.target === ov) close(); };
       ov.querySelector('.cancel').onclick = close;
-      ov.querySelector('.bb-confirm-actions button:last-child').onclick = () => {
-        const how = bqDoShare(text, url);
-        if (how !== 'manual') close();
-      };
-      // 카카오 카드 공유 — 이미지 카드 + 노란 버튼으로 발송. 실패 시 텍스트 공유로 안내.
+      // 카카오 카드 공유 — 이미지 카드 + 노란 버튼으로 발송. 실패 시 위 문구를 직접 복사하도록 안내.
       const kkoBtn = ov.querySelector('#bqKkoShare');
       if (kkoBtn) kkoBtn.onclick = async () => {
         kkoBtn.disabled = true; kkoBtn.textContent = '카드 만드는 중…';
@@ -16549,7 +16574,7 @@
         });
         kkoBtn.disabled = false; kkoBtn.textContent = '카톡 공유';
         if (ok) close();
-        else toastMsg('이 환경에서는 카카오 카드 공유가 안 돼요. 아래 텍스트 공유를 이용해 주세요.');
+        else toastMsg('이 환경에서는 카카오 카드 공유가 안 돼요. 위 문구를 길게 눌러 복사해서 공유해 주세요.');
       };
       overlayHost().append(ov);
     }
