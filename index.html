@@ -8875,36 +8875,6 @@
       cursor: default
     }
 
-    /* 2026-08-23: "결과 공유하기" 버튼 — 카톡 아이콘 + 노란 배경으로 카카오 색상에 맞춤 */
-    #bqShare {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: #fee500;
-      border: 1.5px solid #fee500;
-      color: #191919
-    }
-
-    #bqShare:hover:not(:disabled) {
-      background: #f7dc00;
-      border-color: #f7dc00
-    }
-
-    #bqShare::before {
-      content: '';
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
-      border-radius: 50%;
-      background-color: #fee500;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Cellipse cx='18' cy='15.5' rx='11' ry='8' fill='%23191919'/%3E%3Cpath d='M10.5 21.5 L8 28 L16 22.5 Z' fill='%23191919'/%3E%3C/svg%3E");
-      background-size: 78%;
-      background-repeat: no-repeat;
-      background-position: center;
-      box-shadow: 0 0 0 1.5px rgba(25,25,25,.16) inset;
-    }
-
     /* 문항 리뷰 */
     .bq-rev {
       display: grid;
@@ -16386,7 +16356,6 @@
         <div class="bq-tr"><span>오늘의 도전</span><b>${d.attempts_used} / ${(BQ.cfg && BQ.cfg.daily_attempts) || 3}</b></div>
       </div>
       <div class="bq-acts">
-        <button id="bqShare">결과 공유하기</button>
         <button class="primary" id="bqAgain" ${d.attempts_left > 0 ? '' : 'disabled'}>
           ${d.attempts_left > 0 ? '다시 도전하기' : '내일 다시 만나요'}</button>
       </div>
@@ -16415,7 +16384,6 @@
   </div>`;
       gmApplyPoses();
 
-      document.getElementById('bqShare').onclick = () => bqShareDirect(d);
       const again = document.getElementById('bqAgain');
       if (again && !again.disabled) again.onclick = () => bqConfirmStart();
       document.getElementById('bqHome').onclick = () => bqRenderHome();
@@ -16427,26 +16395,6 @@
       };
     }
 
-    /* ──────────────────────────────────────────────────────────────
-       결과 공유 — 바이럴의 핵심. 미리보기를 보여주고 확인받은 뒤 보낸다.
-       ────────────────────────────────────────────────────────────── */
-    function bqShareText(d, opts) {
-      opts = opts || {};
-      const tm = d.tier_meta || {};
-      const nick = d.nickname || gmMyNick || '';
-      const lines = [
-        opts.title || '블랙 퀴즈 — 오늘의 블붕이 판정',
-        nick ? `${nick}님의 결과` : null,
-        '',
-        `${bqTierIcon(tm)} ${bqTierLabel(tm)}`,
-        `${d.correct_count} / ${d.q_total} · ${bqSecOrDash(d.total_time_ms)}`,
-      ].filter(l => l !== null);
-      if (d.tier_rank_public && d.tier_rank) lines.push(`${bqTierLabel(tm)} ${d.tier_rank}위`);
-      if (d.percentile != null && d.total_players >= 10) lines.push(`전체 상위 ${d.percentile}%`);
-      else if (d.rank && d.total_players) lines.push(`전체 ${d.total_players}명 중 ${d.rank}위`);
-      lines.push('', '👇찐 블붕이인지 증명해 보세요!');
-      return lines.join('\n');
-    }
     /* ── 카카오톡 카드 공유 (공용 모듈) ──
        카카오 공식 SDK(피드 템플릿)로 "이미지 + 노란 버튼" 카드를 카톡방에 보낸다.
        이미지는 Canvas로 즉석에서 그려(가로 800×400 — 카카오 카드 썸네일 규격)
@@ -16519,85 +16467,26 @@
       x.fillText(bqTierLabel(tm) || '블랙 퀴즈', 48, 252);
       x.fillStyle = '#98a3b3'; x.font = '700 19px Pretendard, sans-serif';
       x.fillText(String(tm.desc || '') || '오늘의 블붕이 판정', 48, 298);
-      // 우측: 성적 — 박스 없이 숫자 열 + 얇은 세로 헤어라인
+      // 우측: 성적 — 박스 없이 숫자 열 + 얇은 세로 헤어라인. 랭킹(전체 순위) → 정답 → 소요시간 순.
       const stats = [
+        [d.rank ? '순위' : '', d.rank ? `${d.rank}위` : ''],
         ['정답', `${d.correct_count}/${d.q_total}`],
         ['소요시간', bqSecOrDash(d.total_time_ms)],
-        [d.rank ? '오늘 순위' : '', d.rank ? `${d.rank}위` : ''],
       ].filter(s => s[0]);
       const colW = 126;
       let sx = 752 - stats.length * colW;
       x.textAlign = 'center';
       stats.forEach((s, i) => {
         if (i > 0) { x.strokeStyle = '#edf0f5'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(sx, 158); x.lineTo(sx, 246); x.stroke(); }
-        x.fillStyle = '#1d4ed8'; x.font = '900 33px Pretendard, sans-serif';
-        x.fillText(s[1], sx + colW / 2, 186);
-        x.fillStyle = '#98a3b3'; x.font = '700 15px Pretendard, sans-serif';
-        x.fillText(s[0], sx + colW / 2, 228);
+        x.fillStyle = '#1d4ed8';
+        gmFitFont(x, s[1], colW - 14, '900', 40, 22);
+        x.fillText(s[1], sx + colW / 2, 190);
+        x.fillStyle = '#8a95a5'; x.font = '800 18px Pretendard, sans-serif';
+        x.fillText(s[0], sx + colW / 2, 230);
         sx += colW;
       });
       x.textAlign = 'left';
       return c;
-    }
-    // 2026-08-23: "결과 공유하기" 클릭 시 확인 팝업 없이 바로 카톡 카드 공유를 보낸다
-    // (예전엔 bqShowShare 팝업을 한 번 더 띄웠는데, 그 단계를 없애 달라는 요청으로 제거).
-    async function bqShareDirect(d, opts) {
-      opts = opts || {};
-      const tm = d.tier_meta || {};
-      const nick = d.nickname || gmMyNick || '';
-      const btn = document.getElementById('bqShare');
-      if (btn) { btn.disabled = true; btn.textContent = '카드 만드는 중…'; }
-      let ok = false;
-      try {
-        ok = await kkoShareCanvasCard(bqDrawShareCard(d, opts), {
-          title: `${nick ? nick + '의 ' : ''}블랙 퀴즈 성적표`,
-          desc: `${bqTierLabel(tm)} · ${d.correct_count}/${d.q_total}${d.total_time_ms != null ? ` · ${bqSec(d.total_time_ms)}초` : ''}`,
-          btnText: '블붕력 시험하기',
-          path: '#/game/quiz',
-        });
-      } finally {
-        if (btn) { btn.disabled = false; btn.textContent = '결과 공유하기'; }
-      }
-      if (!ok) toastMsg('이 환경에서는 카카오 카드 공유가 안 돼요.');
-    }
-    function bqShowShare(d, opts) {
-      opts = opts || {};
-      const tm = d.tier_meta || {};
-      const nick = d.nickname || gmMyNick || '';
-      const text = bqShareText(d, opts);
-      const url = location.origin + location.pathname + '#/game/quiz';
-      const ov = document.createElement('div');
-      ov.className = 'modal-ov bb-confirm-ov';
-      ov.innerHTML = `<div class="bb-confirm" style="max-width:340px">
-    <div class="bq-sharebox">
-      <div class="l">${nick ? `${esc(nick)} · ` : ''}${esc(opts.cardTitle || '오늘의 블붕이 판정')}</div>
-      <div class="g">${bqTierIcon(tm)} ${esc(bqTierLabel(tm))}</div>
-      <div class="s">${d.correct_count} / ${d.q_total}</div>
-      <div class="m">${bqSecOrDash(d.total_time_ms)}${d.rank ? ` · ${bqRankSub(d.rank, d.total_players, d.percentile) === `상위 ${d.percentile}%` ? `상위 ${d.percentile}%` : `${d.rank}위`}` : ''}</div>
-    </div>
-    <div class="bq-sharetext" id="bqShareTxt">${esc(text)}\n${esc(url)}</div>
-    <button type="button" id="bqKkoShare" class="kko-btn" aria-label="카톡 공유" title="카톡 공유" style="display:flex;margin:12px auto 0"></button>
-    <div class="bb-confirm-actions" style="margin-top:8px">
-      <button type="button" class="bb-confirm-btn cancel">닫기</button>
-    </div></div>`;
-      const close = () => { try { ov.remove(); } catch (e) { } };
-      ov.onclick = e => { if (e.target === ov) close(); };
-      ov.querySelector('.cancel').onclick = close;
-      // 카카오 카드 공유 — 이미지 카드 + 노란 버튼으로 발송. 실패 시 위 문구를 직접 복사하도록 안내.
-      const kkoBtn = ov.querySelector('#bqKkoShare');
-      if (kkoBtn) kkoBtn.onclick = async () => {
-        kkoBtn.disabled = true; kkoBtn.textContent = '카드 만드는 중…';
-        const ok = await kkoShareCanvasCard(bqDrawShareCard(d, opts), {
-          title: `${nick ? nick + '의 ' : ''}블랙 퀴즈 성적표`,
-          desc: `${bqTierLabel(tm)} · ${d.correct_count}/${d.q_total}${d.total_time_ms != null ? ` · ${bqSec(d.total_time_ms)}초` : ''}`,
-          btnText: '블붕력 시험하기',
-          path: '#/game/quiz',
-        });
-        kkoBtn.disabled = false; kkoBtn.textContent = '카톡 공유';
-        if (ok) close();
-        else toastMsg('이 환경에서는 카카오 카드 공유가 안 돼요. 위 문구를 길게 눌러 복사해서 공유해 주세요.');
-      };
-      overlayHost().append(ov);
     }
     /* 공유 경로는 블랙 배틀의 검증된 방식을 그대로 따른다
        (content:// 등 비정상 스킴에서 navigator.share를 호출하면 안드로이드에서 렌더러가 죽는 사례 있음) */
@@ -16815,13 +16704,22 @@
         if (kb && !d.total_attempts) kb.style.display = 'none';
         if (kb) kb.onclick = async () => {
           kb.disabled = true; kb.textContent = '카드 만드는 중…';
+          // 공유 카드에 넣을 "전체 순위" — 랭킹 화면(quiz_get_ranking scope='all')과 동일한
+          // 누적 순위를 그대로 가져온다 (2026-08-24: 순위 컬럼 추가 요청)
+          let rank = null;
+          try {
+            const rk = await sb.rpc('quiz_get_ranking', {
+              p_scope: 'all', p_tier: null, p_nickname: d.nickname, p_limit: 1, p_pass: adminPass() || null,
+            });
+            if (!rk.error && rk.data && rk.data.me) rank = rk.data.me.rank;
+          } catch (e) { }
           const ok = await kkoShareCanvasCard(bqDrawShareCard({
             nickname: d.nickname, tier_meta: d.best_tier_meta,
             correct_count: d.best_correct, q_total: d.best_q_total || (BQ.cfg && BQ.cfg.q_total) || 5,
-            total_time_ms: d.best_score_time_ms,
+            total_time_ms: d.best_score_time_ms, rank,
           }, { cardTitle: '나의 최고 기록' }), {
             title: `${d.nickname}의 블랙 퀴즈 최고 기록`,
-            desc: `${bqTierLabel(d.best_tier_meta)} · ${d.best_correct}/${d.best_q_total || ''}${d.best_score_time_ms != null ? ` · ${bqSec(d.best_score_time_ms)}초` : ''}`,
+            desc: `${bqTierLabel(d.best_tier_meta)}${rank ? ` · 전체 ${rank}위` : ''} · ${d.best_correct}/${d.best_q_total || ''}${d.best_score_time_ms != null ? ` · ${bqSec(d.best_score_time_ms)}초` : ''}`,
             btnText: '블붕력 시험하기',
             path: '#/game/quiz',
           });
