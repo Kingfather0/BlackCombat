@@ -16153,7 +16153,9 @@
         const b = res.data && res.data.ok !== false && res.data.best;
         if (!b) { box.style.display = 'none'; return; }
         box.style.display = '';
-        box.innerHTML = `<div style="font-size:13.5px">🏛️ <b>명예의 전당</b> — P4P 1위 <b class="gr-nk" style="color:var(--key-deep)" data-nick="${esc(b.nickname)}" onclick="bqShowUserStats(this.dataset.nick)">${esc(b.nickname)}</b> · <b style="color:var(--key-deep)">${b.correct_count}/${b.q_total} · ${bqSec(b.total_time_ms)}초</b></div>`;
+        // 만점(예: 5/5)이면 점수는 당연한 정보라 생략하고 시간만 — 만점이 아닐 때만 점수를 함께 표시
+        const scoreTag = (b.correct_count === b.q_total) ? '' : `${b.correct_count}/${b.q_total} · `;
+        box.innerHTML = `<div style="font-size:13.5px">🏛️ <b>명예의 전당</b> — P4P 1위 <b class="gr-nk" style="color:var(--key-deep)" data-nick="${esc(b.nickname)}" onclick="bqShowUserStats(this.dataset.nick)">${esc(b.nickname)}</b> · <b style="color:var(--key-deep)">${scoreTag}${bqSec(b.total_time_ms)}초</b></div>`;
       } catch (e) { box.style.display = 'none'; }
     }
 
@@ -16600,7 +16602,7 @@
         const rows = (data && data.rows) || [];
         if (!rows.length) { el.textContent = '아직 기록 없음 — P4P 1위에 도전!'; return; }
         const r = rows[0];
-        el.innerHTML = `P4P 🥇 <b style="color:var(--text)">${esc(r.nickname)}</b> ${bqIsForfeited(r) ? '포기' : `${r.correct_count}/${r.q_total} · ${bqSec(r.total_time_ms)}초`}`;
+        el.innerHTML = `P4P 🥇 <b style="color:var(--text)">${esc(r.nickname)}</b> ${bqIsForfeited(r) ? '포기' : `${r.correct_count === r.q_total ? '' : `${r.correct_count}/${r.q_total} · `}${bqSec(r.total_time_ms)}초`}`;
       } catch (e) { el.textContent = '랭킹 준비 중'; }
     }
 
