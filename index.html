@@ -16720,7 +16720,7 @@
           }, { cardTitle: '나의 최고 기록' }), {
             title: `${d.nickname}의 블랙 퀴즈 최고 기록`,
             desc: `${bqTierLabel(d.best_tier_meta)}${rank ? ` · 전체 ${rank}위` : ''} · ${d.best_correct}/${d.best_q_total || ''}${d.best_score_time_ms != null ? ` · ${bqSec(d.best_score_time_ms)}초` : ''}`,
-            btnText: '블붕력 시험하기',
+            btnText: '게임하러 가기',
             path: '#/game/quiz',
           });
           kb.disabled = false; kb.textContent = '카톡 공유';
@@ -19289,7 +19289,7 @@
         const ok = await kkoShareCanvasCard(card, {
           title: `${gname} — ${nick}`,
           desc: subText,
-          btnText: '도전하러 가기',
+          btnText: '게임하러 가기',
           path: `#/game/${game || 'run'}`,
         });
         kkb.disabled = false; kkb.textContent = '카톡 공유';
@@ -20381,7 +20381,7 @@
           await gmDrawShareCard(nickname, rank, rec.wins, rec.losses, rec.draws, winRate), {
           title: `${nickname}의 블랙 배틀 최고기록`,
           desc: `전적 ${rec.wins}승 ${rec.losses}패 ${rec.draws || 0}무 · 승률 ${winRate != null ? Math.round(winRate) : 0}%`,
-          btnText: '대결하러 가기',
+          btnText: '게임하러 가기',
           path: '#/game/battle',
         });
         kkbBB.disabled = false; kkbBB.textContent = '카톡 공유';
