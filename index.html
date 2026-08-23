@@ -2231,9 +2231,9 @@
     /* 1·2등 포디움 */
     .prow {
       display: flex;
-      align-items: center;
-      gap: 13px;
-      padding: 12px 8px;
+      align-items: flex-start;
+      gap: 11px;
+      padding: 9px 8px;
       background: transparent
     }
 
@@ -2242,8 +2242,8 @@
     }
 
     .pmd {
-      font-size: 32px;
-      line-height: 1;
+      font-size: 26px;
+      line-height: 1.3;
       flex-shrink: 0
     }
 
@@ -2251,7 +2251,8 @@
       display: block;
       font-size: 10.5px;
       font-weight: 900;
-      letter-spacing: 2px
+      letter-spacing: 2px;
+      margin-bottom: 2px
     }
 
     .prow.p1 .plab {
@@ -2263,19 +2264,29 @@
     }
 
     .pnames {
-      display: block;
-      font-weight: 900;
-      font-size: 17.5px;
-      min-width: 0;
-      word-break: keep-all;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px 5px;
+      min-width: 0
+    }
+
+    .pname-chip {
+      display: inline-block;
+      background: #f5f7fb;
+      border: 1px solid #e3e8f0;
+      border-radius: 7px;
+      padding: 1px 8px;
+      font-weight: 800;
+      font-size: 13.5px;
       color: var(--text)
     }
 
     .pscore {
       font-weight: 800;
-      font-size: 13px;
+      font-size: 12px;
       flex-shrink: 0;
-      color: var(--muted)
+      color: var(--muted);
+      align-self: center
     }
 
     /* 참가자 예측 카드 */
@@ -3835,78 +3846,12 @@
       line-height: 1
     }
 
-    /* 선물 추첨 룰렛 애니메이션 */
-    .gift-anim {
-      width: 100%;
-      max-width: 420px;
-      max-height: 82vh;
-      overflow: auto;
-      background: #fff;
-      border-radius: 18px;
-      border: 2px solid #cfe0f5;
-      box-shadow: 0 18px 50px rgba(10, 30, 70, .35);
-      padding: 20px;
-      text-align: center
-    }
-
-    .gift-anim-h {
-      font-size: 18px;
-      font-weight: 900;
-      color: var(--key-deep);
-      margin-bottom: 14px
-    }
-
-    .gift-anim-tier {
-      margin-bottom: 16px;
-      animation: gOverIn .25s ease
-    }
-
-    .gift-anim-tier-h {
-      font-size: 13.5px;
-      font-weight: 800;
-      color: #8a95a5;
-      margin-bottom: 8px
-    }
-
-    .gift-anim-reels {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: center
-    }
-
-    .gift-reel {
-      min-width: 88px;
-      padding: 10px 14px;
-      border-radius: 12px;
-      background: #eef4ff;
-      border: 1.5px solid #cfe0f5;
-      font-weight: 900;
-      font-size: 15px;
-      color: var(--key-deep);
-      transition: transform .15s ease
-    }
-
-    .gift-reel.spinning {
-      background: #f4f7fc;
-      color: #98a3b3
-    }
-
-    .gift-reel.gift-reel-done {
-      background: #fff8e0;
-      border-color: #f0d060;
-      color: #a5720a;
-      animation: giftPop .35s ease
-    }
-
+    /* 선물 추첨 룰렛 애니메이션 — 결과 확정 페이지 안에서 관리자/유저 모두에게 재생된다
+       (.gift-name.spinning / .gift-name-done, 위쪽 정의 참고) */
     @keyframes giftPop {
       0% { transform: scale(1) }
       45% { transform: scale(1.18) }
       100% { transform: scale(1) }
-    }
-
-    #giftAnimConfirm {
-      margin-top: 6px
     }
 
     .ghist-sum {
@@ -14536,31 +14481,37 @@
         const nextStr = new Date(baseD.getTime() + 86400000).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
         x.fillStyle = '#b6bfcc'; x.font = '900 13px Pretendard, sans-serif';
         x.fillText('G I F T   N O T I C E', 48, 172);
-        // 텍스트를 잔뜩 욱여넣지 않고, 1등 당첨자 닉네임을 크고 굵게 보여주는 게 핵심.
+        // 텍스트를 잔뜩 욱여넣지 않고, 1등 닉네임을 크고 굵게 보여주는 게 핵심.
+        // "외 N명" 카운트는 상품과 무관하게 "적중순위 1등 공동 인원수" 기준(사이트의
+        // 1등·WINNER 섹션과 동일한 개념)으로 하되, 대표로 내세우는 닉네임 한 명은
+        // 그 1등 그룹 중 "실제로 선물을 받은" 사람으로 골라서 — 선물 못 받은 사람이
+        // 대표 얼굴처럼 나오는 일이 없게 한다.
         if (gw) {
-          let names = [], total = 0, headDesc = '';
+          let rank1Winners = [], total = 0;
           if (gw.mode === 'waterfall' && Array.isArray(gw.tiers)) {
             gw.tiers.forEach((g) => {
-              const ws = Array.isArray(g.winners) ? g.winners.map(w => w.n) : (g.names || []);
+              const ws = Array.isArray(g.winners) ? g.winners : (g.names || []).map(n => ({ n }));
               total += ws.length;
-              if (!names.length && ws.length) { names = ws; headDesc = g.desc || '1순위 선물'; }
+              ws.forEach(w => { if (w.r === 1) rank1Winners.push(w.n); });
             });
           } else {
-            giftTiers(t).forEach(g => {
-              const ws = giftWinnersFor(gw, g.rank);
-              total += ws.length;
-              if (!names.length && ws.length) { names = ws; headDesc = g.desc ? `${g.rank}등(${g.desc})` : `${g.rank}등`; }
-            });
+            giftTiers(t).forEach(g => { total += giftWinnersFor(gw, g.rank).length; });
+            rank1Winners = giftWinnersFor(gw, 1);
           }
-          if (names.length) {
-            const nameLine = `🥇 ${names[0]}${names.length > 1 ? ` 외 ${names.length - 1}명` : ''}`;
-            x.fillStyle = '#1b2430';
-            gmFitFont(x, nameLine, 704, '900', 48, 28);
-            x.fillText(nameLine, 48, 232);
-            const subLine = `${headDesc}${total > names.length ? ` · 총 ${total}명 당첨` : ' 당첨'}`;
-            x.fillStyle = '#8a95a5'; x.font = '800 19px Pretendard, sans-serif';
-            gmFitFont(x, subLine, 704, '800', 19, 14);
-            x.fillText(subLine, 48, 270);
+          const rank1All = ranked.filter(r => r.rank === 1);
+          const mainName = rank1Winners[0] || (rank1All[0] && rank1All[0].nickname);
+          if (mainName) {
+            const extra = Math.max(0, rank1All.length - 1);
+            const nameLine = `🥇 ${mainName}${extra > 0 ? ` 외 ${extra}명` : ''}`;
+            const totalLine = `🎁 총 ${total}명 당첨`;
+            x.font = '800 20px Pretendard, sans-serif';
+            const totalW = x.measureText(totalLine).width;
+            x.fillStyle = '#1d4ed8';
+            gmFitFont(x, nameLine, 704 - totalW - 20, '900', 44, 24);
+            x.fillText(nameLine, 48, 240);
+            x.textAlign = 'right'; x.fillStyle = '#8a95a5'; x.font = '800 20px Pretendard, sans-serif';
+            x.fillText(totalLine, 752, 240);
+            x.textAlign = 'left';
           } else {
             x.fillStyle = '#1d4ed8'; x.font = '900 30px Pretendard, sans-serif';
             x.fillText('✅ 선물 추첨 완료', 48, 240);
@@ -14571,7 +14522,7 @@
           x.fillStyle = '#8a95a5'; x.font = '800 19px Pretendard, sans-serif';
           x.fillText('결과 확정 후 추첨 예정이에요', 48, 258);
         }
-        x.fillStyle = '#3d4653'; x.font = '800 20px Pretendard, sans-serif';
+        x.fillStyle = '#c62828'; x.font = '800 20px Pretendard, sans-serif';
         const noticeLine = `당첨자는 ${nextStr}까지 오픈톡으로 연락해 주세요`;
         gmFitFont(x, noticeLine, 704, '800', 20, 15);
         x.fillText(noticeLine, 48, 312);
@@ -21837,8 +21788,29 @@
       const nextD = new Date(baseD.getTime() + 86400000);
       const nextStr = nextD.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' });
       const GIFT = 'https://open.kakao.com/o/su9HLAuh';
+      // 1·2등 리스트를 맨 위로, 그 아래 당첨 선물 안내 순서로 배치한다(요청). 둘 다 인원이
+      // 많으면 세로로 한없이 길어지던 걸, 닉네임을 칩 형태로 촘촘히 감싸도록 바꿔 줄였다.
+      const nameChips = rows => rows.map(r => `<a class="pname-chip" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a>`).join('');
       return `
-    <div class="card" style="border:1.5px solid var(--key-deep);background:var(--key-soft)">
+    <div class="card hero" style="padding:9px 10px">
+      <div class="prow p1">
+        <span class="pmd">🥇</span>
+        <span style="flex:1;min-width:0">
+          <span class="plab">1등 · WINNER</span>
+          <span class="pnames">${nameChips(first)}</span>
+        </span>
+        <span class="pscore">${first[0].hit}/${sm.length} 적중${first.length > 1 ? ` · 공동 ${first.length}명` : ''}</span>
+      </div>
+      ${second.length ? `<div class="prow p2">
+        <span class="pmd">🥈</span>
+        <span style="flex:1;min-width:0">
+          <span class="plab">2등</span>
+          <span class="pnames">${nameChips(second)}</span>
+        </span>
+        <span class="pscore">${second[0].hit}/${sm.length} 적중${second.length > 1 ? ` · 공동 ${second.length}명` : ''}</span>
+      </div>`: ''}
+    </div>
+    <div class="card" style="border:1.5px solid var(--key-deep);background:var(--key-soft);margin-top:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
         <b>🎁당첨 선물 수령 안내</b>
         ${t.gift_winners
@@ -21851,10 +21823,9 @@
               <button class="btn primary xs" onclick="drawGiftsFromResult('${t.id}')">🎲 선물 추첨</button>
             </span>`}
       </div>
-      <div class="note">
+      <div class="note" style="line-height:1.5">
         ${t.gift_winners ? `
           ${(t.gift_winners.mode === 'waterfall' && Array.isArray(t.gift_winners.tiers)) ? `
-          <div style="font-weight:800;font-size:14px">🎲 선물 추첨 결과</div>
           ${t.gift_winners.tiers.map((g, i) => {
             // 닉네임 옆에 그 사람의 적중 순위를 괄호로 표시한다 (1~3등은 메달 이모지)
             const winners = Array.isArray(g.winners) ? g.winners : (g.names || []).map(n => ({ n }));
@@ -21863,41 +21834,22 @@
             // 돌다가 실제 당첨자(불변)에 멈추는 모습을 보여준다 — 신뢰도를 위해 결과를 그냥
             // 텍스트로 박아두지 않는다. 실제 값은 이미 확정돼 있어 매번 같은 이름에 멈춘다.
             return `
-            <div style="margin-top:6px"><b style="color:var(--key-deep)">${esc(g.desc || (i + 1) + '순위 선물')} →</b>
+            <div style="margin-top:4px"><b style="color:var(--key-deep)">${esc(g.desc || (i + 1) + '순위 선물')} →</b>
               ${winners.map(w => `<span class="gift-name gift-reel-live spinning" data-rank="${w.r != null ? w.r : ''}" data-final="${esc(w.n)}${rankTag(w.r)}">🎲</span>`).join('') || '-'}
             </div>`;
-          }).join('')}
-          <div style="margin-top:8px"></div>` : `
+          }).join('')}` : `
           ${giftTiers(t).map(g => {
             const winners = giftWinnersFor(t.gift_winners, g.rank);
             const tied = ranked.filter(r => r.rank === g.rank);
-            return `<b>${g.rank}등 당첨${g.desc ? ` (${esc(g.desc)})` : ''}</b> :
+            return `<div style="margin-top:4px"><b>${g.rank}등 당첨${g.desc ? ` (${esc(g.desc)})` : ''}</b> :
             ${winners.map(n => `<span class="gift-name gift-reel-live spinning" data-rank="${g.rank}" data-final="${esc(n)}">🎲</span>`).join('') || '-'}
-            ${tied.length > winners.length ? `<span style="color:var(--muted)">← 공동 ${tied.length}명 중 ${winners.length}명 랜덤 추첨</span>` : ''}<br>`;
+            ${tied.length > winners.length ? `<span style="color:var(--muted)">← 공동 ${tied.length}명 중 ${winners.length}명 랜덤 추첨</span>` : ''}</div>`;
           }).join('')}`}
-          위 당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>`
-          : `당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>`}
+          <div style="margin-top:6px">위 당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.</div>`
+          : `<div>당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.</div>`}
         <span style="color:#c62828;font-weight:800">기한 내 연락이 없으면 당첨 선물은 지급되지 않습니다.</span>
       </div>
       <a class="btn primary small" style="margin-top:10px" href="${GIFT}" target="_blank" rel="noopener">킹빠더 1:1 오픈톡 바로가기</a>
-    </div>
-    <div class="card hero" style="padding:10px">
-      <div class="prow p1">
-        <span class="pmd">🥇</span>
-        <span style="flex:1;min-width:0">
-          <span class="plab">1등 · WINNER</span>
-          <span class="pnames">${first.map(r => `<a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a>`).join(' · ')}</span>
-        </span>
-        <span class="pscore">${first[0].hit}/${sm.length} 적중${first.length > 1 ? ` · 공동 ${first.length}명` : ''}</span>
-      </div>
-      ${second.length ? `<div class="prow p2">
-        <span class="pmd">🥈</span>
-        <span style="flex:1;min-width:0">
-          <span class="plab">2등</span>
-          <span class="pnames">${second.map(r => `<a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a>`).join(' · ')}</span>
-        </span>
-        <span class="pscore">${second[0].hit}/${sm.length} 적중${second.length > 1 ? ` · 공동 ${second.length}명` : ''}</span>
-      </div>`: ''}
     </div>
     <div class="sec-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
       <span>최종 순위</span>
@@ -22976,39 +22928,6 @@
         setTimeout(() => spinReel(el, pool, el.dataset.final, 14 + (i % 4) * 3, 'gift-name-done'), i * 90);
       });
     }
-    function giftDrawAnim(resTiers, ranked) {
-      return new Promise(resolve => {
-        const tiersWithWinners = resTiers.filter(t => t.winners.length);
-        if (!tiersWithWinners.length) { resolve(); return; }
-        const ov = document.createElement('div');
-        ov.className = 'ghist-ov';
-        ov.innerHTML = `<div class="gift-anim">
-      <div class="gift-anim-h">🎲 선물을 추첨하고 있어요…</div>
-      <div id="giftAnimTiers"></div>
-      <button type="button" class="btn primary" id="giftAnimConfirm" style="display:none">확인</button>
-    </div>`;
-        document.body.appendChild(ov);
-        const wrap = ov.querySelector('#giftAnimTiers');
-        const confirmBtn = ov.querySelector('#giftAnimConfirm');
-        confirmBtn.onclick = () => { ov.remove(); resolve(); };
-        (async () => {
-          for (const tier of tiersWithWinners) {
-            const row = document.createElement('div');
-            row.className = 'gift-anim-tier';
-            row.innerHTML = `<div class="gift-anim-tier-h">${esc(tier.desc || '선물')} · ${tier.winners.length}명</div>
-          <div class="gift-anim-reels">${tier.winners.map(() => `<div class="gift-reel spinning">?</div>`).join('')}</div>`;
-            wrap.appendChild(row);
-            const reels = row.querySelectorAll('.gift-reel');
-            await Promise.all(tier.winners.map((w, wi) => {
-              const pool = ranked.filter(r => r.rank === w.r).map(r => r.nickname);
-              return spinReel(reels[wi], pool, w.n, 14 + wi * 3);
-            }));
-            await new Promise(r => setTimeout(r, 350));
-          }
-          confirmBtn.style.display = '';
-        })();
-      });
-    }
     async function drawGiftsFromResult(tid) {
       if (!adminPass()) return toastMsg('⚠️ 선물 추첨은 관리자만 실행할 수 있습니다.');
       if (!confirm('선물 당첨자를 추첨할까요?\n(적중 순위가 높은 사람부터 좋은 선물 순서로 지급되며, 결과는 저장되어 바뀌지 않습니다)')) return;
@@ -23019,9 +22938,9 @@
       const tiers = giftTiers(d.t).filter(g => (g.max || 0) > 0);
       if (!tiers.length) return toastMsg('⚠️ 먼저 [선물 변경]에서 선물을 설정해 주세요.');
       const resTiers = drawWaterfall(ranked, tiers);
-      // 결과는 이미 위 drawWaterfall()에서 확정됐다 — 아래 룰렛 연출은 그 결과를 재미있게
-      // "보여주는" 것뿐이며, 연출이 끝나야(확인 버튼) 실제 저장(RPC) 단계로 넘어간다.
-      await giftDrawAnim(resTiers, ranked);
+      // 관리자에게 따로 미리보기 룰렛을 보여주지 않는다 — 확인 팝업 → 저장 → 페이지 새로고침까지
+      // 바로 진행하면, 결과 페이지의 룰렛(giftResultReveal)이 관리자 자신에게도 다른 유저들과
+      // 똑같이 재생된다. 즉 관리자도 유저와 같은 화면으로 "진짜 추첨"을 확인하게 된다.
       const winners = {
         mode: 'waterfall',
         tiers: resTiers,
