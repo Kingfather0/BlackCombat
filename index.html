@@ -1520,6 +1520,24 @@
     }
 
     /* 페이지 제목 우측의 티켓 현황 공유 버튼 — 하늘색 배경 + 파란 글자 알약 모양 */
+    /* 카카오톡 카드 공유 공용 버튼 — 사이트 전역에서 같은 모양/폰트를 쓴다 (2026-08-23) */
+    .kko-btn {
+      background: #fee500;
+      color: #191919;
+      border: 0;
+      border-radius: 99px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      white-space: nowrap;
+      vertical-align: middle;
+      font-family: inherit
+    }
+
+    .kko-btn:hover { background: #f7dc00 }
+    .kko-btn:disabled { opacity: .55; cursor: default }
+
     .tk-share-btn {
       background: var(--key-soft);
       color: var(--key-deep);
@@ -12082,6 +12100,56 @@
        동시에 백그라운드로 예매 사이트에서 "지금 이 순간"의 잔여석을 조회한다. 조회가
        도착하면(보통 1~2초) 열려 있는 팝업의 미리보기와 발송 문구를 최신값으로 바꿔치운다.
        조회가 실패하거나 늦으면 마지막 자동 기록값 그대로 공유된다. */
+    // 티켓 판매 현황 카카오 카드 (800×400, 미니멀 톤) — 화면 스냅샷 데이터 그대로 그린다
+    function tkDrawShareCard(cd) {
+      const total = cd.total;
+      const remain = Object.values(cd.remainMap || {}).reduce((s, v) => s + (v || 0), 0);
+      const sold = Math.max(0, total - remain);
+      const pct = total ? sold / total * 100 : 0;
+      const { c, x } = kkoCardBase('티켓 판매 현황', '블랙컴뱃 잡담방 · 10분 단위 자동 갱신', fmtSnapTime(cd.at) + ' 기준');
+      x.fillStyle = '#1d4ed8'; x.font = '900 62px Pretendard, sans-serif';
+      const ptxt = pct.toFixed(1) + '%';
+      x.fillText(ptxt, 48, 124);
+      const pw = x.measureText(ptxt).width;
+      x.fillStyle = '#525d6b'; x.font = '800 21px Pretendard, sans-serif';
+      x.fillText('판매', 48 + pw + 14, 132);
+      // 판매율 게이지 (블루)
+      x.fillStyle = '#e8edf5'; x.beginPath();
+      if (x.roundRect) x.roundRect(48, 166, 704, 18, 9); else x.rect(48, 166, 704, 18);
+      x.fill();
+      const g = x.createLinearGradient(48, 0, 752, 0);
+      g.addColorStop(0, '#2563eb'); g.addColorStop(1, '#1d4ed8');
+      x.fillStyle = g; x.beginPath();
+      const fw = Math.max(18, 704 * Math.min(100, pct) / 100);
+      if (x.roundRect) x.roundRect(48, 166, fw, 18, 9); else x.rect(48, 166, fw, 18);
+      x.fill();
+      x.fillStyle = '#1b2430'; x.font = '800 21px Pretendard, sans-serif';
+      x.fillText(`총 ${total.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 · 잔여 ${remain.toLocaleString()}석`, 48, 222);
+      // 등급별 잔여 (많은 순, 두 줄)
+      const rows = Object.entries(cd.remainMap || {}).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1])
+        .map(([k, v]) => `${k} ${v.toLocaleString()}석`);
+      x.fillStyle = '#98a3b3'; x.font = '700 17px Pretendard, sans-serif';
+      const l1 = rows.slice(0, 3).join('  ·  '), l2 = rows.slice(3, 6).join('  ·  ');
+      if (l1) x.fillText(l1, 48, l2 ? 276 : 290);
+      if (l2) x.fillText(l2, 48, 306);
+      return c;
+    }
+    async function tkKkoShare() {
+      const btn = document.getElementById('tkKkoBtn');
+      const cd = tkLive && tkLive.cardData;
+      if (!cd || !cd.total) { tkShare(); return; }   // 총원 미집계 등 → 기존 텍스트 공유로
+      if (btn) { btn.disabled = true; btn.textContent = '카드 만드는 중…'; }
+      const remain = Object.values(cd.remainMap || {}).reduce((s, v) => s + (v || 0), 0);
+      const sold = Math.max(0, cd.total - remain);
+      const ok = await kkoShareCanvasCard(tkDrawShareCard(cd), {
+        title: '🎫 티켓 판매 현황',
+        desc: `총 ${cd.total.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${(sold / cd.total * 100).toFixed(1)}%)`,
+        btnText: '티켓 현황 보기',
+        path: '#/tickets',
+      });
+      if (btn) { btn.disabled = false; btn.textContent = '카톡 공유'; }
+      if (!ok) tkShare();   // 미지원 환경 → 기존 텍스트 공유 팝업으로 폴백
+    }
     async function tkShare() {
       if (!tkLive || !tkLive.shareText) { toastMsg('공유할 판매 현황이 아직 없습니다.'); return; }
       tkShowShareConfirm(tkLive.shareText);
@@ -12702,6 +12770,8 @@
         });
       });
       tkBuildShareText(liveRemain, newestAt, liveTotals);
+      // 카카오 카드 공유용 데이터 — 화면에 보이는 것과 같은 스냅샷 기준 (2026-08-23)
+      tkLive.cardData = { total: (hasTotal && sumTotal > 0) ? sumTotal : null, remainMap: liveRemain, at: newestAt };
 
       // 구역별 실시간 좌석 현황 — 이 행사(BC_2026_0829)에서만, "전체 좌석"과 "잔여 좌석" 사이에 넣는다.
       const liveZonesEnabled = (eventKey === 'BC_2026_0829');
@@ -12723,7 +12793,7 @@
 
       $app.innerHTML = `
       <h1 class="page fit-row" style="display:flex;justify-content:space-between;align-items:center;gap:10px">티켓 판매 현황
-        <span style="display:inline-flex;gap:8px;align-items:center">${adminPass() ? `<button class="btn small" onclick="tkManualRefresh(this)">🔄 수동 갱신</button>` : ''}<button class="tk-share-btn" onclick="tkShare()">💬 티켓 현황 공유</button></span></h1>
+        <span style="display:inline-flex;gap:8px;align-items:center">${adminPass() ? `<button class="btn small" onclick="tkManualRefresh(this)">🔄 수동 갱신</button>` : ''}<button class="kko-btn" id="tkKkoBtn" onclick="tkKkoShare()" style="padding:8px 16px;font-size:13px">카톡 공유</button></span></h1>
       ${infoCard}
       ${totalBarHTML}
       ${forecastHTML}
@@ -14229,9 +14299,9 @@
         parts.forEach(p => { const pk = p.picks && p.picks[cur.id]; if (pk === 'A') a++; else if (pk === 'B') b++; });
         const tot = a + b, pa = tot ? Math.round(a / tot * 100) : 50, pb = tot ? 100 - pa : 50;
         gauge = `
-      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;font-weight:800;margin-top:9px">
+      <div style="margin-top:10px;font-size:13px;font-weight:900;color:var(--text)">${no(cur)}경기${cur.division ? ` <span style="color:var(--muted)">· ${esc(cur.division)}</span>` : ''} <span style="font-size:11px;color:var(--dim);font-weight:700">진행/대기 중</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;font-weight:800;margin-top:7px">
         <span style="color:#e11d48;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(cur.fighter_a)} ${a}명 (${pa}%)</span>
-        <span style="font-size:10.5px;color:var(--dim);font-weight:700;flex-shrink:0">${no(cur)}경기${cur.division ? ' · ' + esc(cur.division) : ''}</span>
         <span style="color:var(--key-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">(${pb}%) ${b}명 ${esc(cur.fighter_b)}</span>
       </div>
       <div style="display:flex;height:8px;border-radius:99px;overflow:hidden;margin-top:5px">
@@ -14365,7 +14435,7 @@
           title: live ? `🔴 LIVE — ${t.title}` : t.title,
           desc: live
             ? `실시간 진행 중 · ${scoredN}/${matches.length}경기 결과 반영`
-            : `${(t.event_at || t.event_date) ? fmtEventDT(t) + ' · ' : ''}${parts.length}명 참여 중`,
+            : `${(t.event_at || t.event_date) ? fmtEventDT(t) + ' · ' : ''}${parts.length}명 참여`,
           btnText: live ? '실시간 현황 보기' : (tState(t) === 'open' ? '예측하러 가기' : '결과 보러 가기'),
           path: `#/t/${encodeURIComponent(id)}`,
         });
@@ -14393,7 +14463,7 @@
       const cd = countdownText(t.deadline);
 
       let html = `
-    <h1 class="page">${esc(t.title)} ${stateBadge(t)} <button type="button" id="tKkoBtn" onclick="tKkoShareCard('${esc(t.id)}')" style="background:#fee500;color:#191919;border:0;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:900;cursor:pointer;vertical-align:middle">카톡 공유</button></h1>
+    <h1 class="page">${esc(t.title)} ${stateBadge(t)} <button type="button" id="tKkoBtn" class="kko-btn" onclick="tKkoShareCard('${esc(t.id)}')">카톡 공유</button></h1>
     <div class="sub">
       🔒 ${fmtDT(t.deadline)} 마감
       ${cd ? ` &nbsp;·&nbsp; ${cdHTML(t.deadline)}` : ''}
@@ -16413,7 +16483,7 @@
       <div class="m">${bqSecOrDash(d.total_time_ms)}${d.rank ? ` · ${bqRankSub(d.rank, d.total_players, d.percentile) === `상위 ${d.percentile}%` ? `상위 ${d.percentile}%` : `${d.rank}위`}` : ''}</div>
     </div>
     <div class="bq-sharetext" id="bqShareTxt">${esc(text)}\n${esc(url)}</div>
-    <button type="button" id="bqKkoShare" style="width:100%;margin-top:12px;background:#fee500;color:#191919;border:0;border-radius:11px;padding:12px;font-size:14px;font-weight:900;cursor:pointer">카톡 공유</button>
+    <button type="button" id="bqKkoShare" class="kko-btn" style="width:100%;margin-top:12px;border-radius:11px;padding:12px;font-size:14px">카톡 공유</button>
     <div class="bb-confirm-actions" style="margin-top:8px">
       <button type="button" class="bb-confirm-btn cancel">닫기</button>
       <button type="button" class="bb-confirm-btn ok">텍스트로 공유</button>
@@ -16638,7 +16708,7 @@
       // 내 기록이면 제목 옆에 카톡 공유 버튼(승부예측 상세와 같은 배치) — 데이터 로드 후 활성화
       const isMe = gmMyNick && nick.trim().toLowerCase() === gmMyNick.trim().toLowerCase();
       ov.innerHTML = `<div class="modal" style="max-width:420px">
-    <div class="modal-h"><span style="display:flex;align-items:center;gap:9px"><b>${esc(nick)} 기록</b>${isMe ? '<button type="button" id="bqUserKko" style="background:#fee500;color:#191919;border:0;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:900;cursor:pointer">카톡 공유</button>' : ''}</span><button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-h"><span style="display:flex;align-items:center;gap:9px"><b>${esc(nick)} 기록</b>${isMe ? '<button type="button" id="bqUserKko" class="kko-btn">카톡 공유</button>' : ''}</span><button class="modal-x" onclick="history.back()">✕</button></div>
     <div class="modal-b"><div id="bqUserStatsBody"><div class="empty">불러오는 중…</div></div></div>
   </div>`;
       if (isNew) pushModal(ov);
@@ -18884,8 +18954,39 @@
     <div style="font-weight:800;margin-bottom:6px">${data.improved
           ? `📣 앤 뉴~!! <span style="color:#c62828">${esc(gmMyNick)}</span> 이번 주 신기록!`
           : `📣 앤 스틸~ 기존 기록이 방어에 성공했습니다`}</div>
-    <div style="font-size:14px">👤 <b>${esc(gmMyNick)}</b> 이번 주 최고 기록: <b style="color:var(--key-deep)">${best}${unit}</b></div>`;
+    <div style="font-size:14px">👤 <b>${esc(gmMyNick)}</b> 이번 주 최고 기록: <b style="color:var(--key-deep)">${best}${unit}</b></div>
+    <button class="kko-btn" id="gmKkoBtn" style="margin-top:9px;padding:7px 15px;font-size:12.5px">카톡 공유</button>`;
+      // 카카오 카드 공유 — 이번 주 최고 기록 카드 (2026-08-23)
+      const gameNames = { run: '블랙 러닝', punch: '블랙 펀칭', grow: '블랙 점핑' };
+      const kkb = document.getElementById('gmKkoBtn');
+      if (kkb) kkb.onclick = async () => {
+        kkb.disabled = true; kkb.textContent = '카드 만드는 중…';
+        const gname = gameNames[G.res.game] || '미니게임';
+        const ok = await kkoShareCanvasCard(gmDrawShareCard(gname, gmMyNick, best + unit, '이번 주 최고 기록',
+          data.improved ? '📣 이번 주 신기록 달성!' : `이번 판 ${(+G.res.score).toLocaleString()}${unit}`), {
+          title: `${gname} — ${gmMyNick}`,
+          desc: `이번 주 최고 기록 ${best}${unit}`,
+          btnText: '도전하러 가기',
+          path: `#/game/${G.res.game}`,
+        });
+        kkb.disabled = false; kkb.textContent = '카톡 공유';
+        if (!ok) toastMsg('이 환경에서는 카카오 공유가 안 돼요.');
+      };
       loadGameRank(gameWeekKey(svrNow()), G.res.game);
+    }
+    // 게임 공용 카카오 카드 — 게임명·닉네임·대표 수치(블루, 크게)·보조 문구 (미니멀 톤)
+    function gmDrawShareCard(gameLabel, nick, bigValue, bigLabel, extraLine) {
+      const { c, x } = kkoCardBase(`${gameLabel}${nick ? ' — ' + nick : ''}`, '블랙컴뱃 잡담방',
+        new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }));
+      x.fillStyle = '#1d4ed8'; x.font = '900 72px Pretendard, sans-serif';
+      x.fillText(String(bigValue), 48, 164);
+      x.fillStyle = '#98a3b3'; x.font = '800 20px Pretendard, sans-serif';
+      x.fillText(bigLabel || '', 48, 230);
+      if (extraLine) {
+        x.fillStyle = '#525d6b'; x.font = '800 19px Pretendard, sans-serif';
+        x.fillText(extraLine, 48, 296);
+      }
+      return c;
     }
     async function loadGameRank(wk, game) {
       const box = document.getElementById('gRank'), hall = document.getElementById('gHall');
@@ -20043,8 +20144,29 @@
       <span>🔥 연승 <b>${record.winStreak}</b></span>
     </div>
     <button class="g-start g-en" id="bbAgain">다시 매칭</button>
+    <div style="margin-top:10px"><button class="kko-btn" id="bbKko" style="padding:8px 18px;font-size:13px">카톡 공유</button></div>
     <div class="bg-log" id="bbLog2" style="margin-top:16px;text-align:left">${bbLogHtml()}</div>
   </div>`;
+      // 카카오 카드 공유 — 대결 결과 + 내 누적 전적 카드 (2026-08-23)
+      const kkb = document.getElementById('bbKko');
+      if (kkb) {
+        kkb.onpointerdown = e => e.stopPropagation();
+        kkb.onclick = async (e) => {
+          e.stopPropagation();
+          kkb.disabled = true; kkb.textContent = '카드 만드는 중…';
+          const plainTitle = String(title).replace(/<[^>]*>/g, '').trim();
+          const ok = await kkoShareCanvasCard(gmDrawShareCard('블랙 배틀', gmMyNick, plainTitle,
+            BB.opp ? `vs ${BB.opp.nick}` : '',
+            `누적 전적 ${record.wins}승 ${record.losses}패 · 연승 ${record.winStreak}`), {
+            title: `블랙 배틀 — ${gmMyNick || ''}`,
+            desc: `${plainTitle}${BB.opp ? ` vs ${BB.opp.nick}` : ''} · 전적 ${record.wins}승 ${record.losses}패`,
+            btnText: '대결하러 가기',
+            path: '#/game/battle',
+          });
+          kkb.disabled = false; kkb.textContent = '카톡 공유';
+          if (!ok) toastMsg('이 환경에서는 카카오 공유가 안 돼요.');
+        };
+      }
       const btn = document.getElementById('bbAgain');
       if (btn) {
         btn.onpointerdown = e => e.stopPropagation();
