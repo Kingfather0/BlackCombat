@@ -338,6 +338,18 @@
       color: #7c5a06
     }
 
+    /* 경기 당일 LIVE 배지 — 은은하게 깜빡여서 진행 중임이 눈에 띄게 */
+    .badge.onair {
+      background: #e11d48;
+      color: #fff;
+      animation: onairPulse 1.6s ease-in-out infinite
+    }
+
+    @keyframes onairPulse {
+      0%, 100% { opacity: 1 }
+      50% { opacity: .65 }
+    }
+
     .badge.done {
       background: #fdecec;
       color: #a51c1c
@@ -9212,6 +9224,8 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!-- 카카오톡 공유(카드 발송)용 공식 SDK — 키는 JS SDK 도메인(kingfather0.github.io)에서만 동작 -->
+  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js" crossorigin="anonymous"></script>
   <script>
     /* ================================================================
        ★ 설정 : Supabase 대시보드의 값 2개를 붙여넣으세요 (설치가이드 참고)
@@ -10108,10 +10122,28 @@
       if (new Date(t.deadline).getTime() > svrNow().getTime()) return 'open';
       return t.finalized ? 'final' : 'wait';
     }
+    // 경기 당일 "LIVE" 판정 — 결과 대기(wait) 상태에서 경기 시작 시각이 지났고 아직 확정 전이면
+    // 진행 중으로 본다. 시각(event_at)이 있으면 시작~+12시간, 날짜만 있으면 그 날(KST) 하루 동안.
+    // 결과가 확정(finalized)되면 tState가 final이 되므로 LIVE는 자동으로 끝난다.
+    function tIsLive(t) {
+      if (tState(t) !== 'wait') return false;
+      const now = svrNow().getTime();
+      if (t.event_at) {
+        const ev = new Date(t.event_at).getTime();
+        return now >= ev && now - ev < 12 * 3600 * 1000;
+      }
+      if (t.event_date) {
+        const d0 = new Date(t.event_date + 'T00:00:00+09:00').getTime();
+        return now >= d0 && now - d0 < 24 * 3600 * 1000;
+      }
+      return false;
+    }
     function stateBadge(t) {
       const s = tState(t);
       if (s === 'open') return `<span class="badge live">🔵 투표중</span>`;
-      if (s === 'wait') return `<span class="badge wait">⏳ 결과 대기</span>`;
+      if (s === 'wait') return tIsLive(t)
+        ? `<span class="badge onair">🔴 LIVE 진행 중</span>`
+        : `<span class="badge wait">⏳ 결과 대기</span>`;
       return `<span class="badge done">🏁 결과 확정</span>`;
     }
     function loading() { $app.innerHTML = `<div class="empty">불러오는 중…</div>`; }
@@ -14177,6 +14209,103 @@
     let voteSel = {};
     let curState = null;
     let curMatches = [], curParts = [], curT = null;
+    /* ── 경기 당일 라이브 섹션 ──
+       LIVE 상태(tIsLive)일 때 대회 상세 상단에 붙는 두 카드:
+       ① 지금 카드 — 결과 미입력 경기 중 첫 번째를 "진행/대기 중"으로 보여주고 다음 경기를 예고.
+          (관리자가 결과를 입력하는 순서 = 경기 진행 순서라는 전제의 자동 추정 — 별도 입력 불필요)
+       ② 내 실시간 성적 — 지금까지 입력된 결과 기준 적중/실시간 순위/남은 경기 전부 적중 시
+          도달 가능한 최고 순위(다른 사람들은 현재 점수 그대로라고 가정한 낙관적 상한). */
+    function liveNowHTML(t, matches, parts) {
+      if (!tIsLive(t)) return '';
+      const scored = scoredMatches(matches);
+      const pending = matches.filter(m => !(m.winner === 'A' || m.winner === 'B'));
+      const cur = pending[0] || null;
+      const nxt = pending[1] || null;
+      const no = m => matches.indexOf(m) + 1;
+      let html = `<div class="card" style="margin-top:16px;border:2px solid #e11d48">
+      <div style="font-size:11.5px;font-weight:900;color:#e11d48">🔴 LIVE · ${scored.length}/${matches.length}경기 결과 반영${cur ? '' : ' — 전 경기 종료, 결과 확정 대기 중'}</div>`;
+      if (cur) {
+        html += `
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin:12px 0 4px">
+        <div style="text-align:center"><b style="font-size:15px">${esc(cur.fighter_a)}</b></div>
+        <span style="font-size:12px;font-weight:900;color:#e11d48">VS</span>
+        <div style="text-align:center"><b style="font-size:15px">${esc(cur.fighter_b)}</b></div>
+      </div>
+      <div style="text-align:center;font-size:11px;color:var(--dim);font-weight:700">${no(cur)}경기 진행/대기 중${cur.division ? ` · ${esc(cur.division)}` : ''}</div>
+      ${nxt ? `<div style="border-top:1px dashed var(--border);margin-top:10px;padding-top:8px;display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);font-weight:700"><span>다음 경기</span><span>${esc(nxt.fighter_a)} vs ${esc(nxt.fighter_b)}</span></div>` : ''}`;
+      }
+      html += `<div style="text-align:right;font-size:10.5px;color:var(--dim);margin-top:6px">🔄 30초마다 자동 갱신 — 새로고침 불필요</div></div>`;
+      // ② 내 실시간 성적 (로그인 + 참여자일 때만)
+      if (gmMyNick) {
+        const mine = parts.find(p => p.nickname.trim().toLowerCase() === gmMyNick.trim().toLowerCase());
+        if (mine && scored.length) {
+          const rows = rankParts(parts, matches);
+          const me = rows.find(r => r.nickname === mine.nickname);
+          const myHit = me ? me.hit : 0;
+          const tie = rows.filter(r => r.hit === myHit).length > 1;
+          const myPending = matches.filter(m => !(m.winner === 'A' || m.winner === 'B') && mine.picks[m.id]).length;
+          const potential = myHit + myPending;
+          const bestRank = 1 + rows.filter(r => r.hit > potential).length;
+          html += `<div class="card" style="margin-top:10px;border:2px solid var(--key);background:#f0f6ff">
+        <div style="font-size:12px;font-weight:900;color:var(--key-deep)">👤 ${esc(mine.nickname)}의 실시간 성적</div>
+        <div style="display:flex;gap:8px;margin-top:9px">
+          <div style="flex:1;background:#fff;border-radius:11px;padding:9px 4px;text-align:center"><b style="font-size:16px;color:var(--key-deep)">${myHit} / ${scored.length}</b><div style="font-size:10px;color:var(--dim);font-weight:800">현재 적중</div></div>
+          <div style="flex:1;background:#fff;border-radius:11px;padding:9px 4px;text-align:center"><b style="font-size:16px;color:var(--key-deep)">${tie ? '공동 ' : ''}${me ? me.rank : '-'}위</b><div style="font-size:10px;color:var(--dim);font-weight:800">실시간 순위 (${parts.length}명)</div></div>
+          <div style="flex:1;background:#fff;border-radius:11px;padding:9px 4px;text-align:center"><b style="font-size:16px;color:var(--key-deep)">${bestRank}위</b><div style="font-size:10px;color:var(--dim);font-weight:800">남은 경기 전부 적중 시</div></div>
+        </div>
+      </div>`;
+        }
+      }
+      return html;
+    }
+    // 대회 D-day 대진표 카드 (800×400) — 대회명·D-n·일시·메인이벤트·나머지 대진을 담아
+    // 카카오 카드로 공유한다. 메인이벤트는 마지막 경기로 간주(대진표 관례).
+    function tDrawShareCard(t, matches, parts) {
+      const evMs = t.event_at ? new Date(t.event_at).getTime() : (t.event_date ? new Date(t.event_date + 'T00:00:00+09:00').getTime() : null);
+      const dday = evMs != null ? Math.ceil((evMs - svrNow().getTime()) / 86400000) : null;
+      const ddayTxt = dday == null ? '' : (dday > 0 ? `D-${dday}` : (tIsLive(t) ? 'LIVE' : 'D-DAY'));
+      const { c, x } = kkoCardBase(t.title, 'blackcombat 잡담방', `참여 ${parts.length}명`);
+      x.textAlign = 'center';
+      if (ddayTxt) { x.fillStyle = '#e11d48'; x.font = '900 46px Pretendard, sans-serif'; x.fillText(ddayTxt, 400, 100); }
+      x.fillStyle = '#fff'; x.font = '800 20px Pretendard, sans-serif';
+      x.fillText(t.event_at || t.event_date ? fmtEventDT(t) : '', 400, 138);
+      const main = matches[matches.length - 1];
+      if (main) {
+        const grd = x.createLinearGradient(150, 0, 650, 0);
+        grd.addColorStop(0, '#1c1210'); grd.addColorStop(1, '#3a1d14');
+        x.fillStyle = grd;
+        if (x.roundRect) { x.beginPath(); x.roundRect(150, 160, 500, 80, 12); x.fill(); } else x.fillRect(150, 160, 500, 80);
+        x.fillStyle = '#ff9d5c'; x.font = '900 12px Pretendard, sans-serif'; x.fillText('M A I N   E V E N T', 400, 182);
+        x.fillStyle = '#fff'; x.font = '900 26px Pretendard, sans-serif';
+        x.fillText(`${main.fighter_a}  VS  ${main.fighter_b}`, 400, 215);
+      }
+      // 나머지 대진 — 두 줄로 압축 (넘치면 생략)
+      const rest = matches.slice(0, -1).map(m => `${m.fighter_a} vs ${m.fighter_b}`);
+      x.fillStyle = '#c7d2e4'; x.font = '700 16px Pretendard, sans-serif';
+      const line1 = rest.slice(0, Math.ceil(rest.length / 2)).join(' · ');
+      const line2 = rest.slice(Math.ceil(rest.length / 2)).join(' · ');
+      if (line1) x.fillText(line1.length > 52 ? line1.slice(0, 51) + '…' : line1, 400, 285);
+      if (line2) x.fillText(line2.length > 52 ? line2.slice(0, 51) + '…' : line2, 400, 315);
+      x.textAlign = 'left';
+      return c;
+    }
+    async function tKkoShareCard(id) {
+      const btn = document.getElementById('tKkoBtn');
+      if (btn) { btn.disabled = true; btn.textContent = '카드 만드는 중…'; }
+      try {
+        const t = curT, matches = curMatches || [], parts = curParts || [];
+        if (!t) return;
+        const ok = await kkoShareCanvasCard(tDrawShareCard(t, matches, parts), {
+          title: t.title,
+          desc: `${(t.event_at || t.event_date) ? fmtEventDT(t) + ' · ' : ''}${parts.length}명 참여 중`,
+          btnText: tState(t) === 'open' ? '예측하러 가기' : '결과 보러 가기',
+          path: `#/t/${encodeURIComponent(id)}`,
+        });
+        if (!ok) toastMsg('이 환경에서는 카카오 카드 공유가 안 돼요.');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '카톡 카드 공유'; }
+      }
+    }
     async function viewTournament(id, keepSel) {
       if (!keepSel) loading();
       try { await loadRecords(); } catch (e) { } // 맞대결 전적 표시용 (실패해도 표시만 생략)
@@ -14202,7 +14331,9 @@
       🔒 ${fmtDT(t.deadline)} 마감
       ${cd ? ` &nbsp;·&nbsp; ${cdHTML(t.deadline)}` : ''}
       &nbsp;·&nbsp; 👥 ${parts.length}명 참여
-    </div>`;
+      &nbsp;·&nbsp; <button type="button" id="tKkoBtn" onclick="tKkoShareCard('${esc(t.id)}')" style="background:#fee500;color:#191919;border:0;border-radius:8px;padding:4px 10px;font-size:11.5px;font-weight:900;cursor:pointer;vertical-align:middle">카톡 카드 공유</button>
+    </div>
+    <div id="bc-live-sec">${liveNowHTML(t, matches, parts)}</div>`;
 
       // 선물에는 등수 이름표(1등 선물/2등 선물)를 붙이지 않는다 — 밀어내기 방식에서는 1등이
       // 두 번째 선물을 받을 수도 있어서, 등수를 붙이면 오히려 오해를 만든다. 좋은 순서대로
@@ -14254,6 +14385,21 @@
             applyPartFilter();
           } catch (e) { }
         }, 20000);
+      } else if (st === 'wait' && tIsLive(t)) {
+        // 경기 당일 LIVE — 30초마다 라이브 섹션(지금 카드/내 성적)과 경기 결과 게이지만 조용히
+        // 갱신한다. 결과가 확정(finalized)되면 전체 화면을 새로 그려 "결과 확정" 화면으로 전환.
+        pollTimer = setInterval(async () => {
+          if (location.hash !== `#/t/${id}`) return;
+          try {
+            const fresh = await fetchTournament(id);
+            if (tState(fresh.t) !== 'wait') { clearInterval(pollTimer); viewTournament(id, true); return; }
+            curMatches = fresh.matches; curParts = fresh.parts; curT = fresh.t;
+            const lv = document.getElementById('bc-live-sec');
+            if (lv) lv.innerHTML = liveNowHTML(fresh.t, fresh.matches, fresh.parts);
+            const box = document.getElementById('liveboard');
+            if (box) box.innerHTML = liveBoardHTML(fresh.t, fresh.matches, fresh.parts, 'wait');
+          } catch (e) { }
+        }, 30000);
       }
     }
     function flashEl(el) {
@@ -16093,6 +16239,94 @@
       lines.push('', '👇찐 블붕이인지 증명해 보세요!');
       return lines.join('\n');
     }
+    /* ── 카카오톡 카드 공유 (공용 모듈) ──
+       카카오 공식 SDK(피드 템플릿)로 "이미지 + 노란 버튼" 카드를 카톡방에 보낸다.
+       이미지는 Canvas로 즉석에서 그려(가로 800×400 — 카카오 카드 썸네일 규격)
+       Kakao.Share.uploadImage로 카카오 이미지 서버에 올린 뒤 카드에 붙인다.
+       실패(미지원 브라우저·SDK 로드 실패 등) 시 false를 돌려주고, 호출한 쪽에서
+       기존 텍스트 공유로 자연스럽게 폴백하면 된다. */
+    const KAKAO_JS_KEY = '1f76607417b6d6628a91c115005574ba'; // JS SDK 도메인 제한이 걸린 공개용 키
+    function kkoInit() {
+      try {
+        if (!window.Kakao) return false;
+        if (!Kakao.isInitialized()) Kakao.init(KAKAO_JS_KEY);
+        return !!(Kakao.Share && Kakao.Share.uploadImage);
+      } catch (e) { return false; }
+    }
+    async function kkoShareCanvasCard(canvas, o) {
+      if (!kkoInit()) return false;
+      try {
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+        if (!blob) return false;
+        const file = new File([blob], 'card.png', { type: 'image/png' });
+        const up = await Kakao.Share.uploadImage({ file: [file] });
+        const imageUrl = up && up.infos && up.infos.original && up.infos.original.url;
+        if (!imageUrl) return false;
+        const base = 'https://kingfather0.github.io/BlackCombat/';
+        const link = { mobileWebUrl: base + (o.path || ''), webUrl: base + (o.path || '') };
+        Kakao.Share.sendDefault({
+          objectType: 'feed',
+          content: { title: o.title || '', description: o.desc || '', imageUrl, imageWidth: 800, imageHeight: 400, link },
+          buttons: [{ title: o.btnText || '보러가기', link }],
+        });
+        return true;
+      } catch (e) { return false; }
+    }
+    // 카드 캔버스 공통 배경 — 목업과 같은 다크 톤(#12151d) + 상단 헤더/하단 푸터
+    function kkoCardBase(header, footerL, footerR) {
+      const c = document.createElement('canvas');
+      c.width = 800; c.height = 400;
+      const x = c.getContext('2d');
+      x.fillStyle = '#12151d'; x.fillRect(0, 0, 800, 400);
+      const hg = x.createLinearGradient(0, 0, 800, 0);
+      hg.addColorStop(0, '#191d29'); hg.addColorStop(1, '#232a3c');
+      x.fillStyle = hg; x.fillRect(0, 0, 800, 52);
+      x.fillStyle = '#fff'; x.font = '900 22px Pretendard, "Apple SD Gothic Neo", sans-serif';
+      x.textBaseline = 'middle';
+      x.fillText('🦁 ' + header, 22, 27);
+      x.fillStyle = '#0d0f15'; x.fillRect(0, 356, 800, 44);
+      x.fillStyle = '#8494ae'; x.font = '700 15px Pretendard, sans-serif';
+      x.fillText(footerL || 'blackcombat 잡담방', 22, 378);
+      if (footerR) { x.textAlign = 'right'; x.fillText(footerR, 778, 378); x.textAlign = 'left'; }
+      return { c, x };
+    }
+    // 블랙 퀴즈 성적표 카드 (800×400 가로형)
+    function bqDrawShareCard(d, opts) {
+      const tm = d.tier_meta || {};
+      const nick = d.nickname || gmMyNick || '';
+      const { c, x } = kkoCardBase(
+        `블랙 퀴즈 — ${nick ? nick + '의 성적표' : '오늘의 성적표'}`,
+        'blackcombat 잡담방',
+        new Date().toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' }));
+      // 좌측: 등급 아이콘 + 칭호
+      x.textAlign = 'center';
+      x.font = '90px sans-serif';
+      x.fillText(bqTierIcon(tm) || '🦁', 200, 165);
+      x.fillStyle = '#ffd977'; x.font = '900 40px Pretendard, sans-serif';
+      x.fillText(bqTierLabel(tm) || '블랙 퀴즈', 200, 250);
+      x.fillStyle = '#8494ae'; x.font = '700 18px Pretendard, sans-serif';
+      x.fillText(esc(tm.desc || '') ? String(tm.desc || '') : '오늘의 블붕이 판정', 200, 288);
+      // 우측: 성적 3칸
+      const stats = [
+        ['정답', `${d.correct_count} / ${d.q_total}`],
+        ['소요시간', bqSecOrDash(d.total_time_ms)],
+        [d.rank ? '오늘 순위' : '', d.rank ? `${d.rank}위` : ''],
+      ].filter(s => s[0]);
+      const boxW = 170, gap = 14, totalW = stats.length * boxW + (stats.length - 1) * gap;
+      let sx = 400 + (380 - totalW) / 2 + 10;
+      stats.forEach(s => {
+        x.fillStyle = '#1b2130';
+        if (x.roundRect) { x.beginPath(); x.roundRect(sx, 130, boxW, 110, 14); x.fill(); }
+        else x.fillRect(sx, 130, boxW, 110);
+        x.fillStyle = '#fff'; x.font = '900 30px Pretendard, sans-serif';
+        x.fillText(s[1], sx + boxW / 2, 180);
+        x.fillStyle = '#8494ae'; x.font = '700 15px Pretendard, sans-serif';
+        x.fillText(s[0], sx + boxW / 2, 215);
+        sx += boxW + gap;
+      });
+      x.textAlign = 'left';
+      return c;
+    }
     function bqShowShare(d, opts) {
       opts = opts || {};
       const tm = d.tier_meta || {};
@@ -16109,9 +16343,10 @@
       <div class="m">${bqSecOrDash(d.total_time_ms)}${d.rank ? ` · ${bqRankSub(d.rank, d.total_players, d.percentile) === `상위 ${d.percentile}%` ? `상위 ${d.percentile}%` : `${d.rank}위`}` : ''}</div>
     </div>
     <div class="bq-sharetext" id="bqShareTxt">${esc(text)}\n${esc(url)}</div>
-    <div class="bb-confirm-actions" style="margin-top:12px">
+    <button type="button" id="bqKkoShare" style="width:100%;margin-top:12px;background:#fee500;color:#191919;border:0;border-radius:11px;padding:12px;font-size:14px;font-weight:900;cursor:pointer">카톡 카드 공유</button>
+    <div class="bb-confirm-actions" style="margin-top:8px">
       <button type="button" class="bb-confirm-btn cancel">닫기</button>
-      <button type="button" class="bb-confirm-btn ok">공유하기</button>
+      <button type="button" class="bb-confirm-btn ok">텍스트로 공유</button>
     </div></div>`;
       const close = () => { try { ov.remove(); } catch (e) { } };
       ov.onclick = e => { if (e.target === ov) close(); };
@@ -16119,6 +16354,20 @@
       ov.querySelector('.bb-confirm-actions button:last-child').onclick = () => {
         const how = bqDoShare(text, url);
         if (how !== 'manual') close();
+      };
+      // 카카오 카드 공유 — 이미지 카드 + 노란 버튼으로 발송. 실패 시 텍스트 공유로 안내.
+      const kkoBtn = ov.querySelector('#bqKkoShare');
+      if (kkoBtn) kkoBtn.onclick = async () => {
+        kkoBtn.disabled = true; kkoBtn.textContent = '카드 만드는 중…';
+        const ok = await kkoShareCanvasCard(bqDrawShareCard(d, opts), {
+          title: `${nick ? nick + '의 ' : ''}블랙 퀴즈 성적표`,
+          desc: `${bqTierLabel(tm)} · ${d.correct_count}/${d.q_total}${d.total_time_ms != null ? ` · ${bqSec(d.total_time_ms)}초` : ''}`,
+          btnText: '블붕력 시험하기',
+          path: '#/game/quiz',
+        });
+        kkoBtn.disabled = false; kkoBtn.textContent = '카톡 카드 공유';
+        if (ok) close();
+        else toastMsg('이 환경에서는 카카오 카드 공유가 안 돼요. 아래 텍스트 공유를 이용해 주세요.');
       };
       overlayHost().append(ov);
     }
@@ -16330,7 +16579,26 @@
         const d = res.data;
         if (!body) return;
         if (!d || d.ok === false) { body.innerHTML = '<div class="empty">기록을 불러오지 못했습니다.</div>'; return; }
-        body.innerHTML = bqStatsBodyHTML(d) + bqTodaySectionHTML(d);
+        // 자기 자신의 기록 팝업일 때만 "카톡 카드 공유" 버튼을 붙인다 — 최고 기록 카드로 발송
+        const isMe = gmMyNick && nick.trim().toLowerCase() === gmMyNick.trim().toLowerCase();
+        body.innerHTML = bqStatsBodyHTML(d) + bqTodaySectionHTML(d)
+          + (isMe && d.total_attempts ? `<button type="button" id="bqUserKko" style="width:100%;margin-top:14px;background:#fee500;color:#191919;border:0;border-radius:11px;padding:12px;font-size:14px;font-weight:900;cursor:pointer">카톡 카드 공유</button>` : '');
+        const kb = body.querySelector('#bqUserKko');
+        if (kb) kb.onclick = async () => {
+          kb.disabled = true; kb.textContent = '카드 만드는 중…';
+          const ok = await kkoShareCanvasCard(bqDrawShareCard({
+            nickname: d.nickname, tier_meta: d.best_tier_meta,
+            correct_count: d.best_correct, q_total: d.best_q_total || (BQ.cfg && BQ.cfg.q_total) || 5,
+            total_time_ms: d.best_score_time_ms,
+          }, { cardTitle: '나의 최고 기록' }), {
+            title: `${d.nickname}의 블랙 퀴즈 최고 기록`,
+            desc: `${bqTierLabel(d.best_tier_meta)} · ${d.best_correct}/${d.best_q_total || ''}${d.best_score_time_ms != null ? ` · ${bqSec(d.best_score_time_ms)}초` : ''}`,
+            btnText: '블붕력 시험하기',
+            path: '#/game/quiz',
+          });
+          kb.disabled = false; kb.textContent = '카톡 카드 공유';
+          if (!ok) toastMsg('이 환경에서는 카카오 카드 공유가 안 돼요.');
+        };
       } catch (e) {
         if (body) body.innerHTML = `<div class="empty">${esc(bqRpcErr(e))}</div>`;
       }
