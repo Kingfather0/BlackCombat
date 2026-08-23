@@ -14272,19 +14272,29 @@
     function tDrawShareCard(t, matches, parts) {
       const evMs = t.event_at ? new Date(t.event_at).getTime() : (t.event_date ? new Date(t.event_date + 'T00:00:00+09:00').getTime() : null);
       const dday = evMs != null ? Math.ceil((evMs - svrNow().getTime()) / 86400000) : null;
-      const ddayTxt = dday == null ? '' : (dday > 0 ? `D-${dday}` : (tIsLive(t) ? 'LIVE' : 'D-DAY'));
-      const { c, x } = kkoCardBase(t.title, '블랙컴뱃 잡담방 · 승부예측 진행 중', `참여 ${parts.length}명`);
-      // 좌측 정렬 스택: D-day(블루, 크게) + 일시
-      x.fillStyle = '#1d4ed8'; x.font = '900 62px Pretendard, sans-serif';
+      const live = tIsLive(t);
+      const scoredN = matches.filter(m => m.winner === 'A' || m.winner === 'B').length;
+      const pendingM = matches.filter(m => !(m.winner === 'A' || m.winner === 'B'));
+      const ddayTxt = live ? 'LIVE' : (dday == null ? '' : (dday > 0 ? `D-${dday}` : 'D-DAY'));
+      const { c, x } = kkoCardBase(t.title,
+        live ? '블랙컴뱃 잡담방 · 실시간 결과 반영 중' : '블랙컴뱃 잡담방 · 승부예측 진행 중',
+        `참여 ${parts.length}명`);
+      // 좌측 정렬 스택: D-day(블루) 또는 LIVE(레드) + 부가 정보
+      x.fillStyle = live ? '#e11d48' : '#1d4ed8'; x.font = '900 62px Pretendard, sans-serif';
       if (ddayTxt) x.fillText(ddayTxt, 48, 128);
       const ddayW = ddayTxt ? x.measureText(ddayTxt).width : 0;
       x.fillStyle = '#525d6b'; x.font = '800 21px Pretendard, sans-serif';
-      x.fillText(t.event_at || t.event_date ? fmtEventDT(t) : '', ddayTxt ? 48 + ddayW + 24 : 48, 136);
-      // 메인이벤트 — 사이트 승부예측 게이지 아이덴티티(레드 vs 블루 칩 + 중앙 VS 원)
-      const main = matches[matches.length - 1];
+      x.fillText(live
+        ? `${scoredN}/${matches.length}경기 결과 반영`
+        : (t.event_at || t.event_date ? fmtEventDT(t) : ''), ddayTxt ? 48 + ddayW + 24 : 48, 136);
+      // 대표 경기 — 라이브 중엔 "지금 진행/대기 중인 경기", 평소엔 메인이벤트(마지막 경기).
+      // 사이트 승부예측 게이지 아이덴티티(레드 vs 블루 칩 + 중앙 VS 원)로 그린다.
+      const main = live ? (pendingM[0] || matches[matches.length - 1]) : matches[matches.length - 1];
       if (main) {
         x.fillStyle = '#b6bfcc'; x.font = '900 13px Pretendard, sans-serif';
-        x.fillText('M A I N   E V E N T', 48, 172);
+        x.fillText(live && pendingM.length
+          ? `N O W  ·  ${matches.indexOf(main) + 1}경기${main.division ? '  ·  ' + main.division : ''}`
+          : 'M A I N   E V E N T', 48, 172);
         const chip = (px, w, fill) => {
           x.save(); x.shadowColor = 'rgba(30,50,90,.18)'; x.shadowBlur = 14; x.shadowOffsetY = 4;
           x.fillStyle = fill; x.beginPath();
@@ -14306,14 +14316,20 @@
         x.fillText('VS', 400, 225);
         x.textAlign = 'left';
       }
-      // 나머지 대진 — 회색 두 줄
-      const rest = matches.slice(0, -1).map(m => `${m.fighter_a} vs ${m.fighter_b}`);
-      if (rest.length) {
-        x.fillStyle = '#98a3b3'; x.font = '700 17px Pretendard, sans-serif';
-        const line1 = rest.slice(0, Math.ceil(rest.length / 2)).join('  ·  ');
-        const line2 = rest.slice(Math.ceil(rest.length / 2)).join('  ·  ');
-        if (line1) x.fillText(line1.length > 48 ? line1.slice(0, 47) + '…' : line1, 48, line2 ? 290 : 304);
-        if (line2) x.fillText(line2.length > 48 ? line2.slice(0, 47) + '…' : line2, 48, 320);
+      // 하단 줄 — 라이브 중엔 다음 경기 예고, 평소엔 나머지 대진 두 줄
+      x.fillStyle = '#98a3b3'; x.font = '700 17px Pretendard, sans-serif';
+      if (live) {
+        const nxt = pendingM[1];
+        if (nxt) x.fillText(`다음 경기  ·  ${nxt.fighter_a} vs ${nxt.fighter_b}`, 48, 300);
+        else if (!pendingM.length) x.fillText('전 경기 종료 — 최종 결과 확정 대기 중', 48, 300);
+      } else {
+        const rest = matches.slice(0, -1).map(m => `${m.fighter_a} vs ${m.fighter_b}`);
+        if (rest.length) {
+          const line1 = rest.slice(0, Math.ceil(rest.length / 2)).join('  ·  ');
+          const line2 = rest.slice(Math.ceil(rest.length / 2)).join('  ·  ');
+          if (line1) x.fillText(line1.length > 48 ? line1.slice(0, 47) + '…' : line1, 48, line2 ? 290 : 304);
+          if (line2) x.fillText(line2.length > 48 ? line2.slice(0, 47) + '…' : line2, 48, 320);
+        }
       }
       return c;
     }
@@ -14323,10 +14339,14 @@
       try {
         const t = curT, matches = curMatches || [], parts = curParts || [];
         if (!t) return;
+        const live = tIsLive(t);
+        const scoredN = matches.filter(m => m.winner === 'A' || m.winner === 'B').length;
         const ok = await kkoShareCanvasCard(tDrawShareCard(t, matches, parts), {
-          title: t.title,
-          desc: `${(t.event_at || t.event_date) ? fmtEventDT(t) + ' · ' : ''}${parts.length}명 참여 중`,
-          btnText: tState(t) === 'open' ? '예측하러 가기' : '결과 보러 가기',
+          title: live ? `🔴 LIVE — ${t.title}` : t.title,
+          desc: live
+            ? `실시간 진행 중 · ${scoredN}/${matches.length}경기 결과 반영`
+            : `${(t.event_at || t.event_date) ? fmtEventDT(t) + ' · ' : ''}${parts.length}명 참여 중`,
+          btnText: live ? '실시간 현황 보기' : (tState(t) === 'open' ? '예측하러 가기' : '결과 보러 가기'),
           path: `#/t/${encodeURIComponent(id)}`,
         });
         if (!ok) toastMsg('이 환경에서는 카카오 카드 공유가 안 돼요.');
