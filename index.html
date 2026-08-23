@@ -15011,7 +15011,7 @@
     <span class="gc-go">PLAY</span>
   </a>`;
       $app.innerHTML = `
-  <span id="gQuizCardWrap" style="display:none">${card('#/game/quiz', 'idle', '블랙 퀴즈', '오늘의 블붕이 시험! 블붕력을 증명하라!', 'gTopQuiz', 'quiz', 'NEW')}</span>
+  <span id="gQuizCardWrap" style="display:none">${card('#/game/quiz', 'idle', '블랙 퀴즈', '오늘의 블붕이 시험! 블붕력을 증명하라!', 'gTopQuiz', 'quiz')}</span>
   ${card('#/game/run', 'run', '블랙 러닝', '점프·더블점프로 장애물을 뚫고 달려라!', 'gTopRun', 'run')}
   ${card('#/game/punch', 'punch', '블랙 펀칭', '타이밍에 딱 맞춰 최강 펀치 10방!', 'gTopPunch', 'punch')}
   ${card('#/game/grow', 'jump', '블랙 점핑', '발판을 통통 밟고 하늘 끝까지!', 'gTopGrow', 'grow')}
@@ -15028,6 +15028,20 @@
       loadMenuTops(wk);
       loadMenuBattleRecord();
       loadMenuQuizTop();
+      loadMenuHotBadge();
+    }
+    // 🔥 HOT 배지 — "직전 24시간(롤링) 실제 플레이 유저 수 1위 → 동점 시 고유 방문자 →
+    // 방문수 → 무기록 시 최근 7일 폴백" 기준으로 1위 게임 카드에 자동으로 붙는다(2026-08-21 확정).
+    // 판정은 서버 RPC get_hot_game(게임HOT배지.sql 1회 실행 필요)이 하고, 여기서는 결과 경로의
+    // 카드에 배지만 단다. RPC가 아직 없으면 조용히 생략. 기간을 바꾸고 싶으면 p_hours만 조정
+    // (예: 3일 = 72, 7일 = 168) — SQL 재실행 없이 이 값 하나로 제어된다.
+    async function loadMenuHotBadge() {
+      try {
+        const { data, error } = await sb.rpc('get_hot_game', { p_hours: 24 });
+        if (error || !data) return;
+        const a = document.querySelector(`.gcard[href="${data}"]`);
+        if (a && !a.querySelector('.gc-new')) a.insertAdjacentHTML('afterbegin', '<span class="gc-new">🔥 HOT</span>');
+      } catch (e) { }
     }
     async function loadMenuTops(wk) {
       const set = (id, txt) => { const el = document.getElementById(id); if (el) el.innerHTML = txt; };
@@ -16375,8 +16389,6 @@
         return;
       }
       const pub = !!d.public_enabled;
-      // 게임 메뉴 NEW 배지 현재 설정 — site_data에서 읽어와 토글 버튼으로 보여준다 (2026-08-21)
-      const badgeOn = await fetchQuizNewBadgeFlag();
       // 6.104: "📚 문제 Pool" 통계 카드(난이도별 개수·KPI·문제 목록 등)는 다른 관리자들도
       // 볼 수 있는 화면이라 굳이 노출할 필요 없는 내부 운영 정보라, 웹페이지에서는 숨기고
       // 공개 여부 전환 카드만 남긴다. (관련 데이터는 필요할 때 SQL로 직접 조회)
@@ -16395,13 +16407,6 @@
           ? '모든 방문자에게 게임 메뉴에 블랙 퀴즈 카드가 보이고, 누구나 플레이할 수 있습니다.'
           : '관리자 비밀번호로 로그인한 브라우저에서만 카드가 보이고 플레이할 수 있습니다. 다른 사람은 <code>#/game/quiz</code>로 직접 들어와도 서버에서 막힙니다.'}
         ${d.testers && d.testers.length ? `<br>추가 허용 닉네임: <b>${d.testers.map(esc).join(', ')}</b>` : ''}
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
-        <span style="font-size:14px;font-weight:900">
-          게임 메뉴 NEW 배지: <b style="color:${badgeOn ? 'var(--green)' : 'var(--dim)'}">${badgeOn ? '🏷️ 표시 중' : '숨김'}</b></span>
-        <button class="btn small" style="margin-left:auto"
-          onclick="bqAdminSetNewBadge(${badgeOn ? 'false' : 'true'})">
-          ${badgeOn ? 'NEW 배지 숨기기' : 'NEW 배지 표시하기'}</button>
       </div>
     </div>
     <div class="sec-title">📝 유저 제출 퀴즈 검토</div>
@@ -16571,23 +16576,6 @@
       } catch (e) { body.innerHTML = `<div class="empty">${esc(bqRpcErr(e))}</div>`; }
     }
 
-    // 게임 메뉴 '블랙 퀴즈' 카드의 NEW 배지 표시 여부 — 관리자 페이지(블랙 퀴즈 섹션)에서
-    // 켜고 끌 수 있다. site_data('quiz_menu_badge')에 {show:false}로 저장돼 있을 때만 숨기고,
-    // 값이 없으면(한 번도 안 바꿨으면) 기본 표시. 공지(announcements)와 같은 저장 방식이라
-    // SQL 재실행 없이 바로 동작한다.
-    async function fetchQuizNewBadgeFlag() {
-      try {
-        const { data, error } = await sb.from('site_data').select('value').eq('key', 'quiz_menu_badge').single();
-        if (error || !data || !data.value) return true;
-        return data.value.show !== false;
-      } catch (e) { return true; }
-    }
-    async function bqAdminSetNewBadge(show) {
-      const { error } = await sb.rpc('admin_save_data', { p_pass: adminPass(), p_key: 'quiz_menu_badge', p_value: { show: !!show } });
-      if (error) return toastMsg('⚠️ ' + cleanErr(error.message));
-      toastMsg(show ? '✅ 게임 메뉴에 NEW 배지를 표시합니다.' : '✅ 게임 메뉴의 NEW 배지를 숨겼습니다.');
-      bqRenderAdmin();
-    }
     // 블랙 퀴즈는 아직 비공개(관리자 전용) 테스트 중일 수 있으므로, 카드는 기본으로 숨겨 두고
     // 서버에 권한을 물어본 뒤에만 노출한다. (클라이언트에서 숨기는 것만으로는 #/game/quiz
     // 딥링크로 들어올 수 있어, 서버 함수에서도 동일하게 막고 있다.)
@@ -16602,8 +16590,6 @@
         vis = data;
       } catch (e) { return; }              // 패치 미실행 등 → 카드를 그냥 숨긴 채로 둔다
       if (!vis) return;
-      // NEW 배지 설정 반영 — 카드가 아직 숨겨진 상태에서 지우므로 깜빡임 없이 적용된다
-      try { if (!(await fetchQuizNewBadgeFlag())) { const nb = wrap.querySelector('.gc-new'); if (nb) nb.remove(); } } catch (e) { }
       // 비공개 전환 시 예전엔 카드를 아예 숨겼지만, 이제 "점검 중" 상태로 보여준다(2026-08-21 요청).
       // 카드를 눌러 들어가도 퀴즈 화면이 같은 점검 안내를 띄우므로 딥링크와도 일관된다.
       if (!vis.allowed) {
