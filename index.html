@@ -16772,10 +16772,10 @@
         ov.className = 'modal-ov';
         ov.onclick = e => { if (e.target === ov) history.back(); };
       }
-      // 내 기록이면 제목 옆에 카톡 공유 버튼(승부예측 상세와 같은 배치) — 데이터 로드 후 활성화
-      const isMe = gmMyNick && nick.trim().toLowerCase() === gmMyNick.trim().toLowerCase();
+      // 로그인/본인 여부와 무관하게 누구 기록이든 카톡 공유 버튼을 항상 보여준다(2026-08-23) —
+      // 데이터 로드 후 활성화, 기록이 없으면 아래에서 숨김 처리
       ov.innerHTML = `<div class="modal" style="max-width:420px">
-    <div class="modal-h"><span style="display:flex;align-items:center;gap:9px"><b>${esc(nick)} 기록</b>${isMe ? '<button type="button" id="bqUserKko" class="kko-btn" aria-label="카톡 공유" title="카톡 공유"></button>' : ''}</span><button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-h"><span style="display:flex;align-items:center;gap:9px"><b>${esc(nick)} 기록</b><button type="button" id="bqUserKko" class="kko-btn" aria-label="카톡 공유" title="카톡 공유"></button></span><button class="modal-x" onclick="history.back()">✕</button></div>
     <div class="modal-b"><div id="bqUserStatsBody"><div class="empty">불러오는 중…</div></div></div>
   </div>`;
       if (isNew) pushModal(ov);
@@ -19038,6 +19038,40 @@
       }
       return c;
     }
+    // 미니게임(러닝/펀칭/점핑) 전용 — "OOO의 이번주 최고 기록 · 랭킹 N등 · 점수" 형식 +
+    // 게임 메뉴 카드와 같은 사자 마스코트 포즈를 우측에 함께 그린다 (2026-08-23)
+    async function gmDrawWeeklyShareCard(gameLabel, nick, weekLabel, rank, totalPlayers, score, unit, pose) {
+      const { c, x } = kkoCardBase(`${gameLabel}${nick ? ' — ' + nick : ''}`, '블랙컴뱃 잡담방',
+        new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }));
+      // 우측: 게임 메뉴 카드와 동일한 마스코트 포즈 (실패해도 카드 자체는 그대로 진행)
+      try {
+        const dataUrl = (typeof gmPoseDataURL === 'function') ? gmPoseDataURL(pose) : null;
+        if (dataUrl) {
+          const img = await new Promise(res => {
+            const im = new Image();
+            im.onload = () => res(im);
+            im.onerror = () => res(null);
+            im.src = dataUrl;
+          });
+          if (img) {
+            const S = 232;
+            x.drawImage(img, 800 - S - 44, 200 - S / 2, S, S);
+          }
+        }
+      } catch (e) { }
+      // 좌측: "OOO의 이번주 최고 기록" 헤딩 + "N등" 큰 글자 + 점수
+      x.fillStyle = '#525d6b'; x.font = '800 23px Pretendard, sans-serif';
+      x.fillText(`${nick ? nick + '의 ' : ''}${weekLabel} 최고 기록`, 48, 122);
+      x.fillStyle = '#1d4ed8'; x.font = '900 66px Pretendard, sans-serif';
+      x.fillText(`${rank}등`, 48, 212);
+      x.fillStyle = '#1b2430'; x.font = '900 32px Pretendard, sans-serif';
+      x.fillText(`${(+score).toLocaleString()}${unit}`, 48, 270);
+      if (totalPlayers) {
+        x.fillStyle = '#98a3b3'; x.font = '800 18px Pretendard, sans-serif';
+        x.fillText(`${totalPlayers.toLocaleString()}명 중`, 48, 308);
+      }
+      return c;
+    }
     async function loadGameRank(wk, game) {
       const box = document.getElementById('gRank'), hall = document.getElementById('gHall');
       if (!box) return;
@@ -19261,10 +19295,9 @@
       const sub = r => game === 'run' ? `🏃 ${(r.combo || 0).toLocaleString()}m` : game === 'grow' ? `🔥${r.combo || 0}콤보` : `🔥${r.combo || 0}콤보`;
       const ov = document.createElement('div');
       ov.className = 'ghist-ov';
-      // 내 기록이면 제목 옆에 카톡 공유 버튼 — 블랙 퀴즈의 기록 팝업과 같은 배치 (2026-08-23)
-      const isMe = gmMyNick && nick.trim().toLowerCase() === gmMyNick.trim().toLowerCase();
+      // 로그인/본인 여부와 무관하게 누구 기록이든 카톡 공유 버튼을 항상 보여준다(2026-08-23)
       ov.innerHTML = `<div class="ghist">
-    <div class="ghist-h">👤 <b>${esc(nick)}</b>${isMe ? ' <button class="kko-btn" id="gmHistKko" aria-label="카톡 공유" title="카톡 공유" style="margin-left:9px"></button>' : ''}<button class="ghist-x" onclick="this.closest('.ghist-ov').remove()">✕</button></div>
+    <div class="ghist-h">👤 <b>${esc(nick)}</b> <button class="kko-btn" id="gmHistKko" aria-label="카톡 공유" title="카톡 공유" style="margin-left:9px"></button><button class="ghist-x" onclick="this.closest('.ghist-ov').remove()">✕</button></div>
     <div class="ghist-sum">주차별 히스토리 · 참여 <b>${rows.length}주</b> · 누적 <b>${total.toLocaleString()}${unit}</b> · 최고 <b>${best.toLocaleString()}${unit}</b></div>
     ${rows.map(r => `<div class="ghist-r ${+r.score === best ? 'best' : ''}">
       <span class="hw">${gmWeekLabel(r.week)}</span>
@@ -19279,11 +19312,23 @@
         ev.stopPropagation();
         kkb.disabled = true; kkb.textContent = '카드 만드는 중…';
         const names = { run: '블랙 러닝', punch: '블랙 펀칭', grow: '블랙 점핑' };
+        const poses = { run: 'run', punch: 'punch', grow: 'jump' };
         const gname = names[game] || '미니게임';
-        const ok = await kkoShareCanvasCard(gmDrawShareCard(gname, nick, best.toLocaleString() + unit, '역대 최고 기록',
-          `참여 ${rows.length}주 · 누적 ${total.toLocaleString()}${unit}`), {
+        // 이번 주 기록이 있으면 이번 주 랭킹으로, 없으면 가장 최근에 참여한 주 랭킹으로 대체한다
+        // (주간 리셋 게임이라 "이번 주" 기준이 자연스럽지만, 이번 주에 아직 안 친 닉네임도
+        // 공유 버튼이 항상 뜨므로 빈 카드가 나가지 않도록 폴백을 둔다).
+        const wk = gameWeekKey(svrNow());
+        const wkRow = rows.find(r => r.week === wk);
+        const targetRow = wkRow || rows[0];
+        const weekLabel = wkRow ? '이번주' : gmWeekLabel(targetRow.week);
+        const wkAll = all.filter(r => r.week === targetRow.week).sort((a, b) => (+b.score || 0) - (+a.score || 0));
+        const rank = wkAll.findIndex(r => r.nickname === nick) + 1;
+        const score = +targetRow.score || 0;
+        const card = await gmDrawWeeklyShareCard(gname, nick, weekLabel, rank || wkAll.length + 1,
+          wkAll.length, score, unit, poses[game] || 'idle');
+        const ok = await kkoShareCanvasCard(card, {
           title: `${gname} — ${nick}`,
-          desc: `역대 최고 ${best.toLocaleString()}${unit} · 참여 ${rows.length}주`,
+          desc: `${nick}의 ${weekLabel} 최고 기록 · 랭킹 ${rank || '-'}등 · ${score.toLocaleString()}${unit}`,
           btnText: '도전하러 가기',
           path: `#/game/${game || 'run'}`,
         });
@@ -20347,10 +20392,9 @@
       if (!sb) return;
       const ov = document.createElement('div');
       ov.className = 'ghist-ov';
-      // 내 기록이면 제목 옆 카톡 공유 — 누적 전적 카드 발송 (블랙 퀴즈 기록 팝업과 같은 배치)
-      const isMeBB = gmMyNick && nickname.trim().toLowerCase() === gmMyNick.trim().toLowerCase();
+      // 로그인/본인 여부와 무관하게 누구 대결 기록이든 카톡 공유 버튼을 항상 보여준다(2026-08-23)
       ov.innerHTML = `<div class="ghist">
-    <div class="ghist-h">👤 <b>${esc(nickname)}</b>의 최근 대결${isMeBB ? ' <button class="kko-btn" id="bbHistKko" aria-label="카톡 공유" title="카톡 공유" style="margin-left:9px"></button>' : ''}<button class="ghist-x" onclick="this.closest('.ghist-ov').remove()">✕</button></div>
+    <div class="ghist-h">👤 <b>${esc(nickname)}</b>의 최근 대결 <button class="kko-btn" id="bbHistKko" aria-label="카톡 공유" title="카톡 공유" style="margin-left:9px"></button><button class="ghist-x" onclick="this.closest('.ghist-ov').remove()">✕</button></div>
     <div class="bb-hist-list" id="bbHistList"><div class="empty">불러오는 중…</div></div>
   </div>`;
       ov.onclick = e => { if (e.target === ov) ov.remove(); };
@@ -20369,7 +20413,7 @@
           path: '#/game/battle',
         });
         kkbBB.disabled = false; kkbBB.textContent = '카톡 공유';
-        if (!ok) toastMsg('이 환경에서는 카카오 공유가 안 돼요.');
+        if (!ok) toastMsg(rec ? '이 환경에서는 카카오 공유가 안 돼요.' : '전적 정보를 불러오지 못했습니다.');
       };
       overlayHost().append(ov);
       try {
