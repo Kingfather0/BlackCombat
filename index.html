@@ -11093,7 +11093,7 @@
         ? `<div class="tk-rev-note" style="color:#b45309;font-weight:700">${bulkEvents.map(ev => esc(tkBulkAlertText(ev, true))).join('<br>')}</div>`
         : '';
       return `<div class="tk-trend">
-        <div class="tk-trend-title">판매 추이(시간별)</div>
+        <div class="tk-trend-title">판매 추이(10분 간격)</div>
         <div class="tk-trend-plot">
           <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="tk-trend-svg">
             <polyline points="${linePts}" fill="none" stroke="currentColor" stroke-width="1.8" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>
@@ -12544,14 +12544,14 @@
         // ⚡ 급감 알림은 "지금 벌어지고 있는 일"을 알리는 용도라, 발생 후 24시간까지만 페이지
         // 최상단(전체 좌석 아래)에 노출하고 그 뒤엔 자동으로 내린다(2026-08-20 요청 — 3시간 →
         // 5시간을 거쳐 하루에 한 번 들어오는 유저도 볼 수 있게 24시간으로 확정).
-        // 지난 급감 이력은 아래 판매 추이(시간별) 차트의 ⚡ 점에서 기존처럼 계속 확인할 수 있다.
+        // 지난 급감 이력은 아래 판매 추이(10분 간격) 차트의 ⚡ 점에서 기존처럼 계속 확인할 수 있다.
         const FRESH_MS = 24 * 3600 * 1000;
         const fresh = allBulkEvents.filter(ev => (svrNow().getTime() - new Date(ev.tCur).getTime()) <= FRESH_MS);
         if (!fresh.length) return '';
         const recent = fresh.slice(-1);
         const olderCnt = allBulkEvents.length - recent.length;
         return recent.map(ev => `<div class="tk-bulk-alert">${esc(tkBulkAlertText(ev))}</div>`).join('')
-          + (olderCnt > 0 ? `<div class="sub" style="margin-top:5px;font-size:11px;color:var(--dim)">이 외 급감 의심 ${olderCnt}건 — 아래 판매 추이(시간별)의 ⚡ 점에서 확인할 수 있습니다.</div>` : '');
+          + (olderCnt > 0 ? `<div class="sub" style="margin-top:5px;font-size:11px;color:var(--dim)">이 외 급감 의심 ${olderCnt}건 — 아래 판매 추이(10분 간격)의 ⚡ 점에서 확인할 수 있습니다.</div>` : '');
       })() : '';
       // "판매 대상"과 "전체 좌석"이 다른(=판매 대상이 아닌 좌석이 있는) 회차가 하나라도 있을 때만
       // "ⓘ 좌석 기준" 토글을 보여준다 — 둘이 같으면 안내할 차이가 없으므로 굳이 노출하지 않는다.
@@ -12843,7 +12843,7 @@
       <div class="sec-title" style="justify-content:space-between"><span>잔여 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">${fmtSnapTime(newestAt)} 기준</span></div>
       ${currentHTML}
       ${trendsSectionHTML}
-      <div class="sec-title">판매 히스토리 <span style="color:var(--dim);font-size:12.5px;font-weight:700">전체 ${rows.length.toLocaleString()}건</span></div>
+      <div class="sec-title">판매 히스토리(10분 간격) <span style="color:var(--dim);font-size:12.5px;font-weight:700">전체 ${rows.length.toLocaleString()}건</span></div>
       <div class="card tk-hist-scroll" style="padding:0">${histHTML}</div>
       ${pastHTML}`;
       tkFitTotalLine();
