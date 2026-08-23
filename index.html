@@ -16415,7 +16415,7 @@
   </div>`;
       gmApplyPoses();
 
-      document.getElementById('bqShare').onclick = () => bqShowShare(d);
+      document.getElementById('bqShare').onclick = () => bqShareDirect(d);
       const again = document.getElementById('bqAgain');
       if (again && !again.disabled) again.onclick = () => bqConfirmStart();
       document.getElementById('bqHome').onclick = () => bqRenderHome();
@@ -16538,6 +16538,27 @@
       });
       x.textAlign = 'left';
       return c;
+    }
+    // 2026-08-23: "결과 공유하기" 클릭 시 확인 팝업 없이 바로 카톡 카드 공유를 보낸다
+    // (예전엔 bqShowShare 팝업을 한 번 더 띄웠는데, 그 단계를 없애 달라는 요청으로 제거).
+    async function bqShareDirect(d, opts) {
+      opts = opts || {};
+      const tm = d.tier_meta || {};
+      const nick = d.nickname || gmMyNick || '';
+      const btn = document.getElementById('bqShare');
+      if (btn) { btn.disabled = true; btn.textContent = '카드 만드는 중…'; }
+      let ok = false;
+      try {
+        ok = await kkoShareCanvasCard(bqDrawShareCard(d, opts), {
+          title: `${nick ? nick + '의 ' : ''}블랙 퀴즈 성적표`,
+          desc: `${bqTierLabel(tm)} · ${d.correct_count}/${d.q_total}${d.total_time_ms != null ? ` · ${bqSec(d.total_time_ms)}초` : ''}`,
+          btnText: '블붕력 시험하기',
+          path: '#/game/quiz',
+        });
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '결과 공유하기'; }
+      }
+      if (!ok) toastMsg('이 환경에서는 카카오 카드 공유가 안 돼요.');
     }
     function bqShowShare(d, opts) {
       opts = opts || {};
