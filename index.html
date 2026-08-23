@@ -10335,7 +10335,7 @@
       return `<div class="card" style="margin-bottom:12px;border:1.5px solid var(--key-deep);background:var(--key-soft)">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
         <div style="font-weight:800;font-size:15px;color:var(--text)">${esc(a.title || '')}</div>
-        <button type="button" class="kko-btn" onclick="annKkoShare('${a.id}', this)" aria-label="카톡 공유" title="카톡 공유" style="flex-shrink:0"></button>
+        <button type="button" class="kko-btn" onpointerdown="annKkoArm('${a.id}', this)" onclick="annKkoShare('${a.id}', this)" aria-label="카톡 공유" title="카톡 공유" style="flex-shrink:0"></button>
       </div>
       ${lines.length ? `<div style="font-size:13px;margin-top:6px;color:var(--muted);font-weight:600;line-height:1.6">${lines.map(esc).join('<br>')}</div>` : ''}
       ${a.body ? `
@@ -10360,12 +10360,21 @@
       lines.slice(0, 3).forEach((l, i) => x.fillText(l, 48, 204 + i * 46));
       return c;
     }
-    async function annKkoShare(id, btn) {
-      const a = (window.__annActiveCache || ANNOUNCEMENTS || []).find(v => v.id === id)
+    function annFind(id) {
+      return (window.__annActiveCache || ANNOUNCEMENTS || []).find(v => v.id === id)
         || (ANNOUNCEMENTS || []).find(v => v.id === id);
+    }
+    // pointerdown(누르는 순간) 시점에 미리 카드 업로드를 시작해 둔다 — iOS 대응
+    function annKkoArm(id, btn) {
+      const a = annFind(id);
+      if (a) kkoArmPreload(btn, () => annDrawShareCard(a));
+    }
+    async function annKkoShare(id, btn) {
+      const a = annFind(id);
       if (!a) return annShareOne(id);
       if (btn) { btn.disabled = true; btn.textContent = '카드 만드는 중…'; }
-      const ok = await kkoShareCanvasCard(annDrawShareCard(a), {
+      const imageUrl = await kkoConsumePreload(btn, () => annDrawShareCard(a));
+      const ok = imageUrl && kkoSendShare(imageUrl, {
         title: a.title || '공지',
         desc: [annPeriodText(a), a.venue].filter(Boolean).join(' · '),
         btnText: a.body ? '자세히 보기' : '공지 보기',
@@ -12148,7 +12157,7 @@
       const remain = Object.values(cd.remainMap || {}).reduce((s, v) => s + (v || 0), 0);
       const sold = Math.max(0, total - remain);
       const pct = total ? sold / total * 100 : 0;
-      const { c, x } = kkoCardBase('티켓 판매 현황', '블랙컴뱃 잡담방 · 10분 단위 자동 갱신', fmtSnapTime(cd.at) + ' 기준', cd.wordmark);
+      const { c, x } = kkoCardBase('티켓 판매 현황', '블랙컴뱃 잡담방 · 10분 간격 자동 갱신', fmtSnapTime(cd.at) + ' 기준', cd.wordmark);
       x.fillStyle = '#1d4ed8'; x.font = '900 62px Pretendard, sans-serif';
       const ptxt = pct.toFixed(1) + '%';
       x.fillText(ptxt, 48, 124);
@@ -12176,6 +12185,12 @@
       if (l2) x.fillText(l2, 48, 306);
       return c;
     }
+    // pointerdown(누르는 순간) 시점에 미리 카드 업로드를 시작해 둔다 — iOS 대응
+    function tkKkoArm() {
+      const btn = document.getElementById('tkKkoBtn');
+      const cd = tkLive && tkLive.cardData;
+      if (btn && cd && cd.total) kkoArmPreload(btn, () => tkDrawShareCard(cd));
+    }
     async function tkKkoShare() {
       const btn = document.getElementById('tkKkoBtn');
       const cd = tkLive && tkLive.cardData;
@@ -12183,7 +12198,8 @@
       if (btn) { btn.disabled = true; btn.textContent = '카드 만드는 중…'; }
       const remain = Object.values(cd.remainMap || {}).reduce((s, v) => s + (v || 0), 0);
       const sold = Math.max(0, cd.total - remain);
-      const ok = await kkoShareCanvasCard(tkDrawShareCard(cd), {
+      const imageUrl = await kkoConsumePreload(btn, () => tkDrawShareCard(cd));
+      const ok = imageUrl && kkoSendShare(imageUrl, {
         title: '🎫 티켓 판매 현황',
         desc: `총 ${cd.total.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${(sold / cd.total * 100).toFixed(1)}%)`,
         btnText: '티켓 현황 보기',
@@ -12403,7 +12419,7 @@
       ${dpParts.length ? `<div class="sub" style="margin-top:4px">${dpParts.join(' · ')}</div>` : ''}
       ${meta.openText ? `<div class="sub" style="margin-top:2px">🎟️ 티켓 오픈: ${esc(meta.openText)}</div>` : ''}
       ${actionBtnsHTML}
-      <div class="sub" style="margin-top:8px;font-size:11px;color:var(--dim)">출처: ${esc(meta.platform || (rows.length ? 'NOL 티켓' : '확인 중'))} · 10분 단위 자동 갱신</div>
+      <div class="sub" style="margin-top:8px;font-size:11px;color:var(--dim)">출처: ${esc(meta.platform || (rows.length ? 'NOL 티켓' : '확인 중'))} · 10분 간격 자동 갱신</div>
     </div>`;
 
       if (!rows.length) {
@@ -12835,7 +12851,7 @@
 
       $app.innerHTML = `
       <h1 class="page fit-row" style="display:flex;justify-content:space-between;align-items:center;gap:10px">티켓 판매 현황
-        <span style="display:inline-flex;gap:8px;align-items:center">${adminPass() ? `<button class="btn small" onclick="tkManualRefresh(this)">🔄 수동 갱신</button>` : ''}<button class="kko-btn" id="tkKkoBtn" onclick="tkKkoShare()" aria-label="카톡 공유" title="카톡 공유"></button></span></h1>
+        <span style="display:inline-flex;gap:8px;align-items:center">${adminPass() ? `<button class="btn small" onclick="tkManualRefresh(this)">🔄 수동 갱신</button>` : ''}<button class="kko-btn" id="tkKkoBtn" onpointerdown="tkKkoArm()" onclick="tkKkoShare()" aria-label="카톡 공유" title="카톡 공유"></button></span></h1>
       ${infoCard}
       ${totalBarHTML}
       ${forecastHTML}
@@ -14465,6 +14481,12 @@
       }
       return c;
     }
+    // pointerdown(누르는 순간) 시점에 미리 카드 업로드를 시작해 둔다 — iOS 대응
+    function tKkoArm() {
+      const btn = document.getElementById('tKkoBtn');
+      const t = curT, matches = curMatches || [], parts = curParts || [];
+      if (btn && t) kkoArmPreload(btn, () => tDrawShareCard(t, matches, parts));
+    }
     async function tKkoShareCard(id) {
       const btn = document.getElementById('tKkoBtn');
       if (btn) { btn.disabled = true; btn.textContent = '카드 만드는 중…'; }
@@ -14473,7 +14495,8 @@
         if (!t) return;
         const live = tIsLive(t);
         const scoredN = matches.filter(m => m.winner === 'A' || m.winner === 'B').length;
-        const ok = await kkoShareCanvasCard(tDrawShareCard(t, matches, parts), {
+        const imageUrl = await kkoConsumePreload(btn, () => tDrawShareCard(t, matches, parts));
+        const ok = imageUrl && kkoSendShare(imageUrl, {
           title: live ? `🔴 LIVE — ${t.title}` : t.title,
           desc: live
             ? `실시간 진행 중 · ${scoredN}/${matches.length}경기 결과 반영`
@@ -14505,7 +14528,7 @@
       const cd = countdownText(t.deadline);
 
       let html = `
-    <h1 class="page">${esc(t.title)} ${stateBadge(t)} <button type="button" id="tKkoBtn" class="kko-btn" onclick="tKkoShareCard('${esc(t.id)}')" aria-label="카톡 공유" title="카톡 공유"></button></h1>
+    <h1 class="page">${esc(t.title)} ${stateBadge(t)} <button type="button" id="tKkoBtn" class="kko-btn" onpointerdown="tKkoArm()" onclick="tKkoShareCard('${esc(t.id)}')" aria-label="카톡 공유" title="카톡 공유"></button></h1>
     <div class="sub">
       🔒 ${fmtDT(t.deadline)} 마감
       ${cd ? ` &nbsp;·&nbsp; ${cdHTML(t.deadline)}` : ''}
@@ -16409,15 +16432,25 @@
         return !!(Kakao.Share && Kakao.Share.uploadImage);
       } catch (e) { return false; }
     }
-    async function kkoShareCanvasCard(canvas, o) {
-      if (!kkoInit()) return false;
+    // 2026-08-24: iOS Safari(카톡 인앱/사파리 공용) 대응 — iOS는 사용자의 클릭 이벤트가 끝난 뒤
+    // 네트워크 요청 등 "진짜 비동기 작업"을 한 번이라도 거치면 그 뒤에 카카오톡 앱으로 넘어가는
+    // 커스텀 스킴 실행을 "사용자 조작이 아님"으로 간주해 막아버린다(설치돼 있어도 "설치하기"
+    // 유도 화면으로 빠짐). 안드로이드는 이 제약이 없어서 문제가 없었다. 그래서 느린 작업인
+    // "캔버스 → 이미지 업로드"는 클릭 *전에* 미리 끝내 두고, 클릭 시점엔 이미 업로드된 URL로
+    // Kakao.Share.sendDefault()만 곧바로 호출해야 한다. 아래 두 함수로 "업로드"와 "발송"을 분리한다.
+    async function kkoUploadCanvas(canvas) {
+      if (!kkoInit()) return null;
       try {
         const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-        if (!blob) return false;
+        if (!blob) return null;
         const file = new File([blob], 'card.png', { type: 'image/png' });
         const up = await Kakao.Share.uploadImage({ file: [file] });
-        const imageUrl = up && up.infos && up.infos.original && up.infos.original.url;
-        if (!imageUrl) return false;
+        return (up && up.infos && up.infos.original && up.infos.original.url) || null;
+      } catch (e) { return null; }
+    }
+    function kkoSendShare(imageUrl, o) {
+      if (!kkoInit() || !imageUrl) return false;
+      try {
         const base = 'https://kingfather0.github.io/BlackCombat/';
         const link = { mobileWebUrl: base + (o.path || ''), webUrl: base + (o.path || '') };
         Kakao.Share.sendDefault({
@@ -16427,6 +16460,45 @@
         });
         return true;
       } catch (e) { return false; }
+    }
+    // 기존 방식(클릭 핸들러 안에서 업로드까지 한 번에) — 카드 준비를 미리 시작해 둘 수 없는
+    // 경우의 폴백. iOS에서는 아래 kkoArmPreload/kkoConsumePreload로 "클릭보다 먼저" 업로드를
+    // 시작해 두는 쪽을 우선 쓴다.
+    async function kkoShareCanvasCard(canvas, o) {
+      const imageUrl = await kkoUploadCanvas(canvas);
+      if (!imageUrl) return false;
+      return kkoSendShare(imageUrl, o);
+    }
+    // pointerdown(터치/마우스 다운) 시점 — click보다 한 박자 먼저 발생 — 에 미리 캔버스를 그려
+    // 업로드를 시작해 둔다. 이렇게 하면 실제 click이 발생할 때는 이미 업로드가 끝나 있거나 거의
+    // 끝나가는 상태라, 클릭 직후 곧바로(비동기 지연 없이) Kakao.Share.sendDefault를 호출할 수
+    // 있어 iOS에서도 안드로이드처럼 정상적으로 카톡 앱으로 넘어간다.
+    function kkoArmPreload(btn, buildCard) {
+      if (!btn || btn.__kkoPreload) return;
+      btn.__kkoPreload = (async () => {
+        try {
+          const canvas = await buildCard();
+          if (!canvas) return null;
+          return await kkoUploadCanvas(canvas);
+        } catch (e) { return null; }
+      })();
+    }
+    // click 핸들러에서 호출 — arm이 미리 돌아가 있으면 그 결과를 그대로 쓰고(대부분 이미 끝나
+    //있음), 어떤 이유로든(키보드 활성화 등 pointerdown 없이 클릭된 경우) arm이 안 됐으면 그
+    // 자리에서 새로 시작한다(이 경우는 기존과 동일하게 iOS에서 실패할 수 있음).
+    async function kkoConsumePreload(btn, buildCard) {
+      let p = btn && btn.__kkoPreload;
+      if (btn) btn.__kkoPreload = null;
+      if (!p) {
+        p = (async () => {
+          try {
+            const canvas = await buildCard();
+            if (!canvas) return null;
+            return await kkoUploadCanvas(canvas);
+          } catch (e) { return null; }
+        })();
+      }
+      return p;
     }
     // 카드 캔버스 공통 배경 — 목업과 같은 다크 톤(#12151d) + 상단 헤더/하단 푸터
     // 카드 공통 — 심플·모던 미니멀 (2026-08-23 v3): 순백 배경, 장식 없음, 왼쪽 정렬
@@ -16702,30 +16774,43 @@
         // 제목 옆 카톡 공유 버튼 활성화 — 최고 기록 카드로 발송 (기록이 없으면 버튼 숨김)
         const kb = ov.querySelector('#bqUserKko');
         if (kb && !d.total_attempts) kb.style.display = 'none';
-        if (kb) kb.onclick = async () => {
-          kb.disabled = true; kb.textContent = '카드 만드는 중…';
-          // 공유 카드에 넣을 "전체 순위" — 랭킹 화면(quiz_get_ranking scope='all')과 동일한
-          // 누적 순위를 그대로 가져온다 (2026-08-24: 순위 컬럼 추가 요청)
-          let rank = null;
-          try {
-            const rk = await sb.rpc('quiz_get_ranking', {
-              p_scope: 'all', p_tier: null, p_nickname: d.nickname, p_limit: 1, p_pass: adminPass() || null,
+        if (kb) {
+          // 공유 카드에 넣을 "전체 순위"(quiz_get_ranking scope='all' 조회 포함)와 캔버스를
+          // 함께 준비하는 함수 — pointerdown 시점에 미리 시작해 두고, 조회된 rank는 desc 문구에
+          // 쓸 수 있도록 state에 담아 둔다 (iOS는 클릭 후 비동기 작업이 남아있으면 카톡 공유가
+          // 실패하므로, RPC 조회까지 포함해 클릭 전에 다 끝내 둬야 한다 — 2026-08-24)
+          const getState = () => (kb.__bqShareState || (kb.__bqShareState = {}));
+          const build = async (state) => {
+            let rank = null;
+            try {
+              const rk = await sb.rpc('quiz_get_ranking', {
+                p_scope: 'all', p_tier: null, p_nickname: d.nickname, p_limit: 1, p_pass: adminPass() || null,
+              });
+              if (!rk.error && rk.data && rk.data.me) rank = rk.data.me.rank;
+            } catch (e) { }
+            state.rank = rank;
+            return bqDrawShareCard({
+              nickname: d.nickname, tier_meta: d.best_tier_meta,
+              correct_count: d.best_correct, q_total: d.best_q_total || (BQ.cfg && BQ.cfg.q_total) || 5,
+              total_time_ms: d.best_score_time_ms, rank,
+            }, { cardTitle: '나의 최고 기록' });
+          };
+          kb.onpointerdown = () => kkoArmPreload(kb, () => build(getState()));
+          kb.onclick = async () => {
+            kb.disabled = true; kb.textContent = '카드 만드는 중…';
+            const state = getState();
+            const imageUrl = await kkoConsumePreload(kb, () => build(state));
+            const rank = state.rank;
+            const ok = imageUrl && kkoSendShare(imageUrl, {
+              title: `${d.nickname}의 블랙 퀴즈 최고 기록`,
+              desc: `${bqTierLabel(d.best_tier_meta)}${rank ? ` · 전체 ${rank}위` : ''} · ${d.best_correct}/${d.best_q_total || ''}${d.best_score_time_ms != null ? ` · ${bqSec(d.best_score_time_ms)}초` : ''}`,
+              btnText: '게임하러 가기',
+              path: '#/game/quiz',
             });
-            if (!rk.error && rk.data && rk.data.me) rank = rk.data.me.rank;
-          } catch (e) { }
-          const ok = await kkoShareCanvasCard(bqDrawShareCard({
-            nickname: d.nickname, tier_meta: d.best_tier_meta,
-            correct_count: d.best_correct, q_total: d.best_q_total || (BQ.cfg && BQ.cfg.q_total) || 5,
-            total_time_ms: d.best_score_time_ms, rank,
-          }, { cardTitle: '나의 최고 기록' }), {
-            title: `${d.nickname}의 블랙 퀴즈 최고 기록`,
-            desc: `${bqTierLabel(d.best_tier_meta)}${rank ? ` · 전체 ${rank}위` : ''} · ${d.best_correct}/${d.best_q_total || ''}${d.best_score_time_ms != null ? ` · ${bqSec(d.best_score_time_ms)}초` : ''}`,
-            btnText: '게임하러 가기',
-            path: '#/game/quiz',
-          });
-          kb.disabled = false; kb.textContent = '카톡 공유';
-          if (!ok) toastMsg('이 환경에서는 카카오 카드 공유가 안 돼요.');
-        };
+            kb.disabled = false; kb.textContent = '카톡 공유';
+            if (!ok) toastMsg('이 환경에서는 카카오 카드 공유가 안 돼요.');
+          };
+        }
       } catch (e) {
         if (body) body.innerHTML = `<div class="empty">${esc(bqRpcErr(e))}</div>`;
       }
@@ -19262,9 +19347,7 @@
   </div>`;
       ov.onclick = ev => { if (ev.target === ov) ov.remove(); };
       const kkb = ov.querySelector('#gmHistKko');
-      if (kkb) kkb.onclick = async (ev) => {
-        ev.stopPropagation();
-        kkb.disabled = true; kkb.textContent = '카드 만드는 중…';
+      if (kkb) {
         const names = { run: '블랙 러닝', punch: '블랙 펀칭', grow: '블랙 점핑' };
         const poses = { run: 'run', punch: 'punch', grow: 'jump' };
         const gname = names[game] || '미니게임';
@@ -19284,17 +19367,24 @@
           : game === 'grow'
             ? `Lv.${targetRow.kos || 0} 달성 · 🔥${targetRow.combo || 0}콤보`
             : `🔥최대 ${targetRow.combo || 0}콤보`;
-        const card = await gmDrawWeeklyShareCard(gname, nick, weekLabel, rank || wkAll.length + 1,
+        // 카드 준비(그리기+업로드)는 pointerdown 시점에 미리 시작해 둔다 — iOS 대응
+        const buildCard = () => gmDrawWeeklyShareCard(gname, nick, weekLabel, rank || wkAll.length + 1,
           wkAll.length, score, unit, poses[game] || 'idle');
-        const ok = await kkoShareCanvasCard(card, {
-          title: `${gname} — ${nick}`,
-          desc: subText,
-          btnText: '게임하러 가기',
-          path: `#/game/${game || 'run'}`,
-        });
-        kkb.disabled = false; kkb.textContent = '카톡 공유';
-        if (!ok) toastMsg('이 환경에서는 카카오 공유가 안 돼요.');
-      };
+        kkb.onpointerdown = () => kkoArmPreload(kkb, buildCard);
+        kkb.onclick = async (ev) => {
+          ev.stopPropagation();
+          kkb.disabled = true; kkb.textContent = '카드 만드는 중…';
+          const imageUrl = await kkoConsumePreload(kkb, buildCard);
+          const ok = imageUrl && kkoSendShare(imageUrl, {
+            title: `${gname} — ${nick}`,
+            desc: subText,
+            btnText: '게임하러 가기',
+            path: `#/game/${game || 'run'}`,
+          });
+          kkb.disabled = false; kkb.textContent = '카톡 공유';
+          if (!ok) toastMsg('이 환경에서는 카카오 공유가 안 돼요.');
+        };
+      }
       overlayHost().append(ov);
     }
 
@@ -20359,34 +20449,49 @@
   </div>`;
       ov.onclick = e => { if (e.target === ov) ov.remove(); };
       const kkbBB = ov.querySelector('#bbHistKko');
-      if (kkbBB) kkbBB.onclick = async (e) => {
-        e.stopPropagation();
-        kkbBB.disabled = true; kkbBB.textContent = '카드 만드는 중…';
-        let rec = null, rank = null, winRate = null;
-        try {
-          const [r1, r2] = await Promise.all([
-            sb.rpc('bb_pvp_get_record', { p_nickname: nickname }),
-            sb.rpc('bb_pvp_get_leaderboard', { p_limit: 200 }),
-          ]);
-          if (r1.data && r1.data.ok) rec = r1.data;
-          const rows = Array.isArray(r2.data) ? r2.data : [];
-          const idx = rows.findIndex(r => r.nickname === nickname);
-          if (idx >= 0) { rank = idx + 1; winRate = rows[idx].winRate; }
-        } catch (err) { }
-        if (rec && winRate == null) {
-          const w = rec.wins || 0, l = rec.losses || 0;
-          winRate = (w + l) > 0 ? Math.round((w / (w + l)) * 100) : 0;
-        }
-        const ok = rec && await kkoShareCanvasCard(
-          await gmDrawShareCard(nickname, rank, rec.wins, rec.losses, rec.draws, winRate), {
-          title: `${nickname}의 블랙 배틀 최고기록`,
-          desc: `전적 ${rec.wins}승 ${rec.losses}패 ${rec.draws || 0}무 · 승률 ${winRate != null ? Math.round(winRate) : 0}%`,
-          btnText: '게임하러 가기',
-          path: '#/game/battle',
-        });
-        kkbBB.disabled = false; kkbBB.textContent = '카톡 공유';
-        if (!ok) toastMsg(rec ? '이 환경에서는 카카오 공유가 안 돼요.' : '전적 정보를 불러오지 못했습니다.');
-      };
+      if (kkbBB) {
+        // 전적/랭킹 조회(RPC) + 카드 그리기 + 업로드를 한 번에 준비하는 함수 — pointerdown
+        // 시점에 미리 시작해 둔다. 조회 결과(rec/rank/winRate)는 desc 문구에도 써야 하므로
+        // state에 담아 둔다 (iOS는 클릭 후 비동기 작업이 남아있으면 카톡 공유가 실패하므로,
+        // RPC 조회까지 포함해 클릭 전에 다 끝내 둬야 한다 — 2026-08-24)
+        const getState = () => (kkbBB.__bbShareState || (kkbBB.__bbShareState = {}));
+        const build = async (state) => {
+          let rec = null, rank = null, winRate = null;
+          try {
+            const [r1, r2] = await Promise.all([
+              sb.rpc('bb_pvp_get_record', { p_nickname: nickname }),
+              sb.rpc('bb_pvp_get_leaderboard', { p_limit: 200 }),
+            ]);
+            if (r1.data && r1.data.ok) rec = r1.data;
+            const rows = Array.isArray(r2.data) ? r2.data : [];
+            const idx = rows.findIndex(r => r.nickname === nickname);
+            if (idx >= 0) { rank = idx + 1; winRate = rows[idx].winRate; }
+          } catch (err) { }
+          if (rec && winRate == null) {
+            const w = rec.wins || 0, l = rec.losses || 0;
+            winRate = (w + l) > 0 ? Math.round((w / (w + l)) * 100) : 0;
+          }
+          state.rec = rec; state.rank = rank; state.winRate = winRate;
+          if (!rec) return null;
+          return gmDrawShareCard(nickname, rank, rec.wins, rec.losses, rec.draws, winRate);
+        };
+        kkbBB.onpointerdown = () => kkoArmPreload(kkbBB, () => build(getState()));
+        kkbBB.onclick = async (e) => {
+          e.stopPropagation();
+          kkbBB.disabled = true; kkbBB.textContent = '카드 만드는 중…';
+          const state = getState();
+          const imageUrl = await kkoConsumePreload(kkbBB, () => build(state));
+          const rec = state.rec, rank = state.rank, winRate = state.winRate;
+          const ok = imageUrl && rec && kkoSendShare(imageUrl, {
+            title: `${nickname}의 블랙 배틀 최고기록`,
+            desc: `전적 ${rec.wins}승 ${rec.losses}패 ${rec.draws || 0}무 · 승률 ${winRate != null ? Math.round(winRate) : 0}%`,
+            btnText: '게임하러 가기',
+            path: '#/game/battle',
+          });
+          kkbBB.disabled = false; kkbBB.textContent = '카톡 공유';
+          if (!ok) toastMsg(rec ? '이 환경에서는 카카오 공유가 안 돼요.' : '전적 정보를 불러오지 못했습니다.');
+        };
+      }
       overlayHost().append(ov);
       try {
         const { data, error } = await sb.rpc('bb_pvp_get_history', { p_nickname: nickname, p_limit: 20 });
