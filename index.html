@@ -10323,7 +10323,7 @@
       return `<div class="card" style="margin-bottom:12px;border:1.5px solid var(--key-deep);background:var(--key-soft)">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
         <div style="font-weight:800;font-size:15px;color:var(--text)">${esc(a.title || '')}</div>
-        <button type="button" class="tk-share-btn" onclick="annShareOne('${a.id}')" style="padding:5px 11px;font-size:12px;flex-shrink:0">💬 공지 공유</button>
+        <button type="button" class="kko-btn" onclick="annKkoShare('${a.id}', this)" style="flex-shrink:0">카톡 공유</button>
       </div>
       ${lines.length ? `<div style="font-size:13px;margin-top:6px;color:var(--muted);font-weight:600;line-height:1.6">${lines.map(esc).join('<br>')}</div>` : ''}
       ${a.body ? `
@@ -10331,6 +10331,36 @@
       <div id="ann-body-${a.id}" style="display:none;background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:8px;font-size:12.5px;color:var(--muted);line-height:1.75">${annBodyHTML(a.body)}</div>` : ''}
       ${a.link ? `<a class="btn primary small" style="margin-top:10px" href="${esc(a.link)}" target="_blank" rel="noopener noreferrer">${esc(a.linkText || '예매하러 가기')}</a>` : ''}
     </div>`;
+    }
+    // 공지 카카오 카드 (800×400, 미니멀 톤) — 제목 크게 + 일정/장소/가격 줄
+    function annDrawShareCard(a) {
+      const { c, x } = kkoCardBase('공지', '블랙컴뱃 잡담방', annPeriodText(a) ? '' : '');
+      x.fillStyle = '#1b2430'; x.font = '900 42px Pretendard, sans-serif';
+      let title = String(a.title || '');
+      while (title.length > 2 && x.measureText(title).width > 700) title = title.slice(0, -2) + '…';
+      x.fillText(title, 48, 138);
+      const lines = [
+        a.start || a.end ? `📅 ${annPeriodText(a)}` : '',
+        a.venue ? `📍 ${a.venue}` : '',
+        a.price ? `💰 ${a.price}` : '',
+      ].filter(Boolean);
+      x.fillStyle = '#525d6b'; x.font = '800 22px Pretendard, sans-serif';
+      lines.slice(0, 3).forEach((l, i) => x.fillText(l, 48, 204 + i * 46));
+      return c;
+    }
+    async function annKkoShare(id, btn) {
+      const a = (window.__annActiveCache || ANNOUNCEMENTS || []).find(v => v.id === id)
+        || (ANNOUNCEMENTS || []).find(v => v.id === id);
+      if (!a) return annShareOne(id);
+      if (btn) { btn.disabled = true; btn.textContent = '카드 만드는 중…'; }
+      const ok = await kkoShareCanvasCard(annDrawShareCard(a), {
+        title: a.title || '공지',
+        desc: [annPeriodText(a), a.venue].filter(Boolean).join(' · '),
+        btnText: a.body ? '자세히 보기' : '공지 보기',
+        path: '',
+      });
+      if (btn) { btn.disabled = false; btn.textContent = '카톡 공유'; }
+      if (!ok) annShareOne(id);   // 미지원 환경 → 기존 텍스트 공유로 폴백
     }
     /* ── 공지 카톡방 공유 ── "티켓 현황 공유"(tkShare)와 같은 확인 팝업/발송 방식을 그대로 쓴다.
        티켓 예매 링크는 일부러 안 넣는다 — 예매 링크를 바로 주면 굳이 우리 사이트에 안 들어오고
@@ -18954,24 +18984,7 @@
     <div style="font-weight:800;margin-bottom:6px">${data.improved
           ? `📣 앤 뉴~!! <span style="color:#c62828">${esc(gmMyNick)}</span> 이번 주 신기록!`
           : `📣 앤 스틸~ 기존 기록이 방어에 성공했습니다`}</div>
-    <div style="font-size:14px">👤 <b>${esc(gmMyNick)}</b> 이번 주 최고 기록: <b style="color:var(--key-deep)">${best}${unit}</b></div>
-    <button class="kko-btn" id="gmKkoBtn" style="margin-top:9px;padding:7px 15px;font-size:12.5px">카톡 공유</button>`;
-      // 카카오 카드 공유 — 이번 주 최고 기록 카드 (2026-08-23)
-      const gameNames = { run: '블랙 러닝', punch: '블랙 펀칭', grow: '블랙 점핑' };
-      const kkb = document.getElementById('gmKkoBtn');
-      if (kkb) kkb.onclick = async () => {
-        kkb.disabled = true; kkb.textContent = '카드 만드는 중…';
-        const gname = gameNames[G.res.game] || '미니게임';
-        const ok = await kkoShareCanvasCard(gmDrawShareCard(gname, gmMyNick, best + unit, '이번 주 최고 기록',
-          data.improved ? '📣 이번 주 신기록 달성!' : `이번 판 ${(+G.res.score).toLocaleString()}${unit}`), {
-          title: `${gname} — ${gmMyNick}`,
-          desc: `이번 주 최고 기록 ${best}${unit}`,
-          btnText: '도전하러 가기',
-          path: `#/game/${G.res.game}`,
-        });
-        kkb.disabled = false; kkb.textContent = '카톡 공유';
-        if (!ok) toastMsg('이 환경에서는 카카오 공유가 안 돼요.');
-      };
+    <div style="font-size:14px">👤 <b>${esc(gmMyNick)}</b> 이번 주 최고 기록: <b style="color:var(--key-deep)">${best}${unit}</b></div>`;
       loadGameRank(gameWeekKey(svrNow()), G.res.game);
     }
     // 게임 공용 카카오 카드 — 게임명·닉네임·대표 수치(블루, 크게)·보조 문구 (미니멀 톤)
@@ -19211,8 +19224,10 @@
       const sub = r => game === 'run' ? `🏃 ${(r.combo || 0).toLocaleString()}m` : game === 'grow' ? `🔥${r.combo || 0}콤보` : `🔥${r.combo || 0}콤보`;
       const ov = document.createElement('div');
       ov.className = 'ghist-ov';
+      // 내 기록이면 제목 옆에 카톡 공유 버튼 — 블랙 퀴즈의 기록 팝업과 같은 배치 (2026-08-23)
+      const isMe = gmMyNick && nick.trim().toLowerCase() === gmMyNick.trim().toLowerCase();
       ov.innerHTML = `<div class="ghist">
-    <div class="ghist-h">👤 <b>${esc(nick)}</b><button class="ghist-x" onclick="this.closest('.ghist-ov').remove()">✕</button></div>
+    <div class="ghist-h">👤 <b>${esc(nick)}</b>${isMe ? ' <button class="kko-btn" id="gmHistKko" style="margin-left:9px">카톡 공유</button>' : ''}<button class="ghist-x" onclick="this.closest('.ghist-ov').remove()">✕</button></div>
     <div class="ghist-sum">주차별 히스토리 · 참여 <b>${rows.length}주</b> · 누적 <b>${total.toLocaleString()}${unit}</b> · 최고 <b>${best.toLocaleString()}${unit}</b></div>
     ${rows.map(r => `<div class="ghist-r ${+r.score === best ? 'best' : ''}">
       <span class="hw">${gmWeekLabel(r.week)}</span>
@@ -19222,6 +19237,22 @@
     </div>`).join('')}
   </div>`;
       ov.onclick = ev => { if (ev.target === ov) ov.remove(); };
+      const kkb = ov.querySelector('#gmHistKko');
+      if (kkb) kkb.onclick = async (ev) => {
+        ev.stopPropagation();
+        kkb.disabled = true; kkb.textContent = '카드 만드는 중…';
+        const names = { run: '블랙 러닝', punch: '블랙 펀칭', grow: '블랙 점핑' };
+        const gname = names[game] || '미니게임';
+        const ok = await kkoShareCanvasCard(gmDrawShareCard(gname, nick, best.toLocaleString() + unit, '역대 최고 기록',
+          `참여 ${rows.length}주 · 누적 ${total.toLocaleString()}${unit}`), {
+          title: `${gname} — ${nick}`,
+          desc: `역대 최고 ${best.toLocaleString()}${unit} · 참여 ${rows.length}주`,
+          btnText: '도전하러 가기',
+          path: `#/game/${game || 'run'}`,
+        });
+        kkb.disabled = false; kkb.textContent = '카톡 공유';
+        if (!ok) toastMsg('이 환경에서는 카카오 공유가 안 돼요.');
+      };
       overlayHost().append(ov);
     }
 
@@ -20144,29 +20175,8 @@
       <span>🔥 연승 <b>${record.winStreak}</b></span>
     </div>
     <button class="g-start g-en" id="bbAgain">다시 매칭</button>
-    <div style="margin-top:10px"><button class="kko-btn" id="bbKko" style="padding:8px 18px;font-size:13px">카톡 공유</button></div>
     <div class="bg-log" id="bbLog2" style="margin-top:16px;text-align:left">${bbLogHtml()}</div>
   </div>`;
-      // 카카오 카드 공유 — 대결 결과 + 내 누적 전적 카드 (2026-08-23)
-      const kkb = document.getElementById('bbKko');
-      if (kkb) {
-        kkb.onpointerdown = e => e.stopPropagation();
-        kkb.onclick = async (e) => {
-          e.stopPropagation();
-          kkb.disabled = true; kkb.textContent = '카드 만드는 중…';
-          const plainTitle = String(title).replace(/<[^>]*>/g, '').trim();
-          const ok = await kkoShareCanvasCard(gmDrawShareCard('블랙 배틀', gmMyNick, plainTitle,
-            BB.opp ? `vs ${BB.opp.nick}` : '',
-            `누적 전적 ${record.wins}승 ${record.losses}패 · 연승 ${record.winStreak}`), {
-            title: `블랙 배틀 — ${gmMyNick || ''}`,
-            desc: `${plainTitle}${BB.opp ? ` vs ${BB.opp.nick}` : ''} · 전적 ${record.wins}승 ${record.losses}패`,
-            btnText: '대결하러 가기',
-            path: '#/game/battle',
-          });
-          kkb.disabled = false; kkb.textContent = '카톡 공유';
-          if (!ok) toastMsg('이 환경에서는 카카오 공유가 안 돼요.');
-        };
-      }
       const btn = document.getElementById('bbAgain');
       if (btn) {
         btn.onpointerdown = e => e.stopPropagation();
@@ -20300,11 +20310,30 @@
       if (!sb) return;
       const ov = document.createElement('div');
       ov.className = 'ghist-ov';
+      // 내 기록이면 제목 옆 카톡 공유 — 누적 전적 카드 발송 (블랙 퀴즈 기록 팝업과 같은 배치)
+      const isMeBB = gmMyNick && nickname.trim().toLowerCase() === gmMyNick.trim().toLowerCase();
       ov.innerHTML = `<div class="ghist">
-    <div class="ghist-h">👤 <b>${esc(nickname)}</b>의 최근 대결<button class="ghist-x" onclick="this.closest('.ghist-ov').remove()">✕</button></div>
+    <div class="ghist-h">👤 <b>${esc(nickname)}</b>의 최근 대결${isMeBB ? ' <button class="kko-btn" id="bbHistKko" style="margin-left:9px">카톡 공유</button>' : ''}<button class="ghist-x" onclick="this.closest('.ghist-ov').remove()">✕</button></div>
     <div class="bb-hist-list" id="bbHistList"><div class="empty">불러오는 중…</div></div>
   </div>`;
       ov.onclick = e => { if (e.target === ov) ov.remove(); };
+      const kkbBB = ov.querySelector('#bbHistKko');
+      if (kkbBB) kkbBB.onclick = async (e) => {
+        e.stopPropagation();
+        kkbBB.disabled = true; kkbBB.textContent = '카드 만드는 중…';
+        let rec = null;
+        try { const r = await sb.rpc('bb_pvp_get_record', { p_nickname: nickname }); if (r.data && r.data.ok) rec = r.data; } catch (err) { }
+        const ok = rec && await kkoShareCanvasCard(gmDrawShareCard('블랙 배틀', nickname,
+          `${rec.wins}승 ${rec.losses}패`, '누적 전적',
+          `연승 ${rec.winStreak} · 최고 연승 ${rec.bestWinStreak || rec.winStreak}`), {
+          title: `블랙 배틀 — ${nickname}`,
+          desc: `누적 전적 ${rec.wins}승 ${rec.losses}패 · 연승 ${rec.winStreak}`,
+          btnText: '대결하러 가기',
+          path: '#/game/battle',
+        });
+        kkbBB.disabled = false; kkbBB.textContent = '카톡 공유';
+        if (!ok) toastMsg('이 환경에서는 카카오 공유가 안 돼요.');
+      };
       overlayHost().append(ov);
       try {
         const { data, error } = await sb.rpc('bb_pvp_get_history', { p_nickname: nickname, p_limit: 20 });
