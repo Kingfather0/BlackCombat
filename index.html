@@ -9392,7 +9392,7 @@
       return `(${range.from} ~ ${range.to})`;
     }
     // 활동 코드(영문) -> 사람이 읽기 좋은 한글 이름. 새 활동 추적을 추가하면 여기에도 이름을 등록한다.
-    const FP_ACTION_LABELS = { submit_vote: '🗳️ 승부 예측 제출' };
+    const FP_ACTION_LABELS = { submit_vote: '🗳️ 승부 예측 제출', row1_finder_open: '🎯 맨 앞열 바로 찾기' };
     // 달력으로 고른 기간의 길이에 따라 집계 단위를 자동 결정 — 한 달 이내는 일별,
     // 반년 이내는 주별, 그보다 길면 월별로 묶어 화면 길이를 일정하게 유지한다.
     function fpCustomBucket(fromStr, toStr) {
