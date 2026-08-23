@@ -14222,20 +14222,31 @@
       const cur = pending[0] || null;
       const nxt = pending[1] || null;
       const no = m => matches.indexOf(m) + 1;
-      let html = `<div class="card" style="margin-top:16px;border:2px solid #e11d48">
-      <div style="font-size:11.5px;font-weight:900;color:#e11d48">🔴 LIVE · ${scored.length}/${matches.length}경기 결과 반영${cur ? '' : ' — 전 경기 종료, 결과 확정 대기 중'}</div>`;
+      // ① 지금 카드 — 콤팩트: 헤더 한 줄 + 진행 경기의 예측 게이지(사이트 경기 결과 게이지와 동일 문법)
+      let gauge = '';
       if (cur) {
-        html += `
-      <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin:12px 0 4px">
-        <div style="text-align:center"><b style="font-size:15px">${esc(cur.fighter_a)}</b></div>
-        <span style="font-size:12px;font-weight:900;color:#e11d48">VS</span>
-        <div style="text-align:center"><b style="font-size:15px">${esc(cur.fighter_b)}</b></div>
+        let a = 0, b = 0;
+        parts.forEach(p => { const pk = p.picks && p.picks[cur.id]; if (pk === 'A') a++; else if (pk === 'B') b++; });
+        const tot = a + b, pa = tot ? Math.round(a / tot * 100) : 50, pb = tot ? 100 - pa : 50;
+        gauge = `
+      <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;font-weight:800;margin-top:9px">
+        <span style="color:#e11d48;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(cur.fighter_a)} ${a}명 (${pa}%)</span>
+        <span style="font-size:10.5px;color:var(--dim);font-weight:700;flex-shrink:0">${no(cur)}경기${cur.division ? ' · ' + esc(cur.division) : ''}</span>
+        <span style="color:var(--key-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">(${pb}%) ${b}명 ${esc(cur.fighter_b)}</span>
       </div>
-      <div style="text-align:center;font-size:11px;color:var(--dim);font-weight:700">${no(cur)}경기 진행/대기 중${cur.division ? ` · ${esc(cur.division)}` : ''}</div>
-      ${nxt ? `<div style="border-top:1px dashed var(--border);margin-top:10px;padding-top:8px;display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);font-weight:700"><span>다음 경기</span><span>${esc(nxt.fighter_a)} vs ${esc(nxt.fighter_b)}</span></div>` : ''}`;
+      <div style="display:flex;height:8px;border-radius:99px;overflow:hidden;margin-top:5px">
+        <span style="background:#e11d48;width:${pa}%"></span><span style="background:#2563eb;width:${pb}%"></span>
+      </div>`;
       }
-      html += `<div style="text-align:right;font-size:10.5px;color:var(--dim);margin-top:6px">🔄 30초마다 자동 갱신 — 새로고침 불필요</div></div>`;
-      // ② 내 실시간 성적 (로그인 + 참여자일 때만)
+      let html = `<div class="card" style="margin-top:14px;padding:12px 14px;border:1.5px solid #e11d48">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11.5px;font-weight:900">
+        <span style="color:#e11d48">🔴 LIVE · ${scored.length}/${matches.length}경기 반영</span>
+        <span style="color:var(--dim);font-weight:700">🔄 30초 자동 갱신</span>
+      </div>
+      ${cur ? gauge : `<div style="margin-top:8px;font-size:12.5px;font-weight:800;color:var(--muted)">전 경기 종료 — 결과 확정 대기 중</div>`}
+      ${nxt ? `<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);font-weight:700;margin-top:9px;border-top:1px dashed var(--border);padding-top:7px"><span>다음 경기</span><span>${esc(nxt.fighter_a)} vs ${esc(nxt.fighter_b)}</span></div>` : ''}
+    </div>`;
+      // ② 내 실시간 성적 — 슬림 한 줄 (로그인 + 참여자일 때만)
       if (gmMyNick) {
         const mine = parts.find(p => p.nickname.trim().toLowerCase() === gmMyNick.trim().toLowerCase());
         if (mine && scored.length) {
@@ -14246,13 +14257,11 @@
           const myPending = matches.filter(m => !(m.winner === 'A' || m.winner === 'B') && mine.picks[m.id]).length;
           const potential = myHit + myPending;
           const bestRank = 1 + rows.filter(r => r.hit > potential).length;
-          html += `<div class="card" style="margin-top:10px;border:2px solid var(--key);background:#f0f6ff">
-        <div style="font-size:12px;font-weight:900;color:var(--key-deep)">👤 ${esc(mine.nickname)}의 실시간 성적</div>
-        <div style="display:flex;gap:8px;margin-top:9px">
-          <div style="flex:1;background:#fff;border-radius:11px;padding:9px 4px;text-align:center"><b style="font-size:16px;color:var(--key-deep)">${myHit} / ${scored.length}</b><div style="font-size:10px;color:var(--dim);font-weight:800">현재 적중</div></div>
-          <div style="flex:1;background:#fff;border-radius:11px;padding:9px 4px;text-align:center"><b style="font-size:16px;color:var(--key-deep)">${tie ? '공동 ' : ''}${me ? me.rank : '-'}위</b><div style="font-size:10px;color:var(--dim);font-weight:800">실시간 순위 (${parts.length}명)</div></div>
-          <div style="flex:1;background:#fff;border-radius:11px;padding:9px 4px;text-align:center"><b style="font-size:16px;color:var(--key-deep)">${bestRank}위</b><div style="font-size:10px;color:var(--dim);font-weight:800">남은 경기 전부 적중 시</div></div>
-        </div>
+          html += `<div class="card" style="margin-top:8px;padding:10px 14px;border:1.5px solid var(--key);background:#f0f6ff;font-size:12.5px;font-weight:800;color:var(--text);display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center">
+        <span style="color:var(--key-deep)">👤 ${esc(mine.nickname)}</span>
+        <span>적중 <b style="color:var(--key-deep)">${myHit}/${scored.length}</b></span>
+        <span>실시간 <b style="color:var(--key-deep)">${tie ? '공동 ' : ''}${me ? me.rank : '-'}위</b> <span style="color:var(--dim);font-weight:700">/ ${parts.length}명</span></span>
+        <span>전부 적중 시 <b style="color:var(--key-deep)">최고 ${bestRank}위</b></span>
       </div>`;
         }
       }
