@@ -14264,46 +14264,48 @@
       const evMs = t.event_at ? new Date(t.event_at).getTime() : (t.event_date ? new Date(t.event_date + 'T00:00:00+09:00').getTime() : null);
       const dday = evMs != null ? Math.ceil((evMs - svrNow().getTime()) / 86400000) : null;
       const ddayTxt = dday == null ? '' : (dday > 0 ? `D-${dday}` : (tIsLive(t) ? 'LIVE' : 'D-DAY'));
-      const { c, x, rr } = kkoCardBase(t.title, '블랙컴뱃 잡담방 · 승부예측 진행 중', `참여 ${parts.length}명`);
-      // 헤더 우측: D-day 알약 (레드)
-      if (ddayTxt) kkoHeadPill(x, `⏰ ${ddayTxt}`, '#fdecec', '#c62828');
-      x.textAlign = 'center';
-      // 일시
-      x.fillStyle = '#1b2430'; x.font = '900 26px Pretendard, sans-serif';
-      x.fillText(t.event_at || t.event_date ? fmtEventDT(t) : '', 400, 112);
-      // 메인이벤트: 레드 vs 블루 대결 칩 + 중앙 VS 원 (사이트 게이지 아이덴티티)
+      const { c, x } = kkoCardBase(t.title, '블랙컴뱃 잡담방 · 승부예측 진행 중', `참여 ${parts.length}명`);
+      // 좌측 정렬 스택: D-day(블루, 크게) + 일시
+      x.fillStyle = '#1d4ed8'; x.font = '900 62px Pretendard, sans-serif';
+      if (ddayTxt) x.fillText(ddayTxt, 48, 128);
+      const ddayW = ddayTxt ? x.measureText(ddayTxt).width : 0;
+      x.fillStyle = '#525d6b'; x.font = '800 21px Pretendard, sans-serif';
+      x.fillText(t.event_at || t.event_date ? fmtEventDT(t) : '', ddayTxt ? 48 + ddayW + 24 : 48, 136);
+      // 메인이벤트 — 사이트 승부예측 게이지 아이덴티티(레드 vs 블루 칩 + 중앙 VS 원)
       const main = matches[matches.length - 1];
       if (main) {
-        x.fillStyle = '#98a3b3'; x.font = '900 14px Pretendard, sans-serif';
-        x.fillText('M A I N   E V E N T', 400, 148);
-        const rg = x.createLinearGradient(70, 0, 385, 0);
+        x.fillStyle = '#b6bfcc'; x.font = '900 13px Pretendard, sans-serif';
+        x.fillText('M A I N   E V E N T', 48, 172);
+        const chip = (px, w, fill) => {
+          x.save(); x.shadowColor = 'rgba(30,50,90,.18)'; x.shadowBlur = 14; x.shadowOffsetY = 4;
+          x.fillStyle = fill; x.beginPath();
+          if (x.roundRect) x.roundRect(px, 188, w, 72, 14); else x.rect(px, 188, w, 72);
+          x.fill(); x.restore();
+        };
+        const rg = x.createLinearGradient(48, 0, 392, 0);
         rg.addColorStop(0, '#e11d48'); rg.addColorStop(1, '#c62828');
-        const bgB = x.createLinearGradient(415, 0, 730, 0);
-        bgB.addColorStop(0, '#2563eb'); bgB.addColorStop(1, '#1d4ed8');
-        rr(70, 166, 315, 76, 16, rg, true);
-        rr(415, 166, 315, 76, 16, bgB, true);
-        x.fillStyle = '#fff'; x.font = '900 31px Pretendard, sans-serif';
-        const fit = (name, maxW) => { let f = 31; x.font = `900 ${f}px Pretendard, sans-serif`; while (f > 18 && x.measureText(name).width > maxW) { f -= 2; x.font = `900 ${f}px Pretendard, sans-serif`; } return name; };
-        x.fillText(fit(main.fighter_a, 270), 227, 206);
-        x.font = '900 31px Pretendard, sans-serif';
-        x.fillText(fit(main.fighter_b, 270), 573, 206);
-        // 중앙 VS 원
-        x.save(); x.shadowColor = 'rgba(30,50,90,.2)'; x.shadowBlur = 14; x.shadowOffsetY = 4;
-        x.fillStyle = '#fff'; x.beginPath(); x.arc(400, 204, 34, 0, 7); x.fill(); x.restore();
-        x.fillStyle = '#1b2430'; x.font = '900 22px Pretendard, sans-serif';
-        x.fillText('VS', 400, 205);
+        const bl = x.createLinearGradient(408, 0, 752, 0);
+        bl.addColorStop(0, '#2563eb'); bl.addColorStop(1, '#1d4ed8');
+        chip(48, 344, rg); chip(408, 344, bl);
+        x.textAlign = 'center'; x.fillStyle = '#fff';
+        const fit = (name, maxW) => { let f = 29; x.font = `900 ${f}px Pretendard, sans-serif`; while (f > 18 && x.measureText(name).width > maxW) { f -= 2; x.font = `900 ${f}px Pretendard, sans-serif`; } };
+        fit(main.fighter_a, 296); x.fillText(main.fighter_a, 220, 225);
+        x.fillStyle = '#fff'; fit(main.fighter_b, 296); x.fillText(main.fighter_b, 580, 225);
+        x.save(); x.shadowColor = 'rgba(30,50,90,.2)'; x.shadowBlur = 12; x.shadowOffsetY = 3;
+        x.fillStyle = '#fff'; x.beginPath(); x.arc(400, 224, 29, 0, 7); x.fill(); x.restore();
+        x.fillStyle = '#1b2430'; x.font = '900 19px Pretendard, sans-serif';
+        x.fillText('VS', 400, 225);
+        x.textAlign = 'left';
       }
-      // 나머지 대진 — 흰 바탕 라운드 박스 안에 두 줄
+      // 나머지 대진 — 회색 두 줄
       const rest = matches.slice(0, -1).map(m => `${m.fighter_a} vs ${m.fighter_b}`);
       if (rest.length) {
-        rr(70, 268, 660, 84, 14, 'rgba(255,255,255,.85)', false);
-        x.fillStyle = '#525d6b'; x.font = '800 18px Pretendard, sans-serif';
+        x.fillStyle = '#98a3b3'; x.font = '700 17px Pretendard, sans-serif';
         const line1 = rest.slice(0, Math.ceil(rest.length / 2)).join('  ·  ');
         const line2 = rest.slice(Math.ceil(rest.length / 2)).join('  ·  ');
-        if (line1) x.fillText(line1.length > 44 ? line1.slice(0, 43) + '…' : line1, 400, line2 ? 296 : 310);
-        if (line2) x.fillText(line2.length > 44 ? line2.slice(0, 43) + '…' : line2, 400, 328);
+        if (line1) x.fillText(line1.length > 48 ? line1.slice(0, 47) + '…' : line1, 48, line2 ? 290 : 304);
+        if (line2) x.fillText(line2.length > 48 ? line2.slice(0, 47) + '…' : line2, 48, 320);
       }
-      x.textAlign = 'left';
       return c;
     }
     async function tKkoShareCard(id) {
@@ -14342,12 +14344,11 @@
       const cd = countdownText(t.deadline);
 
       let html = `
-    <h1 class="page">${esc(t.title)} ${stateBadge(t)}</h1>
+    <h1 class="page">${esc(t.title)} ${stateBadge(t)} <button type="button" id="tKkoBtn" onclick="tKkoShareCard('${esc(t.id)}')" style="background:#fee500;color:#191919;border:0;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:900;cursor:pointer;vertical-align:middle">카톡 공유</button></h1>
     <div class="sub">
       🔒 ${fmtDT(t.deadline)} 마감
       ${cd ? ` &nbsp;·&nbsp; ${cdHTML(t.deadline)}` : ''}
       &nbsp;·&nbsp; 👥 ${parts.length}명 참여
-      &nbsp;·&nbsp; <button type="button" id="tKkoBtn" onclick="tKkoShareCard('${esc(t.id)}')" style="background:#fee500;color:#191919;border:0;border-radius:8px;padding:4px 10px;font-size:11.5px;font-weight:900;cursor:pointer;vertical-align:middle">카톡 공유</button>
     </div>
     <div id="bc-live-sec">${liveNowHTML(t, matches, parts)}</div>`;
 
@@ -16289,98 +16290,60 @@
       } catch (e) { return false; }
     }
     // 카드 캔버스 공통 배경 — 목업과 같은 다크 톤(#12151d) + 상단 헤더/하단 푸터
-    // 카드 배경 공통 — 사이트와 같은 밝은 톤. 상단에 사이트 아이덴티티(승부예측 게이지의
-    // 레드→블루) 컬러 스트립, 큼직한 헤더, 옅은 장식 원, 하단 구분선 푸터. 그림자·라운드로
-    // 입체감을 줘서 카톡 썸네일에서도 "만든 카드"처럼 보이게 한다 (2026-08-23 재디자인 v2).
-    function kkoCardBase(header, footerL, footerR) {
+    // 카드 공통 — 심플·모던 미니멀 (2026-08-23 v3): 순백 배경, 장식 없음, 왼쪽 정렬
+    // 타이포그래피 + 헤어라인 구분선. 포인트 컬러는 사이트 키컬러(블루 #1d4ed8) 하나만 쓴다.
+    function kkoCardBase(label, footerL, footerR) {
       const c = document.createElement('canvas');
       c.width = 800; c.height = 400;
       const x = c.getContext('2d');
-      // 배경: 아주 옅은 그라데이션 + 우상단 장식 원 두 개
-      const bg = x.createLinearGradient(0, 0, 0, 400);
-      bg.addColorStop(0, '#ffffff'); bg.addColorStop(1, '#f2f5fb');
-      x.fillStyle = bg; x.fillRect(0, 0, 800, 400);
-      x.fillStyle = 'rgba(37,99,235,.05)';
-      x.beginPath(); x.arc(760, 30, 150, 0, 7); x.fill();
-      x.beginPath(); x.arc(690, 130, 70, 0, 7); x.fill();
-      // 상단 컬러 스트립 (레드 → 블루)
-      const strip = x.createLinearGradient(0, 0, 800, 0);
-      strip.addColorStop(0, '#e11d48'); strip.addColorStop(1, '#2563eb');
-      x.fillStyle = strip; x.fillRect(0, 0, 800, 10);
-      // 헤더 (좌: 사자 + 제목)
+      x.fillStyle = '#ffffff'; x.fillRect(0, 0, 800, 400);
       x.textBaseline = 'middle';
-      x.font = '30px sans-serif'; x.fillText('🦁', 26, 49);
-      x.fillStyle = '#1b2430'; x.font = '900 29px Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
-      x.fillText(header, 68, 50);
-      // 푸터 (구분선 + 좌우 텍스트)
-      x.strokeStyle = '#e5e9f2'; x.lineWidth = 1.5;
-      x.beginPath(); x.moveTo(24, 366); x.lineTo(776, 366); x.stroke();
-      x.fillStyle = '#98a3b3'; x.font = '800 14px Pretendard, sans-serif';
-      x.fillText(footerL || '블랙컴뱃 잡담방', 26, 384);
-      if (footerR) { x.textAlign = 'right'; x.fillText(footerR, 774, 384); x.textAlign = 'left'; }
-      // 헬퍼: 그림자 있는 라운드 사각형
-      const rr = (px, py, w, h, r, fill, shadow) => {
-        x.save();
-        if (shadow) { x.shadowColor = 'rgba(30,50,90,.13)'; x.shadowBlur = 16; x.shadowOffsetY = 5; }
-        x.fillStyle = fill; x.beginPath();
-        if (x.roundRect) x.roundRect(px, py, w, h, r); else x.rect(px, py, w, h);
-        x.fill(); x.restore();
-      };
-      return { c, x, rr };
-    }
-    // 헤더 우측 알약 배지 (예: 날짜, D-day)
-    function kkoHeadPill(x, text, bgCol, txtCol) {
-      x.font = '900 18px Pretendard, sans-serif';
-      const w = x.measureText(text).width + 34;
-      x.fillStyle = bgCol;
-      x.beginPath();
-      if (x.roundRect) x.roundRect(774 - w, 30, w, 40, 20); else x.rect(774 - w, 30, w, 40);
-      x.fill();
-      x.fillStyle = txtCol; x.textAlign = 'center';
-      x.fillText(text, 774 - w / 2, 51);
+      // 상단: 작은 레이블(좌) + 워드마크(우)
+      x.fillStyle = '#8a95a5'; x.font = '800 18px Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif';
+      x.fillText(label, 48, 54);
+      x.textAlign = 'right';
+      x.fillStyle = '#1b2430'; x.font = '900 16px Pretendard, sans-serif';
+      x.fillText('블랙컴뱃', 752, 54);
       x.textAlign = 'left';
+      // 하단: 헤어라인 + 좌우 작은 텍스트
+      x.strokeStyle = '#edf0f5'; x.lineWidth = 1.5;
+      x.beginPath(); x.moveTo(48, 350); x.lineTo(752, 350); x.stroke();
+      x.fillStyle = '#b6bfcc'; x.font = '700 14px Pretendard, sans-serif';
+      x.fillText(footerL || '블랙컴뱃 잡담방', 48, 374);
+      if (footerR) { x.textAlign = 'right'; x.fillText(footerR, 752, 374); x.textAlign = 'left'; }
+      return { c, x };
     }
-    // 블랙 퀴즈 성적표 카드 (800×400, 밝은 톤 v2)
+    // 블랙 퀴즈 성적표 카드 (800×400, 미니멀 v3)
     function bqDrawShareCard(d, opts) {
       const tm = d.tier_meta || {};
       const nick = d.nickname || gmMyNick || '';
-      const { c, x, rr } = kkoCardBase(
-        `블랙 퀴즈 — ${nick ? nick + '의 성적표' : '오늘의 성적표'}`,
-        '블랙컴뱃 잡담방 · 매일 새 문제 · 하루 3번',
+      const { c, x } = kkoCardBase(
+        `블랙 퀴즈${nick ? ' — ' + nick : ''}`,
+        '블랙컴뱃 잡담방',
         new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }));
-      // 좌측: 금테 원 안의 등급 아이콘 + 칭호
-      x.save();
-      x.shadowColor = 'rgba(30,50,90,.16)'; x.shadowBlur = 18; x.shadowOffsetY = 6;
-      x.fillStyle = '#fff'; x.beginPath(); x.arc(185, 195, 82, 0, 7); x.fill();
-      x.restore();
-      x.strokeStyle = '#f0c24b'; x.lineWidth = 5;
-      x.beginPath(); x.arc(185, 195, 82, 0, 7); x.stroke();
-      x.textAlign = 'center';
-      x.font = '86px sans-serif'; x.fillText(bqTierIcon(tm) || '🦁', 185, 202);
-      x.fillStyle = '#b8790a'; x.font = '900 42px Pretendard, sans-serif';
-      x.fillText(bqTierLabel(tm) || '블랙 퀴즈', 185, 322);
-      x.fillStyle = '#818c9b'; x.font = '800 17px Pretendard, sans-serif';
-      x.fillText(String(tm.desc || '') || '오늘의 블붕이 판정', 185, 352);
-      // 우측: 성적 타일 (흰 카드 + 그림자 + 상단 파란 포인트)
+      // 좌측: 등급 아이콘 + 칭호 — 장식 없이 타이포로만
+      x.font = '84px sans-serif';
+      x.fillText(bqTierIcon(tm) || '🦁', 48, 158);
+      x.fillStyle = '#1b2430'; x.font = '900 50px Pretendard, sans-serif';
+      x.fillText(bqTierLabel(tm) || '블랙 퀴즈', 48, 252);
+      x.fillStyle = '#98a3b3'; x.font = '700 19px Pretendard, sans-serif';
+      x.fillText(String(tm.desc || '') || '오늘의 블붕이 판정', 48, 298);
+      // 우측: 성적 — 박스 없이 숫자 열 + 얇은 세로 헤어라인
       const stats = [
         ['정답', `${d.correct_count}/${d.q_total}`],
         ['소요시간', bqSecOrDash(d.total_time_ms)],
         [d.rank ? '오늘 순위' : '', d.rank ? `${d.rank}위` : ''],
       ].filter(s => s[0]);
-      const boxW = stats.length === 3 ? 128 : 186, gap = 16, boxH = 150;
-      const totalW = stats.length * boxW + (stats.length - 1) * gap;
-      let sx = 395 + (385 - totalW) / 2;
-      stats.forEach(s => {
-        rr(sx, 130, boxW, boxH, 18, '#ffffff', true);
-        x.fillStyle = '#2563eb';
-        x.beginPath();
-        if (x.roundRect) x.roundRect(sx + boxW / 2 - 22, 130, 44, 6, 3); else x.rect(sx + boxW / 2 - 22, 130, 44, 6);
-        x.fill();
-        x.fillStyle = '#1d4ed8'; x.font = `900 ${stats.length === 3 ? 30 : 37}px Pretendard, sans-serif`;
-        x.fillText(s[1], sx + boxW / 2, 196);
-        x.fillStyle = '#98a3b3'; x.font = '800 16px Pretendard, sans-serif';
-        x.fillText(s[0], sx + boxW / 2, 244);
-        sx += boxW + gap;
+      const colW = 126;
+      let sx = 752 - stats.length * colW;
+      x.textAlign = 'center';
+      stats.forEach((s, i) => {
+        if (i > 0) { x.strokeStyle = '#edf0f5'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(sx, 158); x.lineTo(sx, 246); x.stroke(); }
+        x.fillStyle = '#1d4ed8'; x.font = '900 33px Pretendard, sans-serif';
+        x.fillText(s[1], sx + colW / 2, 186);
+        x.fillStyle = '#98a3b3'; x.font = '700 15px Pretendard, sans-serif';
+        x.fillText(s[0], sx + colW / 2, 228);
+        sx += colW;
       });
       x.textAlign = 'left';
       return c;
@@ -16623,8 +16586,10 @@
         ov.className = 'modal-ov';
         ov.onclick = e => { if (e.target === ov) history.back(); };
       }
+      // 내 기록이면 제목 옆에 카톡 공유 버튼(승부예측 상세와 같은 배치) — 데이터 로드 후 활성화
+      const isMe = gmMyNick && nick.trim().toLowerCase() === gmMyNick.trim().toLowerCase();
       ov.innerHTML = `<div class="modal" style="max-width:420px">
-    <div class="modal-h"><span><b>${esc(nick)} 기록</b></span><button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-h"><span style="display:flex;align-items:center;gap:9px"><b>${esc(nick)} 기록</b>${isMe ? '<button type="button" id="bqUserKko" style="background:#fee500;color:#191919;border:0;border-radius:99px;padding:5px 12px;font-size:12px;font-weight:900;cursor:pointer">카톡 공유</button>' : ''}</span><button class="modal-x" onclick="history.back()">✕</button></div>
     <div class="modal-b"><div id="bqUserStatsBody"><div class="empty">불러오는 중…</div></div></div>
   </div>`;
       if (isNew) pushModal(ov);
@@ -16637,11 +16602,10 @@
         const d = res.data;
         if (!body) return;
         if (!d || d.ok === false) { body.innerHTML = '<div class="empty">기록을 불러오지 못했습니다.</div>'; return; }
-        // 자기 자신의 기록 팝업일 때만 "카톡 카드 공유" 버튼을 붙인다 — 최고 기록 카드로 발송
-        const isMe = gmMyNick && nick.trim().toLowerCase() === gmMyNick.trim().toLowerCase();
-        body.innerHTML = bqStatsBodyHTML(d) + bqTodaySectionHTML(d)
-          + (isMe && d.total_attempts ? `<button type="button" id="bqUserKko" style="width:100%;margin-top:14px;background:#fee500;color:#191919;border:0;border-radius:11px;padding:12px;font-size:14px;font-weight:900;cursor:pointer">카톡 공유</button>` : '');
-        const kb = body.querySelector('#bqUserKko');
+        body.innerHTML = bqStatsBodyHTML(d) + bqTodaySectionHTML(d);
+        // 제목 옆 카톡 공유 버튼 활성화 — 최고 기록 카드로 발송 (기록이 없으면 버튼 숨김)
+        const kb = ov.querySelector('#bqUserKko');
+        if (kb && !d.total_attempts) kb.style.display = 'none';
         if (kb) kb.onclick = async () => {
           kb.disabled = true; kb.textContent = '카드 만드는 중…';
           const ok = await kkoShareCanvasCard(bqDrawShareCard({
