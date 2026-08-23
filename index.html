@@ -2472,6 +2472,16 @@
       font-size: 14px
     }
 
+    .gift-name.spinning {
+      background: #f4f7fc;
+      border-color: #dfe6f0;
+      color: #98a3b3
+    }
+
+    .gift-name.gift-name-done {
+      animation: giftPop .35s ease
+    }
+
     .gift-banner {
       border: 1.5px solid var(--key-deep) !important;
       background: var(--key-soft) !important
@@ -14496,8 +14506,10 @@
         x.fill(); x.restore();
         x.fillStyle = txtCol; x.fillText(txt, 70, 117);
         if (sideText) {
-          x.fillStyle = '#525d6b'; x.font = '800 21px Pretendard, sans-serif';
-          x.fillText(sideText, 48 + tw + 44 + 20, 117);
+          const sx = 48 + tw + 44 + 20;
+          x.fillStyle = '#525d6b';
+          gmFitFont(x, sideText, 752 - sx, '800', 26, 16);
+          x.fillText(sideText, sx, 117);
         }
       };
       if (live) {
@@ -14524,13 +14536,11 @@
         const nextStr = new Date(baseD.getTime() + 86400000).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
         x.fillStyle = '#b6bfcc'; x.font = '900 13px Pretendard, sans-serif';
         x.fillText('G I F T   N O T I C E', 48, 172);
-        x.fillStyle = '#1b2430'; x.font = '900 27px Pretendard, sans-serif';
-        x.fillText('🎁 당첨 선물 수령 안내', 48, 210);
-        let winLine;
+        // 텍스트를 잔뜩 욱여넣지 않고, 1등 당첨자 닉네임을 크고 굵게 보여주는 게 핵심.
         if (gw) {
           let names = [], total = 0, headDesc = '';
           if (gw.mode === 'waterfall' && Array.isArray(gw.tiers)) {
-            gw.tiers.forEach((g, i) => {
+            gw.tiers.forEach((g) => {
               const ws = Array.isArray(g.winners) ? g.winners.map(w => w.n) : (g.names || []);
               total += ws.length;
               if (!names.length && ws.length) { names = ws; headDesc = g.desc || '1순위 선물'; }
@@ -14542,24 +14552,36 @@
               if (!names.length && ws.length) { names = ws; headDesc = g.desc ? `${g.rank}등(${g.desc})` : `${g.rank}등`; }
             });
           }
-          winLine = names.length
-            ? `✅ ${headDesc} → ${names[0]}${names.length > 1 ? ` 외 ${names.length - 1}명` : ''}${total > names.length ? ` (총 ${total}명 당첨)` : ''}`
-            : '✅ 선물 추첨 완료';
+          if (names.length) {
+            const nameLine = `🥇 ${names[0]}${names.length > 1 ? ` 외 ${names.length - 1}명` : ''}`;
+            x.fillStyle = '#1b2430';
+            gmFitFont(x, nameLine, 704, '900', 48, 28);
+            x.fillText(nameLine, 48, 232);
+            const subLine = `${headDesc}${total > names.length ? ` · 총 ${total}명 당첨` : ' 당첨'}`;
+            x.fillStyle = '#8a95a5'; x.font = '800 19px Pretendard, sans-serif';
+            gmFitFont(x, subLine, 704, '800', 19, 14);
+            x.fillText(subLine, 48, 270);
+          } else {
+            x.fillStyle = '#1d4ed8'; x.font = '900 30px Pretendard, sans-serif';
+            x.fillText('✅ 선물 추첨 완료', 48, 240);
+          }
         } else {
-          winLine = '🕐 선물 추첨 전 · 결과 확정 후 추첨 예정';
+          x.fillStyle = '#1d4ed8'; x.font = '900 28px Pretendard, sans-serif';
+          x.fillText('🕐 선물 추첨 전', 48, 222);
+          x.fillStyle = '#8a95a5'; x.font = '800 19px Pretendard, sans-serif';
+          x.fillText('결과 확정 후 추첨 예정이에요', 48, 258);
         }
-        x.fillStyle = '#1d4ed8'; x.font = '800 22px Pretendard, sans-serif';
-        gmFitFont(x, winLine, 704, '800', 22, 15);
-        x.fillText(winLine, 48, 250);
-        x.fillStyle = '#525d6b'; x.font = '700 17px Pretendard, sans-serif';
-        const noticeLine = `당첨자는 ${nextStr}까지 킹빠더 1:1 오픈톡으로 연락해 주세요`;
-        gmFitFont(x, noticeLine, 704, '700', 17, 13);
-        x.fillText(noticeLine, 48, 290);
+        x.fillStyle = '#3d4653'; x.font = '800 20px Pretendard, sans-serif';
+        const noticeLine = `당첨자는 ${nextStr}까지 오픈톡으로 연락해 주세요`;
+        gmFitFont(x, noticeLine, 704, '800', 20, 15);
+        x.fillText(noticeLine, 48, 312);
       } else if (main) {
-        x.fillStyle = '#b6bfcc'; x.font = '900 13px Pretendard, sans-serif';
-        x.fillText(live && pendingM.length
-          ? `N O W  ·  ${matches.indexOf(main) + 1}경기${main.division ? '  ·  ' + main.division : ''}`
-          : 'M A I N   E V E N T', 48, 172);
+        // 라이브 중 진행 경기 정보는 위쪽 알약 옆(NOW · N경기 · 체급)에 이미 나와 있으므로
+        // 여기서는 중복 표기하지 않는다 — 라이브가 아닐 때(메인이벤트)만 라벨을 그린다.
+        if (!(live && pendingM.length)) {
+          x.fillStyle = '#b6bfcc'; x.font = '900 13px Pretendard, sans-serif';
+          x.fillText('M A I N   E V E N T', 48, 172);
+        }
         const chip = (px, w, fill) => {
           x.save(); x.shadowColor = 'rgba(30,50,90,.18)'; x.shadowBlur = 14; x.shadowOffsetY = 4;
           x.fillStyle = fill; x.beginPath();
@@ -14584,12 +14606,19 @@
       // 하단 줄 — 라이브 중엔 다음 경기 예고(색상을 살짝 진하게 — 잘 안 보인다는 피드백,
       // 다만 현재 경기 정보보다 튀지 않도록 과하지 않은 톤 유지), 결과 확정 후엔 위 선물
       // 안내로 대체되어 생략, 평소엔 나머지 대진 두 줄.
-      x.font = '700 17px Pretendard, sans-serif';
       if (live) {
         const nxt = pendingM[1];
-        if (nxt) { x.fillStyle = '#7c8798'; x.fillText(`다음 경기  ·  ${nxt.fighter_a} vs ${nxt.fighter_b}`, 48, 300); }
-        else if (!pendingM.length) { x.fillStyle = '#98a3b3'; x.fillText('전 경기 종료 — 최종 결과 확정 대기 중', 48, 300); }
+        if (nxt) {
+          const nxtTxt = `다음 경기  ·  ${nxt.fighter_a} vs ${nxt.fighter_b}`;
+          x.fillStyle = '#7c8798';
+          gmFitFont(x, nxtTxt, 704, '700', 21, 15);
+          x.fillText(nxtTxt, 48, 300);
+        } else if (!pendingM.length) {
+          x.fillStyle = '#98a3b3'; x.font = '700 17px Pretendard, sans-serif';
+          x.fillText('전 경기 종료 — 최종 결과 확정 대기 중', 48, 300);
+        }
       } else if (!fin) {
+        x.font = '700 17px Pretendard, sans-serif';
         x.fillStyle = '#98a3b3';
         const rest = matches.slice(0, -1).map(m => `${m.fighter_a} vs ${m.fighter_b}`);
         if (rest.length) {
@@ -14678,7 +14707,7 @@
       if (st === 'final') html += resultHTML(t, matches, parts) + rulesHTML();
       html += `<div id="liveboard">${liveBoardHTML(t, matches, parts, st)}</div>`;
       $app.innerHTML = html;
-      if (st === 'final') fitRankScrollBox();
+      if (st === 'final') { fitRankScrollBox(); giftResultReveal(matches, parts); }
 
       document.body.classList.toggle('has-votebar', st === 'open' && !!gmMyNick);
       if (st === 'open') {
@@ -21830,9 +21859,12 @@
             // 닉네임 옆에 그 사람의 적중 순위를 괄호로 표시한다 (1~3등은 메달 이모지)
             const winners = Array.isArray(g.winners) ? g.winners : (g.names || []).map(n => ({ n }));
             const rankTag = r => r == null ? '' : `(${r <= 3 ? ['🥇', '🥈', '🥉'][r - 1] : r + '등'})`;
+            // 페이지에 들어올 때마다(관리자뿐 아니라 이 결과를 보는 모두) 룰렛이 후보들 사이를
+            // 돌다가 실제 당첨자(불변)에 멈추는 모습을 보여준다 — 신뢰도를 위해 결과를 그냥
+            // 텍스트로 박아두지 않는다. 실제 값은 이미 확정돼 있어 매번 같은 이름에 멈춘다.
             return `
             <div style="margin-top:6px"><b style="color:var(--key-deep)">${esc(g.desc || (i + 1) + '순위 선물')} →</b>
-              ${winners.map(w => `<span class="gift-name">${esc(w.n)}${rankTag(w.r)}</span>`).join('') || '-'}
+              ${winners.map(w => `<span class="gift-name gift-reel-live spinning" data-rank="${w.r != null ? w.r : ''}" data-final="${esc(w.n)}${rankTag(w.r)}">🎲</span>`).join('') || '-'}
             </div>`;
           }).join('')}
           <div style="margin-top:8px"></div>` : `
@@ -21840,7 +21872,7 @@
             const winners = giftWinnersFor(t.gift_winners, g.rank);
             const tied = ranked.filter(r => r.rank === g.rank);
             return `<b>${g.rank}등 당첨${g.desc ? ` (${esc(g.desc)})` : ''}</b> :
-            ${winners.map(n => `<span class="gift-name">${esc(n)}</span>`).join('') || '-'}
+            ${winners.map(n => `<span class="gift-name gift-reel-live spinning" data-rank="${g.rank}" data-final="${esc(n)}">🎲</span>`).join('') || '-'}
             ${tied.length > winners.length ? `<span style="color:var(--muted)">← 공동 ${tied.length}명 중 ${winners.length}명 랜덤 추첨</span>` : ''}<br>`;
           }).join('')}`}
           위 당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>잡담방 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.<br>`
@@ -22907,11 +22939,12 @@
        딱 박아버리면 재미도 없고 "진짜 랜덤으로 뽑은 거 맞아?" 하는 의심을 살 수 있어서,
        그 선물의 실제 후보군(같은 적중 순위 공동자들) 사이를 빠르게 돌다가 점점 느려지며
        실제 당첨자에 멈추는 슬롯머신 같은 연출을 보여준 뒤에야 저장 단계로 넘어간다. */
-    function spinReel(el, pool, finalName, spins) {
+    function spinReel(el, pool, finalName, spins, doneClass) {
+      doneClass = doneClass || 'gift-reel-done';
       return new Promise(resolve => {
         if (!pool || pool.length <= 1) {
           el.textContent = finalName;
-          el.classList.remove('spinning'); el.classList.add('gift-reel-done');
+          el.classList.remove('spinning'); el.classList.add(doneClass);
           resolve();
           return;
         }
@@ -22923,11 +22956,24 @@
             setTimeout(tick, 55 + Math.pow(i / spins, 2) * 260);
           } else {
             el.textContent = finalName;
-            el.classList.remove('spinning'); el.classList.add('gift-reel-done');
+            el.classList.remove('spinning'); el.classList.add(doneClass);
             resolve();
           }
         };
         tick();
+      });
+    }
+    /* 선물 추첨 관리자만 룰렛을 보는 게 아니라, 결과 확정 페이지에 들어오는 모든 유저가
+       매번 접속할 때마다 같은 룰렛 연출을 보게 한다 — 이미 저장된(불변) 당첨자로 항상
+       똑같이 멈추지만, 후보들 사이를 도는 모습을 직접 보여줘서 "진짜 추첨한 게 맞다"는
+       신뢰를 준다. resultHTML()이 그린 .gift-reel-live 자리표시자를 찾아 채운다. */
+    function giftResultReveal(matches, parts) {
+      const reels = document.querySelectorAll('.gift-reel-live');
+      if (!reels.length) return;
+      const ranked = rankParts(parts, matches);
+      reels.forEach((el, i) => {
+        const pool = ranked.filter(r => String(r.rank) === el.dataset.rank).map(r => r.nickname);
+        setTimeout(() => spinReel(el, pool, el.dataset.final, 14 + (i % 4) * 3, 'gift-name-done'), i * 90);
       });
     }
     function giftDrawAnim(resTiers, ranked) {
