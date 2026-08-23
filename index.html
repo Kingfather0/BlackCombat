@@ -3825,6 +3825,80 @@
       line-height: 1
     }
 
+    /* 선물 추첨 룰렛 애니메이션 */
+    .gift-anim {
+      width: 100%;
+      max-width: 420px;
+      max-height: 82vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 18px;
+      border: 2px solid #cfe0f5;
+      box-shadow: 0 18px 50px rgba(10, 30, 70, .35);
+      padding: 20px;
+      text-align: center
+    }
+
+    .gift-anim-h {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--key-deep);
+      margin-bottom: 14px
+    }
+
+    .gift-anim-tier {
+      margin-bottom: 16px;
+      animation: gOverIn .25s ease
+    }
+
+    .gift-anim-tier-h {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #8a95a5;
+      margin-bottom: 8px
+    }
+
+    .gift-anim-reels {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center
+    }
+
+    .gift-reel {
+      min-width: 88px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: #eef4ff;
+      border: 1.5px solid #cfe0f5;
+      font-weight: 900;
+      font-size: 15px;
+      color: var(--key-deep);
+      transition: transform .15s ease
+    }
+
+    .gift-reel.spinning {
+      background: #f4f7fc;
+      color: #98a3b3
+    }
+
+    .gift-reel.gift-reel-done {
+      background: #fff8e0;
+      border-color: #f0d060;
+      color: #a5720a;
+      animation: giftPop .35s ease
+    }
+
+    @keyframes giftPop {
+      0% { transform: scale(1) }
+      45% { transform: scale(1.18) }
+      100% { transform: scale(1) }
+    }
+
+    #giftAnimConfirm {
+      margin-top: 6px
+    }
+
     .ghist-sum {
       font-size: 12.5px;
       color: var(--muted);
@@ -14410,6 +14484,8 @@
       // 좌측 정렬 스택 — 라이브: 빨간 알약(🔴 LIVE 진행 중) / 결과 확정: 사이트 배지와 같은
       // 연분홍 알약(🏁 결과 확정) / 평소: D-day 블루 텍스트
       const fin = tState(t) === 'final';
+      // 대표 경기(진행/대기 중인 경기, 없으면 마지막 경기) — 상단 알약 옆 보조텍스트에도 재사용한다.
+      const main = live ? (matches.filter(m => !(m.winner === 'A' || m.winner === 'B'))[0] || matches[matches.length - 1]) : matches[matches.length - 1];
       const pill = (txt, bgCol, txtCol, shadowCol, sideText) => {
         x.font = '900 24px Pretendard, sans-serif';
         const tw = x.measureText(txt).width;
@@ -14425,7 +14501,10 @@
         }
       };
       if (live) {
-        pill('🔴 LIVE 진행 중', '#e11d48', '#ffffff', 'rgba(225,29,72,.35)', `${scoredN}/${matches.length}경기 결과 반영`);
+        const liveSideText = (pendingM.length && main)
+          ? `NOW · ${matches.indexOf(main) + 1}경기${main.division ? ' · ' + main.division : ''}`
+          : `${scoredN}/${matches.length}경기 결과 반영`;
+        pill('🔴 LIVE 진행 중', '#e11d48', '#ffffff', 'rgba(225,29,72,.35)', liveSideText);
       } else if (fin) {
         pill('🏁 결과 확정', '#fdecec', '#a51c1c', null, t.event_at || t.event_date ? fmtEventDT(t) : '');
       } else {
@@ -14437,8 +14516,46 @@
       }
       // 대표 경기 — 라이브 중엔 "지금 진행/대기 중인 경기", 평소엔 메인이벤트(마지막 경기).
       // 사이트 승부예측 게이지 아이덴티티(레드 vs 블루 칩 + 중앙 VS 원)로 그린다.
-      const main = live ? (pendingM[0] || matches[matches.length - 1]) : matches[matches.length - 1];
-      if (main) {
+      // 결과 확정 후에는 대진표보다 "당첨 선물 수령 안내"가 더 중요하므로 그 자리에 대신 그린다.
+      if (fin) {
+        const ranked = rankParts(parts, matches);
+        const gw = t.gift_winners;
+        const baseD = t.event_at ? new Date(t.event_at) : (t.event_date ? new Date(t.event_date + 'T00:00:00') : new Date(t.deadline));
+        const nextStr = new Date(baseD.getTime() + 86400000).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' });
+        x.fillStyle = '#b6bfcc'; x.font = '900 13px Pretendard, sans-serif';
+        x.fillText('G I F T   N O T I C E', 48, 172);
+        x.fillStyle = '#1b2430'; x.font = '900 27px Pretendard, sans-serif';
+        x.fillText('🎁 당첨 선물 수령 안내', 48, 210);
+        let winLine;
+        if (gw) {
+          let names = [], total = 0, headDesc = '';
+          if (gw.mode === 'waterfall' && Array.isArray(gw.tiers)) {
+            gw.tiers.forEach((g, i) => {
+              const ws = Array.isArray(g.winners) ? g.winners.map(w => w.n) : (g.names || []);
+              total += ws.length;
+              if (!names.length && ws.length) { names = ws; headDesc = g.desc || '1순위 선물'; }
+            });
+          } else {
+            giftTiers(t).forEach(g => {
+              const ws = giftWinnersFor(gw, g.rank);
+              total += ws.length;
+              if (!names.length && ws.length) { names = ws; headDesc = g.desc ? `${g.rank}등(${g.desc})` : `${g.rank}등`; }
+            });
+          }
+          winLine = names.length
+            ? `✅ ${headDesc} → ${names[0]}${names.length > 1 ? ` 외 ${names.length - 1}명` : ''}${total > names.length ? ` (총 ${total}명 당첨)` : ''}`
+            : '✅ 선물 추첨 완료';
+        } else {
+          winLine = '🕐 선물 추첨 전 · 결과 확정 후 추첨 예정';
+        }
+        x.fillStyle = '#1d4ed8'; x.font = '800 22px Pretendard, sans-serif';
+        gmFitFont(x, winLine, 704, '800', 22, 15);
+        x.fillText(winLine, 48, 250);
+        x.fillStyle = '#525d6b'; x.font = '700 17px Pretendard, sans-serif';
+        const noticeLine = `당첨자는 ${nextStr}까지 킹빠더 1:1 오픈톡으로 연락해 주세요`;
+        gmFitFont(x, noticeLine, 704, '700', 17, 13);
+        x.fillText(noticeLine, 48, 290);
+      } else if (main) {
         x.fillStyle = '#b6bfcc'; x.font = '900 13px Pretendard, sans-serif';
         x.fillText(live && pendingM.length
           ? `N O W  ·  ${matches.indexOf(main) + 1}경기${main.division ? '  ·  ' + main.division : ''}`
@@ -14464,13 +14581,16 @@
         x.fillText('VS', 400, 225);
         x.textAlign = 'left';
       }
-      // 하단 줄 — 라이브 중엔 다음 경기 예고, 평소엔 나머지 대진 두 줄
-      x.fillStyle = '#98a3b3'; x.font = '700 17px Pretendard, sans-serif';
+      // 하단 줄 — 라이브 중엔 다음 경기 예고(색상을 살짝 진하게 — 잘 안 보인다는 피드백,
+      // 다만 현재 경기 정보보다 튀지 않도록 과하지 않은 톤 유지), 결과 확정 후엔 위 선물
+      // 안내로 대체되어 생략, 평소엔 나머지 대진 두 줄.
+      x.font = '700 17px Pretendard, sans-serif';
       if (live) {
         const nxt = pendingM[1];
-        if (nxt) x.fillText(`다음 경기  ·  ${nxt.fighter_a} vs ${nxt.fighter_b}`, 48, 300);
-        else if (!pendingM.length) x.fillText('전 경기 종료 — 최종 결과 확정 대기 중', 48, 300);
-      } else {
+        if (nxt) { x.fillStyle = '#7c8798'; x.fillText(`다음 경기  ·  ${nxt.fighter_a} vs ${nxt.fighter_b}`, 48, 300); }
+        else if (!pendingM.length) { x.fillStyle = '#98a3b3'; x.fillText('전 경기 종료 — 최종 결과 확정 대기 중', 48, 300); }
+      } else if (!fin) {
+        x.fillStyle = '#98a3b3';
         const rest = matches.slice(0, -1).map(m => `${m.fighter_a} vs ${m.fighter_b}`);
         if (rest.length) {
           const line1 = rest.slice(0, Math.ceil(rest.length / 2)).join('  ·  ');
@@ -14499,7 +14619,7 @@
         const ok = imageUrl && kkoSendShare(imageUrl, {
           title: live ? `🔴 LIVE — ${t.title}` : t.title,
           desc: live
-            ? `실시간 진행 중 · ${scoredN}/${matches.length}경기 결과 반영`
+            ? `지난 경기 결과 반영(${scoredN}/${matches.length})`
             : `${(t.event_at || t.event_date) ? fmtEventDT(t) + ' · ' : ''}${parts.length}명 참여`,
           btnText: live ? '실시간 현황 보기' : (tState(t) === 'open' ? '예측하러 가기' : '결과 보러 가기'),
           path: `#/t/${encodeURIComponent(id)}`,
@@ -22782,6 +22902,67 @@
         return { desc: tier.desc || '', max: tier.max || 0, names, winners, note: noteParts.join(' + ') };
       });
     }
+    /* 선물 추첨 룰렛 연출 — drawWaterfall()이 이미 정한 진짜 결과를 화면에 그대로 보여주는
+       것뿐이다(연출 때문에 다시 무작위로 뽑거나 결과가 바뀌는 일은 없다). 다만 바로 이름을
+       딱 박아버리면 재미도 없고 "진짜 랜덤으로 뽑은 거 맞아?" 하는 의심을 살 수 있어서,
+       그 선물의 실제 후보군(같은 적중 순위 공동자들) 사이를 빠르게 돌다가 점점 느려지며
+       실제 당첨자에 멈추는 슬롯머신 같은 연출을 보여준 뒤에야 저장 단계로 넘어간다. */
+    function spinReel(el, pool, finalName, spins) {
+      return new Promise(resolve => {
+        if (!pool || pool.length <= 1) {
+          el.textContent = finalName;
+          el.classList.remove('spinning'); el.classList.add('gift-reel-done');
+          resolve();
+          return;
+        }
+        let i = 0;
+        const tick = () => {
+          i++;
+          if (i < spins) {
+            el.textContent = pool[Math.floor(Math.random() * pool.length)];
+            setTimeout(tick, 55 + Math.pow(i / spins, 2) * 260);
+          } else {
+            el.textContent = finalName;
+            el.classList.remove('spinning'); el.classList.add('gift-reel-done');
+            resolve();
+          }
+        };
+        tick();
+      });
+    }
+    function giftDrawAnim(resTiers, ranked) {
+      return new Promise(resolve => {
+        const tiersWithWinners = resTiers.filter(t => t.winners.length);
+        if (!tiersWithWinners.length) { resolve(); return; }
+        const ov = document.createElement('div');
+        ov.className = 'ghist-ov';
+        ov.innerHTML = `<div class="gift-anim">
+      <div class="gift-anim-h">🎲 선물을 추첨하고 있어요…</div>
+      <div id="giftAnimTiers"></div>
+      <button type="button" class="btn primary" id="giftAnimConfirm" style="display:none">확인</button>
+    </div>`;
+        document.body.appendChild(ov);
+        const wrap = ov.querySelector('#giftAnimTiers');
+        const confirmBtn = ov.querySelector('#giftAnimConfirm');
+        confirmBtn.onclick = () => { ov.remove(); resolve(); };
+        (async () => {
+          for (const tier of tiersWithWinners) {
+            const row = document.createElement('div');
+            row.className = 'gift-anim-tier';
+            row.innerHTML = `<div class="gift-anim-tier-h">${esc(tier.desc || '선물')} · ${tier.winners.length}명</div>
+          <div class="gift-anim-reels">${tier.winners.map(() => `<div class="gift-reel spinning">?</div>`).join('')}</div>`;
+            wrap.appendChild(row);
+            const reels = row.querySelectorAll('.gift-reel');
+            await Promise.all(tier.winners.map((w, wi) => {
+              const pool = ranked.filter(r => r.rank === w.r).map(r => r.nickname);
+              return spinReel(reels[wi], pool, w.n, 14 + wi * 3);
+            }));
+            await new Promise(r => setTimeout(r, 350));
+          }
+          confirmBtn.style.display = '';
+        })();
+      });
+    }
     async function drawGiftsFromResult(tid) {
       if (!adminPass()) return toastMsg('⚠️ 선물 추첨은 관리자만 실행할 수 있습니다.');
       if (!confirm('선물 당첨자를 추첨할까요?\n(적중 순위가 높은 사람부터 좋은 선물 순서로 지급되며, 결과는 저장되어 바뀌지 않습니다)')) return;
@@ -22792,6 +22973,9 @@
       const tiers = giftTiers(d.t).filter(g => (g.max || 0) > 0);
       if (!tiers.length) return toastMsg('⚠️ 먼저 [선물 변경]에서 선물을 설정해 주세요.');
       const resTiers = drawWaterfall(ranked, tiers);
+      // 결과는 이미 위 drawWaterfall()에서 확정됐다 — 아래 룰렛 연출은 그 결과를 재미있게
+      // "보여주는" 것뿐이며, 연출이 끝나야(확인 버튼) 실제 저장(RPC) 단계로 넘어간다.
+      await giftDrawAnim(resTiers, ranked);
       const winners = {
         mode: 'waterfall',
         tiers: resTiers,
