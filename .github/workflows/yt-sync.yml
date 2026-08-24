@@ -1,0 +1,37 @@
+name: 유튜브 업로드 자동 동기화
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'   # 30분마다 실행 (GitHub 사정에 따라 실제 실행은 몇 분 늦어질 수 있음)
+  workflow_dispatch: {}
+
+# 이전 실행이 아직 안 끝났으면 새 스케줄 실행이 그 뒤에 계속 쌓이지 않도록,
+# 새 실행이 시작되면 이전 실행을 취소한다. 30분마다 도는 워크플로우라 취소해도
+# 잃는 데이터가 없다(다음 실행이 최신 상태를 다시 가져와서 채운다).
+concurrency:
+  group: yt-sync
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    # YT_BOT_SECRET(저장소 Secret)이 아직 설정되지 않았으면 스케줄 실행은 건너뛴다 —
+    # 유튜브_업로드예측_패치.sql의 안내대로 site_data에 yt_bot_secret을 설정하고
+    # 같은 값을 이 저장소 Secret으로 등록해야 자동 동기화가 동작한다.
+    # 수동 실행(workflow_dispatch)은 이 조건과 상관없이 항상 시도해볼 수 있다(설정이
+    # 안 됐다면 스크립트가 명확한 에러 메시지로 실패한다).
+    if: ${{ vars.YT_SYNC_ENABLED == 'true' || github.event_name == 'workflow_dispatch' }}
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 유튜브 업로드 동기화 실행
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          YT_BOT_SECRET: ${{ secrets.YT_BOT_SECRET }}
+          YOUTUBE_API_KEY: ${{ vars.YOUTUBE_API_KEY }}
+          YT_CHANNEL_HANDLE: ${{ vars.YT_CHANNEL_HANDLE }}
+        run: node scripts/yt-sync.js
