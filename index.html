@@ -9325,6 +9325,109 @@
       color: var(--dim)
     }
 
+    .yt-cell.selected {
+      outline: 2px solid var(--key-deep);
+      outline-offset: -2px
+    }
+
+    .yt-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 12px
+    }
+
+    .yt-stat {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      box-shadow: 0 1px 4px rgba(20, 40, 80, .06)
+    }
+
+    .yt-stat-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      margin-bottom: 8px
+    }
+
+    .yt-stat-label {
+      font-size: 11.5px;
+      color: var(--dim);
+      font-weight: 700
+    }
+
+    .yt-stat-value {
+      font-size: 18px;
+      font-weight: 900;
+      margin-top: 2px
+    }
+
+    .yt-stat-sub {
+      font-size: 10.5px;
+      color: var(--dim);
+      margin-top: 2px
+    }
+
+    .yt-pred-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--key-deep);
+      color: #fff;
+      flex-shrink: 0
+    }
+
+    .yt-pred-list {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    .yt-pred-item {
+      display: flex;
+      gap: 6px;
+      align-items: flex-start;
+      font-size: 12.5px;
+      color: var(--text);
+      line-height: 1.5
+    }
+
+    .yt-pred-item b {
+      color: var(--key-deep)
+    }
+
+    .yt-recent-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 0;
+      border-top: 1px solid var(--border);
+      text-decoration: none;
+      color: inherit
+    }
+
+    .yt-recent-row:first-child {
+      border-top: none
+    }
+
+    .yt-recent-thumb {
+      width: 72px;
+      height: 40px;
+      object-fit: cover;
+      border-radius: 6px;
+      background: var(--card2);
+      flex-shrink: 0
+    }
+
   </style>
 </head>
 
@@ -16803,8 +16906,10 @@
         windowText = top.length ? `${top[0]}시~${top[top.length - 1]}시경` : '특정 시간대';
       }
       const gapH = stats90.median_gap_hours;
+      const gapDaysText = gapH ? `${Math.round(gapH / 24 * 10) / 10}일` : null;
       const lastPub = stats90.last_published_at ? new Date(stats90.last_published_at) : null;
       const hoursSince = lastPub ? Math.round((Date.now() - lastPub.getTime()) / 3600000) : null;
+      const hoursSinceText = hoursSince != null ? (hoursSince < 24 ? `${hoursSince}시간` : `${Math.round(hoursSince / 24)}일`) : null;
 
       let dowNote = '';
       if (stats365 && stats365.ok && stats365.dow_histogram_kst) {
@@ -16817,15 +16922,59 @@
         }
       }
 
+      const items = [
+        `최근 90일간 총 <b>${stats90.sample_n}개</b> 업로드${gapDaysText ? `, 평균 <b>${gapDaysText}</b> 간격` : ''}`,
+        `주로 <b>${windowText}</b>에 올라오는 경우가 많아요`,
+      ];
+      if (hoursSinceText) items.push(`마지막 업로드는 <b>${hoursSinceText} 전</b>이에요`);
+      if (dowNote) items.push(esc(dowNote));
+
       return `
       <div class="card" style="margin-top:12px;border:1.5px solid var(--key-deep);background:var(--key-soft)">
-        <div style="font-weight:900;color:var(--key-deep);margin-bottom:6px">📡 다음 영상 예상</div>
-        <div style="font-size:15px;line-height:1.6">
-          최근 패턴상 <b>${windowText}</b>에 올라오는 경우가 많아요.
-          ${gapH ? ` 평균적으로 약 <b>${Math.round(gapH / 24 * 10) / 10}일</b> 간격으로 업로드돼요.` : ''}
-          ${hoursSince != null ? `<br>마지막 업로드는 <b>${hoursSince < 24 ? hoursSince + '시간' : Math.round(hoursSince / 24) + '일'} 전</b>이에요.` : ''}
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div style="font-weight:900;color:var(--key-deep);font-size:15px">📡 다음 영상 예상</div>
+          <span class="yt-pred-badge">참고용</span>
         </div>
-        <div class="note" style="margin-top:6px">${esc(dowNote)}${dowNote ? ' · ' : ''}과거 패턴 기반 참고용 예측이라 실제와 다를 수 있어요 🙂</div>
+        <div class="yt-pred-list">
+          ${items.map(t => `<div class="yt-pred-item"><span>✓</span><span>${t}</span></div>`).join('')}
+        </div>
+        <div class="note" style="margin-top:8px">과거 패턴 기반 참고용 예측이라 실제와 다를 수 있어요 🙂</div>
+      </div>`;
+    }
+
+    function ytStatCardsHTML(monthCount, stats90) {
+      const gapDays = stats90 && stats90.median_gap_hours ? Math.round(stats90.median_gap_hours / 24 * 10) / 10 : null;
+      const sample90 = stats90 && stats90.sample_n != null ? stats90.sample_n : null;
+      const lastPub = stats90 && stats90.last_published_at ? new Date(stats90.last_published_at) : null;
+      const hoursSince = lastPub ? Math.round((Date.now() - lastPub.getTime()) / 3600000) : null;
+      const lastText = hoursSince == null ? '-' : (hoursSince < 24 ? `${hoursSince}시간 전` : `${Math.round(hoursSince / 24)}일 전`);
+      const stat = (icon, bg, fg, label, value, sub) => `
+        <div class="yt-stat">
+          <div class="yt-stat-icon" style="background:${bg};color:${fg}">${icon}</div>
+          <div class="yt-stat-label">${label}</div>
+          <div class="yt-stat-value">${value}</div>
+          ${sub ? `<div class="yt-stat-sub">${sub}</div>` : ''}
+        </div>`;
+      return `<div class="yt-stats">
+        ${stat('🎬', '#e8effd', '#2563eb', '이번 달 업로드', `${monthCount}개`, '')}
+        ${stat('⏱', '#e7f6ec', '#16a34a', '평균 업로드 주기', gapDays != null ? `${gapDays}일` : '-', '최근 90일 기준')}
+        ${stat('📊', '#f1eafe', '#7c3aed', '최근 90일 업로드', sample90 != null ? `${sample90}개` : '-', '')}
+        ${stat('🕒', '#fdece0', '#ea580c', '마지막 업로드', lastText, '')}
+      </div>`;
+    }
+
+    function ytRecentListHTML(recent) {
+      if (!recent || !recent.length) return '';
+      return `<div class="card" style="margin-top:12px">
+        <div style="font-weight:800;margin-bottom:4px">🕓 최근 업로드</div>
+        ${recent.map(v => `
+          <a class="yt-recent-row" href="https://www.youtube.com/watch?v=${encodeURIComponent(v.video_id)}" target="_blank" rel="noopener">
+            <img class="yt-recent-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:700;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.title)}</div>
+              <div class="note">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)} · ${new Date(v.published_at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+            </div>
+          </a>`).join('')}
       </div>`;
     }
 
@@ -16862,7 +17011,7 @@
         const items = byDay[d] || [];
         const dots = items.slice(0, 4).map(v => `<span class="yt-dot" style="background:${ytCatMeta(v.category).color}"></span>`).join('');
         const more = items.length > 4 ? `<span class="yt-more">+${items.length - 4}</span>` : '';
-        cells += `<div class="yt-cell${items.length ? ' has' : ''}${isThisMonth && d === now.getDate() ? ' today' : ''}" ${items.length ? `onclick="ytShowDay(${d})"` : ''}>
+        cells += `<div id="ytCell-${d}" class="yt-cell${items.length ? ' has' : ''}${isThisMonth && d === now.getDate() ? ' today' : ''}" ${items.length ? `onclick="ytShowDay(${d})"` : ''}>
           <div class="yt-daynum">${d}</div>
           <div class="yt-dots">${dots}${more}</div>
         </div>`;
@@ -16873,6 +17022,9 @@
     }
 
     function ytShowDay(d) {
+      document.querySelectorAll('.yt-cell.selected').forEach(el => el.classList.remove('selected'));
+      const cell = document.getElementById('ytCell-' + d);
+      if (cell) cell.classList.add('selected');
       const items = (window.__ytByDay && window.__ytByDay[d]) || [];
       const box = document.getElementById('ytDayDetail');
       if (!box) return;
@@ -16899,15 +17051,17 @@
       const fromStr = new Date(y, m - 1, 1).toISOString().slice(0, 10);
       const toStr = new Date(y, m, 0).toISOString().slice(0, 10);
 
-      let videos = [], stats90 = null, stats365 = null;
+      let videos = [], stats90 = null, stats365 = null, recent = [];
       try {
-        const [calRes, st90Res, st365Res] = await Promise.all([
+        const [calRes, st90Res, st365Res, recentRes] = await Promise.all([
           sb.rpc('yt_get_calendar', { p_from: fromStr, p_to: toStr }),
           sb.rpc('yt_get_stats', { p_days: 90 }),
           sb.rpc('yt_get_stats', { p_days: 365 }),
+          sb.rpc('yt_get_recent', { p_limit: 5 }),
         ]);
         videos = calRes.data || [];
         stats90 = st90Res.data; stats365 = st365Res.data;
+        recent = recentRes.data || [];
       } catch (e) { return fail(e); }
 
       ytCalState = { month: monthKey, videos, catFilter: ytCalState.catFilter || null };
@@ -16915,6 +17069,7 @@
       $app.innerHTML = `
       <h1 class="page">🎬 업로드 캘린더</h1>
       <p class="sub">블랙컴뱃 공식 유튜브(@${esc(YT_CHANNEL_HANDLE)}) 업로드 이력과, 과거 패턴 기반 다음 영상 예상이에요.</p>
+      ${ytStatCardsHTML(videos.length, stats90)}
       ${ytPredictionCardHTML(stats90, stats365)}
       <div class="card" style="margin-top:12px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -16925,7 +17080,8 @@
         ${ytCatFilterChipsHTML()}
         ${ytCalendarGridHTML(y, m, videos)}
       </div>
-      <div id="ytDayDetail"></div>`;
+      <div id="ytDayDetail"></div>
+      ${ytRecentListHTML(recent)}`;
     }
 
     async function ytRunTest() {
