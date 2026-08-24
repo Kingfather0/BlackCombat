@@ -16563,6 +16563,7 @@
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn" onclick="ytRunTest()">최근 50개만 미리보기</button>
           <button class="btn primary" onclick="ytFullSync()">📥 전체 이력 동기화</button>
+          <button class="btn" onclick="ytStatsPreview()">📊 통계 미리보기</button>
         </div>
         <div id="ytTestOut" style="margin-top:14px;white-space:pre-wrap;font:12px/1.5 monospace;background:rgba(120,130,150,.08);border-radius:10px;padding:12px;max-height:60vh;overflow:auto"></div>
       </div>`;
@@ -16656,6 +16657,35 @@
       } catch (e) {
         log('❌ 예외 발생: ' + (e && e.message));
       }
+    }
+    const YT_DOW_NAME = { 1: '월', 2: '화', 3: '수', 4: '목', 5: '금', 6: '토', 7: '일' };
+    async function ytStatsPreview() {
+      const out = document.getElementById('ytTestOut');
+      if (!out) return;
+      const log = (s) => { out.textContent += s + '\n'; out.scrollTop = out.scrollHeight; };
+      out.textContent = '';
+      log('▶ 서버에서 통계 집계 중...');
+      const dump = (label, days) => new Promise(resolve => {
+        sb.rpc('yt_get_stats', { p_days: days }).then(({ data, error }) => {
+          if (error || !data || data.ok === false) { log(`❌ ${label} 실패: ` + (error ? error.message : JSON.stringify(data))); resolve(); return; }
+          log(`\n■ ${label} (표본 ${data.sample_n}개, 최근 업로드: ${data.last_published_at ? new Date(data.last_published_at).toLocaleString('ko-KR') : '-'})`);
+          log(`  업로드 간격 중앙값: ${data.median_gap_hours ?? '-'}시간`);
+          const hh = data.hour_histogram_kst || {};
+          const hLine = Object.keys(hh).map(Number).sort((a, b) => a - b).map(h => `${h}시:${hh[h]}`).join(' ');
+          log(`  시간대(KST) 분포: ${hLine || '(없음)'}`);
+          const dh = data.dow_histogram_kst || {};
+          const dLine = Object.keys(dh).map(Number).sort((a, b) => a - b).map(d => `${YT_DOW_NAME[d] || d}:${dh[d]}`).join(' ');
+          log(`  요일 분포: ${dLine || '(없음)'}`);
+          const ch = data.category_histogram || {};
+          const cLine = Object.keys(ch).sort((a, b) => ch[b] - ch[a]).map(c => `${c}:${ch[c]}`).join(' ');
+          log(`  카테고리 분포: ${cLine || '(없음)'}`);
+          resolve();
+        });
+      });
+      await dump('최근 30일', 30);
+      await dump('최근 90일', 90);
+      await dump('최근 365일', 365);
+      log('\n✅ 통계 미리보기 완료. 이 결과를 그대로 캡처해서 보내주세요.');
     }
     async function ytRunTest() {
       const out = document.getElementById('ytTestOut');
