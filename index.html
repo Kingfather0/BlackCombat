@@ -9269,21 +9269,32 @@
       text-align: center;
       font-size: 11.5px;
       color: var(--dim);
-      margin-bottom: 4px
+      font-weight: 700;
+      margin-bottom: 6px
+    }
+
+    .yt-cal-head .sun {
+      color: var(--red)
+    }
+
+    .yt-cal-head .sat {
+      color: var(--key-deep)
     }
 
     .yt-cal-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 4px
+      gap: 5px
     }
 
     .yt-cell {
-      min-height: 50px;
-      border-radius: 8px;
-      padding: 4px 3px;
+      min-height: 60px;
+      border-radius: 11px;
+      padding: 6px 4px;
       background: var(--card2);
-      cursor: default
+      border: 1px solid transparent;
+      cursor: default;
+      transition: transform .08s ease
     }
 
     .yt-cell.empty {
@@ -9292,36 +9303,66 @@
 
     .yt-cell.has {
       cursor: pointer;
-      background: var(--key-soft)
+      border-color: var(--border)
     }
 
-    .yt-cell.today .yt-daynum {
-      color: var(--key-deep);
-      font-weight: 900
+    .yt-cell.has:active {
+      transform: scale(.95)
+    }
+
+    .yt-cell.today {
+      border-color: var(--key-deep);
+      border-width: 1.5px
+    }
+
+    .yt-cell.sun .yt-daynum {
+      color: var(--red)
+    }
+
+    .yt-cell.sat .yt-daynum {
+      color: var(--key-deep)
     }
 
     .yt-daynum {
       font-size: 11px;
       color: var(--dim);
+      font-weight: 700;
       text-align: right
+    }
+
+    .yt-daynum-today {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: var(--key-deep);
+      color: #fff;
+      font-weight: 900;
+      font-size: 10px
     }
 
     .yt-dots {
       display: flex;
       flex-wrap: wrap;
-      gap: 2px;
-      margin-top: 3px
+      gap: 3px;
+      margin-top: 5px
     }
 
     .yt-dot {
       font-size: 10px;
       line-height: 1;
-      flex-shrink: 0
+      flex-shrink: 0;
+      border-radius: 5px;
+      padding: 2px 3px
     }
 
     .yt-more {
       font-size: 9px;
-      color: var(--dim)
+      color: var(--dim);
+      align-self: center;
+      font-weight: 700
     }
 
     .yt-cell.selected {
@@ -9329,48 +9370,46 @@
       outline-offset: -2px
     }
 
-    .yt-stats {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-top: 12px
-    }
-
-    .yt-stat {
+    .yt-stats-mini {
+      display: flex;
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 12px;
-      box-shadow: 0 1px 4px rgba(20, 40, 80, .06)
+      border-radius: 12px;
+      padding: 9px 4px;
+      margin-top: 10px
     }
 
-    .yt-stat-icon {
-      width: 30px;
-      height: 30px;
-      border-radius: 9px;
+    .yt-stat-mini {
+      flex: 1;
+      text-align: center;
+      padding: 0 4px;
+      border-left: 1px solid var(--border)
+    }
+
+    .yt-stat-mini:first-child {
+      border-left: none
+    }
+
+    .yt-stat-mini-top {
       display: flex;
-      align-items: center;
+      align-items: baseline;
       justify-content: center;
-      font-size: 15px;
-      margin-bottom: 8px
+      gap: 4px;
+      font-size: 12px
     }
 
-    .yt-stat-label {
-      font-size: 11.5px;
-      color: var(--dim);
-      font-weight: 700
-    }
-
-    .yt-stat-value {
-      font-size: 18px;
+    .yt-stat-mini-value {
+      font-size: 14px;
       font-weight: 900;
-      margin-top: 2px
+      color: var(--text)
     }
 
-    .yt-stat-sub {
-      font-size: 10.5px;
+    .yt-stat-mini-label {
+      font-size: 9.5px;
       color: var(--dim);
-      margin-top: 2px
+      margin-top: 2px;
+      font-weight: 600;
+      white-space: nowrap
     }
 
     .yt-pred-badge {
@@ -9515,6 +9554,18 @@
       font-size: 12px;
       color: var(--muted);
       margin-top: 4px
+    }
+
+    .yt-pred-hero-alert {
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: #fff4e5;
+      border: 1px solid #f3c988;
+      border-radius: 10px;
+      font-size: 11px;
+      color: #9a5b00;
+      line-height: 1.5;
+      font-weight: 600
     }
 
     .yt-pred-badge-light {
@@ -17262,10 +17313,13 @@
       if (!stats90 || stats90.ok === false || !stats90.sample_n) {
         return `<div class="card" style="margin-top:12px"><div class="note">아직 예측할 만큼 데이터가 충분하지 않아요.</div></div>`;
       }
-      // 예상 시간대: 최근 90일 기준 가장 잦은 업로드 시각(KST)
+      // 예상 시간대: 최근 90일 기준 가장 잦은 업로드 시각(KST) — 근거로 건수/비율도 함께 계산
       const hh = stats90.hour_histogram_kst || {};
+      const hourEntries = Object.keys(hh).map(Number);
       let peakHour = null, peakCount = -1;
-      Object.keys(hh).map(Number).forEach(h => { if (hh[h] > peakCount) { peakCount = hh[h]; peakHour = h; } });
+      hourEntries.forEach(h => { if (hh[h] > peakCount) { peakCount = hh[h]; peakHour = h; } });
+      const hourSampleTotal = hourEntries.reduce((s, h) => s + (Number(hh[h]) || 0), 0) || stats90.sample_n || 0;
+      const peakPct = (hourSampleTotal && peakCount >= 0) ? Math.round(peakCount / hourSampleTotal * 100) : null;
       const hourText = peakHour == null ? null
         : peakHour === 0 ? '자정' : peakHour === 12 ? '정오'
         : peakHour < 12 ? `오전 ${peakHour}시` : `오후 ${peakHour - 12}시`;
@@ -17283,6 +17337,20 @@
       // 최근 태깅된 이벤트(미디어데이 등)가 며칠 전이었는지 — 있으면 그 이후 며칠간 소폭 가중
       const today = ytTodayKST();
       const milestoneDayMs = milestone ? (() => { const k = ytKstParts(milestone._t); return new Date(k.y, k.m - 1, k.d).getTime(); })() : null;
+
+      // "오늘 오후 7시경 유력"이라고 해놓고 이미 7시가 지났는데 안 올라왔으면 그대로 두는 건
+      // 거짓말이나 마찬가지라는 피드백 반영 — 오늘이 예측일이고, 오늘 아직 업로드가 없는 채로
+      // 예상 시간대(+30분 여유)를 지났으면 별도로 "시간대 경과" 경고를 근거와 함께 보여준다.
+      const nowKst = ytKstParts(svrNow());
+      const lastPubKst = lastPub ? ytKstParts(lastPub) : null;
+      const uploadedToday = !!(lastPubKst && lastPubKst.y === today.y && lastPubKst.m === today.m && lastPubKst.d === today.d);
+      const nowDecimalHour = nowKst.h + nowKst.min / 60;
+      const hourPassedGrace = peakHour != null && !uploadedToday && nowDecimalHour > (peakHour + 0.5);
+      let hourAfterPct = null, hourAfterCount = 0;
+      if (hourPassedGrace) {
+        hourAfterCount = hourEntries.filter(h => h > peakHour).reduce((s, h) => s + (Number(hh[h]) || 0), 0);
+        hourAfterPct = hourSampleTotal ? Math.round(hourAfterCount / hourSampleTotal * 100) : 0;
+      }
 
       // 앞으로 7일: (요일 빈도 베이스라인) × (경기 일정 근접도 배율, 실측 D-n 기반) × (최근 이벤트 보정)
       // 경기 당일은 "라이브는 확정, 그 외 일반 콘텐츠는 오히려 준비 때문에 줄어들 수 있다"는
@@ -17354,8 +17422,9 @@
           <span class="yt-pred-badge-light">참고용</span>
         </div>
         ${eventLineHTML}
-        <div class="yt-pred-hero-date">${isTop0 ? '오늘' : topDateText} 유력${hourText ? ` · ${hourText}경` : ''}${topPhaseQualifier}</div>
-        <div class="yt-pred-hero-time">최근 90일 총 <b>${stats90.sample_n}개</b> 업로드${hoursSinceText ? ` · 마지막 업로드 ${hoursSinceText} 전` : ''}</div>
+        <div class="yt-pred-hero-date">${isTop0 ? '오늘' : topDateText} 유력${hourText && !(isTop0 && hourPassedGrace) ? ` · ${hourText}경` : ''}${isTop0 && hourPassedGrace ? ` · ${hourText} 예상 시간대 경과` : ''}${topPhaseQualifier}</div>
+        <div class="yt-pred-hero-time">최근 90일 총 <b>${stats90.sample_n}개</b> 업로드${hoursSinceText ? ` · 마지막 업로드 ${hoursSinceText} 전` : ''}${hourText && peakPct != null ? ` · ${hourText}대 업로드 이력 ${peakCount}건(${peakPct}%)` : ''}</div>
+        ${isTop0 && hourPassedGrace ? `<div class="yt-pred-hero-alert">⏰ 예상 시간대(${esc(hourText)}경)가 지났는데 아직 오늘 업로드가 없어요 — 최근 90일 중 이 시간 이후에 올라온 경우는 전체의 ${hourAfterPct}%(${hourAfterCount}건)뿐이라, 오늘 업로드될 확률은 낮아지고 있어요.</div>` : ''}
         <div class="yt-prob-strip">
           ${days.map(d => `
             <div class="yt-prob-day${d === topDay ? ' top' : ''}${d.phase?.type === 'event-day' ? ' event-day' : ''}">
@@ -17375,6 +17444,7 @@
     function ytCycleChartHTML(videos, stats90) {
       const sorted = (videos || []).slice().sort((a, b) => new Date(a.published_at) - new Date(b.published_at));
       if (sorted.length < 2) {
+        window.__ytCycleGaps = [];
         return `<div class="card" style="margin-top:12px">
           <div style="font-weight:800;margin-bottom:4px">📈 업로드 주기 분석</div>
           <div class="yt-cycle-empty">이번 달엔 데이터가 부족해 주기 차트를 표시할 수 없어요.</div>
@@ -17383,8 +17453,9 @@
       const gaps = [];
       for (let i = 1; i < sorted.length; i++) {
         const hrs = (new Date(sorted[i].published_at) - new Date(sorted[i - 1].published_at)) / 3600000;
-        gaps.push({ days: hrs / 24 });
+        gaps.push({ days: hrs / 24, video: sorted[i], prev: sorted[i - 1] });
       }
+      window.__ytCycleGaps = gaps;
       const avgDays = stats90 && stats90.median_gap_hours ? stats90.median_gap_hours / 24
         : (gaps.reduce((s, g) => s + g.days, 0) / gaps.length);
       const maxDays = Math.max(...gaps.map(g => g.days), avgDays, 0.5) * 1.15;
@@ -17393,7 +17464,11 @@
       const yFor = v => H - PAD - (v / maxDays) * (H - PAD * 2);
       const pts = gaps.map((g, i) => `${(PAD + i * stepX).toFixed(1)},${yFor(g.days).toFixed(1)}`).join(' ');
       const avgY = yFor(avgDays).toFixed(1);
-      const dots = gaps.map((g, i) => `<circle cx="${(PAD + i * stepX).toFixed(1)}" cy="${yFor(g.days).toFixed(1)}" r="2.5" fill="var(--key-deep)"></circle>`).join('');
+      // 점을 눌러도 반응이 없다는 피드백 반영 — 실제 보이는 점(반지름 2.5)보다 훨씬 큰 투명한
+      // 터치 영역을 뒤에 깔아서, 탭 한 번으로 어떤 영상 사이의 간격인지 아래 상세에 바로 띄운다.
+      const dots = gaps.map((g, i) => `
+          <circle cx="${(PAD + i * stepX).toFixed(1)}" cy="${yFor(g.days).toFixed(1)}" r="9" fill="transparent" style="cursor:pointer" onclick="ytShowCycleInfo(${i})"></circle>
+          <circle id="ytCycleDot-${i}" cx="${(PAD + i * stepX).toFixed(1)}" cy="${yFor(g.days).toFixed(1)}" r="2.5" fill="var(--key-deep)" style="pointer-events:none"></circle>`).join('');
       const firstLabel = new Date(sorted[0].published_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
       const lastLabel = new Date(sorted[sorted.length - 1].published_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
       return `<div class="card" style="margin-top:12px">
@@ -17408,31 +17483,51 @@
         </svg>
         <div style="display:flex;justify-content:space-between;margin-top:2px">
           <span class="note">${esc(firstLabel)}</span>
-          <span class="note">업로드 간격(일) · 점선=평균</span>
+          <span class="note">점을 누르면 상세 · 점선=평균</span>
           <span class="note">${esc(lastLabel)}</span>
         </div>
+        <div id="ytCycleDetail"></div>
       </div>`;
     }
 
+    function ytShowCycleInfo(i) {
+      const arr = window.__ytCycleGaps || [];
+      const item = arr[i];
+      const box = document.getElementById('ytCycleDetail');
+      if (!box || !item) return;
+      document.querySelectorAll('[id^="ytCycleDot-"]').forEach(el => { el.setAttribute('r', '2.5'); el.setAttribute('fill', 'var(--key-deep)'); });
+      const dot = document.getElementById('ytCycleDot-' + i);
+      if (dot) { dot.setAttribute('r', '4.5'); dot.setAttribute('fill', 'var(--red)'); }
+      const v = item.video, prev = item.prev;
+      box.innerHTML = `
+        <a class="yt-recent-row" href="https://www.youtube.com/watch?v=${encodeURIComponent(v.video_id)}" target="_blank" rel="noopener" style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px">
+          <img class="yt-recent-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12.5px;font-weight:700;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.title)}</div>
+            <div class="note">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)} · ${new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+            <div class="note">이전 업로드 '${esc(prev.title)}'로부터 <b>${Math.round(item.days * 10) / 10}일</b> 만에 업로드됐어요</div>
+          </div>
+        </a>`;
+    }
+
     function ytStatCardsHTML(monthCount, stats90) {
+      // 큰 카드 4칸이 화면을 너무 많이 차지한다는 피드백 반영 — 참고 수치일 뿐 핵심은 위쪽
+      // 예측 카드이므로, 한 줄짜리 얇은 요약 바로 줄였다.
       const gapDays = stats90 && stats90.median_gap_hours ? Math.round(stats90.median_gap_hours / 24 * 10) / 10 : null;
       const sample90 = stats90 && stats90.sample_n != null ? stats90.sample_n : null;
       const lastPub = stats90 && stats90.last_published_at ? new Date(stats90.last_published_at) : null;
       const hoursSince = lastPub ? Math.round((Date.now() - lastPub.getTime()) / 3600000) : null;
       const lastRelText = hoursSince == null ? '' : (hoursSince < 24 ? `${hoursSince}시간 전` : `${Math.round(hoursSince / 24)}일 전`);
-      const lastDateText = lastPub ? lastPub.toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' }) : '-';
-      const stat = (icon, bg, fg, label, value, sub) => `
-        <div class="yt-stat">
-          <div class="yt-stat-icon" style="background:${bg};color:${fg}">${icon}</div>
-          <div class="yt-stat-label">${label}</div>
-          <div class="yt-stat-value">${value}</div>
-          ${sub ? `<div class="yt-stat-sub">${sub}</div>` : ''}
+      const stat = (icon, label, value, sub) => `
+        <div class="yt-stat-mini">
+          <div class="yt-stat-mini-top"><span>${icon}</span><span class="yt-stat-mini-value">${value}</span></div>
+          <div class="yt-stat-mini-label">${label}${sub ? ` · ${sub}` : ''}</div>
         </div>`;
-      return `<div class="yt-stats">
-        ${stat('🎬', '#e8effd', '#2563eb', '이번 달 업로드', `${monthCount}개`, '')}
-        ${stat('⏱', '#e7f6ec', '#16a34a', '평균 업로드 주기', gapDays != null ? `${gapDays}일` : '-', '최근 90일 기준')}
-        ${stat('📊', '#f1eafe', '#7c3aed', '최근 90일 업로드', sample90 != null ? `${sample90}개` : '-', '')}
-        ${stat('🕒', '#fdece0', '#ea580c', '최근 업로드', lastDateText, lastRelText)}
+      return `<div class="yt-stats-mini">
+        ${stat('🎬', '이번 달', `${monthCount}개`, '')}
+        ${stat('⏱', '평균 주기', gapDays != null ? `${gapDays}일` : '-', '')}
+        ${stat('📊', '90일', sample90 != null ? `${sample90}개` : '-', '')}
+        ${stat('🕒', '최근', lastRelText || '-', '')}
       </div>`;
     }
 
@@ -17482,17 +17577,32 @@
       for (let i = 0; i < firstDow; i++) cells += `<div class="yt-cell empty"></div>`;
       for (let d = 1; d <= daysInMonth; d++) {
         const items = byDay[d] || [];
+        const dow = (firstDow + d - 1) % 7;
+        const dowCls = dow === 0 ? ' sun' : dow === 6 ? ' sat' : '';
+        const isToday = isThisMonth && d === todayKst.d;
         // 동그라미만 찍어두면 뭐가 올라왔는지 눌러봐야 알 수 있어서 가독성이 떨어진다는
-        // 피드백 반영 — 카테고리 이모지를 그대로 보여줘서 탭 없이도 한눈에 파악되게 한다.
-        const dots = items.slice(0, 3).map(v => `<span class="yt-dot" title="${esc(ytCatMeta(v.category).label)}">${ytCatMeta(v.category).emoji}</span>`).join('');
+        // 피드백 반영 — 카테고리 이모지를 색이 있는 칩으로 보여주고, 그날 가장 많이 올라온
+        // 카테고리 색으로 셀 배경까지 옅게 물들여서, 탭 없이도 "무슨 날인지" 한눈에 들어오게 한다.
+        let dominant = null;
+        if (items.length) {
+          const freq = {};
+          items.forEach(v => { freq[v.category] = (freq[v.category] || 0) + 1; });
+          dominant = Object.keys(freq).sort((a, b) => freq[b] - freq[a])[0];
+        }
+        const domColor = dominant ? ytCatMeta(dominant).color : null;
+        const cellStyle = domColor ? ` style="background:color-mix(in srgb, ${domColor} 13%, var(--card))"` : '';
+        const chips = items.slice(0, 3).map(v => {
+          const meta = ytCatMeta(v.category);
+          return `<span class="yt-dot" style="background:color-mix(in srgb, ${meta.color} 20%, white)" title="${esc(meta.label)}">${meta.emoji}</span>`;
+        }).join('');
         const more = items.length > 3 ? `<span class="yt-more">+${items.length - 3}</span>` : '';
-        cells += `<div id="ytCell-${d}" class="yt-cell${items.length ? ' has' : ''}${isThisMonth && d === todayKst.d ? ' today' : ''}" ${items.length ? `onclick="ytShowDay(${d})"` : ''}>
-          <div class="yt-daynum">${d}</div>
-          <div class="yt-dots">${dots}${more}</div>
+        cells += `<div id="ytCell-${d}" class="yt-cell${items.length ? ' has' : ''}${isToday ? ' today' : ''}${dowCls}"${cellStyle} ${items.length ? `onclick="ytShowDay(${d})"` : ''}>
+          <div class="yt-daynum">${isToday ? `<span class="yt-daynum-today">${d}</span>` : d}</div>
+          <div class="yt-dots">${chips}${more}</div>
         </div>`;
       }
       return `
-      <div class="yt-cal-head">${['일', '월', '화', '수', '목', '금', '토'].map(w => `<div>${w}</div>`).join('')}</div>
+      <div class="yt-cal-head">${['일', '월', '화', '수', '목', '금', '토'].map((w, i) => `<div class="${i === 0 ? 'sun' : i === 6 ? 'sat' : ''}">${w}</div>`).join('')}</div>
       <div class="yt-cal-grid">${cells}</div>`;
     }
 
