@@ -60,7 +60,8 @@ function classify(title, isShort) {
   if (/trailer/i.test(t) || t.includes('트레일러')) return 'trailer';
   if (t.includes('계체')) return 'weigh-in';
   if (t.includes('티켓') || t.includes('직관')) return 'ticket-promo';
-  if (t.includes('미디어데이')) return 'media-day';
+  // 띄어쓰기("미디어 데이")/영문 표기까지 넓게 잡는다 — index.html의 ytClassify()와 동일
+  if (/미디어\s*데이/.test(t) || /media\s*day/i.test(t)) return 'media-day';
   if (/vs/i.test(t)) return 'matchup';
   return 'talk';
 }
