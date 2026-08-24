@@ -9314,9 +9314,8 @@
     }
 
     .yt-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
+      font-size: 10px;
+      line-height: 1;
       flex-shrink: 0
     }
 
@@ -9447,18 +9446,19 @@
     }
 
     .yt-pred-hero {
-      margin-top: 12px;
+      margin-top: 0;
       border-radius: 18px;
       padding: 18px;
-      background: linear-gradient(160deg, #1a1d24, #12141a);
-      color: #fff;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, .25)
+      background: linear-gradient(165deg, var(--key-soft), var(--card) 55%);
+      border: 1.5px solid var(--key);
+      color: var(--text);
+      box-shadow: 0 8px 24px rgba(37, 99, 235, .14)
     }
 
     .yt-pred-hero-label {
       font-size: 11.5px;
       font-weight: 800;
-      color: rgba(255, 255, 255, .55);
+      color: var(--key-deep);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -9471,14 +9471,14 @@
       gap: 8px;
       margin-top: 10px;
       padding: 9px 11px;
-      background: rgba(255, 255, 255, .06);
-      border: 1px solid rgba(255, 255, 255, .1);
+      background: #fff;
+      border: 1px solid var(--border);
       border-radius: 10px
     }
 
     .yt-event-dday {
-      background: #fff;
-      color: #14161c;
+      background: var(--key-deep);
+      color: #fff;
       font-size: 11px;
       font-weight: 900;
       padding: 2px 7px;
@@ -9489,7 +9489,7 @@
     .yt-event-title {
       font-size: 12px;
       font-weight: 700;
-      color: rgba(255, 255, 255, .9);
+      color: var(--text);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap
@@ -9497,7 +9497,7 @@
 
     .yt-event-date {
       font-size: 10.5px;
-      color: rgba(255, 255, 255, .5);
+      color: var(--dim);
       flex-shrink: 0;
       margin-left: auto;
       padding-left: 8px
@@ -9507,18 +9507,20 @@
       font-size: 20px;
       font-weight: 900;
       margin-top: 12px;
-      line-height: 1.35
+      line-height: 1.35;
+      color: var(--text)
     }
 
     .yt-pred-hero-time {
       font-size: 12px;
-      color: rgba(255, 255, 255, .6);
+      color: var(--muted);
       margin-top: 4px
     }
 
     .yt-pred-badge-light {
-      background: rgba(255, 255, 255, .12);
-      color: rgba(255, 255, 255, .75);
+      background: #fff;
+      color: var(--key-deep);
+      border: 1px solid var(--key-soft);
       font-size: 10px;
       font-weight: 800;
       padding: 2px 8px;
@@ -9536,22 +9538,22 @@
     .yt-prob-day {
       flex: 1;
       min-width: 40px;
-      background: rgba(255, 255, 255, .06);
-      border: 1px solid rgba(255, 255, 255, .07);
+      background: #fff;
+      border: 1px solid var(--border);
       border-radius: 10px;
       padding: 7px 2px 8px;
       text-align: center
     }
 
     .yt-prob-day.top {
-      background: #fff;
-      border-color: #fff;
-      color: #14161c
+      background: var(--key-deep);
+      border-color: var(--key-deep);
+      color: #fff
     }
 
     .yt-prob-day.event-day {
-      background: rgba(198, 40, 40, .16);
-      border-color: rgba(255, 100, 100, .5)
+      background: #fdecec;
+      border-color: #f2b8b8
     }
 
     .yt-prob-icon {
@@ -9562,65 +9564,79 @@
 
     .yt-prob-dow {
       font-size: 9.5px;
-      color: rgba(255, 255, 255, .5)
+      color: var(--dim)
     }
 
     .yt-prob-day.top .yt-prob-dow {
-      color: rgba(20, 22, 28, .55)
+      color: rgba(255, 255, 255, .7)
     }
 
     .yt-prob-date {
       font-size: 12px;
       font-weight: 800;
-      margin-top: 1px
+      margin-top: 1px;
+      color: var(--text)
+    }
+
+    .yt-prob-day.top .yt-prob-date {
+      color: #fff
     }
 
     .yt-prob-pct {
       font-size: 11px;
       font-weight: 900;
-      margin-top: 4px
+      margin-top: 4px;
+      color: var(--key-deep)
+    }
+
+    .yt-prob-day.top .yt-prob-pct {
+      color: #fff
     }
 
     .yt-prob-bar-track {
       height: 3px;
       border-radius: 2px;
-      background: rgba(255, 255, 255, .15);
+      background: var(--border);
       margin-top: 5px;
       overflow: hidden
     }
 
     .yt-prob-bar-fill {
       height: 100%;
-      background: rgba(255, 255, 255, .8);
+      background: var(--key-deep);
       border-radius: 2px
     }
 
     .yt-prob-day.top .yt-prob-bar-track {
-      background: var(--key-soft)
+      background: rgba(255, 255, 255, .3)
     }
 
     .yt-prob-day.top .yt-prob-bar-fill {
-      background: var(--key-deep)
+      background: #fff
     }
 
     .yt-prob-live {
       font-size: 8px;
       font-weight: 900;
-      color: #ff6b6b;
+      color: var(--red);
       margin-top: 3px;
       letter-spacing: .2px
     }
 
+    .yt-prob-day.top .yt-prob-live {
+      color: #ffd6d6
+    }
+
     .yt-pred-legend {
       font-size: 10.5px;
-      color: rgba(255, 255, 255, .55);
+      color: var(--muted);
       margin-top: 10px;
       line-height: 1.6
     }
 
     .yt-pred-hero-note {
       font-size: 10.5px;
-      color: rgba(255, 255, 255, .4);
+      color: var(--dim);
       margin-top: 10px;
       line-height: 1.5
     }
@@ -10888,6 +10904,7 @@
       <span style="min-width:0">
         <span style="font-weight:800">${esc(a.title || '')}</span>
         <span class="badge" style="margin-left:6px;font-size:10.5px;${isActive ? 'background:var(--key-soft);color:var(--key-deep)' : 'background:#eef1f4;color:var(--dim)'}">${isActive ? '노출 중' : '노출 기간 아님'}</span>
+        ${a.evtType ? `<span class="badge" style="margin-left:4px;font-size:10.5px;background:#fdece0;color:#ea580c">🎬 ${esc(YT_EVT_TYPE_LABEL[a.evtType] || a.evtType)}${a.evtAt ? ' · ' + esc(new Date(a.evtAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })) : ''}</span>` : ''}
         <div style="font-size:11.5px;color:var(--dim);font-weight:600;margin-top:2px">${esc(annPeriodText(a) || '기간 제한 없음')}</div>
       </span>
       <span style="display:inline-flex;gap:5px;flex-wrap:wrap;flex-shrink:0">
@@ -10912,6 +10929,8 @@
       if (!willOpen) { box.style.display = 'none'; if (btn) btn.textContent = '➕ 새 공지 추가'; return; }
       const editing = editId ? ANNOUNCEMENTS.find(a => a.id === editId) : null;
       document.getElementById('ann-title').value = editing ? (editing.title || '') : '';
+      document.getElementById('ann-evttype').value = editing ? (editing.evtType || '') : '';
+      document.getElementById('ann-evtat').value = isoToLocalInput(editing && editing.evtAt);
       // 저장된 값은 UTC(...Z)라서 그냥 앞 16자만 자르면 시간대가 어긋난다(예: 16:00 저장 → 07:00로 보임).
       // datetime-local 입력칸은 "그 기기의 로컬 시각" 문자열을 원하므로, Date로 파싱해 로컬 시/분으로 다시 조립한다.
       document.getElementById('ann-start').value = isoToLocalInput(editing && editing.start);
@@ -10932,6 +10951,8 @@
     function editAnnouncement(id) { toggleAnnBox(id); }
     async function submitAnnouncement() {
       const title = document.getElementById('ann-title').value.trim();
+      const evtType = document.getElementById('ann-evttype').value;
+      const evtAt = document.getElementById('ann-evtat').value;
       const start = document.getElementById('ann-start').value;
       const end = document.getElementById('ann-end').value;
       const venue = document.getElementById('ann-venue').value.trim();
@@ -10948,7 +10969,8 @@
       const item = {
         id: editId || ('ann_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
         title, start: start ? new Date(start).toISOString() : '', end: end ? new Date(end).toISOString() : '',
-        venue, price, body, link, linkText
+        venue, price, body, link, linkText,
+        evtType: evtType || '', evtAt: (evtType && evtAt) ? new Date(evtAt).toISOString() : ''
       };
       const next = editId ? ANNOUNCEMENTS.map(a => a.id === editId ? item : a) : ANNOUNCEMENTS.concat([item]);
       const error = await saveAnnouncements(next);
@@ -17111,6 +17133,9 @@
       'media-day': { label: '미디어데이', emoji: '📸', color: '#0d9488' },
     };
     function ytCatMeta(cat) { return YT_CATS[cat] || { label: cat || '기타', emoji: '🎥', color: '#64748b' }; }
+    // 공지(announcements)에 관리자가 태깅하는 "실제 경기 관련 이벤트" 종류 — 미디어데이 등
+    // 유튜브 영상은 아니지만 업로드 예측에 참고 신호로 쓰기 위한 것.
+    const YT_EVT_TYPE_LABEL = { 'media-day': '미디어데이', 'weigh-in': '계체', presser: '기자회견', 'ticket-open': '티켓 오픈', etc: '기타 이벤트' };
     function ytMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; }
     function ytMonthAdd(key, delta) {
       const [y, m] = key.split('-').map(Number);
@@ -17149,32 +17174,91 @@
       } catch (e) { return { nextEvent: null, lastEvent: null }; }
     }
 
-    // 특정 날짜가 "경기 컨텍스트" 상 어느 국면인지 판정해서 가중치 배율 + 표시용 라벨을 준다.
-    // 순수 요일 빈도만 보는 것보다, 실제 경기 일정과의 거리를 반영해야 비수기/경기 주간을
-    // 구분할 수 있다는 피드백을 반영해 추가한 로직.
-    // dayDate는 로컬로 직접 구성한 "날짜만 있는" Date라 그대로 y/m/d를 읽어도 안전하지만,
-    // nextEvent._t/lastEvent._t는 실제 UTC 시각이므로 반드시 ytKstParts로 KST 기준 날짜를
-    // 뽑아야 한다(여기서도 로컬 타임존 의존 버그를 피하기 위해).
-    function ytEventPhase(dayDate, nextEvent, lastEvent) {
+    // 관리자가 공지(announcements)에 "실제 행사 일시"로 태깅해둔 미디어데이/계체 등 —
+    // 유튜브 영상은 아니지만("게시물"로만 안내되는 이벤트) 실제로 있었던 이벤트라는 신호로 쓴다.
+    // 과거 것만 대상으로, 가장 최근 것 하나만 사용(너무 오래된 건 의미 없으니 10일 이내만).
+    async function ytFetchMilestone() {
+      try {
+        const { items } = await fetchAnnouncements();
+        const now = svrNow().getTime();
+        const tagged = (items || []).filter(a => a.evtType && a.evtAt).map(a => ({
+          title: a.title, evtType: a.evtType, _t: new Date(a.evtAt).getTime(),
+        }));
+        const past = tagged.filter(a => a._t < now && (now - a._t) <= 10 * 86400000).sort((a, b) => b._t - a._t)[0];
+        return past || null;
+      } catch (e) { return null; }
+    }
+
+    // yt_get_event_lead_times() — 카테고리별로 "실제 과거 경기 대비 며칠 전/후에 올라왔는지"
+    // 실측 중앙값. 이걸로 트레일러/계체/미디어데이 등이 진짜 언제쯤 올라오는지 판단한다
+    // (임의로 정한 구간이 아니라).
+    async function ytFetchEventLeadTimes() {
+      try {
+        const { data } = await sb.rpc('yt_get_event_lead_times');
+        return (data && data.ok) ? data : null;
+      } catch (e) { return null; }
+    }
+
+    // 사전 예고성 콘텐츠로 볼 만한 카테고리만 대상으로 한다 (매치업/토크/Shorts는 "예고"가 아니라
+    // 결과물이라 여기 포함하면 논리가 이상해짐)
+    const YT_PRE_EVENT_CATS = ['trailer', 'ticket-promo', 'media-day', 'weigh-in'];
+    const YT_POST_EVENT_CATS = ['matchup', 'talk'];
+
+    // 특정 날짜가 "경기 컨텍스트" 상 어느 국면인지 판정. 요일 빈도만 보던 v1을 넘어서,
+    // yt_get_event_lead_times()로 실측한 "카테고리별 실제 D-n 중앙값"에 이 날짜가 가까우면
+    // 그 카테고리로 라벨링한다 — 임의로 정한 구간이 아니라 진짜 과거 데이터 기반.
+    // leadTimes가 없으면(SQL 미적용 등) 억지로 꾸미지 않고 경기 당일만 판정한다.
+    function ytEventPhase(dayDate, nextEvent, lastEvent, leadTimes) {
       const dayMs = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate()).getTime();
       if (nextEvent) {
         const evKst = ytKstParts(nextEvent._t);
         const evDayMs = new Date(evKst.y, evKst.m - 1, evKst.d).getTime();
         const diff = Math.round((evDayMs - dayMs) / 86400000); // 양수: 경기 전 D-n
         if (diff === 0) return { type: 'event-day', label: '경기 당일', weight: 0.7, event: nextEvent };
-        if (diff >= 1 && diff <= 3) return { type: 'pre-hype', icon: '🔥', label: '트레일러·계체 소식 유력', weight: 1.9, event: nextEvent };
-        if (diff >= 4 && diff <= 7) return { type: 'fight-week', icon: '📣', label: '경기 주간 콘텐츠 증가 구간', weight: 1.3, event: nextEvent };
+        if (diff > 0 && leadTimes && leadTimes.pre_event) {
+          let best = null;
+          YT_PRE_EVENT_CATS.forEach(cat => {
+            const e = leadTimes.pre_event[cat];
+            if (!e || e.n < 3) return; // 표본 3건 미만이면 근거로 쓰지 않음
+            if (Math.abs(diff - e.median_days_before) > 1.5) return; // 이 날짜와 안 맞음
+            if (!best || e.n > best.n) best = { cat, ...e };
+          });
+          if (best) {
+            const meta = ytCatMeta(best.cat);
+            return {
+              type: 'pre-event-cat', cat: best.cat, icon: meta.emoji,
+              label: `${meta.label} 유력 (과거 평균 D-${best.median_days_before}, ${best.n}건 분석)`,
+              weight: Math.min(2.2, 1 + best.n * 0.15), event: nextEvent,
+            };
+          }
+        }
       }
       if (lastEvent) {
         const evKst = ytKstParts(lastEvent._t);
         const evDayMs = new Date(evKst.y, evKst.m - 1, evKst.d).getTime();
         const diff = Math.round((dayMs - evDayMs) / 86400000); // 양수: 경기 후 며칠
-        if (diff >= 0 && diff <= 2) return { type: 'post-event', icon: '⭐', label: '경기 하이라이트 유력', weight: 1.5, event: lastEvent };
+        if (diff >= 0 && leadTimes && leadTimes.post_event) {
+          let best = null;
+          YT_POST_EVENT_CATS.forEach(cat => {
+            const e = leadTimes.post_event[cat];
+            if (!e || e.n < 3) return;
+            if (Math.abs(diff - e.median_days_after) > 1.5) return;
+            if (!best || e.n > best.n) best = { cat, ...e };
+          });
+          if (best) {
+            const meta = ytCatMeta(best.cat);
+            return {
+              type: 'post-event-cat', cat: best.cat, icon: meta.emoji === '🎥' ? '⭐' : meta.emoji,
+              label: `${meta.label} 유력 (경기 후 평균 D+${best.median_days_after}, ${best.n}건 분석)`,
+              weight: Math.min(2.2, 1 + best.n * 0.15), event: lastEvent,
+            };
+          }
+        }
       }
       return null;
     }
 
-    function ytPredictionHeroHTML(stats90, stats365, nextEvent, lastEvent) {
+    function ytPredictionHeroHTML(stats90, stats365, nextEvent, lastEvent, leadTimes, milestone) {
       if (!stats90 || stats90.ok === false || !stats90.sample_n) {
         return `<div class="card" style="margin-top:12px"><div class="note">아직 예측할 만큼 데이터가 충분하지 않아요.</div></div>`;
       }
@@ -17196,20 +17280,27 @@
       const hoursSince = lastPub ? Math.round((Date.now() - lastPub.getTime()) / 3600000) : null;
       const hoursSinceText = hoursSince != null ? (hoursSince < 24 ? `${hoursSince}시간` : `${Math.round(hoursSince / 24)}일`) : null;
 
-      // 앞으로 7일: (요일 빈도 베이스라인) × (경기 일정 근접도 배율)을 곱해서 합 100%로 정규화.
+      // 최근 태깅된 이벤트(미디어데이 등)가 며칠 전이었는지 — 있으면 그 이후 며칠간 소폭 가중
+      const today = ytTodayKST();
+      const milestoneDayMs = milestone ? (() => { const k = ytKstParts(milestone._t); return new Date(k.y, k.m - 1, k.d).getTime(); })() : null;
+
+      // 앞으로 7일: (요일 빈도 베이스라인) × (경기 일정 근접도 배율, 실측 D-n 기반) × (최근 이벤트 보정)
       // 경기 당일은 "라이브는 확정, 그 외 일반 콘텐츠는 오히려 준비 때문에 줄어들 수 있다"는
       // 피드백을 반영해 배율을 낮추고, 별도의 LIVE 표시로 분리해서 보여준다.
-      const today = ytTodayKST();
       const base = new Date(today.y, today.m - 1, today.d);
       const days = [];
       let weightSum = 0;
       for (let i = 0; i < 7; i++) {
         const dt = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
         const dow = dt.getDay() === 0 ? 7 : dt.getDay();
-        const phase = ytEventPhase(dt, nextEvent, lastEvent);
-        const w = dowWeight[dow] * (phase ? phase.weight : 1.0);
+        const phase = ytEventPhase(dt, nextEvent, lastEvent, leadTimes);
+        let w = dowWeight[dow] * (phase ? phase.weight : 1.0);
+        const dayMs = dt.getTime();
+        const daysSinceMilestone = milestoneDayMs != null ? Math.round((dayMs - milestoneDayMs) / 86400000) : null;
+        const milestoneBoost = (daysSinceMilestone != null && daysSinceMilestone >= 0 && daysSinceMilestone <= 4 && phase?.type !== 'event-day');
+        if (milestoneBoost) w *= 1.3;
         weightSum += w;
-        days.push({ date: dt, dow, w, phase });
+        days.push({ date: dt, dow, w, phase, milestoneBoost });
       }
       days.forEach(d => { d.pct = weightSum ? Math.round(d.w / weightSum * 100) : Math.round(100 / days.length); });
       let topDay = days.filter(d => d.phase?.type !== 'event-day')[0] || days[0];
@@ -17221,18 +17312,25 @@
       const topDateText = `${topDay.date.getMonth() + 1}월 ${topDay.date.getDate()}일 (${YT_DOW_LABEL[topDay.dow]})`;
       const topPhaseQualifier = topDay.phase ? ` · ${topDay.phase.label}` : '';
 
-      // 이번 주 안에 등장하는 국면들을 모아 범례 한 줄로 설명 (각 셀엔 아이콘만 표시)
+      // 이번 주 안에 등장하는 국면들을 모아 범례 문장으로 풀어준다 (각 셀엔 아이콘만 표시하니까)
       const legendParts = [];
       const seenTypes = new Set();
       days.forEach(d => {
-        if (!d.phase || seenTypes.has(d.phase.type)) return;
-        seenTypes.add(d.phase.type);
+        if (!d.phase || seenTypes.has(d.phase.type + (d.phase.cat || ''))) return;
+        seenTypes.add(d.phase.type + (d.phase.cat || ''));
         if (d.phase.type === 'event-day') {
           legendParts.push(`🔴 ${d.date.getMonth() + 1}/${d.date.getDate()}(${YT_DOW_LABEL[d.dow]})은 ${esc(d.phase.event.title)} 경기 당일 — 라이브 중계는 확정적으로 진행되고, 그 외 일반 영상은 준비 때문에 평소보다 적게 올라올 수 있어요`);
         } else {
-          legendParts.push(`${d.phase.icon} ${d.phase.label}`);
+          legendParts.push(`${d.phase.icon} ${d.date.getMonth() + 1}/${d.date.getDate()} — ${d.phase.label} · ${esc(d.phase.event.title)}`);
         }
       });
+      if (milestone) {
+        const mDate = new Date(milestone._t).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
+        legendParts.push(`📌 ${esc(YT_EVT_TYPE_LABEL[milestone.evtType] || milestone.evtType)} '${esc(milestone.title)}' (${mDate}) 이후라 관련 영상이 곧 올라올 가능성을 반영했어요`);
+      }
+      if (nextEvent && !leadTimes) {
+        legendParts.push(`⚠️ 카테고리별 실측 데이터(yt_get_event_lead_times)가 아직 없어서, 경기 당일 여부만 반영했어요.`);
+      }
 
       // 다음 경기 배지 (사이트 내 승부예측 tournaments 데이터 재사용)
       let eventLineHTML = '';
@@ -17252,7 +17350,7 @@
       return `
       <div class="yt-pred-hero">
         <div class="yt-pred-hero-label">
-          <span>📡 다음 업로드 예상</span>
+          <span>📡 다음 업로드 예상 (핵심)</span>
           <span class="yt-pred-badge-light">참고용</span>
         </div>
         ${eventLineHTML}
@@ -17261,7 +17359,7 @@
         <div class="yt-prob-strip">
           ${days.map(d => `
             <div class="yt-prob-day${d === topDay ? ' top' : ''}${d.phase?.type === 'event-day' ? ' event-day' : ''}">
-              <div class="yt-prob-icon">${d.phase?.type === 'event-day' ? '🔴' : (d.phase?.icon || '')}</div>
+              <div class="yt-prob-icon">${d.phase?.type === 'event-day' ? '🔴' : (d.phase?.icon || (d.milestoneBoost ? '📌' : ''))}</div>
               <div class="yt-prob-dow">${YT_DOW_LABEL[d.dow]}</div>
               <div class="yt-prob-date">${d.date.getDate()}</div>
               <div class="yt-prob-pct">${d.pct}%</div>
@@ -17270,7 +17368,7 @@
             </div>`).join('')}
         </div>
         ${legendParts.length ? `<div class="yt-pred-legend">${legendParts.join('<br>')}</div>` : ''}
-        <div class="yt-pred-hero-note">요일별 업로드 빈도 + 경기 일정 근접도를 함께 반영한 참고용 확률이에요. 실제 업로드는 다를 수 있어요 🙂</div>
+        <div class="yt-pred-hero-note">요일별 업로드 빈도 + 경기 일정 근접도(실측 D-n)를 함께 반영한 참고용 확률이에요. 실제 업로드는 다를 수 있어요 🙂</div>
       </div>`;
     }
 
@@ -17384,8 +17482,10 @@
       for (let i = 0; i < firstDow; i++) cells += `<div class="yt-cell empty"></div>`;
       for (let d = 1; d <= daysInMonth; d++) {
         const items = byDay[d] || [];
-        const dots = items.slice(0, 4).map(v => `<span class="yt-dot" style="background:${ytCatMeta(v.category).color}"></span>`).join('');
-        const more = items.length > 4 ? `<span class="yt-more">+${items.length - 4}</span>` : '';
+        // 동그라미만 찍어두면 뭐가 올라왔는지 눌러봐야 알 수 있어서 가독성이 떨어진다는
+        // 피드백 반영 — 카테고리 이모지를 그대로 보여줘서 탭 없이도 한눈에 파악되게 한다.
+        const dots = items.slice(0, 3).map(v => `<span class="yt-dot" title="${esc(ytCatMeta(v.category).label)}">${ytCatMeta(v.category).emoji}</span>`).join('');
+        const more = items.length > 3 ? `<span class="yt-more">+${items.length - 3}</span>` : '';
         cells += `<div id="ytCell-${d}" class="yt-cell${items.length ? ' has' : ''}${isThisMonth && d === todayKst.d ? ' today' : ''}" ${items.length ? `onclick="ytShowDay(${d})"` : ''}>
           <div class="yt-daynum">${d}</div>
           <div class="yt-dots">${dots}${more}</div>
@@ -17430,19 +17530,22 @@
       const fromStr = `${y}-${pad2(m)}-01`;
       const toStr = `${y}-${pad2(m)}-${pad2(daysInMonthForQuery)}`;
 
-      let videos = [], stats90 = null, stats365 = null, recent = [], nextEvent = null, lastEvent = null;
+      let videos = [], stats90 = null, stats365 = null, recent = [], nextEvent = null, lastEvent = null, leadTimes = null, milestone = null;
       try {
-        const [calRes, st90Res, st365Res, recentRes, eventsRes] = await Promise.all([
+        const [calRes, st90Res, st365Res, recentRes, eventsRes, leadTimesRes, milestoneRes] = await Promise.all([
           sb.rpc('yt_get_calendar', { p_from: fromStr, p_to: toStr }),
           sb.rpc('yt_get_stats', { p_days: 90 }),
           sb.rpc('yt_get_stats', { p_days: 365 }),
           sb.rpc('yt_get_recent', { p_limit: 5 }),
           ytFetchNearestEvents(),
+          ytFetchEventLeadTimes(),
+          ytFetchMilestone(),
         ]);
         videos = calRes.data || [];
         stats90 = st90Res.data; stats365 = st365Res.data;
         recent = recentRes.data || [];
         nextEvent = eventsRes.nextEvent; lastEvent = eventsRes.lastEvent;
+        leadTimes = leadTimesRes; milestone = milestoneRes;
       } catch (e) { return fail(e); }
 
       ytCalState = { month: monthKey, videos, catFilter: ytCalState.catFilter || null };
@@ -17450,8 +17553,8 @@
       $app.innerHTML = `
       <h1 class="page">🎬 업로드 캘린더</h1>
       <p class="sub">블랙컴뱃 공식 유튜브(@${esc(YT_CHANNEL_HANDLE)}) 업로드 이력과, 과거 패턴 기반 다음 영상 예상이에요.</p>
+      ${ytPredictionHeroHTML(stats90, stats365, nextEvent, lastEvent, leadTimes, milestone)}
       ${ytStatCardsHTML(videos.length, stats90)}
-      ${ytPredictionHeroHTML(stats90, stats365, nextEvent, lastEvent)}
       ${ytCycleChartHTML(videos, stats90)}
       <details class="card yt-cal-details" style="margin-top:12px" open>
         <summary>
@@ -23312,6 +23415,17 @@
     <button class="btn wide" id="ann-toggle" onclick="toggleAnnBox()">➕ 새 공지 추가</button>
     <div class="card" id="ann-box" style="display:none">
       <div class="field"><label>제목</label><input id="ann-title" placeholder="예: 블랙컴뱃 미디어데이"></div>
+      <div class="field"><label>실제 행사 종류 (선택) — 미디어데이/계체 등 경기 관련 이벤트면 지정. 유튜브 업로드 예측(#/videos)에서 "이 행사 이후 관련 영상이 곧 올라올 가능성" 신호로 씁니다. 배너 노출과는 무관.</label>
+        <select id="ann-evttype">
+          <option value="">(해당 없음 — 일반 공지)</option>
+          <option value="media-day">미디어데이</option>
+          <option value="weigh-in">계체</option>
+          <option value="presser">기자회견</option>
+          <option value="ticket-open">티켓 오픈</option>
+          <option value="etc">기타 경기 관련 이벤트</option>
+        </select>
+      </div>
+      <div class="field"><label>실제 행사 일시 (선택) — 위에서 종류를 지정했을 때만 사용</label><input id="ann-evtat" type="datetime-local"></div>
       <div class="field"><label>시작 (비우면 즉시 노출)</label><input id="ann-start" type="datetime-local"></div>
       <div class="field"><label>종료 (비우면 계속 노출)</label><input id="ann-end" type="datetime-local"></div>
       <div class="field"><label>장소 (선택)</label><input id="ann-venue" placeholder="예: 잠실 실내체육관"></div>
