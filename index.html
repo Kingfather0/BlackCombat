@@ -9547,21 +9547,17 @@
       align-items: center
     }
 
+    /* 가로 스크롤(overflow-x:auto)로 숨겨두면 스크롤바까지 숨겨서(scrollbar-width:none)
+       뒤에 카테고리가 더 있다는 티가 안 나 "카테고리가 옆으로 잘려서 안 보인다"는 지적을
+       받았다 — 전부 줄바꿈으로 펼쳐서 스크롤 없이 한 번에 다 보이게 바꿨다. */
     .yt-chip-scroll {
       display: flex;
+      flex-wrap: wrap;
       gap: 6px;
-      overflow-x: auto;
-      padding-bottom: 4px;
       margin-bottom: 10px;
-      scrollbar-width: none
-    }
-
-    .yt-chip-scroll::-webkit-scrollbar {
-      display: none
     }
 
     .yt-chip-scroll .yt-chip {
-      flex-shrink: 0;
       white-space: nowrap
     }
 
@@ -17176,7 +17172,10 @@
       if (/trailer/i.test(t) || t.includes('트레일러')) return 'trailer';
       if (t.includes('계체')) return 'weigh-in';
       if (t.includes('티켓') || t.includes('직관')) return 'ticket-promo';
-      if (t.includes('미디어데이')) return 'media-day';
+      // "미디어데이"를 붙여쓰지 않고 "미디어 데이"로 띄어 쓴 제목은 예전엔 못 잡았다 —
+      // 그런 영상은 그냥 'talk'로 잘못 분류돼서 경기 당일/사전 예측 근거 계산에서
+      // 조용히 빠지는 원인이 될 수 있어서, 띄어쓰기 유무와 영문 표기까지 넓게 잡는다.
+      if (/미디어\s*데이/.test(t) || /media\s*day/i.test(t)) return 'media-day';
       if (/vs/i.test(t)) return 'matchup';
       return 'talk';
     }
@@ -17391,6 +17390,11 @@
     // yt_get_event_lead_times()로 실측한 "카테고리별 실제 D-n 중앙값"에 이 날짜가 가까우면
     // 그 카테고리로 라벨링한다 — 임의로 정한 구간이 아니라 진짜 과거 데이터 기반.
     // leadTimes가 없으면(SQL 미적용 등) 억지로 꾸미지 않고 경기 당일만 판정한다.
+    // 표본이 3건 미만이면 확률(가중치)엔 반영하지 않되, "데이터가 아예 없다"고 침묵하는 대신
+    // "이런 사례가 있긴 했다(표본 적음)"는 사실 자체는 근거 텍스트로 보여준다 — 실제로 미디어데이/
+    // 계체 영상처럼 아직 경기를 몇 번 안 치러서 표본이 1~2건뿐인 카테고리가, 확률 계산에서
+    // 제외되는 것과 별개로 화면에서 완전히 사라져 "왜 반영이 안 되냐"는 지적을 받았던 문제 반영.
+    const YT_LOW_SAMPLE_N = 3;
     function ytEventPhase(dayDate, nextEvent, lastEvent, leadTimes, eventDayStats) {
       const dayMs = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate()).getTime();
       if (nextEvent) {
@@ -17400,40 +17404,50 @@
         if (diff === 0) {
           // "라이브 준비 때문에 일반 영상이 준다"는 건 근거 없이 지어낸 가정이라는 지적을
           // 반영 — 과거 경기 당일 실측(yt_get_event_day_stats) 대비 평소 하루 평균 비율을
-          // 그대로 가중치/설명 근거로 쓴다. 표본(경기 수)이 3건 미만이면 방향을 단정하지
-          // 않고 중립(가중치 1.0)으로 두고 "실측 데이터 부족" 사실만 밝힌다.
+          // 그대로 가중치/설명 근거로 쓴다. 표본(경기 수)이 3건 미만이면 확률에는 반영하지
+          // 않지만(가중치 1.0 유지), 있었던 사례 자체는 "표본 적음" 표시와 함께 보여준다.
           let weight = 1.0, evidence = null;
           if (eventDayStats) {
             let sumEvent = 0, sumBase = 0, maxN = 0;
             Object.keys(eventDayStats).forEach(cat => {
               const e = eventDayStats[cat];
-              if (!e || e.n_events < 3) return;
+              if (!e || !e.n_events) return;
               sumEvent += Number(e.avg_on_event_day) || 0;
               sumBase += Number(e.baseline_avg_per_day) || 0;
               maxN = Math.max(maxN, e.n_events);
             });
-            if (sumBase > 0 && maxN >= 3) {
+            if (sumBase > 0 && maxN > 0) {
               const ratio = Math.round((sumEvent / sumBase) * 100) / 100;
-              weight = Math.max(0.5, Math.min(2.2, ratio));
-              evidence = { ratio, n: maxN };
+              const lowSample = maxN < YT_LOW_SAMPLE_N;
+              if (!lowSample) weight = Math.max(0.5, Math.min(2.2, ratio));
+              evidence = { ratio, n: maxN, lowSample };
             }
           }
           return { type: 'event-day', label: '경기 당일', weight, event: nextEvent, evidence };
         }
         if (diff > 0 && leadTimes && leadTimes.pre_event) {
-          let best = null;
+          // 여러 카테고리가 같은 날짜 후보에 걸치면(예: 티켓/직관은 D-0~3처럼 넓게 퍼져 있고
+          // 계체는 딱 D-1에 몰려있는 경우), 예전엔 표본 수가 많은 카테고리가 항상 이겨서
+          // 계체/미디어데이처럼 아직 표본이 1~2건뿐인 카테고리는 날짜가 훨씬 더 정확히
+          // 들어맞아도 절대 표시되지 못했다 — 이제 "이 날짜와 얼마나 정확히 맞는지"를 먼저
+          // 보고, 맞는 정도가 같을 때만 표본 수로 우선순위를 가른다.
+          let best = null, bestDist = Infinity;
           YT_PRE_EVENT_CATS.forEach(cat => {
             const e = leadTimes.pre_event[cat];
-            if (!e || e.n < 3) return; // 표본 3건 미만이면 근거로 쓰지 않음
-            if (Math.abs(diff - e.median_days_before) > 1.5) return; // 이 날짜와 안 맞음
-            if (!best || e.n > best.n) best = { cat, ...e };
+            if (!e || e.n < 1) return; // 표본이 하나도 없으면 근거로 쓸 수 없음
+            const dist = Math.abs(diff - e.median_days_before);
+            if (dist > 1.5) return; // 이 날짜와 안 맞음
+            if (!best || dist < bestDist || (dist === bestDist && e.n > best.n)) { best = { cat, ...e }; bestDist = dist; }
           });
           if (best) {
             const meta = ytCatMeta(best.cat);
+            const lowSample = best.n < YT_LOW_SAMPLE_N;
             return {
-              type: 'pre-event-cat', cat: best.cat, icon: meta.emoji,
-              label: `${meta.label} 유력 (과거 평균 D-${best.median_days_before}, ${best.n}건 분석)`,
-              weight: Math.min(2.2, 1 + best.n * 0.15), event: nextEvent,
+              type: 'pre-event-cat', cat: best.cat, icon: meta.emoji, lowSample,
+              label: lowSample
+                ? `${meta.label} 영상이 올라올 수도 있어요 (과거 ${best.n}번 중 평균 D-${best.median_days_before} · 표본이 적어 참고만)`
+                : `${meta.label} 유력 (과거 평균 D-${best.median_days_before}, ${best.n}건 분석)`,
+              weight: lowSample ? 1.0 : Math.min(2.2, 1 + best.n * 0.15), event: nextEvent,
             };
           }
         }
@@ -17443,19 +17457,24 @@
         const evDayMs = new Date(evKst.y, evKst.m - 1, evKst.d).getTime();
         const diff = Math.round((dayMs - evDayMs) / 86400000); // 양수: 경기 후 며칠
         if (diff >= 0 && leadTimes && leadTimes.post_event) {
-          let best = null;
+          // pre_event와 동일한 이유로, 날짜가 더 정확히 맞는 카테고리를 표본 수보다 먼저 본다.
+          let best = null, bestDist = Infinity;
           YT_POST_EVENT_CATS.forEach(cat => {
             const e = leadTimes.post_event[cat];
-            if (!e || e.n < 3) return;
-            if (Math.abs(diff - e.median_days_after) > 1.5) return;
-            if (!best || e.n > best.n) best = { cat, ...e };
+            if (!e || e.n < 1) return;
+            const dist = Math.abs(diff - e.median_days_after);
+            if (dist > 1.5) return;
+            if (!best || dist < bestDist || (dist === bestDist && e.n > best.n)) { best = { cat, ...e }; bestDist = dist; }
           });
           if (best) {
             const meta = ytCatMeta(best.cat);
+            const lowSample = best.n < YT_LOW_SAMPLE_N;
             return {
-              type: 'post-event-cat', cat: best.cat, icon: meta.emoji === '🎥' ? '⭐' : meta.emoji,
-              label: `${meta.label} 유력 (경기 후 평균 D+${best.median_days_after}, ${best.n}건 분석)`,
-              weight: Math.min(2.2, 1 + best.n * 0.15), event: lastEvent,
+              type: 'post-event-cat', cat: best.cat, icon: meta.emoji === '🎥' ? '⭐' : meta.emoji, lowSample,
+              label: lowSample
+                ? `${meta.label} 영상이 올라올 수도 있어요 (경기 후 과거 ${best.n}번 중 평균 D+${best.median_days_after} · 표본이 적어 참고만)`
+                : `${meta.label} 유력 (경기 후 평균 D+${best.median_days_after}, ${best.n}건 분석)`,
+              weight: lowSample ? 1.0 : Math.min(2.2, 1 + best.n * 0.15), event: lastEvent,
             };
           }
         }
@@ -17466,17 +17485,35 @@
     // 각 요일 막대의 %가 왜 그 값인지 — 상위 후보 요일만 근거가 있고 나머지 요일은 눌러도
     // 아무 설명이 없다는 지적 반영. 7일 전부 탭하면 실제 근거(요일별 실측 건수/비율 +
     // 경기 국면 근거)가 뜨도록 모든 날짜가 공유하는 포맷터를 만든다.
+    // 문구는 "실측 N건 중 M%가 이 요일에 올라왔어요" 같은 통계 보고서 말투 대신, 이 요일이
+    // 평소보다 잦은 편인지/드문 편인지를 먼저 말로 설명하고 숫자는 괄호로 보조하는 방식으로
+    // 바꿨다 — 숫자만 봐서는 이게 많은 건지 적은 건지 바로 안 와닿는다는 지적 반영
+    // (7일 균등이면 대략 14%가 기준선이라, 그보다 눈에 띄게 높은지/낮은지로 말해준다).
     function ytDayEvidenceLines(d) {
       const lines = [];
-      lines.push(`${YT_DOW_LABEL[d.dow]}요일: 실측 ${d.dowCount}건 중 ${d.dowPct != null ? d.dowPct : '-'}%가 이 요일에 올라왔어요`);
+      const dow = YT_DOW_LABEL[d.dow];
+      const win = d.dowWindowLabel || '최근 1년';
+      if (d.dowPct == null) {
+        lines.push(`${dow}요일 업로드 데이터가 아직 부족해요`);
+      } else if (d.dowPct >= 20) {
+        lines.push(`${dow}요일엔 원래 업로드가 잦은 편이에요 (${win} ${d.dowCount}건 중 ${d.dowPct}%)`);
+      } else if (d.dowPct <= 9) {
+        lines.push(`${dow}요일엔 원래 업로드가 드문 편이에요 (${win} ${d.dowCount}건 중 ${d.dowPct}%)`);
+      } else {
+        lines.push(`${dow}요일 업로드는 평균 수준이에요 (${win} ${d.dowCount}건 중 ${d.dowPct}%)`);
+      }
       if (d.phase) {
         if (d.phase.type === 'event-day') {
           const ev = d.phase.evidence;
-          lines.push(ev
-            ? (ev.ratio >= 1.1 ? `경기 당일 · 과거 평균(${ev.n}회 경기) 대비 ${ev.ratio}배 더 올라왔어요`
+          if (!ev) {
+            lines.push('경기 당일 · 실측 데이터가 아직 없어요');
+          } else if (ev.lowSample) {
+            lines.push(`경기 당일 · 과거 ${ev.n}번 경기에선 평소 대비 ${ev.ratio}배였어요 (표본이 적어 참고만 하세요)`);
+          } else {
+            lines.push(ev.ratio >= 1.1 ? `경기 당일 · 과거 평균(${ev.n}회 경기) 대비 ${ev.ratio}배 더 올라왔어요`
               : ev.ratio <= 0.9 ? `경기 당일 · 과거 평균(${ev.n}회 경기) 대비 ${Math.round((1 - ev.ratio) * 100)}% 적게 올라왔어요`
-                : `경기 당일 · 과거 평균(${ev.n}회 경기)과 비슷했어요`)
-            : '경기 당일 · 실측 데이터가 부족해서 방향은 반영하지 않았어요');
+                : `경기 당일 · 과거 평균(${ev.n}회 경기)과 비슷했어요`);
+          }
         } else {
           lines.push(d.phase.label);
         }
@@ -17512,8 +17549,11 @@
         : peakHour < 12 ? `오전 ${peakHour}시` : `오후 ${peakHour - 12}시`;
 
       // 요일별 가중치: 1년치가 있으면 그걸, 없으면 90일치로 대체 (과거 패턴의 "베이스라인")
-      const dh = (stats365 && stats365.ok && stats365.dow_histogram_kst && Object.keys(stats365.dow_histogram_kst).length)
-        ? stats365.dow_histogram_kst : (stats90.dow_histogram_kst || {});
+      // 실제로 어느 쪽을 썼는지는 근거 문구에도 정확히 반영한다 — 채널 이력이 아직 짧아서
+      // 90일치만 있는데 "최근 1년"이라고 써버리면 그것도 근거 없는 문구가 되어버린다.
+      const use365 = !!(stats365 && stats365.ok && stats365.dow_histogram_kst && Object.keys(stats365.dow_histogram_kst).length);
+      const dh = use365 ? stats365.dow_histogram_kst : (stats90.dow_histogram_kst || {});
+      const dowWindowLabel = use365 ? '최근 1년' : '최근 90일';
       const dowWeight = {};
       for (let i = 1; i <= 7; i++) dowWeight[i] = Number(dh[i]) || 0.5;
       // 상위 후보 요일에만 근거가 있고 나머지는 눌러도 아무 설명이 없다는 지적 반영 —
@@ -17561,7 +17601,7 @@
         weightSum += w;
         const dowCount = Number(dh[dow]) || 0;
         const dowPct = dhTotal ? Math.round(dowCount / dhTotal * 100) : null;
-        days.push({ date: dt, dow, w, phase, milestoneBoost, dowCount, dowPct });
+        days.push({ date: dt, dow, w, phase, milestoneBoost, dowCount, dowPct, dowWindowLabel });
       }
       days.forEach(d => { d.pct = weightSum ? Math.round(d.w / weightSum * 100) : Math.round(100 / days.length); });
       // 예전엔 경기 당일을 "1순위 후보"에서 무조건 제외했는데, 그건 "당일엔 콘텐츠가 준다"는
