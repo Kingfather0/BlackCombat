@@ -9607,6 +9607,12 @@
       border-color: #f2b8b8
     }
 
+    .yt-prob-day.top.event-day {
+      background: var(--key-deep);
+      border-color: var(--red);
+      border-width: 2px
+    }
+
     .yt-prob-icon {
       font-size: 10px;
       height: 12px;
@@ -17250,6 +17256,16 @@
       } catch (e) { return null; }
     }
 
+    // 경기 당일 실제로 카테고리별 업로드가 평소보다 늘었는지/줄었는지 — "라이브 때문에
+    // 준비하느라 일반 영상이 준다"는 임의 가정 대신, 과거 경기 당일 실측 대비 평소 하루
+    // 평균 비율(ratio)을 그대로 근거로 쓴다.
+    async function ytFetchEventDayStats() {
+      try {
+        const { data } = await sb.rpc('yt_get_event_day_stats');
+        return (data && data.ok && data.by_category) ? data.by_category : null;
+      } catch (e) { return null; }
+    }
+
     // 사전 예고성 콘텐츠로 볼 만한 카테고리만 대상으로 한다 (매치업/토크/Shorts는 "예고"가 아니라
     // 결과물이라 여기 포함하면 논리가 이상해짐)
     const YT_PRE_EVENT_CATS = ['trailer', 'ticket-promo', 'media-day', 'weigh-in'];
@@ -17259,13 +17275,35 @@
     // yt_get_event_lead_times()로 실측한 "카테고리별 실제 D-n 중앙값"에 이 날짜가 가까우면
     // 그 카테고리로 라벨링한다 — 임의로 정한 구간이 아니라 진짜 과거 데이터 기반.
     // leadTimes가 없으면(SQL 미적용 등) 억지로 꾸미지 않고 경기 당일만 판정한다.
-    function ytEventPhase(dayDate, nextEvent, lastEvent, leadTimes) {
+    function ytEventPhase(dayDate, nextEvent, lastEvent, leadTimes, eventDayStats) {
       const dayMs = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate()).getTime();
       if (nextEvent) {
         const evKst = ytKstParts(nextEvent._t);
         const evDayMs = new Date(evKst.y, evKst.m - 1, evKst.d).getTime();
         const diff = Math.round((evDayMs - dayMs) / 86400000); // 양수: 경기 전 D-n
-        if (diff === 0) return { type: 'event-day', label: '경기 당일', weight: 0.7, event: nextEvent };
+        if (diff === 0) {
+          // "라이브 준비 때문에 일반 영상이 준다"는 건 근거 없이 지어낸 가정이라는 지적을
+          // 반영 — 과거 경기 당일 실측(yt_get_event_day_stats) 대비 평소 하루 평균 비율을
+          // 그대로 가중치/설명 근거로 쓴다. 표본(경기 수)이 3건 미만이면 방향을 단정하지
+          // 않고 중립(가중치 1.0)으로 두고 "실측 데이터 부족" 사실만 밝힌다.
+          let weight = 1.0, evidence = null;
+          if (eventDayStats) {
+            let sumEvent = 0, sumBase = 0, maxN = 0;
+            Object.keys(eventDayStats).forEach(cat => {
+              const e = eventDayStats[cat];
+              if (!e || e.n_events < 3) return;
+              sumEvent += Number(e.avg_on_event_day) || 0;
+              sumBase += Number(e.baseline_avg_per_day) || 0;
+              maxN = Math.max(maxN, e.n_events);
+            });
+            if (sumBase > 0 && maxN >= 3) {
+              const ratio = Math.round((sumEvent / sumBase) * 100) / 100;
+              weight = Math.max(0.5, Math.min(2.2, ratio));
+              evidence = { ratio, n: maxN };
+            }
+          }
+          return { type: 'event-day', label: '경기 당일', weight, event: nextEvent, evidence };
+        }
         if (diff > 0 && leadTimes && leadTimes.pre_event) {
           let best = null;
           YT_PRE_EVENT_CATS.forEach(cat => {
@@ -17309,7 +17347,7 @@
       return null;
     }
 
-    function ytPredictionHeroHTML(stats90, stats365, nextEvent, lastEvent, leadTimes, milestone) {
+    function ytPredictionHeroHTML(stats90, stats365, nextEvent, lastEvent, leadTimes, milestone, eventDayStats) {
       if (!stats90 || stats90.ok === false || !stats90.sample_n) {
         return `<div class="card" style="margin-top:12px"><div class="note">아직 예측할 만큼 데이터가 충분하지 않아요.</div></div>`;
       }
@@ -17353,15 +17391,16 @@
       }
 
       // 앞으로 7일: (요일 빈도 베이스라인) × (경기 일정 근접도 배율, 실측 D-n 기반) × (최근 이벤트 보정)
-      // 경기 당일은 "라이브는 확정, 그 외 일반 콘텐츠는 오히려 준비 때문에 줄어들 수 있다"는
-      // 피드백을 반영해 배율을 낮추고, 별도의 LIVE 표시로 분리해서 보여준다.
+      // 경기 당일 배율은 더 이상 "준비 때문에 줄어든다"는 임의 가정이 아니라, 과거 경기
+      // 당일 실측 대비 평소 하루 평균 비율(yt_get_event_day_stats)을 그대로 쓴다. 라이브
+      // 방송 자체는 별도 LIVE 표시로 분리해서 보여준다.
       const base = new Date(today.y, today.m - 1, today.d);
       const days = [];
       let weightSum = 0;
       for (let i = 0; i < 7; i++) {
         const dt = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
         const dow = dt.getDay() === 0 ? 7 : dt.getDay();
-        const phase = ytEventPhase(dt, nextEvent, lastEvent, leadTimes);
+        const phase = ytEventPhase(dt, nextEvent, lastEvent, leadTimes, eventDayStats);
         let w = dowWeight[dow] * (phase ? phase.weight : 1.0);
         const dayMs = dt.getTime();
         const daysSinceMilestone = milestoneDayMs != null ? Math.round((dayMs - milestoneDayMs) / 86400000) : null;
@@ -17371,33 +17410,50 @@
         days.push({ date: dt, dow, w, phase, milestoneBoost });
       }
       days.forEach(d => { d.pct = weightSum ? Math.round(d.w / weightSum * 100) : Math.round(100 / days.length); });
-      let topDay = days.filter(d => d.phase?.type !== 'event-day')[0] || days[0];
-      days.forEach(d => { if (d.phase?.type !== 'event-day' && d.pct > topDay.pct) topDay = d; });
+      // 예전엔 경기 당일을 "1순위 후보"에서 무조건 제외했는데, 그건 "당일엔 콘텐츠가 준다"는
+      // 임의 가정이 있을 때나 맞는 얘기였다. 이제 당일 가중치도 실측 근거로 계산되므로, 진짜
+      // 확률이 가장 높으면 경기 당일도 그대로 1순위로 보여준다(라이브 확정은 별도 LIVE 배지로).
+      let topDay = days[0];
+      days.forEach(d => { if (d.pct > topDay.pct) topDay = d; });
       const pctSum = days.reduce((s, d) => s + d.pct, 0);
       if (pctSum !== 100) topDay.pct += (100 - pctSum);
 
       const isTop0 = topDay === days[0];
       const topDateText = `${topDay.date.getMonth() + 1}월 ${topDay.date.getDate()}일 (${YT_DOW_LABEL[topDay.dow]})`;
-      const topPhaseQualifier = topDay.phase ? ` · ${topDay.phase.label}` : '';
+      const topPhaseQualifier = !topDay.phase ? ''
+        : topDay.phase.type === 'event-day' ? ` · 경기 당일(라이브 확정)`
+        : ` · ${topDay.phase.label}`;
 
       // 이번 주 안에 등장하는 국면들을 모아 범례 문장으로 풀어준다 (각 셀엔 아이콘만 표시하니까)
+      // nextEvent 관련 국면은 위 배지에 이미 매치업이 나와 있으니 제목을 반복하지 않고,
+      // lastEvent(지난 경기) 관련 국면만 배지가 따로 없어서 제목을 남긴다.
       const legendParts = [];
       const seenTypes = new Set();
       days.forEach(d => {
         if (!d.phase || seenTypes.has(d.phase.type + (d.phase.cat || ''))) return;
         seenTypes.add(d.phase.type + (d.phase.cat || ''));
         if (d.phase.type === 'event-day') {
-          legendParts.push(`🔴 ${d.date.getMonth() + 1}/${d.date.getDate()}(${YT_DOW_LABEL[d.dow]})은 ${esc(d.phase.event.title)} 경기 당일 — 라이브 중계는 확정적으로 진행되고, 그 외 일반 영상은 준비 때문에 평소보다 적게 올라올 수 있어요`);
-        } else {
+          // "준비 때문에 일반 영상이 준다"는 지어낸 가정 대신, 과거 경기 당일 실측 비율을
+          // 그대로 근거로 밝힌다. 표본이 부족하면 방향을 단정하지 않고 그 사실만 말한다.
+          const ev = d.phase.evidence;
+          const detail = ev
+            ? (ev.ratio >= 1.1 ? `과거 경기 당일 평균(${ev.n}회 경기) 오히려 평소보다 ${ev.ratio}배 더 올라왔어요`
+              : ev.ratio <= 0.9 ? `과거 경기 당일 평균(${ev.n}회 경기) 평소보다 ${Math.round((1 - ev.ratio) * 100)}% 적게 올라왔어요`
+                : `과거 경기 당일 평균(${ev.n}회 경기) 평소와 비슷했어요`)
+            : '경기 당일 실측 데이터가 아직 부족해서 방향은 단정하지 않았어요';
+          legendParts.push(`🔴 ${d.date.getMonth() + 1}/${d.date.getDate()}(${YT_DOW_LABEL[d.dow]}) 경기 당일 — 라이브는 확정, 그 외 영상은 ${detail}`);
+        } else if (d.phase.type === 'post-event-cat') {
           legendParts.push(`${d.phase.icon} ${d.date.getMonth() + 1}/${d.date.getDate()} — ${d.phase.label} · ${esc(d.phase.event.title)}`);
+        } else {
+          legendParts.push(`${d.phase.icon} ${d.date.getMonth() + 1}/${d.date.getDate()} — ${d.phase.label}`);
         }
       });
       if (milestone) {
         const mDate = new Date(milestone._t).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
-        legendParts.push(`📌 ${esc(YT_EVT_TYPE_LABEL[milestone.evtType] || milestone.evtType)} '${esc(milestone.title)}' (${mDate}) 이후라 관련 영상이 곧 올라올 가능성을 반영했어요`);
+        legendParts.push(`📌 ${esc(YT_EVT_TYPE_LABEL[milestone.evtType] || milestone.evtType)}(${mDate}) 이후 관련 영상 가능성 반영`);
       }
       if (nextEvent && !leadTimes) {
-        legendParts.push(`⚠️ 카테고리별 실측 데이터(yt_get_event_lead_times)가 아직 없어서, 경기 당일 여부만 반영했어요.`);
+        legendParts.push(`⚠️ 카테고리별 실측 데이터가 아직 없어서 경기 당일 여부만 반영했어요.`);
       }
 
       // 다음 경기 배지 (사이트 내 승부예측 tournaments 데이터 재사용)
@@ -17422,9 +17478,9 @@
           <span class="yt-pred-badge-light">참고용</span>
         </div>
         ${eventLineHTML}
-        <div class="yt-pred-hero-date">${isTop0 ? '오늘' : topDateText} 유력${hourText && !(isTop0 && hourPassedGrace) ? ` · ${hourText}경` : ''}${isTop0 && hourPassedGrace ? ` · ${hourText} 예상 시간대 경과` : ''}${topPhaseQualifier}</div>
-        <div class="yt-pred-hero-time">최근 90일 총 <b>${stats90.sample_n}개</b> 업로드${hoursSinceText ? ` · 마지막 업로드 ${hoursSinceText} 전` : ''}${hourText && peakPct != null ? ` · ${hourText}대 업로드 이력 ${peakCount}건(${peakPct}%)` : ''}</div>
-        ${isTop0 && hourPassedGrace ? `<div class="yt-pred-hero-alert">⏰ 예상 시간대(${esc(hourText)}경)가 지났는데 아직 오늘 업로드가 없어요 — 최근 90일 중 이 시간 이후에 올라온 경우는 전체의 ${hourAfterPct}%(${hourAfterCount}건)뿐이라, 오늘 업로드될 확률은 낮아지고 있어요.</div>` : ''}
+        <div class="yt-pred-hero-date">${isTop0 ? '오늘' : topDateText} 유력${hourText && !(isTop0 && hourPassedGrace) ? ` · ${hourText}경${peakPct != null ? `(${peakPct}%)` : ''}` : ''}${isTop0 && hourPassedGrace ? ` · ${hourText} 예상 경과` : ''}${topPhaseQualifier}</div>
+        <div class="yt-pred-hero-time">최근 90일 <b>${stats90.sample_n}개</b> 업로드${hoursSinceText ? ` · 마지막 ${hoursSinceText} 전` : ''}</div>
+        ${isTop0 && hourPassedGrace ? `<div class="yt-pred-hero-alert">⏰ ${esc(hourText)}경 예상이 지났는데 아직 업로드가 없어요 — 이후 업로드 사례는 ${hourAfterPct}%(${hourAfterCount}건)뿐이에요.</div>` : ''}
         <div class="yt-prob-strip">
           ${days.map(d => `
             <div class="yt-prob-day${d === topDay ? ' top' : ''}${d.phase?.type === 'event-day' ? ' event-day' : ''}">
@@ -17437,7 +17493,7 @@
             </div>`).join('')}
         </div>
         ${legendParts.length ? `<div class="yt-pred-legend">${legendParts.join('<br>')}</div>` : ''}
-        <div class="yt-pred-hero-note">요일별 업로드 빈도 + 경기 일정 근접도(실측 D-n)를 함께 반영한 참고용 확률이에요. 실제 업로드는 다를 수 있어요 🙂</div>
+        <div class="yt-pred-hero-note">요일별 빈도 + 실측 D-n 기반 참고용 확률이에요</div>
       </div>`;
     }
 
@@ -17640,9 +17696,9 @@
       const fromStr = `${y}-${pad2(m)}-01`;
       const toStr = `${y}-${pad2(m)}-${pad2(daysInMonthForQuery)}`;
 
-      let videos = [], stats90 = null, stats365 = null, recent = [], nextEvent = null, lastEvent = null, leadTimes = null, milestone = null;
+      let videos = [], stats90 = null, stats365 = null, recent = [], nextEvent = null, lastEvent = null, leadTimes = null, milestone = null, eventDayStats = null;
       try {
-        const [calRes, st90Res, st365Res, recentRes, eventsRes, leadTimesRes, milestoneRes] = await Promise.all([
+        const [calRes, st90Res, st365Res, recentRes, eventsRes, leadTimesRes, milestoneRes, eventDayStatsRes] = await Promise.all([
           sb.rpc('yt_get_calendar', { p_from: fromStr, p_to: toStr }),
           sb.rpc('yt_get_stats', { p_days: 90 }),
           sb.rpc('yt_get_stats', { p_days: 365 }),
@@ -17650,20 +17706,21 @@
           ytFetchNearestEvents(),
           ytFetchEventLeadTimes(),
           ytFetchMilestone(),
+          ytFetchEventDayStats(),
         ]);
         videos = calRes.data || [];
         stats90 = st90Res.data; stats365 = st365Res.data;
         recent = recentRes.data || [];
         nextEvent = eventsRes.nextEvent; lastEvent = eventsRes.lastEvent;
-        leadTimes = leadTimesRes; milestone = milestoneRes;
+        leadTimes = leadTimesRes; milestone = milestoneRes; eventDayStats = eventDayStatsRes;
       } catch (e) { return fail(e); }
 
       ytCalState = { month: monthKey, videos, catFilter: ytCalState.catFilter || null };
 
       $app.innerHTML = `
       <h1 class="page">🎬 업로드 캘린더</h1>
-      <p class="sub">블랙컴뱃 공식 유튜브(@${esc(YT_CHANNEL_HANDLE)}) 업로드 이력과, 과거 패턴 기반 다음 영상 예상이에요.</p>
-      ${ytPredictionHeroHTML(stats90, stats365, nextEvent, lastEvent, leadTimes, milestone)}
+      <p class="sub">출처: 유튜브 @${esc(YT_CHANNEL_HANDLE)} · 과거 패턴 기반 업로드 예측</p>
+      ${ytPredictionHeroHTML(stats90, stats365, nextEvent, lastEvent, leadTimes, milestone, eventDayStats)}
       ${ytStatCardsHTML(videos.length, stats90)}
       ${ytCycleChartHTML(videos, stats90)}
       <details class="card yt-cal-details" style="margin-top:12px" open>
