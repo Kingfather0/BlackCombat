@@ -9245,6 +9245,86 @@
       }
     }
 
+    /* ── 유튜브 업로드 캘린더 ── */
+    .yt-chip {
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      border-radius: 999px;
+      padding: 5px 11px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .yt-chip.active {
+      border-color: var(--chip-color, var(--key-deep));
+      background: color-mix(in srgb, var(--chip-color, var(--key-deep)) 12%, white);
+      color: var(--text)
+    }
+
+    .yt-cal-head {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--dim);
+      margin-bottom: 4px
+    }
+
+    .yt-cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px
+    }
+
+    .yt-cell {
+      min-height: 50px;
+      border-radius: 8px;
+      padding: 4px 3px;
+      background: var(--card2);
+      cursor: default
+    }
+
+    .yt-cell.empty {
+      background: transparent
+    }
+
+    .yt-cell.has {
+      cursor: pointer;
+      background: var(--key-soft)
+    }
+
+    .yt-cell.today .yt-daynum {
+      color: var(--key-deep);
+      font-weight: 900
+    }
+
+    .yt-daynum {
+      font-size: 11px;
+      color: var(--dim);
+      text-align: right
+    }
+
+    .yt-dots {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      margin-top: 3px
+    }
+
+    .yt-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .yt-more {
+      font-size: 9px;
+      color: var(--dim)
+    }
+
   </style>
 </head>
 
@@ -10137,6 +10217,7 @@
       else if (seg[0] === 'game') { mark('game'); viewGame(seg[1] || ''); }
       else if (seg[0] === 'tickets') { mark('tickets'); viewTickets(decodeURIComponent(seg[1] || '')); }
       else if (seg[0] === 'player') { viewPlayer(decodeURIComponent(seg[1] || '')); }
+      else if (seg[0] === 'videos') { mark('videos'); viewYtCalendar(seg[1]); }
       else if (seg[0] === 'admin' && seg[1] === 'yttest') { viewYtTest(); }
       else if (seg[0] === 'admin') { viewAdmin(); }
       else viewHome();
@@ -16687,6 +16768,166 @@
       await dump('최근 365일', 365);
       log('\n✅ 통계 미리보기 완료. 이 결과를 그대로 캡처해서 보내주세요.');
     }
+
+    /* ── 유튜브 업로드 캘린더 (공개 페이지, #/videos) ── */
+    const YT_CATS = {
+      matchup: { label: '매치업', emoji: '🥊', color: '#e11d48' },
+      talk: { label: '토크/이슈', emoji: '💬', color: '#7c3aed' },
+      shorts: { label: 'Shorts', emoji: '⚡', color: '#f59e0b' },
+      'weigh-in': { label: '계체', emoji: '⚖️', color: '#16a34a' },
+      trailer: { label: '트레일러', emoji: '🎬', color: '#0891b2' },
+      'ticket-promo': { label: '티켓/직관', emoji: '🎟️', color: '#ea580c' },
+      'media-day': { label: '미디어데이', emoji: '📸', color: '#0d9488' },
+    };
+    function ytCatMeta(cat) { return YT_CATS[cat] || { label: cat || '기타', emoji: '🎥', color: '#64748b' }; }
+    function ytMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; }
+    function ytMonthAdd(key, delta) {
+      const [y, m] = key.split('-').map(Number);
+      return ytMonthKey(new Date(y, m - 1 + delta, 1));
+    }
+    let ytCalState = { month: null, videos: [], catFilter: null };
+
+    function ytPredictionCardHTML(stats90, stats365) {
+      if (!stats90 || stats90.ok === false || !stats90.sample_n) {
+        return `<div class="card" style="margin-top:12px"><div class="note">아직 예측할 만큼 데이터가 충분하지 않아요.</div></div>`;
+      }
+      const hh = stats90.hour_histogram_kst || {};
+      const hours = Object.keys(hh).map(Number);
+      const total = hours.reduce((s, h) => s + hh[h], 0) || 1;
+      const eveningSum = [18, 19, 20, 21, 22, 23].reduce((s, h) => s + (hh[h] || 0), 0);
+      let windowText;
+      if (eveningSum / total >= 0.5) {
+        windowText = '저녁 6시 ~ 자정 사이';
+      } else {
+        const top = hours.slice().sort((a, b) => hh[b] - hh[a]).slice(0, 3).sort((a, b) => a - b);
+        windowText = top.length ? `${top[0]}시~${top[top.length - 1]}시경` : '특정 시간대';
+      }
+      const gapH = stats90.median_gap_hours;
+      const lastPub = stats90.last_published_at ? new Date(stats90.last_published_at) : null;
+      const hoursSince = lastPub ? Math.round((Date.now() - lastPub.getTime()) / 3600000) : null;
+
+      let dowNote = '';
+      if (stats365 && stats365.ok && stats365.dow_histogram_kst) {
+        const dh = stats365.dow_histogram_kst;
+        const vals = Object.keys(dh).map(k => ({ d: +k, n: dh[k] }));
+        if (vals.length) {
+          const min = vals.reduce((a, b) => (b.n < a.n ? b : a));
+          const dowLabel = { 1: '월', 2: '화', 3: '수', 4: '목', 5: '금', 6: '토', 7: '일' }[min.d];
+          dowNote = `${dowLabel}요일엔 상대적으로 뜸한 편이에요`;
+        }
+      }
+
+      return `
+      <div class="card" style="margin-top:12px;border:1.5px solid var(--key-deep);background:var(--key-soft)">
+        <div style="font-weight:900;color:var(--key-deep);margin-bottom:6px">📡 다음 영상 예상</div>
+        <div style="font-size:15px;line-height:1.6">
+          최근 패턴상 <b>${windowText}</b>에 올라오는 경우가 많아요.
+          ${gapH ? ` 평균적으로 약 <b>${Math.round(gapH / 24 * 10) / 10}일</b> 간격으로 업로드돼요.` : ''}
+          ${hoursSince != null ? `<br>마지막 업로드는 <b>${hoursSince < 24 ? hoursSince + '시간' : Math.round(hoursSince / 24) + '일'} 전</b>이에요.` : ''}
+        </div>
+        <div class="note" style="margin-top:6px">${esc(dowNote)}${dowNote ? ' · ' : ''}과거 패턴 기반 참고용 예측이라 실제와 다를 수 있어요 🙂</div>
+      </div>`;
+    }
+
+    function ytCatFilterChipsHTML() {
+      const chip = (key, label, emoji, color, active) =>
+        `<button type="button" class="yt-chip${active ? ' active' : ''}" style="--chip-color:${color}" onclick="ytSetCatFilter(${key ? `'${key}'` : 'null'})">${emoji} ${esc(label)}</button>`;
+      return `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+        ${chip('', '전체', '📺', '#64748b', !ytCalState.catFilter)}
+        ${Object.keys(YT_CATS).map(k => chip(k, YT_CATS[k].label, YT_CATS[k].emoji, YT_CATS[k].color, ytCalState.catFilter === k)).join('')}
+      </div>`;
+    }
+    function ytSetCatFilter(cat) {
+      ytCalState.catFilter = cat || null;
+      viewYtCalendar(ytCalState.month);
+    }
+
+    function ytCalendarGridHTML(y, m, videos) {
+      const filtered = ytCalState.catFilter ? videos.filter(v => v.category === ytCalState.catFilter) : videos;
+      const byDay = {};
+      filtered.forEach(v => {
+        const kst = new Date(new Date(v.published_at).getTime() + 9 * 3600 * 1000);
+        const day = kst.getUTCDate();
+        (byDay[day] = byDay[day] || []).push(v);
+      });
+      window.__ytByDay = byDay;
+      const firstDow = new Date(y, m - 1, 1).getDay();
+      const daysInMonth = new Date(y, m, 0).getDate();
+      const now = new Date();
+      const isThisMonth = now.getFullYear() === y && now.getMonth() === m - 1;
+
+      let cells = '';
+      for (let i = 0; i < firstDow; i++) cells += `<div class="yt-cell empty"></div>`;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const items = byDay[d] || [];
+        const dots = items.slice(0, 4).map(v => `<span class="yt-dot" style="background:${ytCatMeta(v.category).color}"></span>`).join('');
+        const more = items.length > 4 ? `<span class="yt-more">+${items.length - 4}</span>` : '';
+        cells += `<div class="yt-cell${items.length ? ' has' : ''}${isThisMonth && d === now.getDate() ? ' today' : ''}" ${items.length ? `onclick="ytShowDay(${d})"` : ''}>
+          <div class="yt-daynum">${d}</div>
+          <div class="yt-dots">${dots}${more}</div>
+        </div>`;
+      }
+      return `
+      <div class="yt-cal-head">${['일', '월', '화', '수', '목', '금', '토'].map(w => `<div>${w}</div>`).join('')}</div>
+      <div class="yt-cal-grid">${cells}</div>`;
+    }
+
+    function ytShowDay(d) {
+      const items = (window.__ytByDay && window.__ytByDay[d]) || [];
+      const box = document.getElementById('ytDayDetail');
+      if (!box) return;
+      if (!items.length) { box.innerHTML = ''; return; }
+      const [y, m] = (ytCalState.month || '').split('-');
+      box.innerHTML = `<div class="card" style="margin-top:12px">
+        <div style="font-weight:800;margin-bottom:8px">${esc(String(+m))}월 ${d}일 업로드 (${items.length}개)</div>
+        ${items.map(v => `
+          <a href="https://www.youtube.com/watch?v=${encodeURIComponent(v.video_id)}" target="_blank" rel="noopener" style="display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--border);text-decoration:none;color:inherit">
+            <img src="${esc(v.thumbnail_url || '')}" style="width:80px;height:45px;object-fit:cover;border-radius:6px;background:var(--card2);flex-shrink:0" loading="lazy">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13.5px;font-weight:700;line-height:1.4">${esc(v.title)}</div>
+              <div class="note">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)} · ${new Date(v.published_at).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+            </div>
+          </a>`).join('')}
+      </div>`;
+      box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    async function viewYtCalendar(monthParam) {
+      loading();
+      const monthKey = monthParam && /^\d{4}-\d{2}$/.test(monthParam) ? monthParam : ytMonthKey(new Date());
+      const [y, m] = monthKey.split('-').map(Number);
+      const fromStr = new Date(y, m - 1, 1).toISOString().slice(0, 10);
+      const toStr = new Date(y, m, 0).toISOString().slice(0, 10);
+
+      let videos = [], stats90 = null, stats365 = null;
+      try {
+        const [calRes, st90Res, st365Res] = await Promise.all([
+          sb.rpc('yt_get_calendar', { p_from: fromStr, p_to: toStr }),
+          sb.rpc('yt_get_stats', { p_days: 90 }),
+          sb.rpc('yt_get_stats', { p_days: 365 }),
+        ]);
+        videos = calRes.data || [];
+        stats90 = st90Res.data; stats365 = st365Res.data;
+      } catch (e) { return fail(e); }
+
+      ytCalState = { month: monthKey, videos, catFilter: ytCalState.catFilter || null };
+
+      $app.innerHTML = `
+      <h1 class="page">🎬 업로드 캘린더</h1>
+      <p class="sub">블랙컴뱃 공식 유튜브(@${esc(YT_CHANNEL_HANDLE)}) 업로드 이력과, 과거 패턴 기반 다음 영상 예상이에요.</p>
+      ${ytPredictionCardHTML(stats90, stats365)}
+      <div class="card" style="margin-top:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <button class="btn small" onclick="location.hash='#/videos/${ytMonthAdd(monthKey, -1)}'">‹ 이전달</button>
+          <div style="font-weight:800">${y}년 ${m}월</div>
+          <button class="btn small" onclick="location.hash='#/videos/${ytMonthAdd(monthKey, 1)}'">다음달 ›</button>
+        </div>
+        ${ytCatFilterChipsHTML()}
+        ${ytCalendarGridHTML(y, m, videos)}
+      </div>
+      <div id="ytDayDetail"></div>`;
+    }
+
     async function ytRunTest() {
       const out = document.getElementById('ytTestOut');
       if (!out) return;
