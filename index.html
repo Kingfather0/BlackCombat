@@ -9450,7 +9450,8 @@
       padding: 8px 0;
       border-top: 1px solid var(--border);
       text-decoration: none;
-      color: inherit
+      color: inherit;
+      cursor: pointer
     }
 
     .yt-recent-row:first-child {
@@ -9464,6 +9465,86 @@
       border-radius: 6px;
       background: var(--card2);
       flex-shrink: 0
+    }
+
+    .yt-vp-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(20, 24, 32, .5);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 500;
+      padding: 0
+    }
+
+    @media (min-width:520px) {
+      .yt-vp-backdrop {
+        align-items: center;
+        padding: 16px
+      }
+    }
+
+    .yt-vp-card {
+      background: var(--card);
+      width: 100%;
+      max-width: 440px;
+      border-radius: 16px 16px 0 0;
+      padding: 16px;
+      max-height: 82vh;
+      overflow-y: auto
+    }
+
+    @media (min-width:520px) {
+      .yt-vp-card {
+        border-radius: 16px
+      }
+    }
+
+    .yt-vp-thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      border-radius: 10px;
+      background: var(--card2)
+    }
+
+    .yt-vp-title {
+      font-size: 15px;
+      font-weight: 800;
+      margin-top: 10px;
+      line-height: 1.4;
+      color: var(--text)
+    }
+
+    .yt-vp-extra {
+      font-size: 12px;
+      color: var(--key-deep);
+      font-weight: 700;
+      margin-top: 6px;
+      line-height: 1.5
+    }
+
+    .yt-vp-desc {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.6;
+      white-space: pre-wrap
+    }
+
+    .yt-vp-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px
+    }
+
+    .yt-vp-actions .btn {
+      flex: 1;
+      text-align: center;
+      justify-content: center;
+      display: flex;
+      align-items: center
     }
 
     .yt-chip-scroll {
@@ -9486,12 +9567,12 @@
 
     .yt-pred-hero {
       margin-top: 0;
-      border-radius: 18px;
+      border-radius: 16px;
       padding: 18px;
-      background: linear-gradient(165deg, var(--key-soft), var(--card) 55%);
-      border: 1.5px solid var(--key);
+      background: var(--card);
+      border: 1px solid var(--border);
       color: var(--text);
-      box-shadow: 0 8px 24px rgba(37, 99, 235, .14)
+      box-shadow: 0 1px 3px rgba(20, 40, 80, .06)
     }
 
     .yt-pred-hero-label {
@@ -9593,7 +9674,18 @@
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 7px 2px 8px;
-      text-align: center
+      text-align: center;
+      cursor: pointer;
+      transition: transform .08s ease
+    }
+
+    .yt-prob-day:active {
+      transform: scale(.94)
+    }
+
+    .yt-prob-day.sel {
+      outline: 2px solid var(--key);
+      outline-offset: 1px
     }
 
     .yt-prob-day.top {
@@ -9684,10 +9776,21 @@
       color: #ffd6d6
     }
 
-    .yt-pred-legend {
+    .yt-pred-detail {
+      font-size: 11.5px;
+      color: var(--text);
+      background: var(--card2);
+      border-radius: 10px;
+      padding: 9px 11px;
+      margin-top: 10px;
+      line-height: 1.6;
+      font-weight: 600
+    }
+
+    .yt-pred-note {
       font-size: 10.5px;
       color: var(--muted);
-      margin-top: 10px;
+      margin-top: 8px;
       line-height: 1.6
     }
 
@@ -17127,6 +17230,7 @@
               duration_sec: dur,
               is_short: isShort,
               category: ytClassify(sn.title || '', isShort),
+              description: sn.description || '',
             };
           }).filter(r => r.video_id && r.published_at);
 
@@ -17190,6 +17294,18 @@
       'media-day': { label: '미디어데이', emoji: '📸', color: '#0d9488' },
     };
     function ytCatMeta(cat) { return YT_CATS[cat] || { label: cat || '기타', emoji: '🎥', color: '#64748b' }; }
+    // CSS color-mix()는 구형 인앱 브라우저(카카오톡 웹뷰 등)에서 아예 지원되지 않아 값이
+    // 조용히 무시될 수 있다 — 카테고리 색이 아예 안 보이는 원인이 될 수 있어서, 색 혼합은
+    // JS에서 직접 계산한 rgb()로 내려준다(모든 브라우저에서 항상 동작).
+    function ytBlendHex(hex, pct, base) {
+      const clean = h => (h || '').replace('#', '');
+      const h1 = clean(hex), h2 = clean(base || '#ffffff');
+      const c = (s, i) => parseInt(s.substr(i, 2), 16) || 0;
+      const r1 = c(h1, 0), g1 = c(h1, 2), b1 = c(h1, 4);
+      const r2 = c(h2, 0), g2 = c(h2, 2), b2 = c(h2, 4);
+      const mix = (a, b) => Math.round(a * (pct / 100) + b * (1 - pct / 100));
+      return `rgb(${mix(r1, r2)},${mix(g1, g2)},${mix(b1, b2)})`;
+    }
     // 공지(announcements)에 관리자가 태깅하는 "실제 경기 관련 이벤트" 종류 — 미디어데이 등
     // 유튜브 영상은 아니지만 업로드 예측에 참고 신호로 쓰기 위한 것.
     const YT_EVT_TYPE_LABEL = { 'media-day': '미디어데이', 'weigh-in': '계체', presser: '기자회견', 'ticket-open': '티켓 오픈', etc: '기타 이벤트' };
@@ -17347,6 +17463,39 @@
       return null;
     }
 
+    // 각 요일 막대의 %가 왜 그 값인지 — 상위 후보 요일만 근거가 있고 나머지 요일은 눌러도
+    // 아무 설명이 없다는 지적 반영. 7일 전부 탭하면 실제 근거(요일별 실측 건수/비율 +
+    // 경기 국면 근거)가 뜨도록 모든 날짜가 공유하는 포맷터를 만든다.
+    function ytDayEvidenceLines(d) {
+      const lines = [];
+      lines.push(`${YT_DOW_LABEL[d.dow]}요일: 실측 ${d.dowCount}건 중 ${d.dowPct != null ? d.dowPct : '-'}%가 이 요일에 올라왔어요`);
+      if (d.phase) {
+        if (d.phase.type === 'event-day') {
+          const ev = d.phase.evidence;
+          lines.push(ev
+            ? (ev.ratio >= 1.1 ? `경기 당일 · 과거 평균(${ev.n}회 경기) 대비 ${ev.ratio}배 더 올라왔어요`
+              : ev.ratio <= 0.9 ? `경기 당일 · 과거 평균(${ev.n}회 경기) 대비 ${Math.round((1 - ev.ratio) * 100)}% 적게 올라왔어요`
+                : `경기 당일 · 과거 평균(${ev.n}회 경기)과 비슷했어요`)
+            : '경기 당일 · 실측 데이터가 부족해서 방향은 반영하지 않았어요');
+        } else {
+          lines.push(d.phase.label);
+        }
+      }
+      if (d.milestoneBoost) lines.push('최근 태깅된 이벤트 이후라 소폭 가산했어요');
+      return lines;
+    }
+
+    function ytShowDayEvidence(i) {
+      const days = window.__ytPredDays || [];
+      const d = days[i];
+      const box = document.getElementById('ytPredDetail');
+      if (!box || !d) return;
+      document.querySelectorAll('.yt-prob-day').forEach(el => el.classList.remove('sel'));
+      const el = document.getElementById('ytProbDay-' + i);
+      if (el) el.classList.add('sel');
+      box.innerHTML = ytDayEvidenceLines(d).map(esc).join('<br>');
+    }
+
     function ytPredictionHeroHTML(stats90, stats365, nextEvent, lastEvent, leadTimes, milestone, eventDayStats) {
       if (!stats90 || stats90.ok === false || !stats90.sample_n) {
         return `<div class="card" style="margin-top:12px"><div class="note">아직 예측할 만큼 데이터가 충분하지 않아요.</div></div>`;
@@ -17367,6 +17516,9 @@
         ? stats365.dow_histogram_kst : (stats90.dow_histogram_kst || {});
       const dowWeight = {};
       for (let i = 1; i <= 7; i++) dowWeight[i] = Number(dh[i]) || 0.5;
+      // 상위 후보 요일에만 근거가 있고 나머지는 눌러도 아무 설명이 없다는 지적 반영 —
+      // 요일별 실제 건수/비율을 미리 계산해서, 아래에서 각 요일 카드마다 근거로 붙인다.
+      const dhTotal = Object.values(dh).reduce((s, v) => s + (Number(v) || 0), 0);
 
       const lastPub = stats90.last_published_at ? new Date(stats90.last_published_at) : null;
       const hoursSince = lastPub ? Math.round((Date.now() - lastPub.getTime()) / 3600000) : null;
@@ -17407,7 +17559,9 @@
         const milestoneBoost = (daysSinceMilestone != null && daysSinceMilestone >= 0 && daysSinceMilestone <= 4 && phase?.type !== 'event-day');
         if (milestoneBoost) w *= 1.3;
         weightSum += w;
-        days.push({ date: dt, dow, w, phase, milestoneBoost });
+        const dowCount = Number(dh[dow]) || 0;
+        const dowPct = dhTotal ? Math.round(dowCount / dhTotal * 100) : null;
+        days.push({ date: dt, dow, w, phase, milestoneBoost, dowCount, dowPct });
       }
       days.forEach(d => { d.pct = weightSum ? Math.round(d.w / weightSum * 100) : Math.round(100 / days.length); });
       // 예전엔 경기 당일을 "1순위 후보"에서 무조건 제외했는데, 그건 "당일엔 콘텐츠가 준다"는
@@ -17424,36 +17578,21 @@
         : topDay.phase.type === 'event-day' ? ` · 경기 당일(라이브 확정)`
         : ` · ${topDay.phase.label}`;
 
-      // 이번 주 안에 등장하는 국면들을 모아 범례 문장으로 풀어준다 (각 셀엔 아이콘만 표시하니까)
-      // nextEvent 관련 국면은 위 배지에 이미 매치업이 나와 있으니 제목을 반복하지 않고,
-      // lastEvent(지난 경기) 관련 국면만 배지가 따로 없어서 제목을 남긴다.
-      const legendParts = [];
-      const seenTypes = new Set();
-      days.forEach(d => {
-        if (!d.phase || seenTypes.has(d.phase.type + (d.phase.cat || ''))) return;
-        seenTypes.add(d.phase.type + (d.phase.cat || ''));
-        if (d.phase.type === 'event-day') {
-          // "준비 때문에 일반 영상이 준다"는 지어낸 가정 대신, 과거 경기 당일 실측 비율을
-          // 그대로 근거로 밝힌다. 표본이 부족하면 방향을 단정하지 않고 그 사실만 말한다.
-          const ev = d.phase.evidence;
-          const detail = ev
-            ? (ev.ratio >= 1.1 ? `과거 경기 당일 평균(${ev.n}회 경기) 오히려 평소보다 ${ev.ratio}배 더 올라왔어요`
-              : ev.ratio <= 0.9 ? `과거 경기 당일 평균(${ev.n}회 경기) 평소보다 ${Math.round((1 - ev.ratio) * 100)}% 적게 올라왔어요`
-                : `과거 경기 당일 평균(${ev.n}회 경기) 평소와 비슷했어요`)
-            : '경기 당일 실측 데이터가 아직 부족해서 방향은 단정하지 않았어요';
-          legendParts.push(`🔴 ${d.date.getMonth() + 1}/${d.date.getDate()}(${YT_DOW_LABEL[d.dow]}) 경기 당일 — 라이브는 확정, 그 외 영상은 ${detail}`);
-        } else if (d.phase.type === 'post-event-cat') {
-          legendParts.push(`${d.phase.icon} ${d.date.getMonth() + 1}/${d.date.getDate()} — ${d.phase.label} · ${esc(d.phase.event.title)}`);
-        } else {
-          legendParts.push(`${d.phase.icon} ${d.date.getMonth() + 1}/${d.date.getDate()} — ${d.phase.label}`);
-        }
-      });
+      // 매번 항상 보이는 문장 뭉치 대신, 상위 후보 요일의 근거만 기본으로 보여주고
+      // 나머지 요일은 눌러야 근거가 뜨게 바꿨다 — "16%인데 눌러도 근거가 없다"는 지적은
+      // 사실 "탭 자체가 안 됐던" 문제였고, 동시에 항상 켜진 여러 줄 문단이 화면을 어수선하게
+      // 만든다는 지적("대학생 수준")도 같이 해결한다. window.__ytPredDays로 클릭 핸들러에 공유.
+      window.__ytPredDays = days;
+      const topIdx = days.indexOf(topDay);
+      const defaultDetailHTML = ytDayEvidenceLines(topDay).map(esc).join('<br>');
+
+      const noteParts = [];
       if (milestone) {
         const mDate = new Date(milestone._t).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
-        legendParts.push(`📌 ${esc(YT_EVT_TYPE_LABEL[milestone.evtType] || milestone.evtType)}(${mDate}) 이후 관련 영상 가능성 반영`);
+        noteParts.push(`📌 ${esc(YT_EVT_TYPE_LABEL[milestone.evtType] || milestone.evtType)}(${mDate}) 이후 관련 영상 가능성 반영`);
       }
       if (nextEvent && !leadTimes) {
-        legendParts.push(`⚠️ 카테고리별 실측 데이터가 아직 없어서 경기 당일 여부만 반영했어요.`);
+        noteParts.push(`⚠️ 카테고리별 실측 데이터가 아직 없어서 경기 당일 여부만 반영했어요`);
       }
 
       // 다음 경기 배지 (사이트 내 승부예측 tournaments 데이터 재사용)
@@ -17474,7 +17613,7 @@
       return `
       <div class="yt-pred-hero">
         <div class="yt-pred-hero-label">
-          <span>📡 다음 업로드 예상 (핵심)</span>
+          <span>📡 다음 업로드 예상</span>
           <span class="yt-pred-badge-light">참고용</span>
         </div>
         ${eventLineHTML}
@@ -17482,8 +17621,8 @@
         <div class="yt-pred-hero-time">최근 90일 <b>${stats90.sample_n}개</b> 업로드${hoursSinceText ? ` · 마지막 ${hoursSinceText} 전` : ''}</div>
         ${isTop0 && hourPassedGrace ? `<div class="yt-pred-hero-alert">⏰ ${esc(hourText)}경 예상이 지났는데 아직 업로드가 없어요 — 이후 업로드 사례는 ${hourAfterPct}%(${hourAfterCount}건)뿐이에요.</div>` : ''}
         <div class="yt-prob-strip">
-          ${days.map(d => `
-            <div class="yt-prob-day${d === topDay ? ' top' : ''}${d.phase?.type === 'event-day' ? ' event-day' : ''}">
+          ${days.map((d, i) => `
+            <div id="ytProbDay-${i}" class="yt-prob-day${d === topDay ? ' top' : ''}${d.phase?.type === 'event-day' ? ' event-day' : ''}${i === topIdx ? ' sel' : ''}" onclick="ytShowDayEvidence(${i})">
               <div class="yt-prob-icon">${d.phase?.type === 'event-day' ? '🔴' : (d.phase?.icon || (d.milestoneBoost ? '📌' : ''))}</div>
               <div class="yt-prob-dow">${YT_DOW_LABEL[d.dow]}</div>
               <div class="yt-prob-date">${d.date.getDate()}</div>
@@ -17492,8 +17631,9 @@
               ${d.phase?.type === 'event-day' ? `<div class="yt-prob-live">LIVE</div>` : ''}
             </div>`).join('')}
         </div>
-        ${legendParts.length ? `<div class="yt-pred-legend">${legendParts.join('<br>')}</div>` : ''}
-        <div class="yt-pred-hero-note">요일별 빈도 + 실측 D-n 기반 참고용 확률이에요</div>
+        <div id="ytPredDetail" class="yt-pred-detail">${defaultDetailHTML}</div>
+        ${noteParts.length ? `<div class="yt-pred-note">${noteParts.join('<br>')}</div>` : ''}
+        <div class="yt-pred-hero-note">요일 탭하면 근거 확인 · 요일 빈도 + 실측 D-n 기반</div>
       </div>`;
     }
 
@@ -17555,15 +17695,8 @@
       const dot = document.getElementById('ytCycleDot-' + i);
       if (dot) { dot.setAttribute('r', '4.5'); dot.setAttribute('fill', 'var(--red)'); }
       const v = item.video, prev = item.prev;
-      box.innerHTML = `
-        <a class="yt-recent-row" href="https://www.youtube.com/watch?v=${encodeURIComponent(v.video_id)}" target="_blank" rel="noopener" style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px">
-          <img class="yt-recent-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
-          <div style="flex:1;min-width:0">
-            <div style="font-size:12.5px;font-weight:700;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.title)}</div>
-            <div class="note">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)} · ${new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
-            <div class="note">이전 업로드 '${esc(prev.title)}'로부터 <b>${Math.round(item.days * 10) / 10}일</b> 만에 업로드됐어요</div>
-          </div>
-        </a>`;
+      const extraNote = `이전 업로드 '${esc(prev.title)}'로부터 <b>${Math.round(item.days * 10) / 10}일</b> 만에 업로드됐어요`;
+      box.innerHTML = `<div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px">${ytVideoRowHTML(v, extraNote)}</div>`;
     }
 
     function ytStatCardsHTML(monthCount, stats90) {
@@ -17587,24 +17720,68 @@
       </div>`;
     }
 
+    // 영상 목록(최근 업로드/캘린더 날짜별/주기 차트 상세)에서 항목을 누르면 곧장 유튜브로
+    // 이동하지 말고, 먼저 요약(제목/카테고리/일시/설명)을 보여준 다음 원할 때만 이동하라는
+    // 피드백 반영 — 모든 목록이 공유하는 registry + 모달 하나로 통일한다.
+    window.__ytVidReg = window.__ytVidReg || [];
+    function ytRegisterVideo(v, extraNote) {
+      const idx = window.__ytVidReg.length;
+      window.__ytVidReg.push({ v, extraNote });
+      return idx;
+    }
+    function ytVideoRowHTML(v, extraNote) {
+      const idx = ytRegisterVideo(v, extraNote);
+      return `<div class="yt-recent-row" role="button" tabindex="0" onclick="ytOpenVideoPreview(${idx})">
+        <img class="yt-recent-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.title)}</div>
+          <div class="note">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)} · ${new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+        </div>
+      </div>`;
+    }
+    function ytOpenVideoPreview(idx) {
+      const entry = (window.__ytVidReg || [])[idx];
+      if (!entry) return;
+      const v = entry.v;
+      const dateText = new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'long', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit' });
+      const desc = (v.description || '').trim();
+      const descShort = desc ? (desc.length > 160 ? desc.slice(0, 160) + '…' : desc) : '';
+      const url = `https://www.youtube.com/watch?v=${encodeURIComponent(v.video_id)}`;
+      let host = document.getElementById('ytVideoPreviewHost');
+      if (!host) { host = document.createElement('div'); host.id = 'ytVideoPreviewHost'; document.body.appendChild(host); }
+      host.innerHTML = `
+        <div class="yt-vp-backdrop" onclick="if(event.target===this) ytCloseVideoPreview()">
+          <div class="yt-vp-card">
+            <img class="yt-vp-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
+            <div class="yt-vp-title">${esc(v.title)}</div>
+            <div class="note">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)} · ${esc(dateText)}</div>
+            ${entry.extraNote ? `<div class="yt-vp-extra">${entry.extraNote}</div>` : ''}
+            <div class="yt-vp-desc${descShort ? '' : ' note'}">${descShort ? esc(descShort) : '등록된 설명이 없어요'}</div>
+            <div class="yt-vp-actions">
+              <button type="button" class="btn small" onclick="ytCloseVideoPreview()">닫기</button>
+              <a class="btn small primary" href="${url}" target="_blank" rel="noopener" onclick="ytCloseVideoPreview()">▶ 유튜브에서 보기</a>
+            </div>
+          </div>
+        </div>`;
+    }
+    function ytCloseVideoPreview() {
+      const host = document.getElementById('ytVideoPreviewHost');
+      if (host) host.innerHTML = '';
+    }
+
     function ytRecentListHTML(recent) {
       if (!recent || !recent.length) return '';
       return `<div class="card" style="margin-top:12px">
         <div style="font-weight:800;margin-bottom:4px">🕓 최근 업로드</div>
-        ${recent.map(v => `
-          <a class="yt-recent-row" href="https://www.youtube.com/watch?v=${encodeURIComponent(v.video_id)}" target="_blank" rel="noopener">
-            <img class="yt-recent-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
-            <div style="flex:1;min-width:0">
-              <div style="font-size:13px;font-weight:700;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.title)}</div>
-              <div class="note">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)} · ${new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
-            </div>
-          </a>`).join('')}
+        ${recent.map(v => ytVideoRowHTML(v)).join('')}
       </div>`;
     }
 
     function ytCatFilterChipsHTML() {
-      const chip = (key, label, emoji, color, active) =>
-        `<button type="button" class="yt-chip${active ? ' active' : ''}" style="--chip-color:${color}" onclick="ytSetCatFilter(${key ? `'${key}'` : 'null'})">${emoji} ${esc(label)}</button>`;
+      const chip = (key, label, emoji, color, active) => {
+        const style = `--chip-color:${color}${active ? `;background:${ytBlendHex(color, 12, '#ffffff')}` : ''}`;
+        return `<button type="button" class="yt-chip${active ? ' active' : ''}" style="${style}" onclick="ytSetCatFilter(${key ? `'${key}'` : 'null'})">${emoji} ${esc(label)}</button>`;
+      };
       return `<div class="yt-chip-scroll">
         ${chip('', '전체', '📺', '#64748b', !ytCalState.catFilter)}
         ${Object.keys(YT_CATS).map(k => chip(k, YT_CATS[k].label, YT_CATS[k].emoji, YT_CATS[k].color, ytCalState.catFilter === k)).join('')}
@@ -17646,10 +17823,10 @@
           dominant = Object.keys(freq).sort((a, b) => freq[b] - freq[a])[0];
         }
         const domColor = dominant ? ytCatMeta(dominant).color : null;
-        const cellStyle = domColor ? ` style="background:color-mix(in srgb, ${domColor} 13%, var(--card))"` : '';
+        const cellStyle = domColor ? ` style="background:${ytBlendHex(domColor, 13, '#ffffff')}"` : '';
         const chips = items.slice(0, 3).map(v => {
           const meta = ytCatMeta(v.category);
-          return `<span class="yt-dot" style="background:color-mix(in srgb, ${meta.color} 20%, white)" title="${esc(meta.label)}">${meta.emoji}</span>`;
+          return `<span class="yt-dot" style="background:${ytBlendHex(meta.color, 20, '#ffffff')}" title="${esc(meta.label)}">${meta.emoji}</span>`;
         }).join('');
         const more = items.length > 3 ? `<span class="yt-more">+${items.length - 3}</span>` : '';
         cells += `<div id="ytCell-${d}" class="yt-cell${items.length ? ' has' : ''}${isToday ? ' today' : ''}${dowCls}"${cellStyle} ${items.length ? `onclick="ytShowDay(${d})"` : ''}>
@@ -17673,14 +17850,7 @@
       const [y, m] = (ytCalState.month || '').split('-');
       box.innerHTML = `<div class="card" style="margin-top:12px">
         <div style="font-weight:800;margin-bottom:8px">${esc(String(+m))}월 ${d}일 업로드 (${items.length}개)</div>
-        ${items.map(v => `
-          <a href="https://www.youtube.com/watch?v=${encodeURIComponent(v.video_id)}" target="_blank" rel="noopener" style="display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--border);text-decoration:none;color:inherit">
-            <img src="${esc(v.thumbnail_url || '')}" style="width:80px;height:45px;object-fit:cover;border-radius:6px;background:var(--card2);flex-shrink:0" loading="lazy">
-            <div style="flex:1;min-width:0">
-              <div style="font-size:13.5px;font-weight:700;line-height:1.4">${esc(v.title)}</div>
-              <div class="note">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)} · ${new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
-            </div>
-          </a>`).join('')}
+        ${items.map(v => ytVideoRowHTML(v)).join('')}
       </div>`;
       box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
