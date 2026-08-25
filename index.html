@@ -9308,20 +9308,25 @@
       transition: transform .08s ease, box-shadow .08s ease
     }
 
+    /* NEW 배지·날짜 숫자를 같은 flex 줄 양 끝에 둬서 물리적으로 겹칠 수 없게 한다
+       ("NEW가 날짜를 가린다"는 지적 반영) — 검정 바탕 + 금색 텍스트로 지정. */
+    .yt-daynum-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px
+    }
+
     .yt-new-badge {
-      position: absolute;
-      top: 3px;
-      /* "NEW 배지가 날짜 숫자랑 겹친다"는 지적 반영 — 날짜 숫자는 오른쪽 정렬이라
-         왼쪽이 비어있다. 배지를 왼쪽으로 옮겨서 겹치지 않게 한다. */
-      left: 4px;
-      background: var(--red);
-      color: #fff;
+      background: #000;
+      color: #ffd24a;
       font-size: 7px;
       font-weight: 900;
-      padding: 1px 3px;
+      padding: 1.5px 4px;
       border-radius: 4px;
       letter-spacing: .2px;
-      line-height: 1.3
+      line-height: 1.3;
+      flex-shrink: 0
     }
 
     .yt-cell.empty {
@@ -9362,9 +9367,10 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 17px;
+      min-width: 17px;
       height: 17px;
-      border-radius: 50%;
+      padding: 0 3px;
+      border-radius: 999px;
       background: var(--key-deep);
       color: #fff;
       font-weight: 900;
@@ -9372,7 +9378,8 @@
     }
 
     /* 이모지만으론 뭔지 안 보인다는 지적 반영 — 짧은 글자 라벨이 붙으니 가로로 나열하면
-       칸 폭에 안 들어가서 잘린다. 세로로 한 줄씩 쌓아 각 라벨이 온전히 보이게 한다. */
+       칸 폭에 안 들어가서 잘린다. 세로로 한 줄씩 쌓아 각 라벨이 온전히 보이게 한다.
+       (모바일에서는 아래 미디어쿼리로 라벨을 숨기고 한 줄로 눕혀서 칸 높이를 줄인다.) */
     .yt-dots {
       display: flex;
       flex-direction: column;
@@ -9389,6 +9396,37 @@
       text-overflow: ellipsis;
       border-radius: 5px;
       padding: 2px 4px
+    }
+
+    /* "모바일에서 PC 대비 날짜 칸이 세로로 너무 길다, 카테고리 이름도 다 잘리니
+       이모지로만 해달라"는 지적 반영 — 좁은 화면에서는 글자 라벨을 숨기고 칩을
+       한 줄로 눕혀서 칸 높이 자체를 크게 줄인다. */
+    @media (max-width: 480px) {
+      .yt-cell {
+        min-height: 50px;
+        padding: 5px 3px
+      }
+
+      .yt-dots {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 3px;
+        margin-top: 4px
+      }
+
+      .yt-dot-label {
+        display: none
+      }
+
+      .yt-dot {
+        padding: 2px 4px;
+        font-size: 11px;
+        border-radius: 6px
+      }
+
+      .yt-more {
+        padding: 2px 3px
+      }
     }
 
     .yt-more {
@@ -9556,6 +9594,23 @@
       font-weight: 700;
       margin-top: 6px;
       line-height: 1.5
+    }
+
+    .yt-vp-admin-cat {
+      margin-top: 10px;
+      padding: 8px;
+      border: 1px dashed var(--key-deep);
+      border-radius: 10px;
+      background: var(--key-soft)
+    }
+
+    .yt-vp-admin-cat-select {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-size: 12.5px;
+      background: var(--card)
     }
 
     .yt-vp-desc {
@@ -9746,10 +9801,12 @@
     /* "마지막 업로드 / 경과 시간 / 업로드 예측을 나란히 박스로 구분해서 보여달라"는
        지적 반영 — 3분할 박스. 좁은 화면에서는 자동으로 줄바꿈되어 2+1 또는 1열로도
        자연스럽게 접힌다. */
+    /* "모바일에서 3개 박스가 두 줄로 나뉜다, 한 줄로 나오게 해달라"는 지적 반영 —
+       auto-fit 대신 항상 3열로 고정하고, 폭이 좁아지는 만큼 내부 폰트/여백을 줄였다. */
     .yt-hero-top-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-      gap: 8px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
       margin-top: 12px
     }
 
@@ -9757,29 +9814,35 @@
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 10px 11px;
+      padding: 9px 8px;
       min-width: 0;
       box-shadow: 0 1px 3px rgba(20, 40, 80, .05)
     }
 
+    /* "파란 배경이 너무 촌스럽다"는 지적 반영 — 꽉 찬 원색 블록 대신, 옅은 틴트 배경 +
+       왼쪽 포인트 바로 은은하게 강조했다(Canva 카드류에서 흔한 표현). */
     .yt-hero-box.highlight {
-      background: var(--key-deep);
-      border-color: var(--key-deep);
-      color: #fff
+      background: var(--key-soft);
+      border-color: var(--key-soft);
+      border-left: 3px solid var(--key-deep);
+      color: var(--text)
     }
 
     .yt-hero-box-label {
-      font-size: 10.5px;
+      font-size: 10px;
       font-weight: 800;
-      color: var(--muted)
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
     }
 
     .yt-hero-box.highlight .yt-hero-box-label {
-      color: rgba(255, 255, 255, .78)
+      color: var(--key-deep)
     }
 
     .yt-hero-box-value {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 900;
       color: var(--text);
       margin-top: 4px;
@@ -9787,15 +9850,15 @@
     }
 
     .yt-hero-box-value.small {
-      font-size: 13.5px
+      font-size: 12.5px
     }
 
     .yt-hero-box.highlight .yt-hero-box-value {
-      color: #fff
+      color: var(--key-deep)
     }
 
     .yt-hero-box-sub {
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 700;
       color: var(--muted);
       margin-top: 3px;
@@ -9803,42 +9866,23 @@
     }
 
     .yt-hero-box.highlight .yt-hero-box-sub {
-      color: rgba(255, 255, 255, .82)
+      color: var(--muted)
     }
 
-    /* 경과 시간 — 첨부 이미지 스타일(다크 라운드 박스 + 큰 흰 숫자)을 그대로 재현. */
-    .yt-elapsed-live {
-      display: flex;
-      gap: 4px;
+    /* "다크 카운터가 첨부 이미지를 그대로 따라한 느낌이라 싫다"는 지적 반영 — 박스형
+       카운터를 없애고, 빨간색 텍스트 한 줄(00일 00시 00분 00초)로 매초 갱신한다. */
+    .yt-elapsed-live-text {
       margin-top: 5px;
-      background: #14161d;
-      border-radius: 10px;
-      padding: 6px 5px
-    }
-
-    .yt-elapsed-box {
-      flex: 1;
-      min-width: 0;
-      text-align: center;
-      background: #2a2d38;
-      border-radius: 7px;
-      padding: 4px 2px
-    }
-
-    .yt-elapsed-box span {
-      display: block;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 900;
-      color: #fff;
-      font-variant-numeric: tabular-nums
+      color: var(--red);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.35;
+      letter-spacing: -.2px
     }
 
-    .yt-elapsed-box label {
-      display: block;
-      font-size: 8px;
-      color: #9aa1b0;
-      font-weight: 700;
-      margin-top: 1px
+    .yt-elapsed-live-text span {
+      font-size: 14px
     }
 
     /* 예측 근거 게이지 — "근거가 빈약하다"는 지적에 문장 대신 실제 눈금으로 답한다. */
@@ -9857,46 +9901,47 @@
       margin-bottom: 4px
     }
 
-    .yt-gauge-legend {
+    /* "차트가 일반인이 보기엔 너무 어렵다"는 지적 반영 — 점 여러 개짜리 범례 대신, 상태를
+       바로 읽을 수 있는 태그(알약) 두 개로 단순화했다. */
+    .yt-gauge-legend2 {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px 12px;
-      margin-top: 2px
+      gap: 6px;
+      margin-top: 6px
     }
 
-    .yt-gauge-legend span {
-      font-size: 9.5px;
-      color: var(--muted);
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px
+    .yt-gauge-tag {
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--muted)
     }
 
-    .yt-gauge-sw {
-      display: inline-block;
-      width: 9px;
-      height: 9px;
-      border-radius: 3px
-    }
-
-    .yt-gauge-sw.band {
+    .yt-gauge-tag.band {
       background: var(--key-soft);
-      border: 1px solid var(--key-deep)
+      border-color: var(--key-deep);
+      color: var(--key-deep)
     }
 
-    .yt-gauge-sw.now {
-      width: 2px;
-      height: 10px;
-      border-radius: 0;
-      background: var(--red)
+    .yt-gauge-tag.normal {
+      background: #eafaf0;
+      border-color: #16a34a;
+      color: #15803d
     }
 
-    .yt-gauge-sw.dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--key-deep)
+    .yt-gauge-tag.under {
+      background: #eaf3ff;
+      border-color: #1d6fd6;
+      color: #1d6fd6
+    }
+
+    .yt-gauge-tag.over {
+      background: #fdecec;
+      border-color: #c0392b;
+      color: #c0392b
     }
 
     .yt-range-gauge-caption {
@@ -9905,6 +9950,91 @@
       line-height: 1.6;
       margin-top: 8px;
       font-weight: 600
+    }
+
+    .yt-gap-trend-line {
+      font-size: 10.5px;
+      color: var(--muted);
+      font-weight: 600;
+      line-height: 1.6;
+      margin-top: 8px
+    }
+
+    .yt-past-ev-wrap {
+      margin-top: 10px;
+      border-top: 1px solid var(--line);
+      padding-top: 8px
+    }
+
+    .yt-past-ev-wrap summary {
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--key-deep)
+    }
+
+    .yt-past-ev-list {
+      margin-top: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px
+    }
+
+    .yt-past-ev-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      padding: 3px 0
+    }
+
+    .yt-past-ev-d {
+      flex: 0 0 auto;
+      min-width: 44px;
+      font-weight: 800;
+      color: var(--key-deep);
+      font-size: 10.5px
+    }
+
+    .yt-past-ev-cat {
+      flex: 0 0 auto
+    }
+
+    .yt-past-ev-title {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--muted)
+    }
+
+    @media (max-width: 380px) {
+      .yt-hero-box {
+        padding: 7px 6px
+      }
+
+      .yt-hero-box-label {
+        font-size: 9px
+      }
+
+      .yt-hero-box-value {
+        font-size: 12px
+      }
+
+      .yt-hero-box-value.small {
+        font-size: 11px
+      }
+
+      .yt-elapsed-live-text {
+        font-size: 10.5px
+      }
+
+      .yt-elapsed-live-text span {
+        font-size: 11px
+      }
     }
 
     .yt-range-gauge-caption b {
@@ -17883,17 +18013,14 @@
       const k = ytKstParts(dateLike);
       return `${k.m}월 ${k.d}일 ${k.h}시`;
     }
-    // "직전 영상 대비 3일만에가 정확히 몇시간인지도 궁금하다"는 지적 반영 — 0.1일 단위로
-    // 반올림해서 보여주던 값을 일+시간 단위로 정확하게 풀어서 보여준다.
+    // "직전 영상 대비 1일만에라고만 나오고 몇시간인지는 안 보인다"는 지적 반영 — 일 단위가
+    // 딱 떨어져서 시간(0시간)이 생략되던 게 원인이었다. d>0이어도 시간을 항상 같이 보여준다.
     function fmtGapPrecise(v) {
       if (v == null) return '-';
       let totalMin = Math.round(v * 24 * 60);
       const d = Math.floor(totalMin / 1440); totalMin -= d * 1440;
       const h = Math.floor(totalMin / 60);
-      const parts = [];
-      if (d > 0) parts.push(`${d}일`);
-      if (h > 0 || d === 0) parts.push(`${h}시간`);
-      return parts.join(' ');
+      return d > 0 ? `${d}일 ${h}시간` : `${h}시간`;
     }
 
     // "마지막 업로드 이후 경과 시간을 첨부 이미지처럼 일/시/분/초가 실시간으로 흐르는
@@ -17938,20 +18065,17 @@
       return { gaps, latest: gaps.length ? gaps[0] : null, avg3: avgOfN(3), avg5: avgOfN(5), avg10: avgOfN(10), avg20: avgOfN(20), stdev };
     }
 
-    // 가장 가까운 다음 경기 / 가장 최근 지난 경기 — 이미 사이트에 있는 승부예측용
-    // tournaments 테이블(경기명·일시)을 그대로 재사용한다. 새 SQL 없이 anon 조회 가능.
+    // 가장 가까운 다음 경기 / 가장 최근 지난 경기 — 예전엔 사이트 승부예측용 tournaments
+    // 테이블만 anon으로 직접 읽었는데, 그 테이블엔 최근/예정 경기 위주로만 있어서
+    // "과거 경기가 많은데 왜 과거 1번이냐"는 지적으로 이어졌다. 이제 공식 홈페이지에서
+    // 직접 확인해 적재한 과거 경기 이력(yt_event_history)까지 서버에서 합쳐 계산해주는
+    // RPC(yt_get_nearest_events)를 쓴다 — tournaments 테이블 자체는 그대로 둔다.
     async function ytFetchNearestEvents() {
       try {
-        const { data } = await sb.from('tournaments').select('id,title,event_at,event_date');
-        const now = svrNow().getTime();
-        const rows = (data || []).map(t => {
-          const ts = t.event_at ? new Date(t.event_at).getTime()
-            : (t.event_date ? new Date(t.event_date + 'T00:00:00+09:00').getTime() : null);
-          return { ...t, _t: ts };
-        }).filter(t => t._t != null);
-        const nextEvent = rows.filter(t => t._t >= now).sort((a, b) => a._t - b._t)[0] || null;
-        const lastEvent = rows.filter(t => t._t < now).sort((a, b) => b._t - a._t)[0] || null;
-        return { nextEvent, lastEvent };
+        const { data } = await sb.rpc('yt_get_nearest_events');
+        if (!data || data.ok === false) return { nextEvent: null, lastEvent: null };
+        const mk = (e) => (e && e.event_at) ? { title: e.title, event_at: e.event_at, _t: new Date(e.event_at).getTime() } : null;
+        return { nextEvent: mk(data.next_event), lastEvent: mk(data.last_event) };
       } catch (e) { return { nextEvent: null, lastEvent: null }; }
     }
 
@@ -18023,6 +18147,10 @@
     // 계체 영상처럼 아직 경기를 몇 번 안 치러서 표본이 1~2건뿐인 카테고리가, 확률 계산에서
     // 제외되는 것과 별개로 화면에서 완전히 사라져 "왜 반영이 안 되냐"는 지적을 받았던 문제 반영.
     const YT_LOW_SAMPLE_N = 3;
+    // "우리가 갖고 있는 약 6년치 데이터 기반 통계로도 근거를 보여달라"는 지적 반영 —
+    // 요일 베이스라인을 90일/1년뿐 아니라 채널 전체 이력(약 6년)까지 넓혀서 쓸 수 있게
+    // yt_get_stats 호출 시 이 값을 p_days로 준다.
+    const YT_ALL_TIME_DAYS = 2200;
     // "중앙값(D-4)만 말고 지난 경기 때는 실제로 며칠 전에 올라왔는지 구체적인 사례로
     // 비교해달라"는 지적 반영 — yt_get_event_lead_time_detail()이 최신순으로 내려주는
     // 낱개 사례 중, 이 카테고리와 일치하는 가장 최근 것을 찾는다.
@@ -18210,50 +18338,40 @@
       box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // "근거가 빈약해서 신뢰가 안 간다 — 평소 주기 범위 안에 속한다는 걸 직관적으로,
-    // 수치적으로 보여달라"는 지적(두 번째 라운드) 반영 — 텍스트를 더 다듬는 대신 실제
-    // 눈금이 있는 가로 게이지를 그린다. 축은 "마지막 업로드 후 며칠째"이고, 옅은 색
-    // 띠가 평소 업로드가 몰리는 구간(평균±변동폭), 빨간 세로선이 지금 위치, 위에 찍힌
-    // 점들이 앞으로 7일 각각의 확률(진하고 클수록 확률 높음)이다.
-    function ytRangeGaugeHTML(daysSinceLastPub, blendedGapDays, gapSigma, days) {
+    // "차트가 일반인이 보기엔 너무 어렵다, 더 직관적이고 쉽게 해달라"는 지적 반영 —
+    // 앞으로 7일 점들은 바로 아래 "업로드 확률" 막대들과 중복이라 빼고, "평소 이맘때
+    // 구간"과 "지금 위치"만 남긴 단순한 막대(온도계) 하나로 줄였다. 숫자를 읽지 않아도
+    // 지금이 그 구간 안인지/밖인지 색과 문구로 바로 판단할 수 있게 했다.
+    function ytRangeGaugeHTML(daysSinceLastPub, blendedGapDays, gapSigma) {
       if (blendedGapDays == null) return `<div class="note" style="margin:0">아직 간격 통계를 계산할 만큼 데이터가 부족해요.</div>`;
       const low = Math.max(0, blendedGapDays - gapSigma);
       const high = blendedGapDays + gapSigma;
-      const lastDaySince = (days && days.length) ? (daysSinceLastPub || 0) + (days.length - 1) : high;
-      const axisMax = Math.max(high * 1.25, lastDaySince * 1.1, (daysSinceLastPub || 0) * 1.15, 1);
-      const W = 300, H = 74, PADX = 12, TRACK_Y = 34, TRACK_H = 10;
+      const axisMax = Math.max(high * 1.3, (daysSinceLastPub || 0) * 1.15, 1);
+      const W = 300, H = 46, PADX = 10, TRACK_Y = 12, TRACK_H = 16;
       const xFor = v => PADX + (Math.min(Math.max(v, 0), axisMax) / axisMax) * (W - PADX * 2);
       const bandX1 = xFor(low), bandX2 = xFor(high);
       const nowX = daysSinceLastPub != null ? xFor(daysSinceLastPub) : null;
-      const maxPct = (days && days.length) ? Math.max(...days.map(d => d.pct)) : 0;
-      const dayMarks = (days || []).map((d, i) => {
-        const x = xFor((daysSinceLastPub || 0) + i);
-        const r = 2.2 + (d.pct / 100) * 5;
-        const hi = maxPct > 0 && d.pct >= maxPct * 0.7;
-        return `<circle cx="${x.toFixed(1)}" cy="${(TRACK_Y - 3).toFixed(1)}" r="${r.toFixed(1)}" fill="${hi ? 'var(--key-deep)' : 'var(--dim)'}" opacity="${hi ? 1 : 0.5}"></circle>`;
-      }).join('');
-      const nowMark = nowX != null ? `
-        <line x1="${nowX.toFixed(1)}" y1="${TRACK_Y - 12}" x2="${nowX.toFixed(1)}" y2="${TRACK_Y + TRACK_H + 8}" stroke="var(--red)" stroke-width="2"></line>
-        <text x="${nowX.toFixed(1)}" y="${TRACK_Y - 15}" font-size="8" font-weight="800" fill="var(--red)" text-anchor="middle">지금</text>` : '';
+      const state = daysSinceLastPub == null ? null
+        : daysSinceLastPub < low ? '아직 이른 편'
+        : daysSinceLastPub > high ? '이미 늦어진 상태'
+        : '평소 범위 안';
+      const stateCls = daysSinceLastPub == null ? '' : daysSinceLastPub < low ? 'under' : daysSinceLastPub > high ? 'over' : 'normal';
       return `
         <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">
-          <rect x="${PADX}" y="${TRACK_Y}" width="${(W - PADX * 2).toFixed(1)}" height="${TRACK_H}" rx="5" fill="var(--card2)"></rect>
-          <rect x="${bandX1.toFixed(1)}" y="${TRACK_Y}" width="${Math.max(0, bandX2 - bandX1).toFixed(1)}" height="${TRACK_H}" rx="5" fill="var(--key-soft)"></rect>
-          ${dayMarks}
-          ${nowMark}
-          <text x="${bandX1.toFixed(1)}" y="${TRACK_Y + TRACK_H + 20}" font-size="7.5" fill="var(--key-deep)" font-weight="700" text-anchor="middle">${Math.round(low * 10) / 10}일</text>
-          <text x="${bandX2.toFixed(1)}" y="${TRACK_Y + TRACK_H + 20}" font-size="7.5" fill="var(--key-deep)" font-weight="700" text-anchor="middle">${Math.round(high * 10) / 10}일</text>
-          <text x="${PADX}" y="${H - 3}" font-size="7.5" fill="var(--dim)">0일</text>
-          <text x="${(W - PADX).toFixed(1)}" y="${H - 3}" font-size="7.5" fill="var(--dim)" text-anchor="end">${Math.round(axisMax)}일+</text>
+          <rect x="${PADX}" y="${TRACK_Y}" width="${(W - PADX * 2).toFixed(1)}" height="${TRACK_H}" rx="8" fill="var(--card2)"></rect>
+          <rect x="${bandX1.toFixed(1)}" y="${TRACK_Y}" width="${Math.max(0, bandX2 - bandX1).toFixed(1)}" height="${TRACK_H}" rx="8" fill="var(--key-soft)" stroke="var(--key-deep)" stroke-width="1"></rect>
+          ${nowX != null ? `<circle cx="${nowX.toFixed(1)}" cy="${(TRACK_Y + TRACK_H / 2).toFixed(1)}" r="6.5" fill="var(--red)" stroke="#fff" stroke-width="2"></circle>` : ''}
+          <text x="${PADX}" y="${H - 2}" font-size="8" fill="var(--dim)">0일</text>
+          <text x="${bandX1.toFixed(1)}" y="${H - 2}" font-size="8" font-weight="700" fill="var(--key-deep)" text-anchor="middle">${Math.round(low * 10) / 10}일</text>
+          <text x="${bandX2.toFixed(1)}" y="${H - 2}" font-size="8" font-weight="700" fill="var(--key-deep)" text-anchor="middle">${Math.round(high * 10) / 10}일</text>
         </svg>
-        <div class="yt-gauge-legend">
-          <span><i class="yt-gauge-sw band"></i>평소 업로드가 몰리는 구간</span>
-          <span><i class="yt-gauge-sw now"></i>지금</span>
-          <span><i class="yt-gauge-sw dot"></i>앞으로 7일(진할수록 확률 높음)</span>
+        <div class="yt-gauge-legend2">
+          <span class="yt-gauge-tag band">📍 평소 이맘때 자주 올라와요</span>
+          ${state ? `<span class="yt-gauge-tag ${stateCls}">🔴 지금은 ${state}</span>` : ''}
         </div>`;
     }
 
-    function ytPredictionHeroHTML(stats90, stats365, nextEvent, lastEvent, leadTimes, milestone, eventDayStats, dowByContext, cycleRecent, leadTimeDetail, monthCount) {
+    function ytPredictionHeroHTML(stats90, stats365, statsAll, nextEvent, lastEvent, leadTimes, milestone, eventDayStats, dowByContext, cycleRecent, leadTimeDetail, monthCount) {
       if (!stats90 || stats90.ok === false || !stats90.sample_n) {
         return `<div class="card" style="margin-top:12px"><div class="note">아직 예측할 만큼 데이터가 충분하지 않아요.</div></div>`;
       }
@@ -18271,9 +18389,14 @@
       // 요일별 가중치: 1년치가 있으면 그걸, 없으면 90일치로 대체 (과거 패턴의 "베이스라인")
       // 실제로 어느 쪽을 썼는지는 근거 문구에도 정확히 반영한다 — 채널 이력이 아직 짧아서
       // 90일치만 있는데 "최근 1년"이라고 써버리면 그것도 근거 없는 문구가 되어버린다.
-      const use365 = !!(stats365 && stats365.ok && stats365.dow_histogram_kst && Object.keys(stats365.dow_histogram_kst).length);
-      const dhAll = use365 ? stats365.dow_histogram_kst : (stats90.dow_histogram_kst || {});
-      const dowWindowLabelAll = use365 ? '최근 1년' : '최근 90일';
+      // "6년치 데이터 기반 통계로도 근거가 강화되면 좋겠다"는 지적 반영 — 1년치보다도
+      // 채널 전체 이력(약 6년)이 있으면 그걸 최우선 베이스라인으로 쓰고, 문구에도
+      // "전체 기간(약 N년, M개)"처럼 정확히 어느 범위 데이터인지 밝힌다.
+      const useAll = !!(statsAll && statsAll.ok && statsAll.dow_histogram_kst && Object.keys(statsAll.dow_histogram_kst).length);
+      const use365 = !useAll && !!(stats365 && stats365.ok && stats365.dow_histogram_kst && Object.keys(stats365.dow_histogram_kst).length);
+      const dhAll = useAll ? statsAll.dow_histogram_kst : use365 ? stats365.dow_histogram_kst : (stats90.dow_histogram_kst || {});
+      const allTimeYears = Math.round((YT_ALL_TIME_DAYS / 365) * 10) / 10;
+      const dowWindowLabelAll = useAll ? `전체 기간(약 ${allTimeYears}년, ${statsAll.sample_n}개)` : use365 ? '최근 1년' : '최근 90일';
 
       // "경기 있는 주/없는 주를 구분 안 한다"는 지적 반영 — 경기 전후 며칠(±p_window_days)
       // 안에 올라온 업로드만 모은 요일 분포와, 그 밖의 평상시 업로드만 모은 요일 분포를
@@ -18420,8 +18543,19 @@
       // "8월 26일 유력 문구가 크고 번잡하다"는 지적 반영 — 예전엔 이 이유를 제목 줄
       // 끝에 " · "로 이어붙여서 한 줄이 길고 무거워 보였다. 이제 제목(날짜/시간)과
       // 분리해서 작은 별도 줄로 보여준다(leading " · " 없이 독립 문장으로).
+      // "'평소 업로드 간격 패턴상 유력'이라는데 그 패턴이 뭔지 안 보여준다"는 지적 반영 —
+      // 막연한 말 대신 실제 평균±변동폭 숫자를 문장 안에 바로 박아넣는다. 이 날짜가 그
+      // 범위 "안"인지 아닌지도 사실 그대로 말한다(범위 밖인데 안이라고 우기지 않는다).
+      const gapRangeText = blendedGapDays != null
+        ? `평소 간격 평균 ${Math.round(blendedGapDays * 10) / 10}일(±${Math.round(gapSigma * 10) / 10}일)`
+        : null;
+      const topInGapRange = blendedGapDays != null && topDay.daysSinceForDay != null
+        && topDay.daysSinceForDay >= (blendedGapDays - gapSigma) && topDay.daysSinceForDay <= (blendedGapDays + gapSigma);
       const topPhaseQualifier = !topDay.phase
-        ? `평소 업로드 간격 패턴상 유력한 시점(${YT_DOW_LABEL[topDay.dow]}요일)`
+        ? (gapRangeText
+          ? (topInGapRange ? `${gapRangeText} 범위 안 · ${YT_DOW_LABEL[topDay.dow]}요일 업로드도 잦은 편`
+            : `${YT_DOW_LABEL[topDay.dow]}요일엔 원래 업로드가 잦은 편 (참고: ${gapRangeText})`)
+          : `평소 업로드 간격 패턴상 유력한 시점(${YT_DOW_LABEL[topDay.dow]}요일)`)
         : topDay.phase.type === 'event-day' ? `경기 당일(라이브와 별개로 올라오는 영상 기준)`
         : topDay.phase.label;
 
@@ -18495,10 +18629,9 @@
       const monthCountText = monthCount != null ? `${monthCount}개` : '-';
       const sample90Text = stats90.sample_n != null ? `${stats90.sample_n}개` : '-';
       const mini = (n, lbl) => `<div class="yt-gap-mini"><span class="yt-gap-mini-n">${n}</span><span class="yt-gap-mini-lbl">${lbl}</span></div>`;
-      // "나머지 통계도 UI/차트로 가독성 있게, 세로로 너무 길지 않게"라는 지적 반영 — 예전엔
-      // 항목당 한 줄(2열 그리드 5줄)이었는데, 관련 있는 숫자끼리 가로 한 줄에 묶었다.
-      // "마지막 업로드/경과 시간/업로드 예측"은 이제 위쪽 3분할 박스로 옮겨서, 여기는
-      // 보조 통계(평균 주기·변동성·최근 N회 추이·주기 차트)만 남겼다.
+      // "최근 3/5/10/20회를 두 줄로 나열할 필요 있냐, 통계적으로 집계해서 한 줄에
+      // 보여달라"는 지적 반영 — 박스 4개짜리 둘째 줄을 없애고 문장 한 줄로 압축했다.
+      // 항목 이름도 "평균 주기"처럼 축약하지 않고 뭘 뜻하는지 그대로 풀어썼다.
       const gapStatsHTML = `
         <div class="yt-gap-stats">
           <div class="yt-gap-stats-head">
@@ -18506,24 +18639,44 @@
             <span class="yt-gap-stats-sub">쇼츠를 뺀 동영상 기준으로 계산해요</span>
           </div>
           <div class="yt-gap-mini-row">
-            ${mini(fmtGap(blendedGapDays), '평균 주기')}
-            ${mini('±' + fmtGap(gapStats.stdev), '변동성')}
-            ${mini(monthCountText, '이번 달')}
-            ${mini(sample90Text, '최근 90일')}
+            ${mini(fmtGap(blendedGapDays), '평소 업로드 주기')}
+            ${mini('±' + fmtGap(gapStats.stdev), '주기 변동성')}
+            ${mini(monthCountText, '이번 달 업로드')}
+            ${mini(sample90Text, '최근 90일 업로드')}
           </div>
-          <div class="yt-gap-mini-row">
-            ${mini(fmtGap(gapStats.avg3), '최근 3회')}
-            ${mini(fmtGap(gapStats.avg5), '최근 5회')}
-            ${mini(fmtGap(gapStats.avg10), '최근 10회')}
-            ${mini(fmtGap(gapStats.avg20), '최근 20회')}
-          </div>
+          <div class="yt-gap-trend-line">최근 흐름(회차별 평균 간격) — 3회 ${fmtGap(gapStats.avg3)} · 5회 ${fmtGap(gapStats.avg5)} · 10회 ${fmtGap(gapStats.avg10)} · 20회 ${fmtGap(gapStats.avg20)}</div>
           <div class="yt-gap-chart-wrap">${ytCycleChartHTML(cycleRecent, stats90)}</div>
         </div>`;
 
+      // "과거 경기 때는 어떤 패턴이었는지 분석해서 예측하거나, 그게 어려우면 직전 경기
+      // 리스트를 그냥 같이 보여주고 그거 대비 어떤 추세인지 설명해달라"는 지적 반영 —
+      // leadTimeDetail(yt_get_event_lead_time_detail)에는 이미 "각 영상이 자기 기준
+      // 가장 가까운 미래 경기까지 D-n"이 낱개로 들어있으므로, lastEvent(실제로 가장
+      // 최근 있었던 경기)와 시각이 일치하는 항목만 추려서 그 경기 직전 실제 업로드
+      // 순서를 있는 그대로 보여준다(추측·가공 없이 실측 리스트).
+      let pastEventTimelineHTML = '';
+      if (lastEvent && leadTimeDetail && Array.isArray(leadTimeDetail.pre_event) && leadTimeDetail.pre_event.length) {
+        const items = leadTimeDetail.pre_event
+          .filter(e => Math.abs(new Date(e.event_at).getTime() - lastEvent._t) < 60000)
+          .sort((a, b) => b.days_before - a.days_before);
+        if (items.length) {
+          const rows = items.map(e => {
+            const meta = ytCatMeta(e.cat);
+            const dTag = e.days_before < 1 ? `D-0 (${Math.round(e.days_before * 24)}시간 전)` : `D-${Math.round(e.days_before)}`;
+            return `<div class="yt-past-ev-row"><span class="yt-past-ev-d">${esc(dTag)}</span><span class="yt-past-ev-cat" title="${esc(meta.label)}">${meta.emoji}</span><span class="yt-past-ev-title">${esc(e.video_title)}</span></div>`;
+          }).join('');
+          pastEventTimelineHTML = `
+            <details class="yt-past-ev-wrap">
+              <summary>🗂️ 직전 경기 "${esc(lastEvent.title)}" 때 실제로 어떤 순서로 올라왔는지 보기 (${items.length}개)</summary>
+              <div class="yt-past-ev-list">${rows}</div>
+            </details>`;
+        }
+      }
+
       // "마지막 업로드 / 경과 시간 / 업로드 예측 3가지가 중요하니 나란히 박스로 구분해서
-      // 보여달라"는 지적 반영 — 3분할 박스. 경과 시간은 첨부 이미지처럼 일/시/분/초가
-      // 실시간으로 흐르는 다크 카운터로 보여주고(ytStartElapsedTimer가 렌더 후 시작),
-      // 업로드 예측 박스는 위에서 새로 만든 "유력 구간" 문구를 그대로 쓴다.
+      // 보여달라"는 지적 반영 — 3분할 박스는 유지하되, 모바일에서 두 줄로 쪼개지던 것을
+      // 항상 한 줄(3열)로 고정했다. 경과 시간은 "이미지 그대로 따라했다는 느낌 싫다"는
+      // 지적 반영해 다크 박스 대신 텍스트 한 줄(빨간색, 일/시/분/초)로 바꿨다.
       window.__ytLastPubMs = lastPub ? lastPub.getTime() : null;
       const topBoxesHTML = `
         <div class="yt-hero-top-grid">
@@ -18534,12 +18687,7 @@
           </div>
           <div class="yt-hero-box">
             <div class="yt-hero-box-label">⏳ 경과 시간</div>
-            <div class="yt-elapsed-live" id="ytElapsedLiveWrap">
-              <div class="yt-elapsed-box"><span id="ytElapsedD">--</span><label>일</label></div>
-              <div class="yt-elapsed-box"><span id="ytElapsedH">--</span><label>시</label></div>
-              <div class="yt-elapsed-box"><span id="ytElapsedM">--</span><label>분</label></div>
-              <div class="yt-elapsed-box"><span id="ytElapsedS">--</span><label>초</label></div>
-            </div>
+            <div class="yt-elapsed-live-text" id="ytElapsedLiveWrap"><span id="ytElapsedD">00</span>일 <span id="ytElapsedH">00</span>시 <span id="ytElapsedM">00</span>분 <span id="ytElapsedS">00</span>초</div>
             ${gapBadge ? `<div class="yt-hero-box-sub">${gapBadge}</div>` : ''}
           </div>
           <div class="yt-hero-box highlight">
@@ -18563,11 +18711,12 @@
              7일의 확률 분포와 함께 한눈에 보이게 한다. -->
         <div class="yt-range-gauge-wrap">
           <div class="yt-range-gauge-title">📐 예측 근거 — 평소 업로드 간격 범위</div>
-          ${ytRangeGaugeHTML(daysSinceLastPub, blendedGapDays, gapSigma, days)}
+          ${ytRangeGaugeHTML(daysSinceLastPub, blendedGapDays, gapSigma)}
           ${blendedGapDays != null ? `<div class="yt-range-gauge-caption">최근 간격 평균 ${Math.round(blendedGapDays * 10) / 10}일 · 변동 ±${Math.round(gapSigma * 10) / 10}일 → 마지막 업로드 후 <b>${rangeLow}~${rangeHigh}일</b> 사이가 통계적으로 유력해요 (지금은 ${daysSinceLastPub != null ? Math.round(daysSinceLastPub * 10) / 10 : '-'}일째)</div>` : ''}
         </div>
         ${gapStatsHTML}
-        ${isTop0 && hourPassedGrace ? `<div class="yt-pred-hero-alert">⏰ ${esc(hourText)}경 예상이 지났는데 아직 업로드가 없어요 — 이후 업로드 사례는 ${hourAfterPct}%(${hourAfterCount}건)뿐이에요.</div>` : ''}
+        ${pastEventTimelineHTML}
+        ${isTop0 && hourPassedGrace ?`<div class="yt-pred-hero-alert">⏰ ${esc(hourText)}경 예상이 지났는데 아직 업로드가 없어요 — 이후 업로드 사례는 ${hourAfterPct}%(${hourAfterCount}건)뿐이에요.</div>` : ''}
         <!-- "요일별 확률이 무슨 기준이냐, 소제목 있으면 좋겠다"는 지적 반영 — 이 구간이
              정확히 뭘 보여주는 건지 이름표를 달아준다. 계산 기준도 요일 빈도 위주에서
              간격 통계(마지막 업로드 후 경과일 분포) 위주로 바뀐 걸 반영했다. -->
@@ -18623,40 +18772,40 @@
       // 세로축 눈금 글씨가 데이터 점/선과 겹칠 수 있다는 걸 감안해서, 글씨 자리(위/아래)를
       // 데이터가 절대 침범 못 하는 고정 여백으로 따로 떼어둔다 — 데이터 값이 아무리 작거나
       // 커도 겹칠 일이 없다. "쓸데없이 크다"는 지적 반영해 전체 세로 크기(H)도 줄였다.
-      const W = 300, H = 58, PADX = 8, PLOT_TOP = 11, PLOT_BOTTOM = 44, TEXT_TOP_Y = 7, TEXT_BOTTOM_Y = 56;
+      const W = 300, H = 58, PADX = 8, PLOT_TOP = 11, PLOT_BOTTOM = 44, TEXT_BOTTOM_Y = 56;
       const stepX = gaps.length > 1 ? (W - PADX * 2) / (gaps.length - 1) : 0;
       const yFor = v => PLOT_BOTTOM - (v / maxDays) * (PLOT_BOTTOM - PLOT_TOP);
       const pts = gaps.map((g, i) => `${(PADX + i * stepX).toFixed(1)},${yFor(g.days).toFixed(1)}`).join(' ');
       const avgY = yFor(avgDays).toFixed(1);
       // 점을 눌러도 반응이 없다는 피드백 반영 — 실제 보이는 점(반지름 2.5)보다 훨씬 큰 투명한
       // 터치 영역을 뒤에 깔아서, 탭 한 번으로 어떤 영상 사이의 간격인지 아래 상세에 바로 띄운다.
+      // "PC에서는 각 항목에 마우스오버하면 영상 리스트가 바로 나오게 해달라"는 지적 반영 —
+      // onclick과 별개로 onmouseenter도 같은 상세 표시 함수를 호출한다(터치 기기는
+      // mouseenter가 사실상 안 뜨니 기존 탭 동작에 영향 없음).
       const dots = gaps.map((g, i) => `
-          <circle cx="${(PADX + i * stepX).toFixed(1)}" cy="${yFor(g.days).toFixed(1)}" r="9" fill="transparent" style="cursor:pointer" onclick="ytShowCycleInfo(${i})"></circle>
+          <circle cx="${(PADX + i * stepX).toFixed(1)}" cy="${yFor(g.days).toFixed(1)}" r="9" fill="transparent" style="cursor:pointer" onclick="ytShowCycleInfo(${i})" onmouseenter="ytShowCycleInfo(${i})"></circle>
           <circle id="ytCycleDot-${i}" cx="${(PADX + i * stepX).toFixed(1)}" cy="${yFor(g.days).toFixed(1)}" r="2.5" fill="var(--key-deep)" style="pointer-events:none"></circle>`).join('');
       const firstLabel = new Date(sorted[0].published_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
       const lastLabel = new Date(sorted[sorted.length - 1].published_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
-      // "왼쪽 상단 4.5일이 무슨 뜻이냐, 평균이란 말이냐"는 지적 반영 — 예전엔 세로축
-      // 맨 위 눈금(차트 스케일의 최댓값일 뿐, 평균이 아님)이 마치 의미 있는 숫자처럼
-      // 덩그러니 떠 있어서 헷갈렸다. 이제 그 자리엔 "간격(일)"이라는 축 이름만 두고,
-      // 진짜 평균값은 점선 옆에 숫자를 직접 붙여서 헷갈릴 수 없게 만든다.
-      const yAxisTop = Math.round(maxDays * 10) / 10;
+      // "차트 안 텍스트가 점/선에 가려서 보기 힘들다, 평균 1.1일이 최근 20개 기준인지
+      // 명확히 안내해달라"는 지적 반영 — 축 위에 떠 있던 라벨(최대치·평균)을 전부 빼고
+      // 데이터와 절대 겹치지 않는 차트 바깥 자막 한 줄로만 설명한다.
       const avgLabel = Math.round(avgDays * 10) / 10;
       return `
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1px">
           <div style="font-weight:800;font-size:11.5px">📈 최근 ${sorted.length}개 간격 추이</div>
           <div class="note" style="font-size:9.5px;margin:0">↕ 위=늦게 아래=빠르게</div>
         </div>
+        <div class="note" style="font-size:9.5px;margin:0 0 2px">최근 ${sorted.length}개 업로드 기준 · 평균 <b style="color:var(--key-deep)">${avgLabel}일</b>(점선)</div>
         <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">
-          <text x="${PADX}" y="${TEXT_TOP_Y}" font-size="6.5" fill="var(--dim)">간격(일) · 최대 ${yAxisTop}일</text>
           <text x="${PADX}" y="${TEXT_BOTTOM_Y}" font-size="6.5" fill="var(--dim)">0일</text>
           <line x1="${PADX}" y1="${avgY}" x2="${W - PADX}" y2="${avgY}" stroke="var(--dim)" stroke-width="1" stroke-dasharray="4 3"></line>
-          <text x="${W - PADX}" y="${(Number(avgY) - 2.5).toFixed(1)}" font-size="6.5" font-weight="700" fill="var(--key-deep)" text-anchor="end">평균 ${avgLabel}일</text>
           <polyline points="${pts}" fill="none" stroke="var(--key-deep)" stroke-width="2"></polyline>
           ${dots}
         </svg>
         <div style="display:flex;justify-content:space-between;margin-top:1px">
           <span class="note" style="font-size:9px;margin:0">${esc(firstLabel)}</span>
-          <span class="note" style="font-size:9px;margin:0">탭하면 상세</span>
+          <span class="note" style="font-size:9px;margin:0">탭/마우스오버하면 상세</span>
           <span class="note" style="font-size:9px;margin:0">${esc(lastLabel)}</span>
         </div>
         <div id="ytCycleDetail"></div>`;
@@ -18714,13 +18863,28 @@
       window.__ytVidReg.push({ v, extraNote });
       return idx;
     }
+    // "각 항목에 나오는 영상과 최근 업로드 영상 모두 직전 대비 얼마만에 올라온건지
+    // 표시해달라"는 지적(재요청) 반영 — 캘린더/주기차트/최근업로드에서 이번에 불러온
+    // 영상들을 시간순으로 합친 registry에서, 그 영상 바로 이전(더 예전) 영상을 찾아
+    // 간격을 계산한다. 이번 로드에서 확보한 범위 밖(더 과거)이면 억지로 표시하지 않는다.
+    function ytPrevGapNote(v) {
+      const arr = window.__ytAllVideosDesc || [];
+      const idx = arr.findIndex(x => x.video_id === v.video_id);
+      if (idx === -1 || idx >= arr.length - 1) return null;
+      const prev = arr[idx + 1];
+      const days = (new Date(v.published_at) - new Date(prev.published_at)) / 86400000;
+      if (!(days > 0)) return null;
+      return `직전 영상 대비 ${fmtGapPrecise(days)} 만에`;
+    }
     function ytVideoRowHTML(v, extraNote) {
       const idx = ytRegisterVideo(v, extraNote);
+      const gapNote = extraNote ? null : ytPrevGapNote(v);
       return `<div class="yt-recent-row" role="button" tabindex="0" onclick="ytOpenVideoPreview(${idx})">
         <img class="yt-recent-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:700;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.title)}</div>
           <div class="note">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)} · ${new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+          ${gapNote ? `<div class="note" style="color:var(--key-deep);font-weight:700">${esc(gapNote)}</div>` : ''}
         </div>
       </div>`;
     }
@@ -18740,14 +18904,52 @@
             <img class="yt-vp-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
             <div class="yt-vp-title">${esc(v.title)}</div>
             <div class="note">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)} · ${esc(dateText)}</div>
-            ${entry.extraNote ? `<div class="yt-vp-extra">${entry.extraNote}</div>` : ''}
+            ${entry.extraNote ? `<div class="yt-vp-extra">${entry.extraNote}</div>`
+        : (ytPrevGapNote(v) ? `<div class="yt-vp-extra">${esc(ytPrevGapNote(v))}</div>` : '')}
             <div class="yt-vp-desc${descShort ? '' : ' note'}">${descShort ? esc(descShort) : '등록된 설명이 없어요'}</div>
+            ${typeof adminPass === 'function' && adminPass() ? `
+            <div class="yt-vp-admin-cat">
+              <label class="note" style="display:block;margin-bottom:3px">🔧 카테고리 잘못 분류됐으면 여기서 바로 고쳐요(관리자)</label>
+              <select class="yt-vp-admin-cat-select" onchange="ytAdminSetCategory('${esc(v.video_id)}', this.value, ${idx})">
+                ${Object.keys(YT_CATS).map(k => `<option value="${k}"${v.category === k ? ' selected' : ''}>${YT_CATS[k].emoji} ${esc(YT_CATS[k].label)}</option>`).join('')}
+              </select>
+            </div>` : ''}
             <div class="yt-vp-actions">
               <button type="button" class="btn small" onclick="ytCloseVideoPreview()">닫기</button>
               <a class="btn small primary" href="${url}" target="_blank" rel="noopener" onclick="ytCloseVideoPreview()">▶ 유튜브에서 보기</a>
             </div>
           </div>
         </div>`;
+    }
+    // "경기 카테고리에 컨텐츠가 계속 섞여 보인다, 완벽한 자동분류는 어려울 것 같다"는
+    // 지적 반영 — 제목만으로는 완벽히 못 가르는 걸 인정하고, 이미 서버에 있던
+    // yt_admin_set_category RPC를 관리자 화면(비밀번호 보유)에서 바로 쓸 수 있게 UI를
+    // 붙였다. 새로고침 없이 지금 열려있는 화면(모달·달력·목록)의 카테고리도 즉시 갱신한다.
+    async function ytAdminSetCategory(videoId, newCat, idx) {
+      const pass = typeof adminPass === 'function' ? adminPass() : '';
+      if (!pass) return;
+      try {
+        const { data, error } = await sb.rpc('yt_admin_set_category', { p_pass: pass, p_video_id: videoId, p_category: newCat });
+        if (error || !data || data.ok === false) {
+          alert('카테고리 변경에 실패했어요' + (data && data.code ? ` (${data.code})` : ''));
+          return;
+        }
+        [window.__ytVidReg, window.__ytAllVideosDesc, (ytCalState && ytCalState.videos)].forEach(arr => {
+          (arr || []).forEach(item => {
+            const v = item && item.v ? item.v : item;
+            if (v && v.video_id === videoId) v.category = newCat;
+          });
+        });
+        if (window.__ytByDay) {
+          Object.values(window.__ytByDay).forEach(dayArr => (dayArr || []).forEach(v => { if (v.video_id === videoId) v.category = newCat; }));
+        }
+        ytOpenVideoPreview(idx);
+        const gridWrap = document.getElementById('ytCalGridWrap');
+        if (gridWrap && ytCalState && ytCalState.videos && ytCalState.month) {
+          const [yy, mm] = ytCalState.month.split('-').map(Number);
+          if (yy && mm) gridWrap.innerHTML = ytCalendarGridHTML(yy, mm, ytCalState.videos);
+        }
+      } catch (e) { alert('카테고리 변경 중 오류가 발생했어요'); }
     }
     function ytCloseVideoPreview() {
       const host = document.getElementById('ytVideoPreviewHost');
@@ -18812,6 +19014,10 @@
     }
 
     const YT_NEW_BADGE_HOURS = 24;
+    // "칸 안에 영상이 3개 이상이면 하나가 +1로 묶이는데, 그 우선순위는 쇼츠를 밑으로
+    // 정렬해달라 — 경기/컨텐츠 영상이 중요하다"는 지적 반영. 숫자가 작을수록 먼저(칩으로)
+    // 보이고, 쇼츠는 가장 마지막(+N 안으로 묻힐 확률이 가장 높게) 정렬한다.
+    const YT_CHIP_PRIORITY = { matchup: 0, talk: 1, 'weigh-in': 2, trailer: 2, 'ticket-promo': 2, 'media-day': 2, shorts: 9 };
     function ytCalendarGridHTML(y, m, videos) {
       const filtered = ytCalState.catFilter ? videos.filter(v => v.category === ytCalState.catFilter) : videos;
       const byDay = {};
@@ -18819,6 +19025,9 @@
         const kst = ytKstParts(v.published_at);
         if (kst.y !== y || kst.m !== m) return; // 방어적 필터: 다른 달 데이터가 섞여 들어와도 무시
         (byDay[kst.d] = byDay[kst.d] || []).push(v);
+      });
+      Object.keys(byDay).forEach(d => {
+        byDay[d].sort((a, b) => (YT_CHIP_PRIORITY[a.category] ?? 5) - (YT_CHIP_PRIORITY[b.category] ?? 5));
       });
       window.__ytByDay = byDay;
       const firstDow = new Date(y, m - 1, 1).getDay();
@@ -18851,18 +19060,26 @@
         // 이모지만 찍어두면 뭔지 눌러봐야 안다는 지적 반영 — 짧은 글자 라벨을 이모지 옆에
         // 바로 붙여서 탭 없이도 바로 읽히게 한다(캘린더 칸이 좁아서 2칸까지만 보여주고
         // 나머지는 +N으로 묶는다 — 라벨이 붙으니 이모지만 있을 때보다 한 줄에 덜 들어간다).
+        // "PC에서는 카테고리 이름까지 나와도 되지만 모바일에서는 다 잘리니 이모지로만
+        // 해달라"는 지적 반영 — 글자 라벨을 별도 span으로 감싸서 좁은 화면에서만 CSS로
+        // 숨긴다(마크업/데이터는 그대로 두고 화면 크기에 따라 보이는 것만 다르게).
         const chips = items.slice(0, 2).map(v => {
           const meta = ytCatMeta(v.category);
-          return `<span class="yt-dot" style="background:${ytBlendHex(meta.color, 20, '#ffffff')}" title="${esc(meta.label)}">${meta.emoji} ${esc(meta.short)}</span>`;
+          return `<span class="yt-dot" style="background:${ytBlendHex(meta.color, 20, '#ffffff')}" title="${esc(meta.label)}">${meta.emoji}<span class="yt-dot-label"> ${esc(meta.short)}</span></span>`;
         }).join('');
         const more = items.length > 2 ? `<span class="yt-more">+${items.length - 2}</span>` : '';
         // "캘린더도 날짜에 마우스오버하면 미리보기 느낌으로 자동 팝업되게 해달라"는 지적
         // 반영 — 클릭(모바일 탭 포함)은 기존처럼 전체 모달을 열고, 호버가 가능한
         // 기기(PC 등)에서만 mouseenter 시 가벼운 미리보기 팝오버가 뜬다.
         const hoverAttrs = items.length ? ` onmouseenter="ytHoverPreviewDay(event,${d})" onmouseleave="ytHideHoverPreview()"` : '';
+        // "NEW 배지가 날짜 숫자를 가린다"는 지적 반영 — 절대좌표로 겹쳐 띄우던 방식을
+        // 버리고, 배지·날짜 숫자를 같은 flex 줄의 양 끝에 두어 물리적으로 겹칠 수 없게
+        // 했다. 색도 "검정 바탕에 금색 텍스트"로 지정했다.
         cells += `<div id="ytCell-${d}" class="yt-cell${items.length ? ' has' : ''}${isToday ? ' today' : ''}${dowCls}"${cellStyle} ${items.length ? `onclick="ytOpenDayModal(${d})"` : ''}${hoverAttrs}>
-          ${isNew ? `<span class="yt-new-badge">NEW</span>` : ''}
-          <div class="yt-daynum">${isToday ? `<span class="yt-daynum-today">${d}</span>` : d}</div>
+          <div class="yt-daynum-row">
+            ${isNew ? `<span class="yt-new-badge">NEW</span>` : '<span></span>'}
+            <div class="yt-daynum">${isToday ? `<span class="yt-daynum-today">${d}</span>` : d}</div>
+          </div>
           <div class="yt-dots">${chips}${more}</div>
         </div>`;
       }
@@ -18937,6 +19154,7 @@
             <div style="min-width:0">
               <div class="yt-hover-preview-vtitle">${esc(v.title)}</div>
               <div class="yt-hover-preview-meta">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)}</div>
+              ${ytPrevGapNote(v) ? `<div class="yt-hover-preview-meta" style="color:var(--key-deep);font-weight:700">${esc(ytPrevGapNote(v))}</div>` : ''}
             </div>
           </div>`).join('')}
         ${more ? `<div class="yt-hover-preview-more">+${more}개 더 — 클릭하면 전체 보기</div>` : ''}`;
@@ -18963,15 +19181,17 @@
       const fromStr = `${y}-${pad2(m)}-01`;
       const toStr = `${y}-${pad2(m)}-${pad2(daysInMonthForQuery)}`;
 
-      let videos = [], stats90 = null, stats365 = null, recent = [], cycleRecent = [], nextEvent = null, lastEvent = null, leadTimes = null, leadTimeDetail = null, milestone = null, eventDayStats = null, dowByContext = null;
+      let videos = [], stats90 = null, stats365 = null, statsAll = null, recent = [], cycleRecent = [], nextEvent = null, lastEvent = null, leadTimes = null, leadTimeDetail = null, milestone = null, eventDayStats = null, dowByContext = null;
       try {
-        const [calRes, st90Res, st365Res, recentRes, cycleRecentRes, eventsRes, leadTimesRes, leadTimeDetailRes, milestoneRes, eventDayStatsRes, dowCtxRes] = await Promise.all([
+        const [calRes, st90Res, st365Res, stAllRes, recentRes, cycleRecentRes, eventsRes, leadTimesRes, leadTimeDetailRes, milestoneRes, eventDayStatsRes, dowCtxRes] = await Promise.all([
           sb.rpc('yt_get_calendar', { p_from: fromStr, p_to: toStr }),
           // "예측/분석은 쇼츠 빼고 동영상 기준으로 해라, 쇼츠는 캘린더에만 보이면 된다"는
           // 지적 반영 — 예측에 쓰는 통계/최근목록(주기 차트용)만 p_exclude_shorts:true로
           // 쇼츠를 빼고, 캘린더(calRes)·아래쪽 최근 업로드 목록(recentRes)은 그대로 둔다.
           sb.rpc('yt_get_stats', { p_days: 90, p_exclude_shorts: true }),
           sb.rpc('yt_get_stats', { p_days: 365, p_exclude_shorts: true }),
+          // "6년치 데이터 기반 통계도 근거로 보여달라"는 지적 반영 — 채널 전체 이력 규모로도 조회.
+          sb.rpc('yt_get_stats', { p_days: YT_ALL_TIME_DAYS, p_exclude_shorts: true }),
           sb.rpc('yt_get_recent', { p_limit: 5 }),
           // 업로드 주기 차트는 "지금 보고 있는 달"이 아니라 최근 업로드 기준으로 계산한다
           // (아래 ytCycleChartHTML 주석 참고) — 그래서 달력 조회와 별도로 더 넉넉히 받는다.
@@ -18985,7 +19205,7 @@
           ytFetchDowByContext(),
         ]);
         videos = calRes.data || [];
-        stats90 = st90Res.data; stats365 = st365Res.data;
+        stats90 = st90Res.data; stats365 = st365Res.data; statsAll = stAllRes.data;
         recent = recentRes.data || [];
         cycleRecent = cycleRecentRes.data || [];
         nextEvent = eventsRes.nextEvent; lastEvent = eventsRes.lastEvent;
@@ -18994,12 +19214,19 @@
 
       ytCalState = { month: monthKey, videos, catFilter: ytCalState.catFilter || null };
 
+      // "영상들에 직전 대비 얼마만에 올라온건지 표시해달라"는 지적 반영 — 이번에 불러온
+      // 모든 영상(이번 달 캘린더 + 주기차트용 20개 + 최근 5개)을 하나로 합쳐 최신순으로
+      // 정렬해두면, 목록 어디서든 "그 영상 바로 앞(더 예전) 영상"을 찾아 간격을 계산할 수 있다.
+      const mergedById = new Map();
+      [...videos, ...cycleRecent, ...recent].forEach(v => { if (v && v.video_id) mergedById.set(v.video_id, v); });
+      window.__ytAllVideosDesc = [...mergedById.values()].sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+
       // "캘린더가 주기분석보다 위에 있는 게 맞지 않냐"는 지적 반영 — 예측 카드 다음으로
       // 달력을 바로 보여주고, 보조 수치(요약칩·주기차트)는 그 아래로 내렸다.
       $app.innerHTML = `
       <h1 class="page">영상 업로드 캘린더</h1>
       <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://youtube.com/@${esc(YT_CHANNEL_HANDLE)}" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 유튜브</a> · 과거 패턴 기반 업로드 예측</div>
-      ${ytPredictionHeroHTML(stats90, stats365, nextEvent, lastEvent, leadTimes, milestone, eventDayStats, dowByContext, cycleRecent, leadTimeDetail, videos.length)}
+      ${ytPredictionHeroHTML(stats90, stats365, statsAll, nextEvent, lastEvent, leadTimes, milestone, eventDayStats, dowByContext, cycleRecent, leadTimeDetail, videos.length)}
       <details class="card yt-cal-details" style="margin-top:12px" open>
         <summary>
           <span>📅 ${y}년 ${m}월 업로드 히스토리 (${videos.length}개)</span>
