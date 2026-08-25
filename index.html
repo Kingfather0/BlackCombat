@@ -9567,18 +9567,47 @@
       align-items: center
     }
 
-    /* 카테고리 버튼 8개가 한 줄을 다 차지해서 자리를 너무 많이 차지한다는 지적 반영 —
-       드롭다운 하나로 접었다. */
-    .yt-cat-select {
-      width: 100%;
+    /* 카테고리 버튼 8개가 한 줄을 다 차지해서 자리를 너무 많이 차지한다는 지적으로 한때
+       네이티브 <select> 드롭다운으로 바꿨는데, 이번엔 "필터 작동 방식이 불편하다"는
+       지적을 받았다 — select는 열기(1탭)+고르기(1탭) 총 2번 조작이 필요하고, 지금 뭐가
+       선택돼 있는지 열어보기 전엔 색으로도 안 보였다. 가로 스크롤 칩으로 바꿔서 한 줄
+       공간만 쓰면서도 탭 한 번으로 바로 전환되고, 선택된 칩은 그 카테고리 색으로 즉시
+       표시되게 했다. */
+    .yt-cat-chip-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
       margin-bottom: 10px;
-      padding: 8px 10px;
-      border-radius: 10px;
+      padding-bottom: 2px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none
+    }
+
+    .yt-cat-chip-row::-webkit-scrollbar {
+      display: none
+    }
+
+    .yt-cat-chip {
+      flex-shrink: 0;
+      padding: 6px 12px;
+      border-radius: 999px;
       border: 1px solid var(--border);
       background: var(--card2);
       color: var(--text);
-      font-size: 13px;
-      font-weight: 700
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      cursor: pointer
+    }
+
+    .yt-cat-chip:active {
+      transform: scale(.96)
+    }
+
+    .yt-cat-chip.active {
+      color: #fff;
+      border-color: transparent;
+      font-weight: 800
     }
 
     /* 이전달/다음달 버튼만 있던 걸 특정 월로 바로 이동할 수 있게 네이티브 월 선택기를 추가. */
@@ -9693,7 +9722,7 @@
     .yt-prob-strip {
       display: flex;
       gap: 5px;
-      margin-top: 14px;
+      margin-top: 8px;
       overflow-x: auto
     }
 
@@ -9854,44 +9883,129 @@
       white-space: nowrap
     }
 
+    /* "업로드 간격 통계, 이 부분 중요한 부분이다 가독성 있게 해달라"는 지적 반영 — 접혀서
+       숨어있던 <details>를 항상 펼쳐진 카드로 바꾸고, 폰트/여백을 키워 한눈에 읽히게 했다. */
     .yt-gap-stats {
-      margin-top: 4px
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 12px
     }
 
-    .yt-gap-stats summary {
+    .yt-gap-stats-head {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 10px
+    }
+
+    .yt-gap-stats-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text)
+    }
+
+    .yt-gap-stats-sub {
       font-size: 10.5px;
-      color: var(--muted);
-      cursor: pointer;
-      list-style: none
+      color: var(--muted)
     }
 
-    .yt-gap-stats summary::-webkit-details-marker {
-      display: none
+    .yt-gap-highlight {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 9px 12px;
+      margin-bottom: 10px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px
+    }
+
+    .yt-gap-highlight-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted)
+    }
+
+    .yt-gap-highlight-value {
+      display: block;
+      font-size: 17px;
+      font-weight: 900;
+      color: var(--key-deep);
+      margin-top: 1px
+    }
+
+    .yt-gap-highlight-badge {
+      flex-shrink: 0;
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap
+    }
+
+    .yt-gap-highlight-badge.over {
+      background: #fdecec;
+      color: #c0392b
+    }
+
+    .yt-gap-highlight-badge.under {
+      background: #eaf3ff;
+      color: #1d6fd6
+    }
+
+    .yt-gap-highlight-badge.normal {
+      background: var(--card2);
+      color: var(--muted);
+      border: 1px solid var(--border)
     }
 
     .yt-gap-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 4px 10px;
-      margin-top: 6px;
-      padding: 8px 10px;
-      background: var(--card2);
-      border-radius: 8px
+      gap: 6px 12px
     }
 
     .yt-gap-grid > div {
       display: flex;
       justify-content: space-between;
-      font-size: 10.5px
+      align-items: baseline;
+      padding: 5px 9px;
+      background: #fff;
+      border-radius: 7px;
+      font-size: 12px
     }
 
     .yt-gap-label {
-      color: var(--muted)
+      color: var(--muted);
+      font-weight: 600
     }
 
     .yt-gap-value {
       font-weight: 800;
       color: var(--text)
+    }
+
+    /* "요일별 확률이 무슨 기준이냐, 소제목 있으면 좋겠다"는 지적 반영. */
+    .yt-week-prob-head {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 14px
+    }
+
+    .yt-week-prob-title {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--text)
+    }
+
+    .yt-week-prob-sub {
+      font-size: 10.5px;
+      color: var(--muted)
     }
 
     .yt-pred-detail {
@@ -17621,7 +17735,11 @@
             const ex = ytMostRecentLeadExample(leadTimeDetail, 'pre_event', best.cat);
             const example = ex ? `지난 "${ex.event_title}" 때는 D-${Math.round(ex.days_before)}에 "${ex.video_title}"가 올라왔어요 — 이번에도 비슷한 시점 가능성` : null;
             return {
-              type: 'pre-event-cat', cat: best.cat, icon: meta.emoji, lowSample, example,
+              // diff: 이 "특정 날짜" 자체의 D-n (카테고리 중앙값이 아니라). dist≤1.5 폭 안에서
+              // 며칠이 한꺼번에 같은 카테고리로 묶일 수 있는데, 그 며칠의 근거 한 줄이 전부
+              // 똑같은 문장으로 찍혀서 "다른 날짜인데 왜 같은 말이냐"는 지적을 받았던 부분 —
+              // 이 값을 짧은 근거 문구에 실제로 꽂아 날짜별로 달라지게 한다.
+              type: 'pre-event-cat', cat: best.cat, icon: meta.emoji, lowSample, example, diff,
               label: lowSample
                 ? `${meta.label} 영상이 올라올 수도 있어요 (과거 ${best.n}번 중 평균 D-${best.median_days_before} · 표본이 적어 참고만)`
                 : `${meta.label} 유력 (과거 평균 D-${best.median_days_before}, ${best.n}건 분석)`,
@@ -17650,7 +17768,7 @@
             const ex = ytMostRecentLeadExample(leadTimeDetail, 'post_event', best.cat);
             const example = ex ? `지난 "${ex.event_title}" 때는 D+${Math.round(ex.days_after)}에 "${ex.video_title}"가 올라왔어요 — 이번에도 비슷한 시점 가능성` : null;
             return {
-              type: 'post-event-cat', cat: best.cat, icon: meta.emoji === '🎥' ? '⭐' : meta.emoji, lowSample, example,
+              type: 'post-event-cat', cat: best.cat, icon: meta.emoji === '🎥' ? '⭐' : meta.emoji, lowSample, example, diff,
               label: lowSample
                 ? `${meta.label} 영상이 올라올 수도 있어요 (경기 후 과거 ${best.n}번 중 평균 D+${best.median_days_after} · 표본이 적어 참고만)`
                 : `${meta.label} 유력 (경기 후 평균 D+${best.median_days_after}, ${best.n}건 분석)`,
@@ -17720,7 +17838,11 @@
               : '경기 당일 · 평소와 비슷';
         }
         const meta = ytCatMeta(d.phase.cat);
-        return d.phase.lowSample ? `${meta.short} 가능성(표본 적음)` : `${meta.short} 유력`;
+        // dist≤1.5 폭 안에서 며칠이 같은 카테고리로 묶이면 예전엔 그 며칠 모두 완전히 똑같은
+        // 문장("트레일러 유력")을 찍어서 "다른 날짜인데 왜 같은 말이냐"는 지적을 받았다 —
+        // 이 날짜 고유의 D-n/D+n을 반드시 붙여서 날짜마다 다르게 보이게 한다.
+        const dTag = d.phase.type === 'pre-event-cat' ? `D-${d.phase.diff}` : `D+${d.phase.diff}`;
+        return d.phase.lowSample ? `${meta.short} 가능성 ${dTag}(표본 적음)` : `${meta.short} 유력 ${dTag}`;
       }
       if (d.dowPct == null) return '데이터 부족';
       if (d.dowPct >= 20) return `${YT_DOW_LABEL[d.dow]}요일 잦은 편`;
@@ -17875,7 +17997,13 @@
 
       const isTop0 = topDay === days[0];
       const topDateText = `${topDay.date.getMonth() + 1}월 ${topDay.date.getDate()}일 (${YT_DOW_LABEL[topDay.dow]})`;
-      const topPhaseQualifier = !topDay.phase ? ''
+      // "8/31이 왜 유력하냐, 경기 D+2 패턴 때문이냐"는 질문 반영 — phase가 null이면 이건
+      // 경기 일정과는 무관하고(경기 당일도, D-n/D+n 카테고리 근접도도 아님) 순수하게
+      // "이 요일이 원래 업로드가 잦다"는 요일 빈도 때문에 1순위가 된 것이다. 이걸 숨기지
+      // 않고 헤더에 바로 써준다 — 안 그러면 사용자가 스스로 경기 날짜와 억지로 연결지어
+      // 추측하게 된다.
+      const topPhaseQualifier = !topDay.phase
+        ? ` · ${YT_DOW_LABEL[topDay.dow]}요일 업로드 빈도가 높아서${topDay.overdueApplied ? ' + 최근 업로드 지연 반영' : ''}`
         : topDay.phase.type === 'event-day' ? ` · 경기 당일(라이브 확정)`
         : ` · ${topDay.phase.label}`;
 
@@ -17914,22 +18042,38 @@
         </div>`;
       }
 
-      // "경과일·최근 3/5/10/20회 평균 간격·변동성도 보여달라"는 지적 반영 — 기본은 접어두고
-      // 필요할 때만 펼쳐보게 해서 화면이 더 복잡해 보이지 않게 한다.
+      // "경과일·최근 3/5/10/20회 평균 간격·변동성도 보여달라"는 지적 반영. 처음엔 접힌
+      // <details>로 넣었는데 "이 부분 중요한 부분이다, 가독성 있게 해달라"는 재지적을 받아서
+      // 더 이상 숨기지 않는다 — 항상 펼쳐진 카드로 바꾸고, 지금 상태를 한눈에 보여주는
+      // "경과" 하이라이트를 맨 위에 크게 분리해서(평소 대비 늦은지/빠른지 배지 포함),
+      // 나머지 N회 평균 수치는 아래 표로 정리했다.
       const fmtGap = v => v == null ? '-' : `${Math.round(v * 10) / 10}일`;
+      const gapBadge = overdueRatio == null ? ''
+        : overdueRatio > 1.15 ? `<span class="yt-gap-highlight-badge over">평소보다 늦음</span>`
+        : overdueRatio < 0.85 ? `<span class="yt-gap-highlight-badge under">평소보다 빠름</span>`
+        : `<span class="yt-gap-highlight-badge normal">평소 수준</span>`;
       const gapStatsHTML = `
-        <details class="yt-gap-stats">
-          <summary>📏 업로드 간격 통계 (경과·최근 N회 평균)</summary>
+        <div class="yt-gap-stats">
+          <div class="yt-gap-stats-head">
+            <span class="yt-gap-stats-title">📏 업로드 간격 통계</span>
+            <span class="yt-gap-stats-sub">마지막 업로드부터 지금까지, 최근 흐름과 비교해봤어요</span>
+          </div>
+          <div class="yt-gap-highlight">
+            <div>
+              <span class="yt-gap-highlight-label">마지막 업로드 후 경과</span>
+              <span class="yt-gap-highlight-value">${elapsedText || '-'}</span>
+            </div>
+            ${gapBadge}
+          </div>
           <div class="yt-gap-grid">
-            <div><span class="yt-gap-label">경과</span><span class="yt-gap-value">${elapsedText || '-'}</span></div>
-            <div><span class="yt-gap-label">최근 1회</span><span class="yt-gap-value">${fmtGap(gapStats.latest)}</span></div>
+            <div><span class="yt-gap-label">최근 1회 간격</span><span class="yt-gap-value">${fmtGap(gapStats.latest)}</span></div>
             <div><span class="yt-gap-label">최근 3회 평균</span><span class="yt-gap-value">${fmtGap(gapStats.avg3)}</span></div>
             <div><span class="yt-gap-label">최근 5회 평균</span><span class="yt-gap-value">${fmtGap(gapStats.avg5)}</span></div>
             <div><span class="yt-gap-label">최근 10회 평균</span><span class="yt-gap-value">${fmtGap(gapStats.avg10)}</span></div>
             <div><span class="yt-gap-label">최근 20회 평균</span><span class="yt-gap-value">${fmtGap(gapStats.avg20)}</span></div>
             <div><span class="yt-gap-label">변동성(표준편차)</span><span class="yt-gap-value">±${fmtGap(gapStats.stdev)}</span></div>
           </div>
-        </details>`;
+        </div>`;
 
       return `
       <div class="yt-pred-hero">
@@ -17945,6 +18089,12 @@
         <div class="yt-pred-hero-time">최근 90일 <b>${stats90.sample_n}개</b> 업로드${lastPubAbsText ? ` · 마지막 업로드 ${lastPubAbsText}` : ''}${elapsedText ? ` (${elapsedText})` : ''}</div>
         ${gapStatsHTML}
         ${isTop0 && hourPassedGrace ? `<div class="yt-pred-hero-alert">⏰ ${esc(hourText)}경 예상이 지났는데 아직 업로드가 없어요 — 이후 업로드 사례는 ${hourAfterPct}%(${hourAfterCount}건)뿐이에요.</div>` : ''}
+        <!-- "요일별 확률이 무슨 기준이냐, 소제목 있으면 좋겠다"는 지적 반영 — 이 구간이
+             정확히 뭘 보여주는 건지 이름표를 달아준다. -->
+        <div class="yt-week-prob-head">
+          <span class="yt-week-prob-title">📅 앞으로 7일, 요일별 업로드 확률</span>
+          <span class="yt-week-prob-sub">요일별 실측 빈도 × 경기 일정 근접도로 계산해요 (탭하면 날짜별 근거)</span>
+        </div>
         <div class="yt-prob-strip">
           ${days.map((d, i) => `
             <div id="ytProbDay-${i}" class="yt-prob-day${d === topDay ? ' top' : ''}${d.phase?.type === 'event-day' ? ' event-day' : ''}${i === topIdx ? ' sel' : ''}" onclick="ytShowDayEvidence(${i})">
@@ -18139,11 +18289,11 @@
     // 8개 필터 버튼이 한 줄을 다 차지해서 자리를 너무 많이 차지한다는 지적 반영 — 드롭다운
     // 하나로 접고 "전체"를 기본값으로 둔다.
     function ytCatFilterSelectHTML() {
-      const opt = (key, label, emoji, active) =>
-        `<option value="${key}"${active ? ' selected' : ''}>${emoji} ${esc(label)}</option>`;
-      const options = [opt('', '전체', '📺', !ytCalState.catFilter)]
-        .concat(Object.keys(YT_CATS).map(k => opt(k, YT_CATS[k].label, YT_CATS[k].emoji, ytCalState.catFilter === k)));
-      return `<select class="yt-cat-select" onchange="ytSetCatFilter(this.value)">${options.join('')}</select>`;
+      const chip = (key, label, emoji, color, active) =>
+        `<button type="button" class="yt-cat-chip${active ? ' active' : ''}"${active ? ` style="background:${color}"` : ''} onclick="ytSetCatFilter('${key}')">${emoji} ${esc(label)}</button>`;
+      const chips = [chip('', '전체', '📺', '#334155', !ytCalState.catFilter)]
+        .concat(Object.keys(YT_CATS).map(k => chip(k, YT_CATS[k].short, YT_CATS[k].emoji, YT_CATS[k].color, ytCalState.catFilter === k)));
+      return `<div class="yt-cat-chip-row">${chips.join('')}</div>`;
     }
     // 필터를 바꿀 때마다 서버에서 다시 불러와 페이지 전체를 새로 그리다 보니(loading()이
     // $app를 통째로 비웠다 채움) 화면 높이가 순간적으로 줄어들면서 스크롤이 맨 위로 튀는
@@ -18154,6 +18304,11 @@
       const [y, m] = (ytCalState.month || '').split('-').map(Number);
       const gridWrap = document.getElementById('ytCalGridWrap');
       if (gridWrap) gridWrap.innerHTML = ytCalendarGridHTML(y, m, ytCalState.videos);
+      // select와 달리 칩은 브라우저가 알아서 선택 상태를 표시해주지 않아서, 어떤 칩이
+      // 켜졌는지 직접 다시 그려줘야 한다 — 안 그러면 눌러도 뭘 눌렀는지 안 보이는
+      // 문제가 생긴다.
+      const filterWrap = document.getElementById('ytCalFilterWrap');
+      if (filterWrap) filterWrap.innerHTML = ytCatFilterSelectHTML();
     }
 
     const YT_NEW_BADGE_HOURS = 24;
