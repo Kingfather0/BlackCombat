@@ -9720,8 +9720,19 @@
       font-size: 20px;
       font-weight: 900;
       margin-top: 12px;
-      line-height: 1.35;
+      line-height: 1.3;
       color: var(--text)
+    }
+
+    /* "8월 26일 유력 문구가 크고 번잡하다"는 지적 반영 — 왜 유력한지(요일 패턴/경기 근접
+       근거)를 큰 제목 줄에 이어붙이지 않고, 작고 옅은 별도 줄로 뺐다. 제목은 날짜/시간만
+       짧게, 이유는 그 아래서 차분하게. */
+    .yt-pred-hero-qualifier {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-top: 2px;
+      line-height: 1.4
     }
 
     .yt-pred-hero-time {
@@ -9907,13 +9918,15 @@
       color: var(--muted)
     }
 
+    /* "마지막 업로드가 날짜만 있고, 직전 대비 며칠만인지 · 지금 얼마나 지났는지가 따로
+       흩어져 있다"는 지적 반영 — 날짜/직전 대비/경과를 한 블록에 다 모았다. */
     .yt-gap-highlight {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      padding: 9px 12px;
-      margin-bottom: 10px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
       background: #fff;
       border: 1px solid var(--border);
       border-radius: 10px
@@ -9928,10 +9941,18 @@
 
     .yt-gap-highlight-value {
       display: block;
-      font-size: 17px;
+      font-size: 15px;
       font-weight: 900;
       color: var(--key-deep);
       margin-top: 1px
+    }
+
+    .yt-gap-highlight-sub {
+      display: block;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-top: 2px
     }
 
     .yt-gap-highlight-badge {
@@ -9940,7 +9961,8 @@
       font-weight: 800;
       padding: 4px 10px;
       border-radius: 999px;
-      white-space: nowrap
+      white-space: nowrap;
+      text-align: center
     }
 
     .yt-gap-highlight-badge.over {
@@ -9959,30 +9981,49 @@
       border: 1px solid var(--border)
     }
 
-    .yt-gap-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 6px 12px
-    }
-
-    .yt-gap-grid > div {
+    /* "간격통계에 있는 나머지들도 UI/차트로 가독성있게, 세로로 너무 길지 않게"라는 지적
+       반영 — 예전엔 항목 하나당 한 줄(2열 그리드로 5줄)이었는데, 미니 스탯을 한 줄에
+       여러 개 가로로 늘어놓는 방식으로 바꿔서 세로 길이를 크게 줄였다. */
+    .yt-gap-mini-row {
       display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      padding: 5px 9px;
+      gap: 6px;
+      margin-top: 8px
+    }
+
+    .yt-gap-mini {
+      flex: 1;
+      min-width: 0;
+      text-align: center;
+      padding: 7px 2px;
       background: #fff;
-      border-radius: 7px;
-      font-size: 12px
+      border-radius: 8px
     }
 
-    .yt-gap-label {
-      color: var(--muted);
-      font-weight: 600
-    }
-
-    .yt-gap-value {
-      font-weight: 800;
+    .yt-gap-mini-n {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 900;
       color: var(--text)
+    }
+
+    .yt-gap-mini-lbl {
+      display: block;
+      font-size: 9px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis
+    }
+
+    /* 기존에 화면 아래쪽에 따로 떨어져 있던 "📈 업로드 주기 분석" 차트를 이 카드 안으로
+       옮겨왔다 — 간격 통계 숫자와 그 추이를 한 카드에서 같이 보게 하려는 지적 반영.
+       패널 하나가 너무 세로로 길어지지 않게 차트 높이 자체도 더 줄였다. */
+    .yt-gap-chart-wrap {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border)
     }
 
     /* "요일별 확률이 무슨 기준이냐, 소제목 있으면 좋겠다"는 지적 반영. */
@@ -18021,10 +18062,13 @@
       // "이 요일이 원래 업로드가 잦다"는 요일 빈도 때문에 1순위가 된 것이다. 이걸 숨기지
       // 않고 헤더에 바로 써준다 — 안 그러면 사용자가 스스로 경기 날짜와 억지로 연결지어
       // 추측하게 된다.
+      // "8월 26일 유력 문구가 크고 번잡하다"는 지적 반영 — 예전엔 이 이유를 제목 줄
+      // 끝에 " · "로 이어붙여서 한 줄이 길고 무거워 보였다. 이제 제목(날짜/시간)과
+      // 분리해서 작은 별도 줄로 보여준다(leading " · " 없이 독립 문장으로).
       const topPhaseQualifier = !topDay.phase
-        ? ` · 평소 업로드 간격 패턴상 유력한 시점(${YT_DOW_LABEL[topDay.dow]}요일)`
-        : topDay.phase.type === 'event-day' ? ` · 경기 당일(라이브와 별개로 올라오는 영상 기준)`
-        : ` · ${topDay.phase.label}`;
+        ? `평소 업로드 간격 패턴상 유력한 시점(${YT_DOW_LABEL[topDay.dow]}요일)`
+        : topDay.phase.type === 'event-day' ? `경기 당일(라이브와 별개로 올라오는 영상 기준)`
+        : topDay.phase.label;
 
       // 매번 항상 보이는 문장 뭉치 대신, 상위 후보 요일의 근거만 기본으로 보여주고
       // 나머지 요일은 눌러야 근거가 뜨게 바꿨다 — "16%인데 눌러도 근거가 없다"는 지적은
@@ -18071,12 +18115,23 @@
       // stats90/stats365/cycleRecent 모두 서버에서 이미 쇼츠를 뺀 값이라 여기 나오는
       // "마지막 업로드"는 항상 쇼츠가 아닌 실제 동영상 기준이다.
       const fmtGap = v => v == null ? '-' : `${Math.round(v * 10) / 10}일`;
+      // "경과 20시간인데 평소보다 빠름이 무슨 말이냐, 헷갈린다"는 지적 반영 — "빠름/늦음"
+      // 이라는 막연한 형용사 대신, "경과" 값 자체를 기준으로 아직 이른 건지 이미 늦어진
+      // 건지를 그 문맥 그대로 말해준다.
       const gapBadge = (blendedGapDays == null || daysSinceLastPub == null) ? ''
-        : daysSinceLastPub > blendedGapDays + gapSigma ? `<span class="yt-gap-highlight-badge over">평소보다 늦음</span>`
-        : daysSinceLastPub < blendedGapDays - gapSigma ? `<span class="yt-gap-highlight-badge under">평소보다 빠름</span>`
-        : `<span class="yt-gap-highlight-badge normal">평소 수준</span>`;
+        : daysSinceLastPub > blendedGapDays + gapSigma ? `<span class="yt-gap-highlight-badge over">이미 늦어진 상태</span>`
+        : daysSinceLastPub < blendedGapDays - gapSigma ? `<span class="yt-gap-highlight-badge under">아직 이른 편</span>`
+        : `<span class="yt-gap-highlight-badge normal">평소 범위 안</span>`;
       const monthCountText = monthCount != null ? `${monthCount}개` : '-';
       const sample90Text = stats90.sample_n != null ? `${stats90.sample_n}개` : '-';
+      // "마지막 업로드가 날짜만 있지 직전 영상 대비 얼마만인지, 지금 얼마나 지났는지가
+      // 따로 흩어져 있다"는 지적 반영 — 한 블록에 다 모았다.
+      const lastUploadSubParts = [];
+      if (gapStats.latest != null) lastUploadSubParts.push(`직전 영상 대비 ${fmtGap(gapStats.latest)} 만에`);
+      if (elapsedText) lastUploadSubParts.push(elapsedText);
+      const mini = (n, lbl) => `<div class="yt-gap-mini"><span class="yt-gap-mini-n">${n}</span><span class="yt-gap-mini-lbl">${lbl}</span></div>`;
+      // "나머지 통계도 UI/차트로 가독성 있게, 세로로 너무 길지 않게"라는 지적 반영 — 예전엔
+      // 항목당 한 줄(2열 그리드 5줄)이었는데, 관련 있는 숫자끼리 가로 한 줄에 묶었다.
       const gapStatsHTML = `
         <div class="yt-gap-stats">
           <div class="yt-gap-stats-head">
@@ -18086,25 +18141,24 @@
           <div class="yt-gap-highlight">
             <div>
               <span class="yt-gap-highlight-label">마지막 업로드</span>
-              <span class="yt-gap-highlight-value" style="font-size:14px">${lastPubAbsText || '-'}</span>
+              <span class="yt-gap-highlight-value">${lastPubAbsText || '-'}</span>
+              ${lastUploadSubParts.length ? `<span class="yt-gap-highlight-sub">${lastUploadSubParts.join(' · ')}</span>` : ''}
             </div>
-            <div style="text-align:right">
-              <span class="yt-gap-highlight-label">경과</span>
-              <span class="yt-gap-highlight-value">${elapsedText || '-'}</span>
-              ${gapBadge}
-            </div>
+            ${gapBadge}
           </div>
-          <div class="yt-gap-grid">
-            <div><span class="yt-gap-label">직전 영상 대비</span><span class="yt-gap-value">${fmtGap(gapStats.latest)}</span></div>
-            <div><span class="yt-gap-label">평균 주기</span><span class="yt-gap-value">${fmtGap(blendedGapDays)}</span></div>
-            <div><span class="yt-gap-label">이번 달</span><span class="yt-gap-value">${monthCountText}</span></div>
-            <div><span class="yt-gap-label">최근 90일</span><span class="yt-gap-value">${sample90Text}</span></div>
-            <div><span class="yt-gap-label">최근 3회 평균</span><span class="yt-gap-value">${fmtGap(gapStats.avg3)}</span></div>
-            <div><span class="yt-gap-label">최근 5회 평균</span><span class="yt-gap-value">${fmtGap(gapStats.avg5)}</span></div>
-            <div><span class="yt-gap-label">최근 10회 평균</span><span class="yt-gap-value">${fmtGap(gapStats.avg10)}</span></div>
-            <div><span class="yt-gap-label">최근 20회 평균</span><span class="yt-gap-value">${fmtGap(gapStats.avg20)}</span></div>
-            <div><span class="yt-gap-label">변동성(표준편차)</span><span class="yt-gap-value">±${fmtGap(gapStats.stdev)}</span></div>
+          <div class="yt-gap-mini-row">
+            ${mini(fmtGap(blendedGapDays), '평균 주기')}
+            ${mini('±' + fmtGap(gapStats.stdev), '변동성')}
+            ${mini(monthCountText, '이번 달')}
+            ${mini(sample90Text, '최근 90일')}
           </div>
+          <div class="yt-gap-mini-row">
+            ${mini(fmtGap(gapStats.avg3), '최근 3회')}
+            ${mini(fmtGap(gapStats.avg5), '최근 5회')}
+            ${mini(fmtGap(gapStats.avg10), '최근 10회')}
+            ${mini(fmtGap(gapStats.avg20), '최근 20회')}
+          </div>
+          <div class="yt-gap-chart-wrap">${ytCycleChartHTML(cycleRecent, stats90)}</div>
         </div>`;
 
       return `
@@ -18116,8 +18170,11 @@
         ${eventLineHTML}
         <!-- "위에는 23%, 아래엔 16%라 헷갈린다"는 지적이 문구를 바꿔도(이 시간대 실측 N%)
              계속 반복돼서 — 아예 숫자를 하나 더 보여주는 방식 자체를 접었다. 이 줄엔 숫자
-             없이 시간대만 말로 설명하고, 확률(%)은 아래 요일 카드 하나로만 보여준다. -->
-        <div class="yt-pred-hero-date">${isTop0 ? '오늘' : topDateText} 유력${hourText && !(isTop0 && hourPassedGrace) ? ` · ${hourText}경` : ''}${isTop0 && hourPassedGrace ? ` · ${hourText} 예상 경과` : ''}${topPhaseQualifier}</div>
+             없이 시간대만 말로 설명하고, 확률(%)은 아래 요일 카드 하나로만 보여준다.
+             "유력 문구가 크고 번잡하다"는 지적 반영 — 큰 제목엔 날짜/시간만 짧게 두고,
+             왜 유력한지 이유는 아래 작은 줄로 뺐다. -->
+        <div class="yt-pred-hero-date">${isTop0 ? '오늘' : topDateText} 유력${hourText && !(isTop0 && hourPassedGrace) ? ` · ${hourText}경` : ''}${isTop0 && hourPassedGrace ? ` · ${hourText} 예상 경과` : ''}</div>
+        <div class="yt-pred-hero-qualifier">${esc(topPhaseQualifier)}</div>
         ${gapStatsHTML}
         ${isTop0 && hourPassedGrace ? `<div class="yt-pred-hero-alert">⏰ ${esc(hourText)}경 예상이 지났는데 아직 업로드가 없어요 — 이후 업로드 사례는 ${hourAfterPct}%(${hourAfterCount}건)뿐이에요.</div>` : ''}
         <!-- "요일별 확률이 무슨 기준이냐, 소제목 있으면 좋겠다"는 지적 반영 — 이 구간이
@@ -18152,14 +18209,15 @@
     // 적으면 점이 1~2개뿐이었다. 이제 "최근 N개 업로드"라는 달과 무관한 롤링 윈도로 계산해서
     // 어느 달을 보고 있든 같은 기준으로 안정적으로 보여준다 — recentForCycle은
     // viewYtCalendar()에서 yt_get_recent(20)로 따로 받아온다.
+    // "간격통계에 주기분석 차트도 함께 배치해달라"는 지적 반영 — 예전엔 화면 아래쪽에
+    // 별도 카드로 떨어져 있었는데, 이제 간격 통계 패널(.yt-gap-stats) 안에 그대로
+    // 끼워 넣는 용도라 자체 카드 테두리/큰 제목 없이 내용만 반환한다. 세로 공간을
+    // 덜 차지하게 높이(H)도 더 줄였다.
     function ytCycleChartHTML(recentForCycle, stats90) {
       const sorted = (recentForCycle || []).slice().sort((a, b) => new Date(a.published_at) - new Date(b.published_at));
       if (sorted.length < 2) {
         window.__ytCycleGaps = [];
-        return `<div class="card" style="margin-top:12px">
-          <div style="font-weight:800;margin-bottom:4px">📈 업로드 주기 분석</div>
-          <div class="yt-cycle-empty">아직 데이터가 부족해 주기 차트를 표시할 수 없어요.</div>
-        </div>`;
+        return `<div class="yt-cycle-empty">아직 데이터가 부족해 주기 차트를 표시할 수 없어요.</div>`;
       }
       const gaps = [];
       for (let i = 1; i < sorted.length; i++) {
@@ -18174,7 +18232,7 @@
       // 세로축 눈금 글씨가 데이터 점/선과 겹칠 수 있다는 걸 감안해서, 글씨 자리(위/아래)를
       // 데이터가 절대 침범 못 하는 고정 여백으로 따로 떼어둔다 — 데이터 값이 아무리 작거나
       // 커도 겹칠 일이 없다. "쓸데없이 크다"는 지적 반영해 전체 세로 크기(H)도 줄였다.
-      const W = 300, H = 84, PADX = 8, PLOT_TOP = 13, PLOT_BOTTOM = 68, TEXT_TOP_Y = 7, TEXT_BOTTOM_Y = 82;
+      const W = 300, H = 58, PADX = 8, PLOT_TOP = 11, PLOT_BOTTOM = 44, TEXT_TOP_Y = 7, TEXT_BOTTOM_Y = 56;
       const stepX = gaps.length > 1 ? (W - PADX * 2) / (gaps.length - 1) : 0;
       const yFor = v => PLOT_BOTTOM - (v / maxDays) * (PLOT_BOTTOM - PLOT_TOP);
       const pts = gaps.map((g, i) => `${(PADX + i * stepX).toFixed(1)},${yFor(g.days).toFixed(1)}`).join(' ');
@@ -18189,12 +18247,11 @@
       // "차트가 왜 위아래로 흔들리는지 기준을 모르겠다"는 지적 반영해 세로축 뜻을 밝히되,
       // "텍스트가 쓸데없이 크다"는 후속 지적 반영해 문장은 아주 짧게, 글씨도 더 작게 줄였다.
       const yAxisTop = Math.round(maxDays * 10) / 10;
-      return `<div class="card" style="margin-top:12px;padding:12px 14px">
+      return `
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1px">
-          <div style="font-weight:800;font-size:13px">📈 업로드 주기 (최근 ${sorted.length}개)</div>
-          <div class="note" style="font-size:10px;margin:0">평균 ${Math.round(avgDays * 10) / 10}일</div>
+          <div style="font-weight:800;font-size:11.5px">📈 최근 ${sorted.length}개 간격 추이</div>
+          <div class="note" style="font-size:9.5px;margin:0">↕ 위=늦게 아래=빠르게 · 점선=평균</div>
         </div>
-        <div class="note" style="font-size:9.5px;margin:2px 0 4px;line-height:1.4">↕ 간격(일) · 위=늦게 아래=빠르게</div>
         <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">
           <text x="${PADX}" y="${TEXT_TOP_Y}" font-size="6.5" fill="var(--dim)">${yAxisTop}일</text>
           <text x="${PADX}" y="${TEXT_BOTTOM_Y}" font-size="6.5" fill="var(--dim)">0일</text>
@@ -18203,12 +18260,11 @@
           ${dots}
         </svg>
         <div style="display:flex;justify-content:space-between;margin-top:1px">
-          <span class="note" style="font-size:9.5px;margin:0">${esc(firstLabel)}</span>
-          <span class="note" style="font-size:9.5px;margin:0">탭하면 상세 · 점선=평균</span>
-          <span class="note" style="font-size:9.5px;margin:0">${esc(lastLabel)}</span>
+          <span class="note" style="font-size:9px;margin:0">${esc(firstLabel)}</span>
+          <span class="note" style="font-size:9px;margin:0">탭하면 상세</span>
+          <span class="note" style="font-size:9px;margin:0">${esc(lastLabel)}</span>
         </div>
-        <div id="ytCycleDetail"></div>
-      </div>`;
+        <div id="ytCycleDetail"></div>`;
     }
 
     function ytShowCycleInfo(i) {
@@ -18499,7 +18555,6 @@
         <div id="ytCalFilterWrap">${ytCatFilterSelectHTML()}</div>
         <div id="ytCalGridWrap">${ytCalendarGridHTML(y, m, videos)}</div>
       </details>
-      ${ytCycleChartHTML(cycleRecent, stats90)}
       ${ytRecentListHTML(recent)}`;
     }
 
