@@ -9854,6 +9854,46 @@
       white-space: nowrap
     }
 
+    .yt-gap-stats {
+      margin-top: 4px
+    }
+
+    .yt-gap-stats summary {
+      font-size: 10.5px;
+      color: var(--muted);
+      cursor: pointer;
+      list-style: none
+    }
+
+    .yt-gap-stats summary::-webkit-details-marker {
+      display: none
+    }
+
+    .yt-gap-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 4px 10px;
+      margin-top: 6px;
+      padding: 8px 10px;
+      background: var(--card2);
+      border-radius: 8px
+    }
+
+    .yt-gap-grid > div {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10.5px
+    }
+
+    .yt-gap-label {
+      color: var(--muted)
+    }
+
+    .yt-gap-value {
+      font-weight: 800;
+      color: var(--text)
+    }
+
     .yt-pred-detail {
       font-size: 11.5px;
       color: var(--text);
@@ -17420,6 +17460,24 @@
       return `${k.m}월 ${k.d}일 ${k.h}시`;
     }
 
+    // "마지막 업로드 이후 경과일, 최근 3/5/10/20회 평균 간격, 변동성도 보여달라"는 지적 반영 —
+    // 예측 카드(오버듀 가중치용)와 주기 차트(눈에 보이는 통계 패널용) 둘 다 같은 계산을
+    // 공유해서 숫자가 서로 어긋나는 일이 없게 공통 함수로 뺐다. cycleRecent(최근 업로드
+    // 20개, 최신순 아님)를 받아 최신순으로 다시 정렬한 뒤 연속 간격을 구한다.
+    function ytGapStatsFromRecent(cycleRecent) {
+      const recentSorted = (cycleRecent || []).slice().sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+      const gaps = [];
+      for (let i = 0; i < recentSorted.length - 1; i++) {
+        gaps.push((new Date(recentSorted[i].published_at) - new Date(recentSorted[i + 1].published_at)) / 86400000);
+      }
+      const avgOfN = n => { const s = gaps.slice(0, n); return s.length ? s.reduce((a, b) => a + b, 0) / s.length : null; };
+      const n = gaps.length;
+      const mean = n ? gaps.reduce((a, b) => a + b, 0) / n : null;
+      const variance = (n && mean != null) ? gaps.reduce((s, g) => s + (g - mean) * (g - mean), 0) / n : null;
+      const stdev = variance != null ? Math.sqrt(variance) : null;
+      return { gaps, latest: gaps.length ? gaps[0] : null, avg3: avgOfN(3), avg5: avgOfN(5), avg10: avgOfN(10), avg20: avgOfN(20), stdev };
+    }
+
     // 가장 가까운 다음 경기 / 가장 최근 지난 경기 — 이미 사이트에 있는 승부예측용
     // tournaments 테이블(경기명·일시)을 그대로 재사용한다. 새 SQL 없이 anon 조회 가능.
     async function ytFetchNearestEvents() {
@@ -17462,6 +17520,16 @@
       } catch (e) { return null; }
     }
 
+    // "중앙값(D-4)만 보여주지 말고 지난 경기 때 실제로 며칠 전에 올라왔는지 구체적인
+    // 사례로 비교해서 보여달라"는 지적 반영 — 낱개 과거 사례(어느 대회 때 어떤 영상이
+    // D-n에 올라왔는지)를 받아와서 근거 문구에 직접 인용한다.
+    async function ytFetchEventLeadTimeDetail() {
+      try {
+        const { data } = await sb.rpc('yt_get_event_lead_time_detail');
+        return (data && data.ok) ? data : null;
+      } catch (e) { return null; }
+    }
+
     // 경기 당일 실제로 카테고리별 업로드가 평소보다 늘었는지/줄었는지 — "라이브 때문에
     // 준비하느라 일반 영상이 준다"는 임의 가정 대신, 과거 경기 당일 실측 대비 평소 하루
     // 평균 비율(ratio)을 그대로 근거로 쓴다.
@@ -17495,7 +17563,15 @@
     // 계체 영상처럼 아직 경기를 몇 번 안 치러서 표본이 1~2건뿐인 카테고리가, 확률 계산에서
     // 제외되는 것과 별개로 화면에서 완전히 사라져 "왜 반영이 안 되냐"는 지적을 받았던 문제 반영.
     const YT_LOW_SAMPLE_N = 3;
-    function ytEventPhase(dayDate, nextEvent, lastEvent, leadTimes, eventDayStats) {
+    // "중앙값(D-4)만 말고 지난 경기 때는 실제로 며칠 전에 올라왔는지 구체적인 사례로
+    // 비교해달라"는 지적 반영 — yt_get_event_lead_time_detail()이 최신순으로 내려주는
+    // 낱개 사례 중, 이 카테고리와 일치하는 가장 최근 것을 찾는다.
+    function ytMostRecentLeadExample(leadTimeDetail, listKey, cat) {
+      if (!leadTimeDetail || !Array.isArray(leadTimeDetail[listKey])) return null;
+      return leadTimeDetail[listKey].find(e => e.cat === cat) || null;
+    }
+
+    function ytEventPhase(dayDate, nextEvent, lastEvent, leadTimes, eventDayStats, leadTimeDetail) {
       const dayMs = new Date(dayDate.getFullYear(), dayDate.getMonth(), dayDate.getDate()).getTime();
       if (nextEvent) {
         const evKst = ytKstParts(nextEvent._t);
@@ -17542,8 +17618,10 @@
           if (best) {
             const meta = ytCatMeta(best.cat);
             const lowSample = best.n < YT_LOW_SAMPLE_N;
+            const ex = ytMostRecentLeadExample(leadTimeDetail, 'pre_event', best.cat);
+            const example = ex ? `지난 "${ex.event_title}" 때는 D-${Math.round(ex.days_before)}에 "${ex.video_title}"가 올라왔어요 — 이번에도 비슷한 시점 가능성` : null;
             return {
-              type: 'pre-event-cat', cat: best.cat, icon: meta.emoji, lowSample,
+              type: 'pre-event-cat', cat: best.cat, icon: meta.emoji, lowSample, example,
               label: lowSample
                 ? `${meta.label} 영상이 올라올 수도 있어요 (과거 ${best.n}번 중 평균 D-${best.median_days_before} · 표본이 적어 참고만)`
                 : `${meta.label} 유력 (과거 평균 D-${best.median_days_before}, ${best.n}건 분석)`,
@@ -17569,8 +17647,10 @@
           if (best) {
             const meta = ytCatMeta(best.cat);
             const lowSample = best.n < YT_LOW_SAMPLE_N;
+            const ex = ytMostRecentLeadExample(leadTimeDetail, 'post_event', best.cat);
+            const example = ex ? `지난 "${ex.event_title}" 때는 D+${Math.round(ex.days_after)}에 "${ex.video_title}"가 올라왔어요 — 이번에도 비슷한 시점 가능성` : null;
             return {
-              type: 'post-event-cat', cat: best.cat, icon: meta.emoji === '🎥' ? '⭐' : meta.emoji, lowSample,
+              type: 'post-event-cat', cat: best.cat, icon: meta.emoji === '🎥' ? '⭐' : meta.emoji, lowSample, example,
               label: lowSample
                 ? `${meta.label} 영상이 올라올 수도 있어요 (경기 후 과거 ${best.n}번 중 평균 D+${best.median_days_after} · 표본이 적어 참고만)`
                 : `${meta.label} 유력 (경기 후 평균 D+${best.median_days_after}, ${best.n}건 분석)`,
@@ -17616,6 +17696,9 @@
           }
         } else {
           lines.push(d.phase.label);
+          // "중앙값만 말고 지난 경기 때 실제로 며칠 전에 올라왔는지 구체적으로 비교해달라"는
+          // 지적 반영 — 있으면 가장 최근 실제 사례를 그대로 인용해서 보여준다.
+          if (d.phase.example) lines.push(d.phase.example);
         }
       }
       if (d.milestoneBoost) lines.push('최근 태깅된 이벤트 이후라 소폭 가산했어요');
@@ -17660,7 +17743,7 @@
       box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    function ytPredictionHeroHTML(stats90, stats365, nextEvent, lastEvent, leadTimes, milestone, eventDayStats, dowByContext, cycleRecent) {
+    function ytPredictionHeroHTML(stats90, stats365, nextEvent, lastEvent, leadTimes, milestone, eventDayStats, dowByContext, cycleRecent, leadTimeDetail) {
       if (!stats90 || stats90.ok === false || !stats90.sample_n) {
         return `<div class="card" style="margin-top:12px"><div class="note">아직 예측할 만큼 데이터가 충분하지 않아요.</div></div>`;
       }
@@ -17729,13 +17812,8 @@
       // 5개/10개/20개 업로드 간격의 평균을 따로 구해서, 오래된 평균보다 최근 흐름을 더 크게
       // 반영한 "가중 평균 주기"를 만든다. 이 값보다 지금 경과 시간이 이미 더 길면(=평소보다
       // 밀린 상태) 가까운 날짜일수록 확률을 소폭 끌어올린다 — 며칠 지날수록 옅어진다.
-      const recentSorted = (cycleRecent || []).slice().sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
-      const gapsFromRecent = [];
-      for (let i = 0; i < recentSorted.length - 1; i++) {
-        gapsFromRecent.push((new Date(recentSorted[i].published_at) - new Date(recentSorted[i + 1].published_at)) / 86400000);
-      }
-      const avgOfRecentN = n => { const s = gapsFromRecent.slice(0, n); return s.length ? s.reduce((a, b) => a + b, 0) / s.length : null; };
-      const gap5 = avgOfRecentN(5), gap10 = avgOfRecentN(10), gap20 = avgOfRecentN(20);
+      const gapStats = ytGapStatsFromRecent(cycleRecent);
+      const gap5 = gapStats.avg5, gap10 = gapStats.avg10, gap20 = gapStats.avg20;
       const gapOverall = stats90 && stats90.median_gap_hours ? stats90.median_gap_hours / 24 : null;
       // 표본이 모자란 구간은 빼고 있는 것끼리만 가중치를 다시 나눠 쓴다(없는 패턴을 있는 척하지 않는다).
       const gapParts = [[gap5, 0.4], [gap10, 0.3], [gap20, 0.2], [gapOverall, 0.1]].filter(p => p[0] != null);
@@ -17764,7 +17842,7 @@
         const dt = new Date(base.getFullYear(), base.getMonth(), base.getDate() + i);
         const dow = dt.getDay() === 0 ? 7 : dt.getDay();
         const dayMs = dt.getTime();
-        const phase = ytEventPhase(dt, nextEvent, lastEvent, leadTimes, eventDayStats);
+        const phase = ytEventPhase(dt, nextEvent, lastEvent, leadTimes, eventDayStats, leadTimeDetail);
         // 이 날짜가 경기 전후(±evCtxWindow일)인지에 따라 그 상황에 맞는 요일 분포를 우선
         // 쓰고, 표본이 모자라 못 믿을 상황이면(위에서 CTX_MIN_N 미만이면 이미 null 처리됨)
         // 기존 통합 분포로 자연스럽게 대체한다 — "경기 있든 없든 요일만 본다"는 지적 반영.
@@ -17836,6 +17914,23 @@
         </div>`;
       }
 
+      // "경과일·최근 3/5/10/20회 평균 간격·변동성도 보여달라"는 지적 반영 — 기본은 접어두고
+      // 필요할 때만 펼쳐보게 해서 화면이 더 복잡해 보이지 않게 한다.
+      const fmtGap = v => v == null ? '-' : `${Math.round(v * 10) / 10}일`;
+      const gapStatsHTML = `
+        <details class="yt-gap-stats">
+          <summary>📏 업로드 간격 통계 (경과·최근 N회 평균)</summary>
+          <div class="yt-gap-grid">
+            <div><span class="yt-gap-label">경과</span><span class="yt-gap-value">${elapsedText || '-'}</span></div>
+            <div><span class="yt-gap-label">최근 1회</span><span class="yt-gap-value">${fmtGap(gapStats.latest)}</span></div>
+            <div><span class="yt-gap-label">최근 3회 평균</span><span class="yt-gap-value">${fmtGap(gapStats.avg3)}</span></div>
+            <div><span class="yt-gap-label">최근 5회 평균</span><span class="yt-gap-value">${fmtGap(gapStats.avg5)}</span></div>
+            <div><span class="yt-gap-label">최근 10회 평균</span><span class="yt-gap-value">${fmtGap(gapStats.avg10)}</span></div>
+            <div><span class="yt-gap-label">최근 20회 평균</span><span class="yt-gap-value">${fmtGap(gapStats.avg20)}</span></div>
+            <div><span class="yt-gap-label">변동성(표준편차)</span><span class="yt-gap-value">±${fmtGap(gapStats.stdev)}</span></div>
+          </div>
+        </details>`;
+
       return `
       <div class="yt-pred-hero">
         <div class="yt-pred-hero-label">
@@ -17843,11 +17938,12 @@
           <span class="yt-pred-badge-light">참고용</span>
         </div>
         ${eventLineHTML}
-        <!-- 날짜 카드의 %(그 요일일 확률)와 여기 시간대 %(그 시간대에 올라온 비율)가 같은
-             모양(N%)으로 나란히 보여서 같은 숫자로 오해받는다는 지적 반영 — "이 시간대 실측"
-             이라는 말을 붙여 서로 다른 지표라는 걸 텍스트로도 구분되게 한다. -->
-        <div class="yt-pred-hero-date">${isTop0 ? '오늘' : topDateText} 유력${hourText && !(isTop0 && hourPassedGrace) ? ` · ${hourText}경${peakPct != null ? ` (이 시간대 실측 ${peakPct}%)` : ''}` : ''}${isTop0 && hourPassedGrace ? ` · ${hourText} 예상 경과` : ''}${topPhaseQualifier}</div>
+        <!-- "위에는 23%, 아래엔 16%라 헷갈린다"는 지적이 문구를 바꿔도(이 시간대 실측 N%)
+             계속 반복돼서 — 아예 숫자를 하나 더 보여주는 방식 자체를 접었다. 이 줄엔 숫자
+             없이 시간대만 말로 설명하고, 확률(%)은 아래 요일 카드 하나로만 보여준다. -->
+        <div class="yt-pred-hero-date">${isTop0 ? '오늘' : topDateText} 유력${hourText && !(isTop0 && hourPassedGrace) ? ` · ${hourText}경` : ''}${isTop0 && hourPassedGrace ? ` · ${hourText} 예상 경과` : ''}${topPhaseQualifier}</div>
         <div class="yt-pred-hero-time">최근 90일 <b>${stats90.sample_n}개</b> 업로드${lastPubAbsText ? ` · 마지막 업로드 ${lastPubAbsText}` : ''}${elapsedText ? ` (${elapsedText})` : ''}</div>
+        ${gapStatsHTML}
         ${isTop0 && hourPassedGrace ? `<div class="yt-pred-hero-alert">⏰ ${esc(hourText)}경 예상이 지났는데 아직 업로드가 없어요 — 이후 업로드 사례는 ${hourAfterPct}%(${hourAfterCount}건)뿐이에요.</div>` : ''}
         <div class="yt-prob-strip">
           ${days.map((d, i) => `
@@ -18150,9 +18246,9 @@
       const fromStr = `${y}-${pad2(m)}-01`;
       const toStr = `${y}-${pad2(m)}-${pad2(daysInMonthForQuery)}`;
 
-      let videos = [], stats90 = null, stats365 = null, recent = [], cycleRecent = [], nextEvent = null, lastEvent = null, leadTimes = null, milestone = null, eventDayStats = null, dowByContext = null;
+      let videos = [], stats90 = null, stats365 = null, recent = [], cycleRecent = [], nextEvent = null, lastEvent = null, leadTimes = null, leadTimeDetail = null, milestone = null, eventDayStats = null, dowByContext = null;
       try {
-        const [calRes, st90Res, st365Res, recentRes, cycleRecentRes, eventsRes, leadTimesRes, milestoneRes, eventDayStatsRes, dowCtxRes] = await Promise.all([
+        const [calRes, st90Res, st365Res, recentRes, cycleRecentRes, eventsRes, leadTimesRes, leadTimeDetailRes, milestoneRes, eventDayStatsRes, dowCtxRes] = await Promise.all([
           sb.rpc('yt_get_calendar', { p_from: fromStr, p_to: toStr }),
           sb.rpc('yt_get_stats', { p_days: 90 }),
           sb.rpc('yt_get_stats', { p_days: 365 }),
@@ -18162,6 +18258,7 @@
           sb.rpc('yt_get_recent', { p_limit: 20 }),
           ytFetchNearestEvents(),
           ytFetchEventLeadTimes(),
+          ytFetchEventLeadTimeDetail(),
           ytFetchMilestone(),
           ytFetchEventDayStats(),
           ytFetchDowByContext(),
@@ -18171,7 +18268,7 @@
         recent = recentRes.data || [];
         cycleRecent = cycleRecentRes.data || [];
         nextEvent = eventsRes.nextEvent; lastEvent = eventsRes.lastEvent;
-        leadTimes = leadTimesRes; milestone = milestoneRes; eventDayStats = eventDayStatsRes; dowByContext = dowCtxRes;
+        leadTimes = leadTimesRes; leadTimeDetail = leadTimeDetailRes; milestone = milestoneRes; eventDayStats = eventDayStatsRes; dowByContext = dowCtxRes;
       } catch (e) { return fail(e); }
 
       ytCalState = { month: monthKey, videos, catFilter: ytCalState.catFilter || null };
@@ -18181,7 +18278,7 @@
       $app.innerHTML = `
       <h1 class="page">🎬 업로드 캘린더</h1>
       <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://youtube.com/@${esc(YT_CHANNEL_HANDLE)}" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 유튜브</a> · 과거 패턴 기반 업로드 예측</div>
-      ${ytPredictionHeroHTML(stats90, stats365, nextEvent, lastEvent, leadTimes, milestone, eventDayStats, dowByContext, cycleRecent)}
+      ${ytPredictionHeroHTML(stats90, stats365, nextEvent, lastEvent, leadTimes, milestone, eventDayStats, dowByContext, cycleRecent, leadTimeDetail)}
       <details class="card yt-cal-details" style="margin-top:12px" open>
         <summary>
           <span>📅 ${y}년 ${m}월 업로드 히스토리 (${videos.length}개)</span>
