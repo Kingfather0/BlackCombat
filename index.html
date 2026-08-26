@@ -10109,53 +10109,28 @@
       transition: transform .08s ease
     }
 
-    /* "파란 테두리가 왜 오늘(수요일)이 아니라 토요일에 있냐"는 지적 반영 — 파란
-       틴트(.top)는 원래부터 "오늘"이 아니라 "가장 유력한 날"을 가리키는 표시였는데,
-       예전엔 대부분 오늘=유력한 날이라 우연히 같아 보였을 뿐이다. 경기 당일처럼 유력한
-       날이 오늘이 아닌 다른 날로 옮겨가면서 그 우연이 깨졌다 — "오늘"을 가리키는 표시가
-       따로 없었던 게 진짜 문제라, 첫 번째 카드(항상 오늘)에 작은 "오늘" 태그를 별도로
-       달아서 유력한 날 표시와 헷갈리지 않게 한다. */
-    .yt-prob-today-tag {
-      position: absolute;
-      top: -7px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--ink, #1f2937);
-      color: #fff;
-      font-size: 8px;
-      font-weight: 800;
-      padding: 1px 6px;
-      border-radius: 999px;
-      line-height: 1.5;
-      white-space: nowrap
-    }
-
+    /* "앞으로 7일에서 '오늘' 표시와 파란색 테두리(유력일 강조) 다 없애달라"는 지적
+       반영(재요청) — "오늘"과 "가장 유력한 날"을 각각 배지/파란 틴트로 구분해서
+       보여주던 걸 여러 번 손봤는데도 계속 헷갈린다는 피드백이 이어져, 아예 카드
+       자체의 시각적 구분(파란 배지·파란 틴트)을 걷어냈다. 이제 카드는 경기 당일
+       (.event-day, 옅은 빨강)만 표시하고, "오늘/유력일"은 별도 표시 없이 그냥
+       각 카드의 날짜 숫자와 헤드라인 문장으로만 알 수 있다. 기본으로 펼쳐 보이는
+       설명(defaultDetailHTML)도 더 이상 "유력한 날"이 아니라 오늘(days[0]) 기준으로
+       바뀐다 — 사용자가 다른 날짜를 누르면 그 날짜 설명으로 바뀌는 건 그대로. */
     .yt-prob-day:active {
       transform: scale(.94)
     }
 
+    /* 현재 설명 박스(#ytPredDetail)에 어느 카드의 근거가 떠 있는지 최소한의 표시만
+       남긴다 — 파란색이 아니라 중립색(잉크) 테두리로, 눈에 덜 띄게. */
     .yt-prob-day.sel {
-      outline: 2px solid var(--key);
+      outline: 2px solid var(--ink, #1f2937);
       outline-offset: 1px
-    }
-
-    /* "오늘(유력한 날) 카드가 찐한 파란색이라 번잡하다, 옅은 톤으로 바꿔달라"는 지적
-       반영 — 꽉 찬 진한 배경 대신 옅은 틴트+테두리로 은은하게 강조한다. */
-    .yt-prob-day.top {
-      background: rgba(29, 78, 216, .1);
-      border-color: rgba(29, 78, 216, .45);
-      color: var(--text)
     }
 
     .yt-prob-day.event-day {
       background: #fdecec;
       border-color: #f2b8b8
-    }
-
-    .yt-prob-day.top.event-day {
-      background: rgba(29, 78, 216, .1);
-      border-color: var(--red);
-      border-width: 2px
     }
 
     .yt-prob-icon {
@@ -10169,10 +10144,6 @@
       color: var(--dim)
     }
 
-    .yt-prob-day.top .yt-prob-dow {
-      color: var(--key-deep)
-    }
-
     .yt-prob-date {
       font-size: 12px;
       font-weight: 800;
@@ -10180,18 +10151,10 @@
       color: var(--text)
     }
 
-    .yt-prob-day.top .yt-prob-date {
-      color: var(--key-deep)
-    }
-
     .yt-prob-pct {
       font-size: 11px;
       font-weight: 900;
       margin-top: 4px;
-      color: var(--key-deep)
-    }
-
-    .yt-prob-day.top .yt-prob-pct {
       color: var(--key-deep)
     }
 
@@ -10209,24 +10172,12 @@
       border-radius: 2px
     }
 
-    .yt-prob-day.top .yt-prob-bar-track {
-      background: rgba(29, 78, 216, .18)
-    }
-
-    .yt-prob-day.top .yt-prob-bar-fill {
-      background: var(--key-deep)
-    }
-
     .yt-prob-live {
       font-size: 8px;
       font-weight: 900;
       color: var(--red);
       margin-top: 3px;
       letter-spacing: .2px
-    }
-
-    .yt-prob-day.top .yt-prob-live {
-      color: var(--red)
     }
 
     /* "요일 카드 아래 항상 켜진 근거 목록이 화면만 길게 만든다"는 지적 반영 — 예전엔 여기에
@@ -18246,9 +18197,12 @@
           if (!ev) return '경기 당일 · 실측 없음';
           if (ev.lowSample) return `경기 당일 · 표본 ${ev.n}회뿐`;
           // "比 한자 대신 한글로 써달라"는 지적 반영.
-          return ev.ratio >= 1.1 ? `경기 당일 · 평소 대비 ${ev.ratio}배`
-            : ev.ratio <= 0.9 ? `경기 당일 · 평소보다 적음`
-              : '경기 당일 · 평소와 비슷';
+          // "'평소 대비 1.2배'가 무슨 말이냐"는 지적 반영 — 뭐가 1.2배인지 주어가 빠져
+          // 있었다. 이 배수는 "경기 당일에 평소 하루 평균보다 영상이 몇 배 더/덜
+          // 올라왔는지"(yt_get_event_day_stats 실측)를 뜻한다 — 그 주어를 문장에 그대로 넣는다.
+          return ev.ratio >= 1.1 ? `경기 당일 · 평소보다 영상이 ${ev.ratio}배 많이 올라와요`
+            : ev.ratio <= 0.9 ? `경기 당일 · 평소보다 영상이 적게 올라와요`
+              : '경기 당일 · 평소와 비슷하게 올라와요';
         }
         const meta = ytCatMeta(d.phase.cat);
         // dist≤1.5 폭 안에서 며칠이 같은 카테고리로 묶이면 예전엔 그 며칠 모두 완전히 똑같은
@@ -18592,8 +18546,13 @@
       // 사실 "탭 자체가 안 됐던" 문제였고, 동시에 항상 켜진 여러 줄 문단이 화면을 어수선하게
       // 만든다는 지적("대학생 수준")도 같이 해결한다. window.__ytPredDays로 클릭 핸들러에 공유.
       window.__ytPredDays = days;
-      const topIdx = days.indexOf(topDay);
-      const defaultDetailHTML = ytDayEvidenceLines(topDay).map(esc).join('<br>');
+      // "앞으로 7일에서 '오늘' 표시와 파란색 테두리(유력일 강조) 다 없애고, 페이지
+      // 처음 들어왔을 때 기본으로 보이는 설명은 오늘 날짜 걸로 해달라 — 이후 다른
+      // 날짜를 누르면 그 날짜 설명으로 바뀌면 된다"는 지적 반영 — 카드 자체는 더 이상
+      // "오늘"이든 "가장 유력한 날"이든 시각적으로 강조하지 않고(아래 렌더링에서
+      // .top 클래스와 "오늘" 배지를 뺐다), 기본 선택 상태만 topDay 대신 days[0](오늘)로
+      // 바꿨다. 이후 선택 상태는 클릭/마우스오버 시 ytShowDayEvidence()가 그대로 옮긴다.
+      const defaultDetailHTML = ytDayEvidenceLines(days[0]).map(esc).join('<br>');
 
       const noteParts = [];
       if (milestone) {
@@ -18706,6 +18665,18 @@
           <div id="ytPredReasonBox" class="yt-pred-reason-box" hidden>${reasonHTML}</div>
         </div>`;
 
+      // "카카오톡 버튼 눌러서 주요 내용 바로 발송할 수 있게 해달라"는 지적 반영 —
+      // 카톡 카드 공유 버튼(ytKkoArm/ytKkoShare, 하단 ytDrawShareCard)이 이 함수
+      // 스코프 밖에서도 지금 화면의 핵심 내용(다음 경기 일정·예측 헤드라인·마지막
+      // 업로드 시각)을 그릴 수 있도록 전역에 남겨둔다. 다른 카드 공유(티켓/승부예측 등)와
+      // 같은 패턴 — window.__ytLastPubMs와 같은 방식.
+      window.__ytShareCard = {
+        nextEvent: nextEvent ? { title: nextEvent.title, dateText: fmtEventDT(nextEvent) } : null,
+        rangeHeadlineText,
+        shortReason: ytDayShortReason(topDay),
+        lastPubAbsText,
+      };
+
       return `
       <div class="yt-pred-hero">
         <div class="yt-pred-hero-label">
@@ -18729,8 +18700,7 @@
              그 날짜 근거만 아래 상세 박스에 뜨도록 단순화했다. -->
         <div class="yt-prob-strip">
           ${days.map((d, i) => `
-            <div id="ytProbDay-${i}" class="yt-prob-day${d === topDay ? ' top' : ''}${d.phase?.type === 'event-day' ? ' event-day' : ''}${i === topIdx ? ' sel' : ''}" onclick="ytShowDayEvidence(${i})" onmouseenter="ytShowDayEvidence(${i})">
-              ${i === 0 ? '<div class="yt-prob-today-tag">오늘</div>' : ''}
+            <div id="ytProbDay-${i}" class="yt-prob-day${d.phase?.type === 'event-day' ? ' event-day' : ''}${i === 0 ? ' sel' : ''}" onclick="ytShowDayEvidence(${i})" onmouseenter="ytShowDayEvidence(${i})">
               <div class="yt-prob-icon">${d.phase?.type === 'event-day' ? '🔴' : (d.phase?.icon || (d.milestoneBoost ? '📌' : ''))}</div>
               <div class="yt-prob-dow">${YT_DOW_LABEL[d.dow]}</div>
               <div class="yt-prob-date">${d.date.getDate()}</div>
@@ -19050,6 +19020,45 @@
     // 바닥 근처에 닿으면 그다음 10개를 서버에서 더 불러와 이어붙인다(무한 스크롤).
     // "5개에서 스크롤인데 10개에서 스크롤되게 해달라"는 지적 반영 — 처음 보여주는 개수를
     // 5개에서 10개로 늘렸다(viewYtCalendar()의 yt_get_recent 호출 p_limit도 함께 변경).
+    // "영상 히스토리 상단에, 자리 차지 많이 안 하는 선에서 최근 영상들 조회수 비교
+    // 꺾은선 차트를 추가해달라"는 지적 반영 — 개별 영상 하나를 눌렀을 때 뜨는 시간대별
+    // 추이 차트(ytViewTrendChartHTML)와는 다르게, 이건 "최근 영상 여러 개를 나열해서
+    // 서로 조회수를 비교"하는 차트다(x축=영상 순서, y축=조회수). 쇼츠는 조회수 규모가
+    // 완전히 달라서(보통 훨씬 높음) 같이 넣으면 일반 영상 쪽 추이가 다 눌려버리므로,
+    // 사이트 다른 조회수 관련 차트/통계와 같은 기준으로 쇼츠는 뺀다.
+    function ytHistViewChartHTML(recent) {
+      const nonShort = (recent || []).filter(v => v && !v.is_short && v.view_count != null);
+      const sorted = nonShort.slice(0, 10).slice().sort((a, b) => new Date(a.published_at) - new Date(b.published_at));
+      if (sorted.length < 2) return '';
+      const W = 300, H = 46, PADX = 8, PLOT_TOP = 6, PLOT_BOTTOM = 34;
+      const maxV = Math.max(...sorted.map(v => v.view_count));
+      const minV = Math.min(...sorted.map(v => v.view_count), 0);
+      const spanV = Math.max(1, maxV - minV);
+      const stepX = sorted.length > 1 ? (W - PADX * 2) / (sorted.length - 1) : 0;
+      const yFor = v => PLOT_BOTTOM - ((v - minV) / spanV) * (PLOT_BOTTOM - PLOT_TOP);
+      const pts = sorted.map((v, i) => `${(PADX + i * stepX).toFixed(1)},${yFor(v.view_count).toFixed(1)}`).join(' ');
+      const lastIdx = sorted.length - 1;
+      const dots = sorted.map((v, i) => `
+        <circle cx="${(PADX + i * stepX).toFixed(1)}" cy="${yFor(v.view_count).toFixed(1)}" r="${i === lastIdx ? 3.5 : 2}" fill="${i === lastIdx ? 'var(--red)' : 'var(--key-deep)'}" stroke="${i === lastIdx ? '#fff' : 'none'}" stroke-width="1.2"><title>${esc(v.title)} — ${esc(fmtViews(v.view_count) || '')}</title></circle>`).join('');
+      const firstLabel = new Date(sorted[0].published_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
+      const lastLabel = new Date(sorted[sorted.length - 1].published_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
+      return `
+        <div class="yt-hist-viewchart" style="margin-bottom:10px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1px">
+            <div style="font-weight:800;font-size:11.5px;color:var(--ink)">최근 ${sorted.length}개 조회수</div>
+            <div class="note" style="font-size:9.5px;margin:0">쇼츠 제외</div>
+          </div>
+          <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">
+            <polyline points="${pts}" fill="none" stroke="var(--key-deep)" stroke-width="2"></polyline>
+            ${dots}
+          </svg>
+          <div style="display:flex;justify-content:space-between;margin-top:1px">
+            <span class="note" style="font-size:9px;margin:0">${esc(firstLabel)}</span>
+            <span class="note" style="font-size:9px;margin:0">점에 마우스오버하면 제목/조회수</span>
+            <span class="note" style="font-size:9px;margin:0">${esc(lastLabel)}</span>
+          </div>
+        </div>`;
+    }
     function ytRecentListHTML(recent) {
       if (!recent || !recent.length) return '';
       window.__ytHistItems = recent.slice();
@@ -19064,6 +19073,7 @@
           <div style="font-weight:800">영상 히스토리</div>
           <input type="text" class="yt-hist-search" placeholder="🔍 영상 제목 검색" oninput="ytFilterHistory(this.value)">
         </div>
+        ${ytHistViewChartHTML(recent)}
         <div id="ytHistList" class="yt-hist-list" onscroll="ytHistScrollCheck(this)">
           ${recent.map(v => ytVideoRowHTML(v)).join('')}
         </div>
@@ -19376,7 +19386,7 @@
       // "캘린더가 주기분석보다 위에 있는 게 맞지 않냐"는 지적 반영 — 예측 카드 다음으로
       // 달력을 바로 보여주고, 보조 수치(요약칩·주기차트)는 그 아래로 내렸다.
       $app.innerHTML = `
-      <h1 class="page">영상 캘린더</h1>
+      <h1 class="page">영상 캘린더 <button type="button" id="ytKkoBtn" class="kko-btn" onpointerdown="ytKkoArm()" onclick="ytKkoShare()" aria-label="카톡 공유" title="카톡 공유"></button></h1>
       <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://youtube.com/@${esc(YT_CHANNEL_HANDLE)}" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 유튜브</a> · 과거 패턴 기반 업로드 예측</div>
       ${ytPredictionHeroHTML(stats90, stats365, statsAll, nextEvent, lastEvent, leadTimes, milestone, eventDayStats, dowByContext, cycleRecent, leadTimeDetail, videos.length)}
       <details class="card yt-cal-details" style="margin-top:12px" open>
@@ -19581,6 +19591,61 @@
       x.fillText(footerL || '블랙컴뱃 잡담방', 48, 374);
       if (footerR) { x.textAlign = 'right'; x.fillText(footerR, 752, 374); x.textAlign = 'left'; }
       return { c, x };
+    }
+    // 영상 캘린더 공유 카드 — "최상단 카드에 카톡 버튼 추가해서 주요 내용 바로 발송하게
+    // 해달라"는 지적 반영. ytPredictionHeroHTML()이 화면을 그릴 때마다 window.__ytShareCard에
+    // 남겨두는 핵심 내용(다음 경기 일정 · 예측 헤드라인 · 마지막 업로드 시각)을 그대로
+    // 카드에 그린다 — 화면에 보이는 것과 카드 내용이 항상 같은 소스에서 나오게 하기 위함.
+    function ytDrawShareCard() {
+      const d = window.__ytShareCard || {};
+      const { c, x } = kkoCardBase('영상 캘린더', '블랙컴뱃 잡담방',
+        new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }));
+      let y = 150;
+      if (d.nextEvent) {
+        x.fillStyle = '#8a95a5'; x.font = '800 18px Pretendard, sans-serif';
+        x.fillText('다음 경기', 48, 108);
+        x.fillStyle = '#1b2430'; x.font = '900 34px Pretendard, sans-serif';
+        gmFitFont(x, d.nextEvent.title, 704, '900', 34, 20);
+        x.fillText(d.nextEvent.title, 48, 108 + 44);
+        x.fillStyle = '#525d6b'; x.font = '800 19px Pretendard, sans-serif';
+        x.fillText(d.nextEvent.dateText || '', 48, 108 + 44 + 34);
+        y = 108 + 44 + 34 + 46;
+      }
+      x.fillStyle = '#8a95a5'; x.font = '800 16px Pretendard, sans-serif';
+      x.fillText('업로드 예측', 48, y);
+      x.fillStyle = '#1d4ed8'; x.font = '900 28px Pretendard, sans-serif';
+      gmFitFont(x, d.rangeHeadlineText || '', 704, '900', 28, 18);
+      x.fillText(d.rangeHeadlineText || '', 48, y + 36);
+      x.fillStyle = '#525d6b'; x.font = '800 18px Pretendard, sans-serif';
+      gmFitFont(x, d.shortReason || '', 704, '800', 18, 13);
+      x.fillText(d.shortReason || '', 48, y + 68);
+      if (d.lastPubAbsText) {
+        x.fillStyle = '#b6bfcc'; x.font = '700 16px Pretendard, sans-serif';
+        x.fillText(`마지막 업로드: ${d.lastPubAbsText}`, 48, y + 104);
+      }
+      return c;
+    }
+    function ytKkoArm() {
+      const btn = document.getElementById('ytKkoBtn');
+      if (btn && window.__ytShareCard) kkoArmPreload(btn, () => ytDrawShareCard());
+    }
+    async function ytKkoShare() {
+      const btn = document.getElementById('ytKkoBtn');
+      if (!window.__ytShareCard) return;
+      if (btn) { btn.disabled = true; btn.textContent = '카드 만드는 중…'; }
+      try {
+        const imageUrl = await kkoConsumePreload(btn, () => ytDrawShareCard());
+        const d = window.__ytShareCard;
+        const ok = imageUrl && kkoSendShare(imageUrl, {
+          title: d.nextEvent ? `📅 ${d.nextEvent.title}` : '📺 영상 캘린더',
+          desc: d.rangeHeadlineText || '업로드 예측을 확인해보세요',
+          btnText: '영상 캘린더 보기',
+          path: '#/videos',
+        });
+        if (!ok) toastMsg('이 환경에서는 카카오 카드 공유가 안 돼요.');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = ''; }
+      }
     }
     // 블랙 퀴즈 성적표 카드 (800×400, 미니멀 v3)
     function bqDrawShareCard(d, opts) {
