@@ -120,7 +120,11 @@ async function upsertRows(rows) {
         const sn = it.snippet || {};
         const vid = it.contentDetails && it.contentDetails.videoId;
         const dur = durMap[vid];
-        const isShort = (dur != null && dur <= 60) || /#shorts/i.test(sn.title || '');
+        // "23시 2분 영상은 쇼츠인데 마지막 업로드로 잡혀서 22시 일반 영상이 밀려났다"는
+        // 지적으로 발견 — 유튜브가 Shorts 최대 길이를 60초에서 3분(180초)으로 늘린 지
+        // 한참 됐는데 이 기준은 여전히 60초였다. 60~180초 사이 영상은 실제로 Shorts인데도
+        // 계속 "일반 영상"으로 잘못 분류되고 있었던 것 — 3분 기준으로 맞춘다.
+        const isShort = (dur != null && dur <= 180) || /#shorts/i.test(sn.title || '');
         const thumbs = sn.thumbnails || {};
         return {
           video_id: vid,
