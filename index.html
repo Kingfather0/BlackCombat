@@ -17706,16 +17706,18 @@
            화면으로 바꿨다. 목록은 버튼 없이 화면을 열면 바로 불러온다. -->
       <div class="card" style="margin-top:12px">
         <div style="font-weight:800;margin-bottom:6px">🔗 경기 공식 링크 관리</div>
-        <div class="note" style="margin-bottom:10px">여기서 등록한 경기는 저장 즉시 캘린더에 빨간 점으로 나타나요. 공식 홈페이지 경기 번호(eventSeq)를 같이 넣으면 공식 링크도 처음부터 연결돼요. 아래 목록에서 수정·삭제도 바로 할 수 있어요.</div>
         <div style="display:grid;gap:8px;max-width:480px">
           <div class="field"><label>경기 제목</label><input id="ytNewMatchTitle" type="text" placeholder="예: 블랙컴뱃 17: ..."></div>
           <div class="field"><label>날짜/시각</label><input id="ytNewMatchDate" type="datetime-local"></div>
           <div class="field"><label>장소 (선택)</label><input id="ytNewMatchVenue" type="text" placeholder="예: 서울 올림픽공원 핸드볼경기장"></div>
           <div class="field"><label>공식 홈페이지 경기 번호(eventSeq, 선택)</label><input id="ytNewMatchSeq" type="number" placeholder="예: 293"></div>
         </div>
-        <div style="display:flex;gap:8px;margin-top:10px">
+        <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
           <button class="btn primary" id="ytMatchSaveBtn" onclick="ytSaveOfficialMatch()">경기 등록</button>
           <button class="btn" id="ytMatchCancelBtn" style="display:none" onclick="ytCancelEditMatch()">취소</button>
+          <!-- "경기등록 오른쪽에 경기 검색 필터할 수 있도록 경기이름 검색할수있는 기능
+               추가해주고"는 지적 반영(2026-08-26) — 아래 목록을 제목으로 바로 필터링한다. -->
+          <input type="text" id="ytMatchSearchInput" class="yt-hist-search" placeholder="🔍 경기 이름 검색" oninput="ytFilterManualEvents(this.value)" style="margin-left:auto">
         </div>
         <div class="msg" id="ytNewMatchMsg" style="margin-top:6px"></div>
         <div id="ytManualEventList" class="yt-manual-event-list" style="margin-top:10px"></div>
@@ -17729,10 +17731,12 @@
       const box = document.getElementById('ytManualEventList');
       if (!box) return;
       box.innerHTML = '<div class="note">불러오는 중…</div>';
+      const searchEl = document.getElementById('ytMatchSearchInput');
+      if (searchEl) searchEl.value = '';
       try {
         const { data, error } = await sb.rpc('yt_admin_list_manual_events', { p_pass: adminPass() });
         if (error || !data || data.ok === false) {
-          box.innerHTML = '<div class="note">⚠️ 유튜브_캘린더_5차보완_패치.sql을 먼저 Supabase에 실행해 주세요.</div>';
+          box.innerHTML = '<div class="note">⚠️ 유튜브_캘린더_6차보완_패치.sql을 먼저 Supabase에 실행해 주세요.</div>';
           return;
         }
         window.__ytManualEvents = data.events || [];
@@ -17742,6 +17746,18 @@
       } catch (err) {
         box.innerHTML = '⚠️ 불러오기 실패: ' + esc(err && err.message || String(err));
       }
+    }
+    // 이미 불러온 목록(window.__ytManualEvents)을 서버에 다시 묻지 않고 제목으로만
+    // 걸러서 다시 그린다 — 영상 히스토리 검색(ytFilterHistory)과 같은 방식.
+    function ytFilterManualEvents(q) {
+      const box = document.getElementById('ytManualEventList');
+      if (!box) return;
+      const all = window.__ytManualEvents || [];
+      const query = (q || '').trim().toLowerCase();
+      const filtered = query ? all.filter(e => (e.title || '').toLowerCase().includes(query)) : all;
+      box.innerHTML = filtered.length
+        ? filtered.map(e => ytManualEventRowHTML(e)).join('')
+        : `<div class="note">${query ? '일치하는 경기가 없어요.' : '등록된 경기가 없어요.'}</div>`;
     }
     function ytManualEventRowHTML(e) {
       const dateText = new Date(e.event_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'long', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit' });
