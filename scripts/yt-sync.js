@@ -108,18 +108,31 @@ async function upsertRows(rows) {
       console.log(`▶ ${page}페이지: ${items.length}개 (누적 조회 ${totalFetched}개)`);
 
       const ids = items.map((it) => it.contentDetails && it.contentDetails.videoId).filter(Boolean);
-      let durMap = {};
+      // "모든 영상 리스트에 조회수도 표시해달라"는 지적 반영 — 어차피 durMap을 채우려고
+      // videos.list를 이미 호출하고 있으니, part에 statistics만 추가하면 API 호출
+      // 횟수(쿼터)는 그대로인 채로 조회수까지 같이 받아온다. 이 10분 주기 동기화는
+      // "최근 영상 위주"라 여기서 조회수가 채워지는 건 최근 100개뿐이고, 이미 등록된
+      // 옛 영상들의 조회수는 별도 scripts/yt-view-snapshot.js가 주기적으로 전체를
+      // 돌며 갱신한다(조회수는 새 영상과 달리 계속 바뀌므로 "새 것만" 동기화하는
+      // 이 스크립트 방식만으로는 부족하다).
+      let statMap = {};
       if (ids.length) {
-        const vUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${ids.join(',')}&key=${YT_API_KEY}`;
+        const vUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${ids.join(',')}&key=${YT_API_KEY}`;
         const vRes = await fetch(vUrl);
         const vJson = await vRes.json();
-        if (vRes.ok) (vJson.items || []).forEach((v) => { durMap[v.id] = parseISODuration(v.contentDetails.duration); });
+        if (vRes.ok) (vJson.items || []).forEach((v) => {
+          statMap[v.id] = {
+            dur: parseISODuration(v.contentDetails.duration),
+            views: v.statistics && v.statistics.viewCount != null ? Number(v.statistics.viewCount) : null,
+          };
+        });
       }
 
       const rows = items.map((it) => {
         const sn = it.snippet || {};
         const vid = it.contentDetails && it.contentDetails.videoId;
-        const dur = durMap[vid];
+        const st = statMap[vid] || {};
+        const dur = st.dur;
         // "23시 2분 영상은 쇼츠인데 마지막 업로드로 잡혀서 22시 일반 영상이 밀려났다"는
         // 지적으로 발견 — 유튜브가 Shorts 최대 길이를 60초에서 3분(180초)으로 늘린 지
         // 한참 됐는데 이 기준은 여전히 60초였다. 60~180초 사이 영상은 실제로 Shorts인데도
@@ -135,6 +148,7 @@ async function upsertRows(rows) {
           is_short: isShort,
           category: classify(sn.title || '', isShort),
           description: sn.description || '',
+          view_count: st.views != null ? st.views : null,
         };
       }).filter((r) => r.video_id && r.published_at);
 
