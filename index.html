@@ -18973,130 +18973,42 @@
         </div>
       </div>`;
     }
-    // "영상별로 조회수 차트가 어떻게 변화하는지 보고 싶다(쇼츠 제외, 동영상 기준)"는
-    // 지적 반영 — yt_get_view_snapshots RPC로 받아온 시점별 조회수를 간단한 꺾은선
-    // 차트로 그린다. ytCycleChartHTML(간격 추이 차트)와 같은 축소 SVG 방식을 그대로
-    // 따랐다. 스냅샷이 2개 미만(아직 한 번밖에 안 찍혔거나, 갓 올라온 영상)이면
-    // 추세선을 그릴 수 없으니 안내 문구만 보여준다.
-    function ytViewTrendChartHTML(snapshots) {
-      const pts = (snapshots || [])
-        .filter(s => s && s.v != null && s.t)
-        .map(s => ({ t: new Date(s.t).getTime(), v: Number(s.v) }))
-        .filter(p => Number.isFinite(p.t) && Number.isFinite(p.v))
-        .sort((a, b) => a.t - b.t);
-      if (pts.length < 2) {
-        return `<div class="note" style="margin:6px 0 0">아직 조회수 추이를 그릴 만큼 데이터가 쌓이지 않았어요 — 몇 시간~며칠 후 다시 확인해 주세요.</div>`;
-      }
-      const W = 300, H = 58, PADX = 8, PLOT_TOP = 8, PLOT_BOTTOM = 44;
-      const minT = pts[0].t, maxT = pts[pts.length - 1].t;
-      const spanT = Math.max(1, maxT - minT);
-      const maxV = Math.max(...pts.map(p => p.v));
-      const minV = Math.min(...pts.map(p => p.v), 0);
-      const spanV = Math.max(1, maxV - minV);
-      const xFor = t => PADX + ((t - minT) / spanT) * (W - PADX * 2);
-      const yFor = v => PLOT_BOTTOM - ((v - minV) / spanV) * (PLOT_BOTTOM - PLOT_TOP);
-      const linePts = pts.map(p => `${xFor(p.t).toFixed(1)},${yFor(p.v).toFixed(1)}`).join(' ');
-      const lastDot = pts[pts.length - 1];
-      const firstLabel = new Date(minT).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
-      const lastLabel = new Date(maxT).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
-      return `
-        <div class="note" style="margin:6px 0 2px;font-weight:800;color:var(--ink)">📈 조회수 추이 <span style="color:var(--key-deep)">${esc(fmtViews(lastDot.v) || '')}</span></div>
-        <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">
-          <polyline points="${linePts}" fill="none" stroke="var(--key-deep)" stroke-width="2"></polyline>
-          <circle cx="${xFor(lastDot.t).toFixed(1)}" cy="${yFor(lastDot.v).toFixed(1)}" r="3" fill="var(--key-deep)" stroke="#fff" stroke-width="1.5"></circle>
-        </svg>
-        <div style="display:flex;justify-content:space-between;margin-top:1px">
-          <span class="note" style="font-size:9px;margin:0">${esc(firstLabel)}</span>
-          <span class="note" style="font-size:9px;margin:0">${esc(lastLabel)}</span>
-        </div>`;
-    }
-    // 모달을 열 때마다 늘어나는 토큰 — 조회수 추이를 비동기로 받아오는 도중에 사용자가
-    // 다른 영상을 클릭해서 모달 내용이 바뀌면, 늦게 도착한 옛 응답이 새 모달을 덮어쓰지
-    // 않도록 막는다.
-    let __ytVpToken = 0;
-    async function ytLoadViewTrend(videoId, token) {
-      try {
-        const { data, error } = await sb.rpc('yt_get_view_snapshots', { p_video_id: videoId, p_days: 180 });
-        if (token !== __ytVpToken) return;
-        const box = document.getElementById('ytViewTrendBox');
-        if (!box) return;
-        if (error) { box.innerHTML = `<div class="note" style="margin:6px 0 0">조회수 추이를 불러오지 못했어요.</div>`; return; }
-        box.innerHTML = ytViewTrendChartHTML(data);
-      } catch (e) {
-        if (token !== __ytVpToken) return;
-        const box = document.getElementById('ytViewTrendBox');
-        if (box) box.innerHTML = `<div class="note" style="margin:6px 0 0">조회수 추이를 불러오지 못했어요.</div>`;
-      }
-    }
+    // "영상 히스토리에서 영상을 선택하면 여전히 카테고라이징/카테고리 분류 기능,
+    // 닫기·유튜브에서 보기 버튼이 뜨는데 이런 거 다 제거하고, 캘린더에서 경기 날짜
+    // 눌렀을 때처럼 팝업 오픈하고 그 안을 누르면 바로 영상으로 이동, 취소할 수 있게
+    // 아래에 닫기 버튼 하나만 나오게 해달라"는 지적 반영 — 카테고리 표시/관리자 편집
+    // 드롭다운·설명·조회수 추이 차트를 다 뺐다. 이제 카드 자체(썸네일+제목)를 누르면
+    // 바로 유튜브로 이동하고, 하단엔 닫기 버튼 하나만 남는다(경기 팝업/ytOpenEventDay와
+    // 같은 뼈대·같은 상호작용 패턴).
     function ytOpenVideoPreview(idx) {
       const entry = (window.__ytVidReg || [])[idx];
       if (!entry) return;
       const v = entry.v;
       const dateText = new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'long', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit' });
-      const desc = (v.description || '').trim();
-      const descShort = desc ? (desc.length > 160 ? desc.slice(0, 160) + '…' : desc) : '';
       const url = `https://www.youtube.com/watch?v=${encodeURIComponent(v.video_id)}`;
       const viewsText = fmtViews(v.view_count);
       let host = document.getElementById('ytVideoPreviewHost');
       if (!host) { host = document.createElement('div'); host.id = 'ytVideoPreviewHost'; document.body.appendChild(host); }
-      const token = ++__ytVpToken;
       host.innerHTML = `
         <div class="yt-vp-backdrop" onclick="if(event.target===this) ytCloseVideoPreview()">
           <div class="yt-vp-card">
-            <img class="yt-vp-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
-            <div class="yt-vp-title">${esc(v.title)}</div>
-            <div class="note">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)} · ${esc(dateText)}${viewsText ? ` · ${esc(viewsText)}` : ''}</div>
-            ${entry.extraNote ? `<div class="yt-vp-extra">${entry.extraNote}</div>`
+            <div style="cursor:pointer" onclick="window.open('${esc(url)}','_blank','noopener');ytCloseVideoPreview()">
+              <img class="yt-vp-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
+              <div class="yt-vp-title">${esc(v.title)}</div>
+              <div class="note">${esc(dateText)}${viewsText ? ` · ${esc(viewsText)}` : ''}</div>
+              ${entry.extraNote ? `<div class="yt-vp-extra">${entry.extraNote}</div>`
         : (ytPrevGapNote(v) ? `<div class="yt-vp-extra">${esc(ytPrevGapNote(v))}</div>` : '')}
-            <div class="yt-vp-desc${descShort ? '' : ' note'}">${descShort ? esc(descShort) : '등록된 설명이 없어요'}</div>
-            ${!v.is_short ? `<div id="ytViewTrendBox"><div class="note" style="margin:6px 0 0">조회수 추이 불러오는 중…</div></div>` : ''}
-            ${typeof adminPass === 'function' && adminPass() ? `
-            <div class="yt-vp-admin-cat">
-              <label class="note" style="display:block;margin-bottom:3px">🔧 카테고리 잘못 분류됐으면 여기서 바로 고쳐요(관리자)</label>
-              <select class="yt-vp-admin-cat-select" onchange="ytAdminSetCategory('${esc(v.video_id)}', this.value, ${idx})">
-                ${Object.keys(YT_CATS).map(k => `<option value="${k}"${v.category === k ? ' selected' : ''}>${YT_CATS[k].emoji} ${esc(YT_CATS[k].label)}</option>`).join('')}
-              </select>
-            </div>` : ''}
+            </div>
             <div class="yt-vp-actions">
               <button type="button" class="btn small" onclick="ytCloseVideoPreview()">닫기</button>
-              <a class="btn small primary" href="${url}" target="_blank" rel="noopener" onclick="ytCloseVideoPreview()">▶ 유튜브에서 보기</a>
             </div>
           </div>
         </div>`;
-      // "조회수 차트도 쇼츠는 빼고 동영상 기준으로" 지적 반영 — 쇼츠면 아예 섹션을
-      // 안 그리고(위에서 이미 빠짐), 조회수 불러오기 요청도 보내지 않는다.
-      if (!v.is_short) ytLoadViewTrend(v.video_id, token);
     }
-    // "경기 카테고리에 컨텐츠가 계속 섞여 보인다, 완벽한 자동분류는 어려울 것 같다"는
-    // 지적 반영 — 제목만으로는 완벽히 못 가르는 걸 인정하고, 이미 서버에 있던
-    // yt_admin_set_category RPC를 관리자 화면(비밀번호 보유)에서 바로 쓸 수 있게 UI를
-    // 붙였다. 새로고침 없이 지금 열려있는 화면(모달·달력·목록)의 카테고리도 즉시 갱신한다.
-    async function ytAdminSetCategory(videoId, newCat, idx) {
-      const pass = typeof adminPass === 'function' ? adminPass() : '';
-      if (!pass) return;
-      try {
-        const { data, error } = await sb.rpc('yt_admin_set_category', { p_pass: pass, p_video_id: videoId, p_category: newCat });
-        if (error || !data || data.ok === false) {
-          alert('카테고리 변경에 실패했어요' + (data && data.code ? ` (${data.code})` : ''));
-          return;
-        }
-        [window.__ytVidReg, window.__ytAllVideosDesc, (ytCalState && ytCalState.videos)].forEach(arr => {
-          (arr || []).forEach(item => {
-            const v = item && item.v ? item.v : item;
-            if (v && v.video_id === videoId) v.category = newCat;
-          });
-        });
-        if (window.__ytByDay) {
-          Object.values(window.__ytByDay).forEach(dayArr => (dayArr || []).forEach(v => { if (v.video_id === videoId) v.category = newCat; }));
-        }
-        ytOpenVideoPreview(idx);
-        const gridWrap = document.getElementById('ytCalGridWrap');
-        if (gridWrap && ytCalState && ytCalState.videos && ytCalState.month) {
-          const [yy, mm] = ytCalState.month.split('-').map(Number);
-          if (yy && mm) gridWrap.innerHTML = ytCalendarGridHTML(yy, mm, ytCalState.videos);
-        }
-      } catch (e) { alert('카테고리 변경 중 오류가 발생했어요'); }
-    }
+    // "카테고리 분류하는 기능은 다 빼자"는 지적 반영(2026-08-26) — 영상 미리보기
+    // 팝업에서 관리자용 카테고리 수정 드롭다운을 없애면서, 그 드롭다운이 유일한
+    // 호출부였던 ytAdminSetCategory()도 함께 정리했다(서버의 yt_admin_set_category
+    // RPC 자체는 그대로 남아 있어, 필요하면 언제든 UI를 다시 붙일 수 있다).
     function ytCloseVideoPreview() {
       const host = document.getElementById('ytVideoPreviewHost');
       if (host) host.innerHTML = '';
