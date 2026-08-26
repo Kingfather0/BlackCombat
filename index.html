@@ -10096,6 +10096,7 @@
     }
 
     .yt-prob-day {
+      position: relative;
       flex: 1;
       min-width: 40px;
       background: #fff;
@@ -10106,6 +10107,27 @@
       cursor: pointer;
       box-shadow: 0 1px 2px rgba(20, 40, 80, .05);
       transition: transform .08s ease
+    }
+
+    /* "파란 테두리가 왜 오늘(수요일)이 아니라 토요일에 있냐"는 지적 반영 — 파란
+       틴트(.top)는 원래부터 "오늘"이 아니라 "가장 유력한 날"을 가리키는 표시였는데,
+       예전엔 대부분 오늘=유력한 날이라 우연히 같아 보였을 뿐이다. 경기 당일처럼 유력한
+       날이 오늘이 아닌 다른 날로 옮겨가면서 그 우연이 깨졌다 — "오늘"을 가리키는 표시가
+       따로 없었던 게 진짜 문제라, 첫 번째 카드(항상 오늘)에 작은 "오늘" 태그를 별도로
+       달아서 유력한 날 표시와 헷갈리지 않게 한다. */
+    .yt-prob-today-tag {
+      position: absolute;
+      top: -7px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--ink, #1f2937);
+      color: #fff;
+      font-size: 8px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 999px;
+      line-height: 1.5;
+      white-space: nowrap
     }
 
     .yt-prob-day:active {
@@ -17901,7 +17923,9 @@
     function ytAbsTimeLabel(dateLike) {
       if (!dateLike) return null;
       const k = ytKstParts(dateLike);
-      return `${k.m}월 ${k.d}일 ${k.h}시`;
+      // "8월 26일 21시라고만 나오는데 몇 분인지도 나오게 해달라"는 지적 반영 — 분 단위까지
+      // 두 자리로 채워서 표시한다(예: "8월 26일 21시 04분").
+      return `${k.m}월 ${k.d}일 ${k.h}시 ${String(k.min).padStart(2, '0')}분`;
     }
     // "직전 영상 대비 01:24:00만에 이런 식으로 시:분:초로 보여달라"는 지적 반영 —
     // "N일 N시간"처럼 단위 글자를 풀어쓰던 걸 시계 형태(HH:MM:SS)로 바꿨다. 하루가
@@ -18221,7 +18245,8 @@
           const ev = d.phase.evidence;
           if (!ev) return '경기 당일 · 실측 없음';
           if (ev.lowSample) return `경기 당일 · 표본 ${ev.n}회뿐`;
-          return ev.ratio >= 1.1 ? `경기 당일 · 평소比 ${ev.ratio}배`
+          // "比 한자 대신 한글로 써달라"는 지적 반영.
+          return ev.ratio >= 1.1 ? `경기 당일 · 평소 대비 ${ev.ratio}배`
             : ev.ratio <= 0.9 ? `경기 당일 · 평소보다 적음`
               : '경기 당일 · 평소와 비슷';
         }
@@ -18552,7 +18577,15 @@
       // 않고, 요일 카드에 이미 쓰던 압축 버전(ytDayShortReason)으로 짧게 줄인다. 자세한
       // 내용은 이 아래 "왜 이 예측인지" 버튼을 누르면 topPhaseQualifier 전문이 그대로
       // 나온다(reasonLines) — 정보가 사라지는 게 아니라 위치만 옮겼다.
-      const topPinpointText = `그중 가장 유력: ${isTop0 ? '오늘' : topDateText}${hourText && !(isTop0 && hourPassedGrace) ? ` · ${hourText}경` : ''}${isTop0 && hourPassedGrace ? ` · ${hourText} 예상 경과` : ''} — ${ytDayShortReason(topDay)}`;
+      // "경기가 토요일 오후 1시인데 왜 오후 7시경이라고 하냐"는 지적 반영(데이터
+      // 정확도 버그) — hourText는 "최근 90일 동안 어느 시간대에 업로드가 제일 잦았는지"
+      // 라는 채널 전체의 일반적인 습관일 뿐, 경기 당일 콘텐츠와는 무관하다. 그런데도
+      // 유력한 날이 경기 당일일 땐 이 무관한 시간대를 그 날의 "예상 시각"인 것처럼
+      // 붙여서 보여줬다 — 경기 시작 시각(오후 1시)과 전혀 안 맞는 엉뚱한 시간이 나온
+      // 이유가 이거다. 유력한 날이 경기 당일(event-day)일 때는 이 일반 시간대 추정을
+      // 아예 붙이지 않는다.
+      const showGenericHour = !(topDay.phase && topDay.phase.type === 'event-day');
+      const topPinpointText = `그중 가장 유력: ${isTop0 ? '오늘' : topDateText}${showGenericHour && hourText && !(isTop0 && hourPassedGrace) ? ` · ${hourText}경` : ''}${showGenericHour && isTop0 && hourPassedGrace ? ` · ${hourText} 예상 경과` : ''} — ${ytDayShortReason(topDay)}`;
 
       // 매번 항상 보이는 문장 뭉치 대신, 상위 후보 요일의 근거만 기본으로 보여주고
       // 나머지 요일은 눌러야 근거가 뜨게 바꿨다 — "16%인데 눌러도 근거가 없다"는 지적은
@@ -18645,7 +18678,8 @@
         reasonLines.push(`${gaugeState.state} — 마지막 업로드 후 ${fmtDaysHours(daysSinceLastPub)}째예요. 평소 주기는 ${fmtDaysHours(blendedGapDays)}(±${fmtDaysHours(gapSigma)})이에요.`);
       }
       reasonLines.push(`${isTop0 ? '오늘' : topDateText}이 유력한 이유: ${topPhaseQualifier}`);
-      if (hourText && peakPct != null) {
+      // showGenericHour 가드 — 경기 당일은 일반 시간대 습관과 무관하니 여기서도 붙이지 않는다.
+      if (showGenericHour && hourText && peakPct != null) {
         reasonLines.push(`${hourText}경으로 보는 이유: 최근 90일 실측 중 이 시간대 업로드가 가장 많았어요 (${peakCount}건 / 전체 ${hourSampleTotal}건, ${peakPct}%).`);
       }
       const reasonText = reasonLines.join('\n');
@@ -18682,12 +18716,12 @@
         ${coreStatsHTML}
         ${predMergedHTML}
         ${gapStatsHTML}
-        ${isTop0 && hourPassedGrace ?`<div class="yt-pred-hero-alert">⏰ ${esc(hourText)}경 예상이 지났는데 아직 업로드가 없어요 — 이후 업로드 사례는 ${hourAfterPct}%(${hourAfterCount}건)뿐이에요.</div>` : ''}
+        ${showGenericHour && isTop0 && hourPassedGrace ?`<div class="yt-pred-hero-alert">⏰ ${esc(hourText)}경 예상이 지났는데 아직 업로드가 없어요 — 이후 업로드 사례는 ${hourAfterPct}%(${hourAfterCount}건)뿐이에요.</div>` : ''}
         <!-- "요일별 확률이 무슨 기준이냐, 소제목 있으면 좋겠다"는 지적 반영 — 이 구간이
              정확히 뭘 보여주는 건지 이름표를 달아준다. 계산 기준도 요일 빈도 위주에서
              간격 통계(마지막 업로드 후 경과일 분포) 위주로 바뀐 걸 반영했다. -->
         <div class="yt-week-prob-head">
-          <span class="yt-week-prob-title">📅 앞으로 7일, 업로드 확률</span>
+          <span class="yt-week-prob-title">앞으로 7일, 업로드 확률</span>
           <span class="yt-week-prob-sub">탭하면 날짜별 근거를 볼 수 있어요</span>
         </div>
         <!-- "요일 카드 아래 항상 켜진 설명 목록이 화면만 길게 만든다"는 지적 반영 — 7줄
@@ -18696,6 +18730,7 @@
         <div class="yt-prob-strip">
           ${days.map((d, i) => `
             <div id="ytProbDay-${i}" class="yt-prob-day${d === topDay ? ' top' : ''}${d.phase?.type === 'event-day' ? ' event-day' : ''}${i === topIdx ? ' sel' : ''}" onclick="ytShowDayEvidence(${i})" onmouseenter="ytShowDayEvidence(${i})">
+              ${i === 0 ? '<div class="yt-prob-today-tag">오늘</div>' : ''}
               <div class="yt-prob-icon">${d.phase?.type === 'event-day' ? '🔴' : (d.phase?.icon || (d.milestoneBoost ? '📌' : ''))}</div>
               <div class="yt-prob-dow">${YT_DOW_LABEL[d.dow]}</div>
               <div class="yt-prob-date">${d.date.getDate()}</div>
@@ -19011,8 +19046,10 @@
     }
 
     // "최근 업로드를 업로드 히스토리로 바꾸고, 5개만 보여주지 말고 스크롤해서 옛날 영상도
-    // 다 볼 수 있게 해달라"는 지적 반영 — 처음엔 5개만 그리고, 목록을 아래로 스크롤해서
+    // 다 볼 수 있게 해달라"는 지적 반영 — 처음엔 10개만 그리고, 목록을 아래로 스크롤해서
     // 바닥 근처에 닿으면 그다음 10개를 서버에서 더 불러와 이어붙인다(무한 스크롤).
+    // "5개에서 스크롤인데 10개에서 스크롤되게 해달라"는 지적 반영 — 처음 보여주는 개수를
+    // 5개에서 10개로 늘렸다(viewYtCalendar()의 yt_get_recent 호출 p_limit도 함께 변경).
     function ytRecentListHTML(recent) {
       if (!recent || !recent.length) return '';
       window.__ytHistItems = recent.slice();
@@ -19024,7 +19061,7 @@
       // 방식으로 더 불러와서 계속 찾아본다.
       return `<div class="card" style="margin-top:12px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
-          <div style="font-weight:800">업로드 히스토리</div>
+          <div style="font-weight:800">영상 히스토리</div>
           <input type="text" class="yt-hist-search" placeholder="🔍 영상 제목 검색" oninput="ytFilterHistory(this.value)">
         </div>
         <div id="ytHistList" class="yt-hist-list" onscroll="ytHistScrollCheck(this)">
@@ -19228,7 +19265,11 @@
             <img src="${esc(v.thumbnail_url || '')}" loading="lazy">
             <div style="min-width:0">
               <div class="yt-hover-preview-vtitle">${esc(v.title)}</div>
-              <div class="yt-hover-preview-meta">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)}${fmtViews(v.view_count) ? ` · ${esc(fmtViews(v.view_count))}` : ''}</div>
+              <!-- "캘린더 날짜에 마우스오버하면 여전히 카테고리가 보인다"는 지적 반영 —
+                   달력 칸 자체는 이미 이전 라운드에서 카테고리 구분을 없앴는데(위 주석
+                   참고), 이 마우스오버 미리보기만 그 변경이 빠져 있었다. 카테고리
+                   이모지/라벨을 빼고 조회수만 남긴다. -->
+              ${fmtViews(v.view_count) ? `<div class="yt-hover-preview-meta">${esc(fmtViews(v.view_count))}</div>` : ''}
               ${ytPrevGapNote(v) ? `<div class="yt-hover-preview-meta" style="color:var(--key-deep);font-weight:700">${esc(ytPrevGapNote(v))}</div>` : ''}
             </div>
           </div>`).join('')}
@@ -19298,7 +19339,8 @@
           sb.rpc('yt_get_stats', { p_days: 365, p_exclude_shorts: true }),
           // "6년치 데이터 기반 통계도 근거로 보여달라"는 지적 반영 — 채널 전체 이력 규모로도 조회.
           sb.rpc('yt_get_stats', { p_days: YT_ALL_TIME_DAYS, p_exclude_shorts: true }),
-          sb.rpc('yt_get_recent', { p_limit: 5 }),
+          // "영상 히스토리가 5개에서 스크롤되는데 10개에서 스크롤되게 해달라"는 지적 반영.
+          sb.rpc('yt_get_recent', { p_limit: 10 }),
           // 업로드 주기 차트는 "지금 보고 있는 달"이 아니라 최근 업로드 기준으로 계산한다
           // (아래 ytCycleChartHTML 주석 참고) — 그래서 달력 조회와 별도로 더 넉넉히 받는다.
           // 이것도 "주기 분석"이라 쇼츠는 제외.
