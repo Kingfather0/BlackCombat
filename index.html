@@ -10121,15 +10121,22 @@
       transform: scale(.94)
     }
 
-    /* 현재 설명 박스(#ytPredDetail)에 어느 카드의 근거가 떠 있는지 최소한의 표시만
-       남긴다 — 파란색이 아니라 중립색(잉크) 테두리로, 눈에 덜 띄게. */
+    /* "검정 테두리 말고, 테두리 자체를 없애고 옅은 푸른색으로 표시해달라"는 지적 반영 —
+       현재 설명 박스(#ytPredDetail)에 어느 카드의 근거가 떠 있는지는 테두리(outline)가
+       아니라 옅은 파란 배경 채우기로만 표시한다. */
     .yt-prob-day.sel {
-      outline: 2px solid var(--ink, #1f2937);
-      outline-offset: 1px
+      background: rgba(29, 78, 216, .08)
     }
 
     .yt-prob-day.event-day {
       background: #fdecec;
+      border-color: #f2b8b8
+    }
+
+    /* 경기 당일 카드가 동시에 선택된 상태일 때 — 선택 표시(옅은 파란 배경)가 경기 당일
+       표시(옅은 빨강)에 묻히지 않도록 이 조합만 따로 우선순위를 준다. */
+    .yt-prob-day.event-day.sel {
+      background: rgba(29, 78, 216, .08);
       border-color: #f2b8b8
     }
 
@@ -18052,21 +18059,22 @@
           // 그대로 가중치/설명 근거로 쓴다. 표본(경기 수)이 3건 미만이면 확률에는 반영하지
           // 않지만(가중치 1.0 유지), 있었던 사례 자체는 "표본 적음" 표시와 함께 보여준다.
           let weight = 1.0, evidence = null;
-          if (eventDayStats) {
-            let sumEvent = 0, sumBase = 0, maxN = 0;
-            Object.keys(eventDayStats).forEach(cat => {
-              const e = eventDayStats[cat];
-              if (!e || !e.n_events) return;
-              sumEvent += Number(e.avg_on_event_day) || 0;
-              sumBase += Number(e.baseline_avg_per_day) || 0;
-              maxN = Math.max(maxN, e.n_events);
-            });
-            if (sumBase > 0 && maxN > 0) {
-              const ratio = Math.round((sumEvent / sumBase) * 100) / 100;
-              const lowSample = maxN < YT_LOW_SAMPLE_N;
-              if (!lowSample) weight = Math.max(0.5, Math.min(2.2, ratio));
-              evidence = { ratio, n: maxN, lowSample };
-            }
+          // "경기 당일에 평소보다 영상이 1.2배 많이 올라온다는데, 경기 영상 말고 다른 것도
+          // 올라온다는 거냐, 그런 적이 있냐"는 지적으로 발견한 진짜 계산 오류 — 예전엔
+          // eventDayStats에 있는 카테고리(매치업/컨텐츠/계체/트레일러/티켓/미디어데이) 전부의
+          // "그 날 올라온 평균 개수"와 "평소 하루 평균 개수"를 몽땅 더해서 하나의 비율로
+          // 뭉쳤다. 그러면 "경기 당일 영상"이라는 문구와 달리 매치업(경기 영상)과 무관한
+          // 다른 카테고리 업로드량까지 섞여 들어가 사용자가 이해하는 의미와 실제 계산이
+          // 어긋났다. "경기 당일 · 평소보다 영상이 X배 많이/적게 올라와요"는 이제 매치업
+          // (경기) 카테고리 하나만 놓고 — 서버(yt_get_event_day_stats)가 카테고리별로 이미
+          // 계산해서 내려주는 ratio를 그대로 쓴다. 사이트 다른 곳(D-n 근접도 판정 등)과
+          // 마찬가지로 표본이 3건 미만이면 "표본 적음"으로만 표시하고 가중치엔 반영하지 않는다.
+          const evMatch = eventDayStats && eventDayStats.matchup;
+          if (evMatch && evMatch.n_events && evMatch.ratio != null) {
+            const ratio = Number(evMatch.ratio);
+            const lowSample = evMatch.n_events < YT_LOW_SAMPLE_N;
+            if (!lowSample) weight = Math.max(0.5, Math.min(2.2, ratio));
+            evidence = { ratio, n: evMatch.n_events, lowSample };
           }
           return { type: 'event-day', label: '경기 당일', weight, event: nextEvent, evidence };
         }
@@ -18305,6 +18313,14 @@
       const box = document.getElementById('ytPredReasonBox');
       if (!box) return;
       box.hidden = !box.hidden;
+    }
+    // "아직 이른 편 버튼에 마우스오버하면 클릭한 것처럼 나오게 해달라"는 지적 반영 —
+    // 데스크톱에서 마우스를 올리기만 해도(클릭 없이) 근거 박스가 열리도록 별도 함수를
+    // 둔다. 토글(ytTogglePredReason)과 달리 항상 "열기"만 하므로, 마우스가 오갈 때마다
+    // 열렸다 닫혔다 깜빡이지 않는다. 탭/클릭 동작은 기존 그대로 토글 유지.
+    function ytShowPredReason() {
+      const box = document.getElementById('ytPredReasonBox');
+      if (box) box.hidden = false;
     }
 
     function ytPredictionHeroHTML(stats90, stats365, statsAll, nextEvent, lastEvent, leadTimes, milestone, eventDayStats, dowByContext, cycleRecent, leadTimeDetail, monthCount) {
@@ -18657,7 +18673,7 @@
         <div class="yt-pred-merged">
           <div class="yt-pred-merged-head">
             <span class="yt-pred-merged-title">업로드 예측</span>
-            ${gaugeState.state ? `<button type="button" class="yt-pred-reason-btn ${gaugeState.stateCls}" onclick="ytTogglePredReason(event)">${esc(gaugeState.state)} <span class="yt-pred-reason-arrow">▾</span></button>` : ''}
+            ${gaugeState.state ? `<button type="button" class="yt-pred-reason-btn ${gaugeState.stateCls}" onclick="ytTogglePredReason(event)" onmouseenter="ytShowPredReason()">${esc(gaugeState.state)} <span class="yt-pred-reason-arrow">▾</span></button>` : ''}
           </div>
           <div class="yt-pred-merged-headline">${esc(rangeHeadlineText)}</div>
           <div class="yt-pred-merged-sub">${esc(topPinpointText)}</div>
@@ -19026,11 +19042,22 @@
     // 서로 조회수를 비교"하는 차트다(x축=영상 순서, y축=조회수). 쇼츠는 조회수 규모가
     // 완전히 달라서(보통 훨씬 높음) 같이 넣으면 일반 영상 쪽 추이가 다 눌려버리므로,
     // 사이트 다른 조회수 관련 차트/통계와 같은 기준으로 쇼츠는 뺀다.
-    function ytHistViewChartHTML(recent) {
-      const nonShort = (recent || []).filter(v => v && !v.is_short && v.view_count != null);
+    // "SVG title 툴팁으로는 마우스오버/클릭해도 제목·조회수가 안 뜬다, 최근 10개랬는데
+    // 7개만 나온다, 세로가 너무 길다, 디자인을 최근 20개 간격추이 차트랑 동일하게
+    // 하고 색은 청록색으로 해달라"는 지적 반영 — 여러 문제가 한 번에 걸려 있었다.
+    // (1) 안 뜨던 이유: 브라우저 네이티브 <title> 툴팁 대신, 간격추이 차트와 완전히
+    // 같은 방식(큰 투명 클릭 영역 + 탭/마우스오버 시 아래 상세 줄에 바로 표시)으로
+    // 바꿨다. (2) 10개가 아니라 7개만 나왔던 이유: 최근 업로드 10개(쇼츠 포함)에서
+    // 쇼츠만 걸러내다 보니 쇼츠가 섞여 있으면 10개보다 적게 남았다 — 이제 애초에
+    // 쇼츠가 빠진 목록(cycleRecent, 간격추이가 쓰는 것과 같은 데이터)에서 10개를
+    // 뽑아 항상 정확히 10개(데이터가 모자라지 않는 한)가 나온다. (3)(4) 높이·색·상호작용을
+    // 간격추이 차트와 동일한 구조로 맞추고, 선만 청록색(#0891b2)으로 바꿨다.
+    function ytHistViewChartHTML(cycleRecent) {
+      const nonShort = (cycleRecent || []).filter(v => v && !v.is_short && v.view_count != null);
       const sorted = nonShort.slice(0, 10).slice().sort((a, b) => new Date(a.published_at) - new Date(b.published_at));
-      if (sorted.length < 2) return '';
-      const W = 300, H = 46, PADX = 8, PLOT_TOP = 6, PLOT_BOTTOM = 34;
+      window.__ytHistViewItems = sorted;
+      if (sorted.length < 2) { window.__ytHistViewSelIdx = -1; return ''; }
+      const W = 300, H = 58, PADX = 8, PLOT_TOP = 11, PLOT_BOTTOM = 44;
       const maxV = Math.max(...sorted.map(v => v.view_count));
       const minV = Math.min(...sorted.map(v => v.view_count), 0);
       const spanV = Math.max(1, maxV - minV);
@@ -19038,28 +19065,56 @@
       const yFor = v => PLOT_BOTTOM - ((v - minV) / spanV) * (PLOT_BOTTOM - PLOT_TOP);
       const pts = sorted.map((v, i) => `${(PADX + i * stepX).toFixed(1)},${yFor(v.view_count).toFixed(1)}`).join(' ');
       const lastIdx = sorted.length - 1;
+      window.__ytHistViewSelIdx = lastIdx;
       const dots = sorted.map((v, i) => `
-        <circle cx="${(PADX + i * stepX).toFixed(1)}" cy="${yFor(v.view_count).toFixed(1)}" r="${i === lastIdx ? 3.5 : 2}" fill="${i === lastIdx ? 'var(--red)' : 'var(--key-deep)'}" stroke="${i === lastIdx ? '#fff' : 'none'}" stroke-width="1.2"><title>${esc(v.title)} — ${esc(fmtViews(v.view_count) || '')}</title></circle>`).join('');
+          <circle cx="${(PADX + i * stepX).toFixed(1)}" cy="${yFor(v.view_count).toFixed(1)}" r="9" fill="transparent" style="cursor:pointer" onclick="ytShowHistViewInfo(${i})" onmouseenter="ytShowHistViewInfo(${i})"></circle>
+          <circle id="ytHistViewDot-${i}" cx="${(PADX + i * stepX).toFixed(1)}" cy="${yFor(v.view_count).toFixed(1)}" r="${i === lastIdx ? 4.5 : 2.5}" fill="${i === lastIdx ? 'var(--red)' : '#0891b2'}" stroke="${i === lastIdx ? '#fff' : 'none'}" stroke-width="1.5" style="pointer-events:none"></circle>`).join('');
       const firstLabel = new Date(sorted[0].published_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
       const lastLabel = new Date(sorted[sorted.length - 1].published_at).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
       return `
-        <div class="yt-hist-viewchart" style="margin-bottom:10px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1px">
-            <div style="font-weight:800;font-size:11.5px;color:var(--ink)">최근 ${sorted.length}개 조회수</div>
-            <div class="note" style="font-size:9.5px;margin:0">쇼츠 제외</div>
-          </div>
+        <div class="yt-hist-viewchart-wrap" style="margin-bottom:10px">
           <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">
-            <polyline points="${pts}" fill="none" stroke="var(--key-deep)" stroke-width="2"></polyline>
+            <polyline points="${pts}" fill="none" stroke="#0891b2" stroke-width="2"></polyline>
             ${dots}
           </svg>
           <div style="display:flex;justify-content:space-between;margin-top:1px">
             <span class="note" style="font-size:9px;margin:0">${esc(firstLabel)}</span>
-            <span class="note" style="font-size:9px;margin:0">점에 마우스오버하면 제목/조회수</span>
+            <span class="note" style="font-size:9px;margin:0">탭/마우스오버하면 상세</span>
             <span class="note" style="font-size:9px;margin:0">${esc(lastLabel)}</span>
           </div>
+          <div id="ytHistViewDetail">${ytHistViewDetailHTML(sorted[lastIdx])}</div>
         </div>`;
     }
-    function ytRecentListHTML(recent) {
+    function ytHistViewDetailHTML(v) {
+      if (!v) return '';
+      return `<div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px">${ytVideoRowHTML(v, `조회수 <b>${esc(fmtViews(v.view_count) || '-')}</b>`)}</div>`;
+    }
+    function ytShowHistViewInfo(i) {
+      const items = window.__ytHistViewItems || [];
+      const v = items[i];
+      const box = document.getElementById('ytHistViewDetail');
+      if (!box || !v) return;
+      window.__ytHistViewSelIdx = i;
+      document.querySelectorAll('[id^="ytHistViewDot-"]').forEach(el => { el.setAttribute('r', '2.5'); el.setAttribute('fill', '#0891b2'); el.setAttribute('stroke', 'none'); });
+      const dot = document.getElementById('ytHistViewDot-' + i);
+      if (dot) { dot.setAttribute('r', '4.5'); dot.setAttribute('fill', 'var(--red)'); dot.setAttribute('stroke', '#fff'); }
+      box.innerHTML = ytHistViewDetailHTML(v);
+    }
+    // 간격추이 차트(ytCycleChartHTML 아래)와 같은 패턴 — 차트 바깥을 클릭하면 디폴트
+    // 상태(가장 최근 항목 선택)로 되돌린다. 한 번만 등록.
+    if (!window.__ytHistViewDismissBound) {
+      window.__ytHistViewDismissBound = true;
+      document.addEventListener('click', (e) => {
+        if (e.target.closest && e.target.closest('.yt-hist-viewchart-wrap')) return;
+        const items = window.__ytHistViewItems || [];
+        const box = document.getElementById('ytHistViewDetail');
+        if (box && items.length) {
+          const lastIdx = items.length - 1;
+          if (window.__ytHistViewSelIdx !== lastIdx) ytShowHistViewInfo(lastIdx);
+        }
+      });
+    }
+    function ytRecentListHTML(recent, cycleRecent) {
       if (!recent || !recent.length) return '';
       window.__ytHistItems = recent.slice();
       window.__ytHistDone = false;
@@ -19068,12 +19123,20 @@
       // 지적 반영 — 입력할 때마다(ytFilterHistory) 지금까지 불러온 항목 중 제목이
       // 일치하는 것만 남기고, 검색 중인데 화면에 몇 개 안 보이면 무한스크롤과 같은
       // 방식으로 더 불러와서 계속 찾아본다.
+      // "조회수 차트 위에 진한 검정 글씨로 따로 뜨는 제목 줄 빼고, '영상 히스토리' 옆에
+      // 회색 작은 글씨로 붙여달라"는 지적 반영 — 차트 자체 렌더링(아래 chartHTML)에
+      // 먼저 뽑아둔 개수(window.__ytHistViewItems)를 그대로 읽어와 라벨에 쓴다.
+      const chartHTML = ytHistViewChartHTML(cycleRecent);
+      const chartN = (window.__ytHistViewItems || []).length;
       return `<div class="card" style="margin-top:12px">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
-          <div style="font-weight:800">영상 히스토리</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+          <div style="display:flex;align-items:baseline;gap:6px">
+            <div style="font-weight:800">영상 히스토리</div>
+            ${chartN ? `<span class="note" style="font-size:10.5px;margin:0">최근 ${chartN}개 조회수</span>` : ''}
+          </div>
           <input type="text" class="yt-hist-search" placeholder="🔍 영상 제목 검색" oninput="ytFilterHistory(this.value)">
         </div>
-        ${ytHistViewChartHTML(recent)}
+        ${chartHTML}
         <div id="ytHistList" class="yt-hist-list" onscroll="ytHistScrollCheck(this)">
           ${recent.map(v => ytVideoRowHTML(v)).join('')}
         </div>
@@ -19386,7 +19449,7 @@
       // "캘린더가 주기분석보다 위에 있는 게 맞지 않냐"는 지적 반영 — 예측 카드 다음으로
       // 달력을 바로 보여주고, 보조 수치(요약칩·주기차트)는 그 아래로 내렸다.
       $app.innerHTML = `
-      <h1 class="page">영상 캘린더 <button type="button" id="ytKkoBtn" class="kko-btn" onpointerdown="ytKkoArm()" onclick="ytKkoShare()" aria-label="카톡 공유" title="카톡 공유"></button></h1>
+      <h1 class="page">영상 캘린더 <button type="button" id="ytKkoBtn" class="kko-btn" style="margin-left:auto" onpointerdown="ytKkoArm()" onclick="ytKkoShare()" aria-label="카톡 공유" title="카톡 공유"></button></h1>
       <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://youtube.com/@${esc(YT_CHANNEL_HANDLE)}" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 유튜브</a> · 과거 패턴 기반 업로드 예측</div>
       ${ytPredictionHeroHTML(stats90, stats365, statsAll, nextEvent, lastEvent, leadTimes, milestone, eventDayStats, dowByContext, cycleRecent, leadTimeDetail, videos.length)}
       <details class="card yt-cal-details" style="margin-top:12px" open>
@@ -19408,7 +19471,7 @@
         </div>
         <div id="ytCalGridWrap">${ytCalendarGridHTML(y, m, videos, monthEvents)}</div>
       </details>
-      ${ytRecentListHTML(recent)}`;
+      ${ytRecentListHTML(recent, cycleRecent)}`;
       // 경과 시간 실시간 카운터는 DOM에 붙은 뒤에 시작해야 한다 — ytPredictionHeroHTML이
       // window.__ytLastPubMs에 마지막 업로드 시각을 남겨둔다.
       ytStartElapsedTimer(window.__ytLastPubMs);
@@ -19596,20 +19659,22 @@
     // 해달라"는 지적 반영. ytPredictionHeroHTML()이 화면을 그릴 때마다 window.__ytShareCard에
     // 남겨두는 핵심 내용(다음 경기 일정 · 예측 헤드라인 · 마지막 업로드 시각)을 그대로
     // 카드에 그린다 — 화면에 보이는 것과 카드 내용이 항상 같은 소스에서 나오게 하기 위함.
+    // "카드 썸네일 상단에 다음 경기 대신 마지막 업로드 후 경과 시간을 보여달라"는 지적
+    // 반영 — 카드를 열 때마다(공유 버튼을 누르는 그 순간) window.__ytLastPubMs(화면
+    // 우측 상단 "경과 시간" 실시간 카운터와 같은 값)로 그 시점 경과 시간을 다시 계산해서
+    // 그린다. 형식도 화면의 "경과 시간" 패널과 같은 시:분:초(fmtGapPrecise).
     function ytDrawShareCard() {
       const d = window.__ytShareCard || {};
       const { c, x } = kkoCardBase('영상 캘린더', '블랙컴뱃 잡담방',
         new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }));
       let y = 150;
-      if (d.nextEvent) {
+      if (window.__ytLastPubMs) {
+        const elapsedDays = Math.max(0, (Date.now() - window.__ytLastPubMs) / 86400000);
         x.fillStyle = '#8a95a5'; x.font = '800 18px Pretendard, sans-serif';
-        x.fillText('다음 경기', 48, 108);
-        x.fillStyle = '#1b2430'; x.font = '900 34px Pretendard, sans-serif';
-        gmFitFont(x, d.nextEvent.title, 704, '900', 34, 20);
-        x.fillText(d.nextEvent.title, 48, 108 + 44);
-        x.fillStyle = '#525d6b'; x.font = '800 19px Pretendard, sans-serif';
-        x.fillText(d.nextEvent.dateText || '', 48, 108 + 44 + 34);
-        y = 108 + 44 + 34 + 46;
+        x.fillText('마지막 업로드 후 경과 시간', 48, 108);
+        x.fillStyle = '#e11d48'; x.font = '900 40px Pretendard, sans-serif';
+        x.fillText(fmtGapPrecise(elapsedDays), 48, 108 + 48);
+        y = 108 + 48 + 52;
       }
       x.fillStyle = '#8a95a5'; x.font = '800 16px Pretendard, sans-serif';
       x.fillText('업로드 예측', 48, y);
