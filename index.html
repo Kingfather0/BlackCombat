@@ -9926,14 +9926,31 @@
       background: #c0392b
     }
 
-    /* "0일 텍스트가 쓸데없이 크다"는 지적 반영 — 살짝 더 줄였다. */
+    /* "0일 텍스트가 쓸데없이 크다"는 지적 반영 — 살짝 더 줄였다.
+       "유력 기간(8.26~8.28) 라벨이 막대 오른쪽 끝에 고정돼 있어서 강조 구간이 아니라
+       차트의 마지막 지점처럼 보인다"는 지적 반영 — flex 양끝 배치 대신, 오른쪽 라벨을
+       실제 강조 구간(band) 위치에 절대좌표로 맞춘다(ytRangeGaugeHTML의 rangeLabelPct). */
     .yt-linebar-labels {
-      display: flex;
-      justify-content: space-between;
+      position: relative;
+      height: 13px;
       margin-top: 8px;
       font-size: 9px;
       font-weight: 700;
       color: var(--dim)
+    }
+
+    .yt-linebar-label-start {
+      position: absolute;
+      left: 0;
+      top: 0
+    }
+
+    .yt-linebar-label-range {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      color: var(--key-deep)
     }
 
     @media (max-width: 380px) {
@@ -17737,18 +17754,26 @@
           log(`▶ ${page}페이지: ${items.length}개 (누적 조회 ${totalFetched}개)`);
 
           const ids = items.map(it => it.contentDetails && it.contentDetails.videoId).filter(Boolean);
-          let durMap = {};
+          // "모든 영상 리스트에 조회수도 표시해달라"는 지적 반영 — scripts/yt-sync.js와
+          // 마찬가지로 part에 statistics를 추가해 같은 호출 한 번으로 조회수까지 받는다.
+          let statMap = {};
           if (ids.length) {
-            const vUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${ids.join(',')}&key=${YT_API_KEY}`;
+            const vUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${ids.join(',')}&key=${YT_API_KEY}`;
             const vRes = await fetch(vUrl);
             const vJson = await vRes.json();
-            if (vRes.ok) (vJson.items || []).forEach(v => { durMap[v.id] = ytParseISODuration(v.contentDetails.duration); });
+            if (vRes.ok) (vJson.items || []).forEach(v => {
+              statMap[v.id] = {
+                dur: ytParseISODuration(v.contentDetails.duration),
+                views: v.statistics && v.statistics.viewCount != null ? Number(v.statistics.viewCount) : null,
+              };
+            });
           }
 
           const rows = items.map(it => {
             const sn = it.snippet || {};
             const vid = it.contentDetails && it.contentDetails.videoId;
-            const dur = durMap[vid];
+            const st = statMap[vid] || {};
+            const dur = st.dur;
             // "23시 2분 영상은 쇼츠인데 마지막 업로드로 잡혔다"는 지적으로 발견 —
             // 유튜브 Shorts 최대 길이가 60초에서 3분(180초)으로 늘어난 지 오래됐는데
             // 이 기준은 여전히 60초였다. scripts/yt-sync.js와 반드시 동일하게 맞춘다.
@@ -17763,6 +17788,7 @@
               is_short: isShort,
               category: ytClassify(sn.title || '', isShort),
               description: sn.description || '',
+              view_count: st.views != null ? st.views : null,
             };
           }).filter(r => r.video_id && r.published_at);
 
@@ -17888,6 +17914,18 @@
       const s = totalSec % 60;
       const pad = n => String(n).padStart(2, '0');
       return `${pad(h)}:${pad(m)}:${pad(s)}`;
+    }
+
+    // "모든 영상 리스트에 조회수도 표시해달라 — 팬들은 조회수를 중요하게 본다"는 지적
+    // 반영 — 만/억 단위로 축약해서 보여주는 한국어 관용 표기(예: 12,345 → "1.2만회",
+    // 3,400,000 → "340만회"). 1만 미만은 그냥 콤마 숫자 그대로 보여준다.
+    function fmtViews(n) {
+      if (n == null) return null;
+      const v = Number(n);
+      if (!Number.isFinite(v) || v < 0) return null;
+      if (v < 10000) return `조회수 ${v.toLocaleString('ko-KR')}회`;
+      if (v < 100000000) return `조회수 ${Math.round(v / 1000) / 10}만회`;
+      return `조회수 ${Math.round(v / 10000000) / 10}억회`;
     }
 
     // "마지막 업로드 이후 경과 시간을 첨부 이미지처럼 일/시/분/초가 실시간으로 흐르는
@@ -18263,13 +18301,23 @@
         const highDate = new Date(lastPub.getTime() + high * 86400000);
         rangeLabel = fmtMD(lowDate) === fmtMD(highDate) ? fmtMD(lowDate) : `${fmtMD(lowDate)}~${fmtMD(highDate)}`;
       }
+      // "유력한 기간(8.26~8.28) 라벨이 막대 오른쪽 끝에 붙어 있어서, 그 라벨이 실제
+      // 강조된 구간(막대 위 옅은 영역) 위치가 아니라 그냥 차트의 마지막 지점을 가리키는
+      // 것처럼 보인다"는 지적 반영 — 라벨을 더 이상 좌우 끝에 고정된 두 span으로 두지
+      // 않고, 실제 강조 구간(bandLeft~bandRight)의 가운데 아래에 오도록 절대 위치로
+      // 옮긴다. 라벨이 잘리지 않게 10~94% 사이로만 클램프한다(구간이 축 맨 끝에 붙어도
+      // 라벨 텍스트 자체는 항상 화면 안에 보이도록).
+      const rangeLabelPct = Math.min(94, Math.max(10, (bandLeft + bandRight) / 2));
       return `
         <div class="yt-linebar" title="${esc(reasonText || '')}">
           <div class="yt-linebar-track">
             <div class="yt-linebar-range" style="left:${bandLeft.toFixed(1)}%;width:${Math.max(0, bandRight - bandLeft).toFixed(1)}%"></div>
             ${nowPct != null ? `<div class="yt-linebar-dot ${stateCls}" style="left:${nowPct.toFixed(1)}%"></div>` : ''}
           </div>
-          <div class="yt-linebar-labels"><span>${esc(startLabel)}</span><span>${esc(rangeLabel)}</span></div>
+          <div class="yt-linebar-labels">
+            <span class="yt-linebar-label-start">${esc(startLabel)}</span>
+            <span class="yt-linebar-label-range" style="left:${rangeLabelPct.toFixed(1)}%">${esc(rangeLabel)}</span>
+          </div>
         </div>`;
     }
 
@@ -18436,10 +18484,16 @@
           const dLabel = fmtDaysHours(daysSinceForDay);
           // 배지·게이지와 완전히 같은 기준(평균±변동폭)으로 "범위 안" 여부를 판정해서
           // 화면 곳곳의 숫자가 서로 어긋나지 않게 한다.
-          const inRange = daysSinceForDay >= (blendedGapDays - gapSigma) && daysSinceForDay <= (blendedGapDays + gapSigma);
-          if (inRange) gapNote = `${dLabel}째 · 평소 범위(${fmtDaysHours(blendedGapDays)}±${fmtDaysHours(gapSigma)}) 안`;
-          else if (daysSinceForDay < blendedGapDays - gapSigma) gapNote = `${dLabel}째 · 평소보다 이른 편`;
-          else gapNote = `${dLabel}째 · 평소보다 많이 지남`;
+          const rLow = Math.max(0, blendedGapDays - gapSigma), rHigh = blendedGapDays + gapSigma;
+          const inRange = daysSinceForDay >= rLow && daysSinceForDay <= rHigh;
+          // "19시간째 · 평소 범위(1일 15시간±21시간) 안 — 이게 무슨 말인지 이해가
+          // 안 간다"는 지적 반영 — "N시간째"가 무엇부터 잰 N시간인지 안 밝혀져 있었고,
+          // "평균±변동폭"도 며칠몇시간 표기에 ±를 그대로 붙이니 암산하기 어려운 숫자였다.
+          // "마지막 업로드로부터 얼마나 지났는지"를 문장으로 명시하고, ± 대신 실제
+          // 하한~상한 범위를 그대로 풀어써서 계산 없이 바로 읽히게 했다.
+          if (inRange) gapNote = `마지막 업로드로부터 ${dLabel} 지난 시점 · 평소에도 보통 ${fmtDaysHours(rLow)}~${fmtDaysHours(rHigh)} 사이에 다음 영상이 올라와요`;
+          else if (daysSinceForDay < rLow) gapNote = `마지막 업로드로부터 ${dLabel} 지난 시점 · 평소보다 이른 편(보통 ${fmtDaysHours(rLow)}은 지나야 올라와요)`;
+          else gapNote = `마지막 업로드로부터 ${dLabel} 지난 시점 · 평소보다 많이 지남(보통 ${fmtDaysHours(rHigh)} 안에는 올라와요)`;
         }
         days.push({ date: dt, dow, w, phase, milestoneBoost, dowCount, dowPct, dowWindowLabel, gapNote, gapW, daysSinceForDay });
       }
@@ -18493,7 +18547,12 @@
         : `${fmtMD(rd0.date)}~${fmtMD(rd1.date)} 사이 유력`;
       // 구간 안에서도 가장 확률 높은 날짜(topDay)는 그대로 짚어주되, "확정"이 아니라
       // "그 중에서는"이라는 어감으로 톤을 낮췄다.
-      const topPinpointText = `그중 가장 유력: ${isTop0 ? '오늘' : topDateText}${hourText && !(isTop0 && hourPassedGrace) ? ` · ${hourText}경` : ''}${isTop0 && hourPassedGrace ? ` · ${hourText} 예상 경과` : ''} — ${topPhaseQualifier}`;
+      // "그중 가장 유력: ... 텍스트가 두 줄로 넘친다"는 지적 반영 — 상세 근거
+      // 문구(topPhaseQualifier, 괄호 안에 D-n/표본수까지 붙는 긴 문장)를 그대로 쓰지
+      // 않고, 요일 카드에 이미 쓰던 압축 버전(ytDayShortReason)으로 짧게 줄인다. 자세한
+      // 내용은 이 아래 "왜 이 예측인지" 버튼을 누르면 topPhaseQualifier 전문이 그대로
+      // 나온다(reasonLines) — 정보가 사라지는 게 아니라 위치만 옮겼다.
+      const topPinpointText = `그중 가장 유력: ${isTop0 ? '오늘' : topDateText}${hourText && !(isTop0 && hourPassedGrace) ? ` · ${hourText}경` : ''}${isTop0 && hourPassedGrace ? ` · ${hourText} 예상 경과` : ''} — ${ytDayShortReason(topDay)}`;
 
       // 매번 항상 보이는 문장 뭉치 대신, 상위 후보 요일의 근거만 기본으로 보여주고
       // 나머지 요일은 눌러야 근거가 뜨게 바꿨다 — "16%인데 눌러도 근거가 없다"는 지적은
@@ -18802,15 +18861,80 @@
     // 반영(재요청) — 캘린더에서 이미 뺀 카테고리 구분을 이 공용 목록 행에서도 없앴다.
     function ytVideoRowHTML(v, extraNote) {
       const idx = ytRegisterVideo(v, extraNote);
-      const gapNote = extraNote ? null : ytPrevGapNote(v);
+      // "간격 통계에서도 영상에 직전 영상 대비 00:00:00 표시해달라"는 지적 반영 —
+      // 예전엔 extraNote(주기차트 상세의 "이전 업로드 '~'로부터 ~ 만에" 문장)가 있으면
+      // 이 짧은 gapNote 줄을 아예 숨겨버려서, 정작 주기 차트 상세 목록(간격 통계)에서는
+      // "직전 영상 대비" 줄이 보이지 않았다(그 문장은 행 안에는 안 찍히고, 클릭해서 여는
+      // 모달에만 표시됐다). extraNote 유무와 상관없이 항상 짧은 gapNote를 보여준다.
+      const gapNote = ytPrevGapNote(v);
+      // "모든 영상 리스트에 조회수도 표시해달라, 팬들은 조회수를 중요하게 본다"는
+      // 지적 반영 — 날짜 옆에 " · "로 이어붙여서 한 줄에 같이 보여준다. 아직 조회수를
+      // 못 받아온 옛 영상(view_count가 null)은 조용히 생략한다(0회처럼 잘못 보이지
+      // 않도록 — scripts/yt-view-snapshot.js가 돌고 나면 채워진다).
+      const viewsText = fmtViews(v.view_count);
       return `<div class="yt-recent-row" role="button" tabindex="0" onclick="ytOpenVideoPreview(${idx})">
         <img class="yt-recent-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:700;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.title)}</div>
-          <div class="note">${new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+          <div class="note">${new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}${viewsText ? ` · ${esc(viewsText)}` : ''}</div>
           ${gapNote ? `<div class="note" style="color:var(--key-deep);font-weight:600;font-size:10.5px;margin-top:2px">${esc(gapNote)}</div>` : ''}
         </div>
       </div>`;
+    }
+    // "영상별로 조회수 차트가 어떻게 변화하는지 보고 싶다(쇼츠 제외, 동영상 기준)"는
+    // 지적 반영 — yt_get_view_snapshots RPC로 받아온 시점별 조회수를 간단한 꺾은선
+    // 차트로 그린다. ytCycleChartHTML(간격 추이 차트)와 같은 축소 SVG 방식을 그대로
+    // 따랐다. 스냅샷이 2개 미만(아직 한 번밖에 안 찍혔거나, 갓 올라온 영상)이면
+    // 추세선을 그릴 수 없으니 안내 문구만 보여준다.
+    function ytViewTrendChartHTML(snapshots) {
+      const pts = (snapshots || [])
+        .filter(s => s && s.v != null && s.t)
+        .map(s => ({ t: new Date(s.t).getTime(), v: Number(s.v) }))
+        .filter(p => Number.isFinite(p.t) && Number.isFinite(p.v))
+        .sort((a, b) => a.t - b.t);
+      if (pts.length < 2) {
+        return `<div class="note" style="margin:6px 0 0">아직 조회수 추이를 그릴 만큼 데이터가 쌓이지 않았어요 — 몇 시간~며칠 후 다시 확인해 주세요.</div>`;
+      }
+      const W = 300, H = 58, PADX = 8, PLOT_TOP = 8, PLOT_BOTTOM = 44;
+      const minT = pts[0].t, maxT = pts[pts.length - 1].t;
+      const spanT = Math.max(1, maxT - minT);
+      const maxV = Math.max(...pts.map(p => p.v));
+      const minV = Math.min(...pts.map(p => p.v), 0);
+      const spanV = Math.max(1, maxV - minV);
+      const xFor = t => PADX + ((t - minT) / spanT) * (W - PADX * 2);
+      const yFor = v => PLOT_BOTTOM - ((v - minV) / spanV) * (PLOT_BOTTOM - PLOT_TOP);
+      const linePts = pts.map(p => `${xFor(p.t).toFixed(1)},${yFor(p.v).toFixed(1)}`).join(' ');
+      const lastDot = pts[pts.length - 1];
+      const firstLabel = new Date(minT).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
+      const lastLabel = new Date(maxT).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
+      return `
+        <div class="note" style="margin:6px 0 2px;font-weight:800;color:var(--ink)">📈 조회수 추이 <span style="color:var(--key-deep)">${esc(fmtViews(lastDot.v) || '')}</span></div>
+        <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">
+          <polyline points="${linePts}" fill="none" stroke="var(--key-deep)" stroke-width="2"></polyline>
+          <circle cx="${xFor(lastDot.t).toFixed(1)}" cy="${yFor(lastDot.v).toFixed(1)}" r="3" fill="var(--key-deep)" stroke="#fff" stroke-width="1.5"></circle>
+        </svg>
+        <div style="display:flex;justify-content:space-between;margin-top:1px">
+          <span class="note" style="font-size:9px;margin:0">${esc(firstLabel)}</span>
+          <span class="note" style="font-size:9px;margin:0">${esc(lastLabel)}</span>
+        </div>`;
+    }
+    // 모달을 열 때마다 늘어나는 토큰 — 조회수 추이를 비동기로 받아오는 도중에 사용자가
+    // 다른 영상을 클릭해서 모달 내용이 바뀌면, 늦게 도착한 옛 응답이 새 모달을 덮어쓰지
+    // 않도록 막는다.
+    let __ytVpToken = 0;
+    async function ytLoadViewTrend(videoId, token) {
+      try {
+        const { data, error } = await sb.rpc('yt_get_view_snapshots', { p_video_id: videoId, p_days: 180 });
+        if (token !== __ytVpToken) return;
+        const box = document.getElementById('ytViewTrendBox');
+        if (!box) return;
+        if (error) { box.innerHTML = `<div class="note" style="margin:6px 0 0">조회수 추이를 불러오지 못했어요.</div>`; return; }
+        box.innerHTML = ytViewTrendChartHTML(data);
+      } catch (e) {
+        if (token !== __ytVpToken) return;
+        const box = document.getElementById('ytViewTrendBox');
+        if (box) box.innerHTML = `<div class="note" style="margin:6px 0 0">조회수 추이를 불러오지 못했어요.</div>`;
+      }
     }
     function ytOpenVideoPreview(idx) {
       const entry = (window.__ytVidReg || [])[idx];
@@ -18820,17 +18944,20 @@
       const desc = (v.description || '').trim();
       const descShort = desc ? (desc.length > 160 ? desc.slice(0, 160) + '…' : desc) : '';
       const url = `https://www.youtube.com/watch?v=${encodeURIComponent(v.video_id)}`;
+      const viewsText = fmtViews(v.view_count);
       let host = document.getElementById('ytVideoPreviewHost');
       if (!host) { host = document.createElement('div'); host.id = 'ytVideoPreviewHost'; document.body.appendChild(host); }
+      const token = ++__ytVpToken;
       host.innerHTML = `
         <div class="yt-vp-backdrop" onclick="if(event.target===this) ytCloseVideoPreview()">
           <div class="yt-vp-card">
             <img class="yt-vp-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
             <div class="yt-vp-title">${esc(v.title)}</div>
-            <div class="note">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)} · ${esc(dateText)}</div>
+            <div class="note">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)} · ${esc(dateText)}${viewsText ? ` · ${esc(viewsText)}` : ''}</div>
             ${entry.extraNote ? `<div class="yt-vp-extra">${entry.extraNote}</div>`
         : (ytPrevGapNote(v) ? `<div class="yt-vp-extra">${esc(ytPrevGapNote(v))}</div>` : '')}
             <div class="yt-vp-desc${descShort ? '' : ' note'}">${descShort ? esc(descShort) : '등록된 설명이 없어요'}</div>
+            ${!v.is_short ? `<div id="ytViewTrendBox"><div class="note" style="margin:6px 0 0">조회수 추이 불러오는 중…</div></div>` : ''}
             ${typeof adminPass === 'function' && adminPass() ? `
             <div class="yt-vp-admin-cat">
               <label class="note" style="display:block;margin-bottom:3px">🔧 카테고리 잘못 분류됐으면 여기서 바로 고쳐요(관리자)</label>
@@ -18844,6 +18971,9 @@
             </div>
           </div>
         </div>`;
+      // "조회수 차트도 쇼츠는 빼고 동영상 기준으로" 지적 반영 — 쇼츠면 아예 섹션을
+      // 안 그리고(위에서 이미 빠짐), 조회수 불러오기 요청도 보내지 않는다.
+      if (!v.is_short) ytLoadViewTrend(v.video_id, token);
     }
     // "경기 카테고리에 컨텐츠가 계속 섞여 보인다, 완벽한 자동분류는 어려울 것 같다"는
     // 지적 반영 — 제목만으로는 완벽히 못 가르는 걸 인정하고, 이미 서버에 있던
@@ -19098,7 +19228,7 @@
             <img src="${esc(v.thumbnail_url || '')}" loading="lazy">
             <div style="min-width:0">
               <div class="yt-hover-preview-vtitle">${esc(v.title)}</div>
-              <div class="yt-hover-preview-meta">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)}</div>
+              <div class="yt-hover-preview-meta">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)}${fmtViews(v.view_count) ? ` · ${esc(fmtViews(v.view_count))}` : ''}</div>
               ${ytPrevGapNote(v) ? `<div class="yt-hover-preview-meta" style="color:var(--key-deep);font-weight:700">${esc(ytPrevGapNote(v))}</div>` : ''}
             </div>
           </div>`).join('')}
