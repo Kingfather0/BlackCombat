@@ -17682,7 +17682,7 @@
            보여주고 여기서 바로 공식 링크 번호를 넣는다. -->
       <div class="card" style="margin-top:12px">
         <div style="font-weight:800;margin-bottom:6px">🔗 경기 공식 링크 관리</div>
-        <div class="note" style="margin-bottom:10px">승부예측 대회 여부와 상관없이, 캘린더에 뜨는 모든 경기(승부예측 대회 + 과거 이력)에 공식 홈페이지(blackcombat-official.com) 링크 번호를 붙일 수 있어요.</div>
+        <div class="note" style="margin-bottom:10px">승부예측 대회 여부와 상관없이, 캘린더에 뜨는 모든 경기(승부예측 대회 + 과거 이력)에 공식 홈페이지(blackcombat-official.com) 링크 번호를 붙일 수 있어요. 매일 공식 홈페이지 경기 목록을 자동으로 긁어와서, 날짜가 같은 경기를 찾으면 여기 목록에 파란 제안 박스로 미리 보여줘요 — 맞으면 "✅ 이 경기 맞음" 한 번만 누르면 돼요.</div>
         <button class="btn" onclick="ytLoadEventLinks()">목록 불러오기</button>
         <div id="ytEventLinkList" style="margin-top:4px"></div>
       </div>`;
@@ -17707,16 +17707,50 @@
         box.innerHTML = '⚠️ 불러오기 실패: ' + esc(err && err.message || String(err));
       }
     }
+    // "내가 링크 하나하나 다 설정해야 하냐?"는 지적 반영 — 매주 GitHub Actions가
+    // 공식 홈페이지(blackcombat-official.com) 경기 목록을 긁어와(scripts/official-match-sync.js)
+    // yt_official_matches에 저장해두면, 서버(yt_admin_list_events)가 링크 없는 경기마다
+    // 날짜가 같은 공식 경기를 자동으로 찾아 suggested_seq로 제안해준다. 사람은 맞는지
+    // 확인만 하고 버튼 한 번(✅ 확인)으로 저장 — 완전 자동 저장은 아니다(엉뚱한 경기가
+    // 잘못 연결되는 걸 막기 위해 최종 확인은 항상 사람이 한다). 제안이 없거나 틀렸으면
+    // 예전처럼 직접 번호를 입력할 수도 있다.
     function ytEventLinkRowHTML(e, i) {
       const dateText = new Date(e.ev_time).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'long', day: 'numeric', weekday: 'short' });
       const kindLabel = e.kind === 'tournament' ? '승부예측 대회' : '경기 이력';
-      return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--border)">
-        <div style="min-width:0">
-          <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.title)}</div>
-          <div class="note" style="margin:0">${esc(dateText)} · ${kindLabel}${e.official_seq != null ? ` · eventSeq=${e.official_seq}` : ''}</div>
+      const hasSuggestion = e.official_seq == null && e.suggested_seq != null;
+      return `<div style="padding:8px 0;border-top:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div style="min-width:0">
+            <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.title)}</div>
+            <div class="note" style="margin:0">${esc(dateText)} · ${kindLabel}${e.official_seq != null ? ` · eventSeq=${e.official_seq}` : ''}</div>
+          </div>
+          <button class="btn small" onclick="ytSetEventLink(${i})">${e.official_seq != null ? '수정' : '직접 입력'}</button>
         </div>
-        <button class="btn small" onclick="ytSetEventLink(${i})">${e.official_seq != null ? '수정' : '🔗 링크 설정'}</button>
+        ${hasSuggestion ? `
+        <div style="margin-top:6px;padding:8px;border-radius:8px;background:rgba(29,78,216,.06);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+          <div style="min-width:0;font-size:12.5px">🔎 같은 날짜 공식 경기 자동 매칭: <b>${esc(e.suggested_title || '')}</b>${e.suggested_venue ? ` · ${esc(e.suggested_venue)}` : ''} (eventSeq=${e.suggested_seq})</div>
+          <button class="btn small primary" onclick="ytConfirmSuggestedLink(${i})">✅ 이 경기 맞음</button>
+        </div>` : ''}
       </div>`;
+    }
+    async function ytSaveEventLinkSeq(i, seq) {
+      const e = (window.__ytEventLinkItems || [])[i];
+      if (!e) return;
+      const { data, error } = await sb.rpc('yt_admin_set_event_official_seq', {
+        p_pass: adminPass(), p_kind: e.kind, p_id: e.id, p_seq: seq
+      });
+      if (error || !data || data.ok === false) { toastMsg('⚠️ ' + (error ? cleanErr(error.message) : ((data && data.code) || '저장 실패'))); return false; }
+      e.official_seq = seq;
+      toastMsg(seq != null ? '공식 링크가 저장되었습니다.' : '공식 링크가 해제되었습니다.');
+      const box = document.getElementById('ytEventLinkList');
+      if (box) box.innerHTML = window.__ytEventLinkItems.map((ev, idx) => ytEventLinkRowHTML(ev, idx)).join('');
+      return true;
+    }
+    // 자동 매칭 제안을 사람이 확인 버튼 한 번으로 확정 — prompt 없이 바로 저장.
+    function ytConfirmSuggestedLink(i) {
+      const e = (window.__ytEventLinkItems || [])[i];
+      if (!e || e.suggested_seq == null) return;
+      ytSaveEventLinkSeq(i, e.suggested_seq);
     }
     async function ytSetEventLink(i) {
       const e = (window.__ytEventLinkItems || [])[i];
@@ -17725,14 +17759,7 @@
       if (v === null) return;
       const trimmed = v.trim();
       if (trimmed && !/^\d+$/.test(trimmed)) return toastMsg('⚠️ 숫자만 입력해 주세요.');
-      const { data, error } = await sb.rpc('yt_admin_set_event_official_seq', {
-        p_pass: adminPass(), p_kind: e.kind, p_id: e.id, p_seq: trimmed ? Number(trimmed) : null
-      });
-      if (error || !data || data.ok === false) return toastMsg('⚠️ ' + (error ? cleanErr(error.message) : ((data && data.code) || '저장 실패')));
-      e.official_seq = trimmed ? Number(trimmed) : null;
-      toastMsg(trimmed ? '공식 링크가 저장되었습니다.' : '공식 링크가 해제되었습니다.');
-      const box = document.getElementById('ytEventLinkList');
-      if (box) box.innerHTML = window.__ytEventLinkItems.map((ev, idx) => ytEventLinkRowHTML(ev, idx)).join('');
+      await ytSaveEventLinkSeq(i, trimmed ? Number(trimmed) : null);
     }
     // ISO8601 재생시간("PT1M30S")을 초로 변환 — 유튜브 Shorts 판별용
     function ytParseISODuration(iso) {
