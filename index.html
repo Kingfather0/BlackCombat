@@ -9502,6 +9502,15 @@
       overflow-y: auto
     }
 
+    /* "경기 목록 너무 기니깐 5개만 출력하고 그다음부턴 스크롤로 보이도록하자 영상히스토리
+       처럼"는 지적 반영 — "🔗 경기 공식 링크 관리" 목록도 위 영상 히스토리와 같은 방식으로
+       5개 높이만큼만 보이게 하고 나머지는 안에서 스크롤한다(행 높이가 더 낮아 340px보다
+       작게 잡음). */
+    .yt-manual-event-list {
+      max-height: 280px;
+      overflow-y: auto
+    }
+
     /* "업로드 히스토리 옆에 제목 검색창을 넣어달라"는 지적 반영. */
     .yt-hist-search {
       flex-shrink: 0;
@@ -10357,6 +10366,7 @@
           alt="블랙컴뱃 잡담방"> <span class="logo-text">블랙컴뱃 잡담방</span> <svg viewBox="0 0 100 100" width="19" height="19" aria-label="카카오톡 오픈채팅 바로가기" style="flex:none;margin-left:-3px"><rect width="100" height="100" rx="24" fill="#FAE100"/><ellipse cx="50" cy="44" rx="33" ry="25" fill="#111"/><path d="M37 63 L29 81 L50 68 Z" fill="#111"/><text x="50" y="51" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="20" fill="#FAE100">TALK</text></svg> <small>승부예측</small></a>
       <nav id="nav">
         <a href="#/" data-nav="home">홈</a>
+        <a href="#/videos" data-nav="videos">영상</a>
         <a href="#/tickets" data-nav="tickets">티켓</a>
         <a href="#/jokbo" data-nav="fighters">선수</a>
         <a href="#/ranking" data-nav="ranking">격잘알</a>
@@ -17678,8 +17688,7 @@
         }
       } catch (e) { stateLine = '⚠️ 유튜브_업로드예측_패치.sql을 먼저 Supabase에 실행해 주세요.'; }
       $app.innerHTML = `
-      <h1 class="page">🧪 유튜브 API 테스트</h1>
-      <p class="sub">채널(@${esc(YT_CHANNEL_HANDLE)})의 업로드 이력을 실제로 가져와보는 진단용 화면입니다. 정식 기능 전 연결 확인용 — 일반 방문자에게는 노출되지 않아요.</p>
+      <h1 class="page">📺 영상</h1>
       <div class="card">
         <div class="note" style="margin-bottom:10px">${esc(stateLine)}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -17709,7 +17718,7 @@
           <button class="btn" id="ytMatchCancelBtn" style="display:none" onclick="ytCancelEditMatch()">취소</button>
         </div>
         <div class="msg" id="ytNewMatchMsg" style="margin-top:6px"></div>
-        <div id="ytManualEventList" style="margin-top:10px"></div>
+        <div id="ytManualEventList" class="yt-manual-event-list" style="margin-top:10px"></div>
       </div>`;
       ytLoadManualEvents();
     }
