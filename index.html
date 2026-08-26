@@ -19757,7 +19757,7 @@
         const ok = imageUrl && kkoSendShare(imageUrl, {
           title: d.nextEvent ? `📅 ${d.nextEvent.title}` : '📺 영상 캘린더',
           desc: d.rangeHeadlineText || '업로드 예측을 확인해보세요',
-          btnText: '영상 캘린더 보기',
+          btnText: '영상 예측 캘린더 보기',
           path: '#/videos',
         });
         if (!ok) toastMsg('이 환경에서는 카카오 카드 공유가 안 돼요.');
