@@ -19696,26 +19696,34 @@
       // 그레이로 되돌려 달라는 지적을 반영해 카드 상단 라벨과 같은 회색(#8a95a5)으로 뒀다
       // (원래 쓰던 아주 옅은 회색 #b6bfcc는 안 보인다는 지적을 받았던 색이라 그대로
       // 되돌리지 않고, 카드 다른 곳에서도 쓰는 중간 톤 회색을 골랐다).
-      let y = 150;
+      // "업로드 예측 부분을 상단에 배치해주고, 파란색 텍스트를 빨간색 텍스트 크기와
+      // 동일하게 해달라(빨간색이 더 커서 잘 보이니 파란색도 잘 보이게)"는 지적
+      // 반영(2026-08-26) — 순서를 업로드 예측(파랑) → 마지막 업로드 경과 시간(빨강)
+      // 순으로 바꾸고, 파란 숫자 폰트를 빨간 숫자와 같은 46px로 맞췄다.
+      x.fillStyle = '#1b2430'; x.font = '800 19px Pretendard, sans-serif';
+      x.fillText('업로드 예측', 48, 108);
+      x.fillStyle = '#1d4ed8'; x.font = '900 46px Pretendard, sans-serif';
+      gmFitFont(x, d.rangeHeadlineText || '', 704, '900', 46, 26);
+      x.fillText(d.rangeHeadlineText || '', 48, 108 + 52);
+      let y = 108 + 52 + 52;
+      // 아래 "마지막 업로드: {날짜}" 줄이 붙을 위치 — 경과 시간(빨강) 섹션이 있으면 그
+      // 아래로, 없으면(마지막 업로드 시각을 아직 모르는 경우) 업로드 예측 파란 글자
+      // 바로 아래로(46px로 커진 글자 아래에 겹치지 않을 만큼 충분히 띄운다).
+      let lastLineY = 108 + 52 + 40;
       if (window.__ytLastPubMs) {
         const elapsedDays = Math.max(0, (Date.now() - window.__ytLastPubMs) / 86400000);
         x.fillStyle = '#1b2430'; x.font = '800 21px Pretendard, sans-serif';
-        x.fillText('마지막 업로드 후 경과 시간', 48, 108);
+        x.fillText('마지막 업로드 후 경과 시간', 48, y);
         x.fillStyle = '#e11d48'; x.font = '900 46px Pretendard, sans-serif';
-        x.fillText(fmtGapPrecise(elapsedDays), 48, 108 + 52);
-        y = 108 + 52 + 52;
+        x.fillText(fmtGapPrecise(elapsedDays), 48, y + 52);
+        lastLineY = y + 52 + 40;
       }
-      x.fillStyle = '#1b2430'; x.font = '800 19px Pretendard, sans-serif';
-      x.fillText('업로드 예측', 48, y);
-      x.fillStyle = '#1d4ed8'; x.font = '900 34px Pretendard, sans-serif';
-      gmFitFont(x, d.rangeHeadlineText || '', 704, '900', 34, 20);
-      x.fillText(d.rangeHeadlineText || '', 48, y + 40);
       // "업로드 예측에 월요일 평균 수준 같은 건 제거하고 예측 날짜 사이 유력(파란색)
       // 텍스트만 유지하자"는 지적 반영 — 요일 근거 요약(shortReason, 예: "월요일 평균
       // 수준")은 카드에서 아예 뺐다.
       if (d.lastPubAbsText) {
         x.fillStyle = '#8a95a5'; x.font = '700 16px Pretendard, sans-serif';
-        x.fillText(`마지막 업로드: ${d.lastPubAbsText}`, 48, y + 80);
+        x.fillText(`마지막 업로드: ${d.lastPubAbsText}`, 48, lastLineY);
       }
       return c;
     }
