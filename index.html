@@ -19274,7 +19274,7 @@
         const url = hasLink ? `https://www.blackcombat-official.com/eventDetail.php?eventSeq=${e.official_seq}` : null;
         return `<div style="padding:8px 0;border-top:1px solid var(--border)${hasLink ? ';cursor:pointer' : ''}"${hasLink ? ` onclick="window.open('${esc(url)}','_blank','noopener')"` : ''}>
           <div style="font-weight:700">${esc(e.title)}</div>
-          ${hasLink ? `<div class="note" style="margin:2px 0 0;color:var(--key-deep)">공식 홈페이지에서 보기 →</div>` : ''}
+          ${hasLink ? `<div class="note" style="margin:2px 0 0;color:var(--key-deep)">공식 홈페이지 바로가기</div>` : ''}
         </div>`;
       }).join('');
       host.innerHTML = `
