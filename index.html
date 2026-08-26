@@ -9308,24 +9308,6 @@
       transition: transform .08s ease, box-shadow .08s ease
     }
 
-    /* "NEW 텍스트 때문에 두 자리 날짜(25일 등) 숫자가 가려진다"는 지적 반영 — 같은
-       flex 줄에서 날짜 숫자와 자리를 다투던 방식을 버리고, 셀 좌상단에 완전히 독립된
-       절대좌표로 띄워서 날짜 숫자와 물리적으로 겹칠 공간 자체를 없앴다. */
-    .yt-new-badge {
-      position: absolute;
-      top: 4px;
-      left: 4px;
-      background: #000;
-      color: #ffd24a;
-      font-size: 7px;
-      font-weight: 900;
-      padding: 1.5px 4px;
-      border-radius: 4px;
-      letter-spacing: .2px;
-      line-height: 1.3;
-      z-index: 1
-    }
-
     /* 경기 날짜 표시(붉은 동그라미) — "홈페이지에서 확인한 경기 날짜도 캘린더에
        표시하고, 클릭하면 경기 페이지로 이동하게 해달라"는 지적 반영. 날짜 숫자
        바로 왼쪽에 작은 점으로 붙여서 별도 공간을 차지하지 않는다. */
@@ -9405,17 +9387,19 @@
       margin-top: 6px
     }
 
+    /* "동그라미 안 숫자가 어색하다, 네모 길다란 바에 N개 식으로 표시해달라"는 지적
+       반영 — 원형 배지 대신 셀 폭에 맞춘 알약형 바로 바꾸고, 숫자만 아니라 "N개"로 표기. */
     .yt-day-badge {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 18px;
-      height: 18px;
+      width: 100%;
+      height: 16px;
       padding: 0 4px;
-      border-radius: 999px;
+      border-radius: 5px;
       background: var(--text);
       color: #fff;
-      font-size: 10.5px;
+      font-size: 9.5px;
       font-weight: 800
     }
 
@@ -9429,10 +9413,6 @@
          숫자가 너무 작아 눈에 잘 안 들어온다는 판단으로 살짝 키웠다. */
       .yt-daynum {
         font-size: 12px
-      }
-
-      .yt-new-badge {
-        font-size: 7.5px
       }
     }
 
@@ -9520,6 +9500,19 @@
     .yt-hist-list {
       max-height: 340px;
       overflow-y: auto
+    }
+
+    /* "업로드 히스토리 옆에 제목 검색창을 넣어달라"는 지적 반영. */
+    .yt-hist-search {
+      flex-shrink: 0;
+      width: 130px;
+      min-width: 0;
+      padding: 6px 9px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--card2);
+      color: var(--text);
+      font-size: 11.5px
     }
 
     .yt-recent-row {
@@ -9643,72 +9636,6 @@
       align-items: center
     }
 
-    /* 카테고리 버튼 8개가 한 줄을 다 차지해서 자리를 너무 많이 차지한다는 지적으로 한때
-       네이티브 <select>로 바꿨다가, "이 방식 불편하다"는 지적에 가로 스크롤 칩으로
-       바꿨는데 — 다시 "드롭다운 형태로 해달라고 분명 말했었다"는 지적을 받았다. 결국
-       "드롭다운"이되, 네이티브 <select>의 문제(열기+고르기 2탭, 지금 뭐 선택했는지 닫힌
-       상태에선 안 보임)는 없는 커스텀 드롭다운으로 만든다 — 버튼 자체에 현재 선택을
-       항상 보여주고, 탭하면 목록이 버튼 바로 아래에 뜬다. */
-    .yt-cat-dropdown {
-      position: relative;
-      margin-bottom: 10px
-    }
-
-    .yt-cat-dd-btn {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 9px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--card2);
-      color: var(--text);
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer
-    }
-
-    .yt-cat-dd-arrow {
-      font-size: 10px;
-      color: var(--dim);
-      margin-left: 6px
-    }
-
-    .yt-cat-dd-menu {
-      position: absolute;
-      top: calc(100% + 4px);
-      left: 0;
-      right: 0;
-      z-index: 20;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      box-shadow: 0 6px 18px rgba(20, 40, 80, .14);
-      max-height: 260px;
-      overflow-y: auto;
-      padding: 4px
-    }
-
-    .yt-cat-dd-item {
-      padding: 9px 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text);
-      cursor: pointer
-    }
-
-    .yt-cat-dd-item:active {
-      background: var(--card2)
-    }
-
-    .yt-cat-dd-item.active {
-      background: var(--key-deep);
-      color: #fff;
-      font-weight: 800
-    }
-
     /* 이전달/다음달 버튼만 있던 걸 특정 월로 바로 이동할 수 있게 네이티브 월 선택기를 추가.
        이후 "날짜 클릭이 여전히 어렵다"는 지적으로 month → date 선택기로 바뀌었지만
        클래스명/스타일은 그대로 재사용한다. */
@@ -9816,9 +9743,11 @@
       margin-top: 12px
     }
 
+    /* "마지막 업로드·경과 시간 카드에 우리가 자주 쓰는 옅은 푸른색 배경+테두리를
+       넣어달라"는 지적 반영 — 사이트 다른 곳(범위 막대 등)과 같은 포인트 컬러 톤. */
     .yt-core-stat {
-      background: #fff;
-      border: 1px solid var(--border);
+      background: rgba(29, 78, 216, .06);
+      border: 1px solid rgba(29, 78, 216, .35);
       border-radius: 14px;
       padding: 12px;
       min-width: 0;
@@ -9883,10 +9812,12 @@
       color: var(--text)
     }
 
+    /* "8월26일~8월27일 사이 유력처럼 범위로 보여주는 방식은 유지하되 파란색으로
+       강조해달라"는 지적 반영. */
     .yt-pred-merged-headline {
       font-size: 13px;
-      font-weight: 700;
-      color: var(--text);
+      font-weight: 800;
+      color: var(--key-deep);
       margin-top: 6px;
       line-height: 1.4
     }
@@ -10046,13 +9977,15 @@
       letter-spacing: .2px
     }
 
+    /* "배경이 흰색이라 밋밋하다, 약간 어두운 컬러가 들어가면 좋겠다"는 지적 반영 —
+       사이트 다른 곳에서 이미 쓰는 옅은 카드 톤(--card2)으로 살짝 대비를 줬다. */
     .yt-event-line {
       display: flex;
       align-items: center;
       gap: 8px;
       margin-top: 10px;
       padding: 9px 11px;
-      background: #fff;
+      background: var(--card2);
       border: 1px solid var(--border);
       border-radius: 10px
     }
@@ -10167,10 +10100,12 @@
       outline-offset: 1px
     }
 
+    /* "오늘(유력한 날) 카드가 찐한 파란색이라 번잡하다, 옅은 톤으로 바꿔달라"는 지적
+       반영 — 꽉 찬 진한 배경 대신 옅은 틴트+테두리로 은은하게 강조한다. */
     .yt-prob-day.top {
-      background: var(--key-deep);
-      border-color: var(--key-deep);
-      color: #fff
+      background: rgba(29, 78, 216, .1);
+      border-color: rgba(29, 78, 216, .45);
+      color: var(--text)
     }
 
     .yt-prob-day.event-day {
@@ -10179,7 +10114,7 @@
     }
 
     .yt-prob-day.top.event-day {
-      background: var(--key-deep);
+      background: rgba(29, 78, 216, .1);
       border-color: var(--red);
       border-width: 2px
     }
@@ -10196,7 +10131,7 @@
     }
 
     .yt-prob-day.top .yt-prob-dow {
-      color: rgba(255, 255, 255, .7)
+      color: var(--key-deep)
     }
 
     .yt-prob-date {
@@ -10207,7 +10142,7 @@
     }
 
     .yt-prob-day.top .yt-prob-date {
-      color: #fff
+      color: var(--key-deep)
     }
 
     .yt-prob-pct {
@@ -10218,7 +10153,7 @@
     }
 
     .yt-prob-day.top .yt-prob-pct {
-      color: #fff
+      color: var(--key-deep)
     }
 
     .yt-prob-bar-track {
@@ -10236,11 +10171,11 @@
     }
 
     .yt-prob-day.top .yt-prob-bar-track {
-      background: rgba(255, 255, 255, .3)
+      background: rgba(29, 78, 216, .18)
     }
 
     .yt-prob-day.top .yt-prob-bar-fill {
-      background: #fff
+      background: var(--key-deep)
     }
 
     .yt-prob-live {
@@ -10252,7 +10187,7 @@
     }
 
     .yt-prob-day.top .yt-prob-live {
-      color: #ffd6d6
+      color: var(--red)
     }
 
     /* "요일 카드 아래 항상 켜진 근거 목록이 화면만 길게 만든다"는 지적 반영 — 예전엔 여기에
@@ -17814,7 +17749,10 @@
             const sn = it.snippet || {};
             const vid = it.contentDetails && it.contentDetails.videoId;
             const dur = durMap[vid];
-            const isShort = (dur != null && dur <= 60) || /#shorts/i.test(sn.title || '');
+            // "23시 2분 영상은 쇼츠인데 마지막 업로드로 잡혔다"는 지적으로 발견 —
+            // 유튜브 Shorts 최대 길이가 60초에서 3분(180초)으로 늘어난 지 오래됐는데
+            // 이 기준은 여전히 60초였다. scripts/yt-sync.js와 반드시 동일하게 맞춘다.
+            const isShort = (dur != null && dur <= 180) || /#shorts/i.test(sn.title || '');
             const thumbs = sn.thumbnails || {};
             return {
               video_id: vid,
@@ -17913,7 +17851,7 @@
       const [y, m] = key.split('-').map(Number);
       return ytMonthKey(new Date(y, m - 1 + delta, 1));
     }
-    let ytCalState = { month: null, videos: [], catFilter: null };
+    let ytCalState = { month: null, videos: [] };
 
     // KST(Asia/Seoul) 기준 날짜 요소를 안전하게 뽑아내는 헬퍼.
     // 브라우저의 로컬 타임존에 의존하지 않도록 UTC 메서드 + 9시간 보정 트릭을 사용한다.
@@ -17926,7 +17864,11 @@
         dow: wd === 0 ? 7 : wd, // ISO 요일: 1=월 ~ 7=일 (SQL의 dow_histogram_kst와 동일한 규약)
       };
     }
-    function ytTodayKST() { return ytKstParts(new Date()); }
+    // "지금 목요일인데 왜 수요일이 체크되어있냐"는 지적 반영 — 기기 시계가 아니라
+    // 서버 보정 시각(svrNow, 다른 모든 시간 계산과 동일 기준)으로 "오늘"을 판정한다.
+    // 예전엔 new Date()(브라우저 로컬 시계)를 썼는데, 기기 시계가 조금이라도 어긋나면
+    // "오늘" 자체가 하루 밀리거나 당겨질 수 있었다.
+    function ytTodayKST() { return ytKstParts(svrNow()); }
     const YT_DOW_LABEL = { 1: '월', 2: '화', 3: '수', 4: '목', 5: '금', 6: '토', 7: '일' };
     // "6시간 전"처럼 상대 시간만 보여주면 지금이 몇 시인지 감이 안 온다는 지적 반영 —
     // 몇 월 며칠 몇 시(KST)인지 절대 시각을 명시한다.
@@ -18121,12 +18063,16 @@
           // 계체/미디어데이처럼 아직 표본이 1~2건뿐인 카테고리는 날짜가 훨씬 더 정확히
           // 들어맞아도 절대 표시되지 못했다 — 이제 "이 날짜와 얼마나 정확히 맞는지"를 먼저
           // 보고, 맞는 정도가 같을 때만 표본 수로 우선순위를 가른다.
+          // "왜 이 요일이 계체 유력으로 체크됐냐, 지난 대회 땐 D-1에 딱 하루 전에만
+          // 올라왔는데?"라는 지적 반영 — dist 허용폭이 1.5일이라 너무 넓어서, 실제
+          // 실측(D-1)과 먼 날짜까지 같은 카테고리로 묶여버렸다. 반나절 단위로 더 엄격하게
+          // 맞춰야만(0.5일 이내) 인정하도록 좁혔다.
           let best = null, bestDist = Infinity;
           YT_PRE_EVENT_CATS.forEach(cat => {
             const e = leadTimes.pre_event[cat];
             if (!e || e.n < 1) return; // 표본이 하나도 없으면 근거로 쓸 수 없음
             const dist = Math.abs(diff - e.median_days_before);
-            if (dist > 1.5) return; // 이 날짜와 안 맞음
+            if (dist > 0.5) return; // 이 날짜와 안 맞음
             if (!best || dist < bestDist || (dist === bestDist && e.n > best.n)) { best = { cat, ...e }; bestDist = dist; }
           });
           if (best) {
@@ -18135,14 +18081,16 @@
             const ex = ytMostRecentLeadExample(leadTimeDetail, 'pre_event', best.cat);
             const example = ex ? `지난 "${ex.event_title}" 때는 D-${Math.round(ex.days_before)}에 "${ex.video_title}"가 올라왔어요 — 이번에도 비슷한 시점 가능성` : null;
             return {
-              // diff: 이 "특정 날짜" 자체의 D-n (카테고리 중앙값이 아니라). dist≤1.5 폭 안에서
+              // diff: 이 "특정 날짜" 자체의 D-n (카테고리 중앙값이 아니라). dist≤0.5 폭 안에서
               // 며칠이 한꺼번에 같은 카테고리로 묶일 수 있는데, 그 며칠의 근거 한 줄이 전부
               // 똑같은 문장으로 찍혀서 "다른 날짜인데 왜 같은 말이냐"는 지적을 받았던 부분 —
-              // 이 값을 짧은 근거 문구에 실제로 꽂아 날짜별로 달라지게 한다.
+              // 이 값을 짧은 근거 문구에 실제로 꽂아 날짜별로 달라지게 한다. 라벨에도 "이
+              // 날짜는 D-n"을 과거 평균과 나란히 보여줘서, 왜 이 요일이 해당되는지 숫자로
+              // 바로 확인할 수 있게 했다("무슨 근거냐"는 지적 반영).
               type: 'pre-event-cat', cat: best.cat, icon: meta.emoji, lowSample, example, diff,
               label: lowSample
-                ? `${meta.label} 영상이 올라올 수도 있어요 (과거 ${best.n}번 중 평균 D-${best.median_days_before} · 표본이 적어 참고만)`
-                : `${meta.label} 유력 (과거 평균 D-${best.median_days_before}, ${best.n}건 분석)`,
+                ? `${meta.label} 영상이 올라올 수도 있어요 (이 날짜는 D-${diff} · 과거 ${best.n}번 중 평균 D-${best.median_days_before} · 표본이 적어 참고만)`
+                : `${meta.label} 유력 (이 날짜는 D-${diff} · 과거 평균 D-${best.median_days_before}, ${best.n}건 분석)`,
               weight: lowSample ? 1.0 : Math.min(2.2, 1 + best.n * 0.15), event: nextEvent,
             };
           }
@@ -18159,7 +18107,7 @@
             const e = leadTimes.post_event[cat];
             if (!e || e.n < 1) return;
             const dist = Math.abs(diff - e.median_days_after);
-            if (dist > 1.5) return;
+            if (dist > 0.5) return;
             if (!best || dist < bestDist || (dist === bestDist && e.n > best.n)) { best = { cat, ...e }; bestDist = dist; }
           });
           if (best) {
@@ -18170,8 +18118,8 @@
             return {
               type: 'post-event-cat', cat: best.cat, icon: meta.emoji === '🎥' ? '⭐' : meta.emoji, lowSample, example, diff,
               label: lowSample
-                ? `${meta.label} 영상이 올라올 수도 있어요 (경기 후 과거 ${best.n}번 중 평균 D+${best.median_days_after} · 표본이 적어 참고만)`
-                : `${meta.label} 유력 (경기 후 평균 D+${best.median_days_after}, ${best.n}건 분석)`,
+                ? `${meta.label} 영상이 올라올 수도 있어요 (이 날짜는 D+${diff} · 경기 후 과거 ${best.n}번 중 평균 D+${best.median_days_after} · 표본이 적어 참고만)`
+                : `${meta.label} 유력 (이 날짜는 D+${diff} · 경기 후 평균 D+${best.median_days_after}, ${best.n}건 분석)`,
               weight: lowSample ? 1.0 : Math.min(2.2, 1 + best.n * 0.15), event: lastEvent,
             };
           }
@@ -18304,15 +18252,24 @@
       const bandLeft = pct(low), bandRight = pct(high);
       const nowPct = daysSinceLastPub != null ? pct(daysSinceLastPub) : null;
       const { stateCls } = ytGaugeState(daysSinceLastPub, blendedGapDays, gapSigma);
-      const lowR = Math.round(low * 10) / 10, highR = Math.round(high * 10) / 10;
       const startLabel = lastPub ? `${lastPub.getMonth() + 1}.${lastPub.getDate()}` : '0일';
+      // "왼쪽엔 8.26처럼 날짜가 있는데 오른쪽은 왜 며칠(2~4.2일)로만 나오냐, 오른쪽도
+      // 같은 방식(실제 날짜)으로 표기해달라"는 지적 반영 — 평소 범위(low~high일)를
+      // 마지막 업로드일 기준 실제 달력 날짜로 환산해서 "8.28~8.30"처럼 보여준다.
+      const fmtMD = n => `${n.getMonth() + 1}.${n.getDate()}`;
+      let rangeLabel = `평소 ${Math.round(low * 10) / 10}~${Math.round(high * 10) / 10}일`;
+      if (lastPub) {
+        const lowDate = new Date(lastPub.getTime() + low * 86400000);
+        const highDate = new Date(lastPub.getTime() + high * 86400000);
+        rangeLabel = fmtMD(lowDate) === fmtMD(highDate) ? fmtMD(lowDate) : `${fmtMD(lowDate)}~${fmtMD(highDate)}`;
+      }
       return `
         <div class="yt-linebar" title="${esc(reasonText || '')}">
           <div class="yt-linebar-track">
             <div class="yt-linebar-range" style="left:${bandLeft.toFixed(1)}%;width:${Math.max(0, bandRight - bandLeft).toFixed(1)}%"></div>
             ${nowPct != null ? `<div class="yt-linebar-dot ${stateCls}" style="left:${nowPct.toFixed(1)}%"></div>` : ''}
           </div>
-          <div class="yt-linebar-labels"><span>${esc(startLabel)}</span><span>평소 ${lowR}~${highR}일</span></div>
+          <div class="yt-linebar-labels"><span>${esc(startLabel)}</span><span>${esc(rangeLabel)}</span></div>
         </div>`;
     }
 
@@ -18471,16 +18428,18 @@
         if (milestoneBoost) w *= 1.3;
         weightSum += w;
         const dowPct = dhForDayTotal ? Math.round(dowCount / dhForDayTotal * 100) : null;
-        // 이 날짜 근거 문구용 — "마지막 업로드 후 N일째, 평소 간격 범위 안/밖" 한 줄.
+        // 이 날짜 근거 문구용 — "마지막 업로드 후 얼마나 지났는지, 평소 간격 범위 안/밖" 한 줄.
+        // "0.7일째가 무슨 뜻인지 모르겠다"는 지적 반영 — 소수점 일수 대신 며칠 몇시간인지
+        // 바로 감이 오는 fmtDaysHours()로 표기한다(예: "17시간째", "2일 4시간째").
         let gapNote = null;
         if (blendedGapDays != null && daysSinceForDay != null) {
-          const dLabel = Math.round(daysSinceForDay * 10) / 10;
+          const dLabel = fmtDaysHours(daysSinceForDay);
           // 배지·게이지와 완전히 같은 기준(평균±변동폭)으로 "범위 안" 여부를 판정해서
           // 화면 곳곳의 숫자가 서로 어긋나지 않게 한다.
           const inRange = daysSinceForDay >= (blendedGapDays - gapSigma) && daysSinceForDay <= (blendedGapDays + gapSigma);
-          if (inRange) gapNote = `${dLabel}일째 · 평소 범위(${Math.round(blendedGapDays * 10) / 10}±${Math.round(gapSigma * 10) / 10}일) 안`;
-          else if (daysSinceForDay < blendedGapDays - gapSigma) gapNote = `${dLabel}일째 · 평소보다 이른 편`;
-          else gapNote = `${dLabel}일째 · 평소보다 많이 지남`;
+          if (inRange) gapNote = `${dLabel}째 · 평소 범위(${fmtDaysHours(blendedGapDays)}±${fmtDaysHours(gapSigma)}) 안`;
+          else if (daysSinceForDay < blendedGapDays - gapSigma) gapNote = `${dLabel}째 · 평소보다 이른 편`;
+          else gapNote = `${dLabel}째 · 평소보다 많이 지남`;
         }
         days.push({ date: dt, dow, w, phase, milestoneBoost, dowCount, dowPct, dowWindowLabel, gapNote, gapW, daysSinceForDay });
       }
@@ -18608,7 +18567,7 @@
           <div class="yt-core-stat">
             <div class="yt-core-stat-label">🕒 마지막 업로드</div>
             <div class="yt-core-stat-value">${lastPubAbsText || '-'}</div>
-            ${gapStats.latest != null ? `<div class="yt-core-stat-sub">직전 대비 ${esc(fmtGapPrecise(gapStats.latest))}</div>` : ''}
+            ${gapStats.latest != null ? `<div class="yt-core-stat-sub" style="color:var(--key-deep);font-weight:800">직전 영상 대비 ${esc(fmtGapPrecise(gapStats.latest))}</div>` : ''}
           </div>
           <div class="yt-core-stat">
             <div class="yt-core-stat-label">⏳ 경과 시간</div>
@@ -18631,7 +18590,9 @@
         reasonLines.push(`${hourText}경으로 보는 이유: 최근 90일 실측 중 이 시간대 업로드가 가장 많았어요 (${peakCount}건 / 전체 ${hourSampleTotal}건, ${peakPct}%).`);
       }
       const reasonText = reasonLines.join('\n');
-      const reasonHTML = reasonLines.map(esc).join('<br><br>');
+      // "설명 3줄 사이에 빈 줄이 생겨서 칸이 너무 길어진다"는 지적 반영 — <br><br>(빈
+      // 줄 포함) 대신 <br> 한 번만 써서 줄만 바뀌고 붙어 보이게 한다.
+      const reasonHTML = reasonLines.map(esc).join('<br>');
 
       // "차트가 별로다, line bar에 동그라미가 왼쪽→오른쪽으로 이동하는 식이면 좋겠다"는
       // 지적 반영(4번째 개선) — ytRangeGaugeHTML()이 이제 얇은 선 위를 움직이는 동그라미
@@ -18833,8 +18794,12 @@
       const prev = arr[idx + 1];
       const days = (new Date(v.published_at) - new Date(prev.published_at)) / 86400000;
       if (!(days > 0)) return null;
-      return `직전 영상 대비 ${fmtGapPrecise(days)} 만에`;
+      // "직전 대비 00:00:00 만에 — 뒤에 동사 없이 '만에'로 끝나니 어색하다"는 지적
+      // 반영 — 문장이 아니라 라벨이라 뒤에 이어지는 말이 없어서 "만에"를 뺐다.
+      return `직전 영상 대비 ${fmtGapPrecise(days)}`;
     }
+    // "간격통계·업로드히스토리에서 여전히 카테고리(경기/컨텐츠 등)가 표시된다"는 지적
+    // 반영(재요청) — 캘린더에서 이미 뺀 카테고리 구분을 이 공용 목록 행에서도 없앴다.
     function ytVideoRowHTML(v, extraNote) {
       const idx = ytRegisterVideo(v, extraNote);
       const gapNote = extraNote ? null : ytPrevGapNote(v);
@@ -18842,7 +18807,7 @@
         <img class="yt-recent-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:700;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.title)}</div>
-          <div class="note">${ytCatMeta(v.category).emoji} ${esc(ytCatMeta(v.category).label)} · ${new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+          <div class="note">${new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
           ${gapNote ? `<div class="note" style="color:var(--key-deep);font-weight:600;font-size:10.5px;margin-top:2px">${esc(gapNote)}</div>` : ''}
         </div>
       </div>`;
@@ -18923,16 +18888,48 @@
       window.__ytHistItems = recent.slice();
       window.__ytHistDone = false;
       window.__ytHistLoading = false;
+      // "업로드 히스토리 옆에 검색창을 넣어서 제목 입력하면 바로 필터링되게 해달라"는
+      // 지적 반영 — 입력할 때마다(ytFilterHistory) 지금까지 불러온 항목 중 제목이
+      // 일치하는 것만 남기고, 검색 중인데 화면에 몇 개 안 보이면 무한스크롤과 같은
+      // 방식으로 더 불러와서 계속 찾아본다.
       return `<div class="card" style="margin-top:12px">
-        <div style="font-weight:800;margin-bottom:4px">업로드 히스토리</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+          <div style="font-weight:800">업로드 히스토리</div>
+          <input type="text" class="yt-hist-search" placeholder="🔍 영상 제목 검색" oninput="ytFilterHistory(this.value)">
+        </div>
         <div id="ytHistList" class="yt-hist-list" onscroll="ytHistScrollCheck(this)">
           ${recent.map(v => ytVideoRowHTML(v)).join('')}
         </div>
+        <div id="ytHistEmptyNote" class="note" style="text-align:center;margin:8px 0 0;display:none">일치하는 영상이 없어요.</div>
         <div id="ytHistLoadingNote" class="note" style="text-align:center;margin:6px 0 0;display:none">불러오는 중…</div>
       </div>`;
     }
     function ytHistScrollCheck(el) {
-      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 60) ytLoadMoreHistory();
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 60) ytLoadMoreHistory().then(() => {
+        if (window.__ytHistFilter) ytFilterHistory(window.__ytHistFilter);
+      });
+    }
+    function ytFilterHistory(q) {
+      const query = (q || '').trim().toLowerCase();
+      window.__ytHistFilter = query;
+      const list = document.getElementById('ytHistList');
+      const emptyNote = document.getElementById('ytHistEmptyNote');
+      if (!list) return;
+      const rows = list.querySelectorAll('.yt-recent-row');
+      const items = window.__ytHistItems || [];
+      let visibleCount = 0;
+      rows.forEach((row, i) => {
+        const item = items[i];
+        const match = !query || (item && item.title && item.title.toLowerCase().includes(query));
+        row.style.display = match ? '' : 'none';
+        if (match) visibleCount++;
+      });
+      if (emptyNote) emptyNote.style.display = (query && visibleCount === 0) ? 'block' : 'none';
+      // 검색어가 있는데 화면에 걸리는 게 적으면(아직 다 안 불러온 옛날 영상 중에 있을 수도
+      // 있으니) 목록을 좀 더 자동으로 불러와서 계속 찾아본다.
+      if (query && visibleCount < 3 && !window.__ytHistDone && !window.__ytHistLoading) {
+        ytLoadMoreHistory().then(() => { if (window.__ytHistFilter === query) ytFilterHistory(query); });
+      }
     }
     async function ytLoadMoreHistory() {
       if (window.__ytHistLoading || window.__ytHistDone) return;
@@ -18945,6 +18942,13 @@
         const { data } = await sb.rpc('yt_get_recent', { p_limit: 10, p_before: items[items.length - 1].published_at });
         if (!data || !data.length) { window.__ytHistDone = true; return; }
         window.__ytHistItems.push(...data);
+        // "직전 영상 대비 몇 시간 만에가 다 나와야 하는데 스크롤로 더 불러온 옛날 영상은
+        // 안 나온다"는 지적 반영 — ytPrevGapNote()가 참조하는 공용 레지스트리
+        // (__ytAllVideosDesc)에 이번에 새로 불러온 영상도 합쳐둬야 "그 바로 이전 영상"을
+        // 찾을 수 있다. 안 합쳐두면 무한스크롤로 불러온 영상들은 늘 간격 표시가 빠졌다.
+        const mergedMap = new Map((window.__ytAllVideosDesc || []).map(v => [v.video_id, v]));
+        data.forEach(v => { if (v && v.video_id) mergedMap.set(v.video_id, v); });
+        window.__ytAllVideosDesc = [...mergedMap.values()].sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
         const wrap = document.getElementById('ytHistList');
         if (wrap) wrap.insertAdjacentHTML('beforeend', data.map(v => ytVideoRowHTML(v)).join(''));
       } catch (e) { /* 조용히 무시 — 다음 스크롤에서 재시도 */ }
@@ -18954,67 +18958,17 @@
       }
     }
 
-    // 8개 필터 버튼이 한 줄을 다 차지해서 자리를 너무 많이 차지한다는 지적 반영 — 드롭다운
-    // 하나로 접고 "전체"를 기본값으로 둔다.
-    // "드롭다운 형태로 해달라고 분명 말했었다"는 지적 반영 — 커스텀 드롭다운. 버튼 자체에
-    // 지금 선택된 카테고리를 항상 보여주고(닫힌 상태에서도 뭘 골랐는지 바로 보임), 탭하면
-    // 버튼 바로 아래에 목록이 뜬다. 바깥을 탭하면 자동으로 닫힌다.
-    function ytCatFilterSelectHTML() {
-      const cur = ytCalState.catFilter ? YT_CATS[ytCalState.catFilter] : null;
-      const curLabel = cur ? `${cur.emoji} ${esc(cur.label)}` : '📺 전체';
-      // "컬러를 너무 많이 써서 알록달록하다"는 지적 반영(4번째 개선) — 카테고리마다
-      // 다른 색을 쓰던 걸 걷어내고, 선택된 항목은 항상 같은 포인트 컬러 하나로만
-      // 강조한다. 카테고리 구분은 이모지로 충분하다.
-      const item = (key, label, emoji, active) =>
-        `<div class="yt-cat-dd-item${active ? ' active' : ''}" onclick="ytSetCatFilter('${key}')">${emoji} ${esc(label)}</div>`;
-      const items = [item('', '전체', '📺', !ytCalState.catFilter)]
-        .concat(Object.keys(YT_CATS).map(k => item(k, YT_CATS[k].label, YT_CATS[k].emoji, ytCalState.catFilter === k)));
-      ytEnsureCatDdOutsideClickHandler();
-      return `<div class="yt-cat-dropdown" id="ytCatDropdown" onclick="event.stopPropagation()">
-        <button type="button" class="yt-cat-dd-btn" onclick="ytToggleCatDropdown()">
-          <span>${curLabel}</span><span class="yt-cat-dd-arrow">▾</span>
-        </button>
-        <div class="yt-cat-dd-menu" id="ytCatDdMenu" hidden>${items.join('')}</div>
-      </div>`;
-    }
-    function ytToggleCatDropdown() {
-      const menu = document.getElementById('ytCatDdMenu');
-      if (menu) menu.hidden = !menu.hidden;
-    }
-    // 문서 전역 클릭 리스너는 페이지가 다시 그려질 때마다 중복 등록되면 안 되므로 플래그로
-    // 한 번만 붙인다 — 드롭다운 바깥을 탭하면 닫히게 하는 용도.
-    function ytEnsureCatDdOutsideClickHandler() {
-      if (window.__ytCatDdHandlerAdded) return;
-      window.__ytCatDdHandlerAdded = true;
-      document.addEventListener('click', () => {
-        const menu = document.getElementById('ytCatDdMenu');
-        if (menu) menu.hidden = true;
-      });
-    }
-    // 필터를 바꿀 때마다 서버에서 다시 불러와 페이지 전체를 새로 그리다 보니(loading()이
-    // $app를 통째로 비웠다 채움) 화면 높이가 순간적으로 줄어들면서 스크롤이 맨 위로 튀는
-    // 문제가 있었다는 지적 반영 — 애초에 필터는 이미 받아온 이번 달 영상 목록을 클라이언트에서
-    // 다시 나누는 것뿐이라 네트워크 재조회가 필요 없다. 달력 칸만 그 자리에서 다시 그린다.
-    function ytSetCatFilter(cat) {
-      ytCalState.catFilter = cat || null;
-      const [y, m] = (ytCalState.month || '').split('-').map(Number);
-      const gridWrap = document.getElementById('ytCalGridWrap');
-      if (gridWrap) gridWrap.innerHTML = ytCalendarGridHTML(y, m, ytCalState.videos);
-      // 드롭다운도 다시 그려서 버튼에 지금 고른 카테고리가 바로 반영되게 하고, 목록은
-      // 자동으로 닫힌 상태(hidden)로 새로 렌더링된다.
-      const filterWrap = document.getElementById('ytCalFilterWrap');
-      if (filterWrap) filterWrap.innerHTML = ytCatFilterSelectHTML();
-    }
+    // "카테고리 필터 기능 자체를 없애달라"는 지적 반영 — 캘린더에서 카테고리 구분을
+    // 아예 없앤 마당에 카테고리로 거르는 필터도 더 이상 의미가 없어 드롭다운 UI와
+    // 관련 함수(ytCatFilterSelectHTML/ytToggleCatDropdown/ytSetCatFilter 등)를 통째로 뺐다.
 
-    const YT_NEW_BADGE_HOURS = 24;
     // "칸 안에 영상이 3개 이상이면 하나가 +1로 묶이는데, 그 우선순위는 쇼츠를 밑으로
     // 정렬해달라 — 경기/컨텐츠 영상이 중요하다"는 지적 반영. 숫자가 작을수록 먼저(칩으로)
     // 보이고, 쇼츠는 가장 마지막(+N 안으로 묻힐 확률이 가장 높게) 정렬한다.
     const YT_CHIP_PRIORITY = { matchup: 0, talk: 1, 'weigh-in': 2, trailer: 2, 'ticket-promo': 2, 'media-day': 2, shorts: 9 };
     function ytCalendarGridHTML(y, m, videos, monthEvents) {
-      const filtered = ytCalState.catFilter ? videos.filter(v => v.category === ytCalState.catFilter) : videos;
       const byDay = {};
-      filtered.forEach(v => {
+      (videos || []).forEach(v => {
         const kst = ytKstParts(v.published_at);
         if (kst.y !== y || kst.m !== m) return; // 방어적 필터: 다른 달 데이터가 섞여 들어와도 무시
         (byDay[kst.d] = byDay[kst.d] || []).push(v);
@@ -19038,9 +18992,6 @@
       const daysInMonth = new Date(y, m, 0).getDate();
       const todayKst = ytTodayKST();
       const isThisMonth = todayKst.y === y && todayKst.m === m;
-      // "새로 올라온 영상은 레드닷/NEW로 눈에 띄게 해달라"는 지적 반영 — 24시간 이내
-      // 업로드가 있는 날짜 칸에 작은 NEW 배지를 붙인다.
-      const nowMs = svrNow().getTime();
 
       let cells = '';
       for (let i = 0; i < firstDow; i++) cells += `<div class="yt-cell empty"></div>`;
@@ -19049,29 +19000,29 @@
         const dow = (firstDow + d - 1) % 7;
         const dowCls = dow === 0 ? ' sun' : dow === 6 ? ' sat' : '';
         const isToday = isThisMonth && d === todayKst.d;
-        const isNew = items.some(v => (nowMs - new Date(v.published_at).getTime()) <= YT_NEW_BADGE_HOURS * 3600000);
         const dayEvents = eventByDay[d] || [];
         // "경기영상과 컨텐츠영상이 여전히 섞여 있어 보인다, 그냥 카테고리 없이 검정
         // 동그라미로 통일하자"는 지적 반영(2차) — 이모지·카테고리 구분을 아예 없애고
-        // 그날 올라온 영상 개수만 작은 동그라미 배지 하나로 보여준다. 데스크톱/모바일
-        // 마크업을 따로 만들 필요도 없어져서(내용이 항상 같으니) 하나로 합쳤다.
-        const countBadge = items.length ? `<span class="yt-day-badge">${items.length}</span>` : '';
+        // 그날 올라온 영상 개수만 배지 하나로 보여준다. "동그라미 안 숫자가 어색하다"는
+        // 지적(3차) 반영 — 원형 대신 셀 폭에 맞춘 네모 바 + "N개" 표기로 바꿨다.
+        const countBadge = items.length ? `<span class="yt-day-badge">${items.length}개</span>` : '';
         // "경기 날짜를 캘린더에 붉은 동그라미로 표시하고, 클릭하면 경기 페이지로
         // 이동하게 해달라"는 지적 반영 — 승부예측 페이지가 있는 경기(tournament_id
         // 있음)만 클릭하면 이동하고, 페이지가 없는 과거 이력은 툴팁으로 이름만 보여준다.
+        // "빨간 점에 마우스오버하면 경기 제목이 보이면 좋겠다"는 지적 반영 — 기본
+        // title 툴팁(브라우저 기본, 데스크톱 한정)에 더해 날짜 칸 미리보기와 같은
+        // 방식의 커스텀 hover 팝오버도 함께 띄운다.
         const evTitles = dayEvents.map(e => e.title).join(' · ');
         const eventDot = dayEvents.length
-          ? `<span class="yt-event-dot" title="${esc(evTitles)}" onclick="event.stopPropagation(); ytOpenEventDay(${d})"></span>`
+          ? `<span class="yt-event-dot" title="${esc(evTitles)}" onclick="event.stopPropagation(); ytOpenEventDay(${d})" onmouseenter="event.stopPropagation(); ytHoverPreviewEvent(event,${d})" onmouseleave="ytHideHoverPreview()"></span>`
           : '';
         // "캘린더도 날짜에 마우스오버하면 미리보기 느낌으로 자동 팝업되게 해달라"는 지적
         // 반영 — 클릭(모바일 탭 포함)은 기존처럼 전체 모달을 열고, 호버가 가능한
         // 기기(PC 등)에서만 mouseenter 시 가벼운 미리보기 팝오버가 뜬다.
         const hoverAttrs = items.length ? ` onmouseenter="ytHoverPreviewDay(event,${d})" onmouseleave="ytHideHoverPreview()"` : '';
-        // "NEW 배지 때문에 25일 같은 두 자리 날짜 숫자가 가려진다"는 지적 반영 — 같은
-        // flex 줄에서 서로 자리를 다투던 방식을 버리고, NEW 배지를 셀 좌상단에 완전히
-        // 독립된 절대좌표로 띄워서 날짜 숫자와 물리적으로 겹칠 공간 자체를 없앴다.
+        // "NEW 배지가 여전히 모바일에서 날짜 숫자를 가린다"는 지적(3차) 반영 — 위치를
+        // 이리저리 옮겨봐도 좁은 칸에서 계속 부딪히니, 아예 배지 자체를 없앴다.
         cells += `<div id="ytCell-${d}" class="yt-cell${items.length ? ' has' : ''}${isToday ? ' today' : ''}${dowCls}" ${items.length ? `onclick="ytOpenDayModal(${d})"` : ''}${hoverAttrs}>
-          ${isNew ? `<span class="yt-new-badge">NEW</span>` : ''}
           <div class="yt-daynum-row">
             ${eventDot}
             <div class="yt-daynum">${isToday ? `<span class="yt-daynum-today">${d}</span>` : d}</div>
@@ -19084,11 +19035,16 @@
       <div class="yt-cal-grid">${cells}</div>`;
     }
 
-    // 경기 표시(붉은 동그라미) 클릭 — 승부예측 페이지가 있으면 그 경기 페이지로 이동하고,
-    // 페이지가 없는(공식 홈페이지 이력만 있는) 과거 경기는 이동할 곳이 없어 조용히 무시한다
-    // (툴팁으로 이름은 이미 hover/long-press로 보인다).
+    // "경기 마커를 누르면 우리 사이트 투표 페이지 말고 공식 홈페이지 경기 페이지로
+    // 이동시켜달라"는 지적 반영 — 관리자가 공식 링크 번호(official_event_seq)를 등록해둔
+    // 경기는 공식 홈페이지(blackcombat-official.com)의 그 경기 상세 페이지를 새 탭으로
+    // 연다. 아직 번호가 등록되지 않은 경기는 예전처럼 우리 사이트 승부예측 페이지로
+    // 이동하고(있으면), 승부예측 페이지 자체가 없는(공식 홈페이지 이력만 있는) 과거
+    // 경기는 이동할 곳이 없어 조용히 무시한다(툴팁/호버 미리보기로 이름은 이미 보인다).
     function ytOpenEventDay(d) {
       const events = (window.__ytEventsByDay && window.__ytEventsByDay[d]) || [];
+      const withSeq = events.find(e => e.official_seq != null);
+      if (withSeq) { window.open(`https://www.blackcombat-official.com/eventDetail.php?eventSeq=${withSeq.official_seq}`, '_blank', 'noopener'); return; }
       const withPage = events.find(e => e.tournament_id != null);
       if (withPage) location.hash = '#/t/' + withPage.tournament_id;
     }
@@ -19158,6 +19114,37 @@
       __ytHoverPreviewEl = pop;
     }
 
+    // "빨간 점(경기 날짜)에 마우스오버하면 경기 제목이 보이면 좋겠다"는 지적 반영 —
+    // 날짜 칸 미리보기와 같은 방식의 팝오버로 경기 제목(들)을 보여준다.
+    function ytHoverPreviewEvent(evt, d) {
+      if (!window.matchMedia || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+      const events = (window.__ytEventsByDay && window.__ytEventsByDay[d]) || [];
+      if (!events.length) return;
+      ytHideHoverPreview();
+      const dot = evt.currentTarget;
+      const rect = dot.getBoundingClientRect();
+      const pop = document.createElement('div');
+      pop.className = 'yt-hover-preview';
+      pop.innerHTML = `
+        <div class="yt-hover-preview-title">${d}일 경기 일정</div>
+        ${events.map(e => `
+          <div class="yt-hover-preview-row">
+            <div style="min-width:0">
+              <div class="yt-hover-preview-vtitle">${esc(e.title)}</div>
+              ${e.tournament_id != null ? `<div class="yt-hover-preview-meta" style="color:var(--key-deep);font-weight:700">클릭하면 경기 페이지로 이동</div>` : ''}
+            </div>
+          </div>`).join('')}`;
+      document.body.appendChild(pop);
+      const pw = pop.offsetWidth, ph = pop.offsetHeight;
+      let left = rect.left + rect.width / 2 - pw / 2;
+      left = Math.max(8, Math.min(left, window.innerWidth - pw - 8));
+      let top = rect.bottom + 6;
+      if (top + ph > window.innerHeight - 8) top = rect.top - ph - 6;
+      pop.style.left = `${left}px`;
+      pop.style.top = `${top}px`;
+      __ytHoverPreviewEl = pop;
+    }
+
     async function viewYtCalendar(monthParam) {
       ytHideHoverPreview();
       loading();
@@ -19205,7 +19192,7 @@
         monthEvents = (monthEventsRes && monthEventsRes.data && monthEventsRes.data.events) || [];
       } catch (e) { return fail(e); }
 
-      ytCalState = { month: monthKey, videos, catFilter: ytCalState.catFilter || null };
+      ytCalState = { month: monthKey, videos };
 
       // "영상들에 직전 대비 얼마만에 올라온건지 표시해달라"는 지적 반영 — 이번에 불러온
       // 모든 영상(이번 달 캘린더 + 주기차트용 20개 + 최근 5개)을 하나로 합쳐 최신순으로
@@ -19237,7 +19224,6 @@
           <input type="month" class="yt-month-input" value="${monthKey}" onchange="ytJumpToMonth(this.value)" aria-label="월로 바로 이동">
           <button class="btn small" onclick="ytGoMonth(1)">다음달 ›</button>
         </div>
-        <div id="ytCalFilterWrap">${ytCatFilterSelectHTML()}</div>
         <div id="ytCalGridWrap">${ytCalendarGridHTML(y, m, videos, monthEvents)}</div>
       </details>
       ${ytRecentListHTML(recent)}`;
@@ -19248,11 +19234,42 @@
 
     // "이전달/다음달 누르면 웹페이지가 새로고침되면서 최상단으로 이동되는데 캘린더만
     // 바뀌게 해달라"는 지적 반영 — location.hash 변경(→ hashchange → route() → 전체
-    // 재렌더 + window.scrollTo(0,0))을 거치지 않고, 주소만 조용히 바꾼 뒤 캘린더
-    // 뷰만 다시 그린다.
-    function ytNavCalendar(monthKey) {
+    // 재렌더 + window.scrollTo(0,0))을 거치지 않고 주소만 조용히 바꾼다.
+    // "여전히 페이지가 새로고침되는 느낌이다"는 지적(재요청) 반영 — 예전엔 이 함수가
+    // viewYtCalendar()를 통째로 다시 호출해서, 스크롤 위치는 안 튀어도 예측
+    // 카드·간격통계·히스토리까지 포함한 13개 RPC를 매번 전부 다시 불러오고 loading()으로
+    // 화면 전체를 비웠다 채우고 있었다 — 사실상 눈에는 새로고침과 똑같이 보였다.
+    // 이 카드들은 애초에 "보고 있는 달"과 무관한 데이터(최근 업로드 기준)라 다시 부를
+    // 필요가 없다. 이제 달이 바뀔 때 정말로 달라지는 것(그 달 캘린더·경기 일정)만
+    // 다시 불러와서 캘린더 칸과 요약 텍스트만 그 자리에서 바꾼다.
+    async function ytNavCalendar(monthKey) {
       history.replaceState(null, '', '#/videos/' + monthKey);
-      viewYtCalendar(monthKey);
+      const pad2 = n => String(n).padStart(2, '0');
+      const [y, m] = monthKey.split('-').map(Number);
+      const daysInMonthForQuery = new Date(y, m, 0).getDate();
+      const fromStr = `${y}-${pad2(m)}-01`;
+      const toStr = `${y}-${pad2(m)}-${pad2(daysInMonthForQuery)}`;
+      let videos = [], monthEvents = [];
+      try {
+        const [calRes, monthEventsRes] = await Promise.all([
+          sb.rpc('yt_get_calendar', { p_from: fromStr, p_to: toStr }),
+          sb.rpc('yt_get_events_in_range', { p_from: fromStr, p_to: toStr }),
+        ]);
+        videos = calRes.data || [];
+        monthEvents = (monthEventsRes && monthEventsRes.data && monthEventsRes.data.events) || [];
+      } catch (e) { return; } // 조용히 무시 — 이전 달 화면 그대로 유지, 버튼을 다시 누르면 재시도
+      ytCalState = { month: monthKey, videos };
+      // 새로 불러온 이번 달 영상도 간격 표시(직전 영상 대비)용 공용 레지스트리에 합쳐서,
+      // 다른 달로 넘어가도 그 달 영상들의 간격 노트가 계속 보이게 한다.
+      const mergedMap = new Map((window.__ytAllVideosDesc || []).map(v => [v.video_id, v]));
+      videos.forEach(v => { if (v && v.video_id) mergedMap.set(v.video_id, v); });
+      window.__ytAllVideosDesc = [...mergedMap.values()].sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+      const summarySpan = document.querySelector('.yt-cal-details summary span');
+      if (summarySpan) summarySpan.textContent = `${y}년 ${m}월 (${videos.length}개)`;
+      const monthInput = document.querySelector('.yt-month-input');
+      if (monthInput) monthInput.value = monthKey;
+      const gridWrap = document.getElementById('ytCalGridWrap');
+      if (gridWrap) gridWrap.innerHTML = ytCalendarGridHTML(y, m, videos, monthEvents);
     }
     function ytGoMonth(delta) { ytNavCalendar(ytMonthAdd(ytCalState.month, delta)); }
     function ytJumpToMonth(value) {
@@ -25524,6 +25541,7 @@
         <button class="btn small" onclick="editDeadline('${t.id}')">일정 변경</button>
         <button class="btn small" onclick="openMatchEdit('${t.id}')">대진 수정</button>
         <button class="btn small" onclick="openMembers('${t.id}')">참가자 관리</button>
+        <button class="btn small" onclick="setOfficialSeq('${t.id}', ${t.official_event_seq != null ? t.official_event_seq : 'null'})" title="공식 홈페이지(blackcombat-official.com) 경기 상세 페이지 번호 — 영상 캘린더의 경기 마커 클릭 시 이 번호로 이동합니다">🔗 공식 링크</button>
         <button class="btn small" style="color:#ff8b93" onclick="delTournament('${t.id}',
           '${esc(t.title).replace(/'/g, "\\'")}')">삭제</button>
       </div>
@@ -25534,6 +25552,21 @@
     <div id="mx-${t.id}"></div>
     <div id="mem-${t.id}"></div>
   </div>`;
+    }
+    // "캘린더 경기 마커를 누르면 우리 사이트 투표 페이지 말고, 공식 홈페이지
+    // (blackcombat-official.com)의 그 경기 상세 페이지로 이동하게 해달라"는 지적 반영 —
+    // 대회마다 공식 홈페이지의 eventSeq 번호를 관리자가 직접 입력해두면, 영상 캘린더의
+    // 빨간 점을 클릭했을 때 그 번호로 외부 링크를 연다(ytOpenEventDay 참고).
+    async function setOfficialSeq(tid, cur) {
+      const v = prompt('공식 홈페이지 경기 번호(eventSeq)를 입력하세요.\n예: https://www.blackcombat-official.com/eventDetail.php?eventSeq=293 → 293\n비워두고 확인을 누르면 연결을 해제합니다.', cur != null ? String(cur) : '');
+      if (v === null) return;
+      const trimmed = v.trim();
+      if (trimmed && !/^\d+$/.test(trimmed)) return toastMsg('⚠️ 숫자만 입력해 주세요.');
+      const { error } = await sb.rpc('admin_set_official_event_seq', {
+        p_pass: adminPass(), p_tid: tid, p_seq: trimmed ? Number(trimmed) : null
+      });
+      if (error) return toastMsg('⚠️ ' + cleanErr(error.message));
+      toastMsg(trimmed ? '공식 링크가 저장되었습니다.' : '공식 링크가 해제되었습니다.');
     }
     /* ── 선물 등수(1등/2등/3등…) 공용 도우미 ──
        예전 데이터는 gift1_desc/gift2_desc 두 칸에만 있었고, 이제는 gift_tiers(jsonb 배열)에
