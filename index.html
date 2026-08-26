@@ -19266,18 +19266,37 @@
       <div class="yt-cal-grid">${cells}</div>`;
     }
 
-    // "경기 마커를 누르면 우리 사이트 투표 페이지 말고 공식 홈페이지 경기 페이지로
-    // 이동시켜달라"는 지적 반영 — 관리자가 공식 링크 번호(official_event_seq)를 등록해둔
-    // 경기는 공식 홈페이지(blackcombat-official.com)의 그 경기 상세 페이지를 새 탭으로
-    // 연다. 아직 번호가 등록되지 않은 경기는 예전처럼 우리 사이트 승부예측 페이지로
-    // 이동하고(있으면), 승부예측 페이지 자체가 없는(공식 홈페이지 이력만 있는) 과거
-    // 경기는 이동할 곳이 없어 조용히 무시한다(툴팁/호버 미리보기로 이름은 이미 보인다).
+    // "빨간 점 누르면 바로 외부로 이동하지 말고, 팝업으로 경기 일정부터 보여주자"는
+    // 지적 반영 — 클릭하면 그 날 경기 제목/일정을 팝업으로 먼저 보여준다. 이어서
+    // "팝업 누르면 공식 홈페이지로 이동해도 괜찮다"는 지적 반영 — 관리자가 공식
+    // 링크 번호(official_seq)를 등록해둔 경기는 팝업 안 그 줄을 눌렀을 때 공식
+    // 홈페이지(blackcombat-official.com) 경기 상세 페이지를 새 탭으로 연다. 번호가
+    // 없는 경기는 이동할 곳이 없으니 그냥 제목만 보여준다(클릭 불가). 날짜 업로드
+    // 모달(ytOpenDayModal)과 같은 뼈대(yt-vp-backdrop/yt-vp-card)를 재사용한다.
     function ytOpenEventDay(d) {
       const events = (window.__ytEventsByDay && window.__ytEventsByDay[d]) || [];
-      const withSeq = events.find(e => e.official_seq != null);
-      if (withSeq) { window.open(`https://www.blackcombat-official.com/eventDetail.php?eventSeq=${withSeq.official_seq}`, '_blank', 'noopener'); return; }
-      const withPage = events.find(e => e.tournament_id != null);
-      if (withPage) location.hash = '#/t/' + withPage.tournament_id;
+      if (!events.length) return;
+      const [y, m] = (ytCalState.month || '').split('-');
+      let host = document.getElementById('ytVideoPreviewHost');
+      if (!host) { host = document.createElement('div'); host.id = 'ytVideoPreviewHost'; document.body.appendChild(host); }
+      const rowsHTML = events.map(e => {
+        const hasLink = e.official_seq != null;
+        const url = hasLink ? `https://www.blackcombat-official.com/eventDetail.php?eventSeq=${e.official_seq}` : null;
+        return `<div style="padding:8px 0;border-top:1px solid var(--border)${hasLink ? ';cursor:pointer' : ''}"${hasLink ? ` onclick="window.open('${esc(url)}','_blank','noopener')"` : ''}>
+          <div style="font-weight:700">${esc(e.title)}</div>
+          ${hasLink ? `<div class="note" style="margin:2px 0 0;color:var(--key-deep)">공식 홈페이지에서 보기 →</div>` : ''}
+        </div>`;
+      }).join('');
+      host.innerHTML = `
+        <div class="yt-vp-backdrop" onclick="if(event.target===this) ytCloseVideoPreview()">
+          <div class="yt-vp-card">
+            <div class="yt-vp-title">${esc(String(+m))}월 ${d}일 경기 일정</div>
+            <div style="max-height:56vh;overflow:auto;margin-top:8px">${rowsHTML}</div>
+            <div class="yt-vp-actions">
+              <button type="button" class="btn small" onclick="ytCloseVideoPreview()">닫기</button>
+            </div>
+          </div>
+        </div>`;
     }
 
     // "날짜 누르면 아래에 붙는 것보다 팝업이 낫지 않냐"는 지적 반영 — 최근 업로드/주기 차트에서
@@ -19672,12 +19691,14 @@
       x.fillStyle = '#1d4ed8'; x.font = '900 28px Pretendard, sans-serif';
       gmFitFont(x, d.rangeHeadlineText || '', 704, '900', 28, 18);
       x.fillText(d.rangeHeadlineText || '', 48, y + 36);
-      x.fillStyle = '#525d6b'; x.font = '800 18px Pretendard, sans-serif';
-      gmFitFont(x, d.shortReason || '', 704, '800', 18, 13);
-      x.fillText(d.shortReason || '', 48, y + 68);
+      // "업로드 예측에 월요일 평균 수준 같은 건 제거하고 예측 날짜 사이 유력(파란색)
+      // 텍스트만 유지하자"는 지적 반영 — 요일 근거 요약(shortReason, 예: "월요일 평균
+      // 수준")은 카드에서 아예 뺐다. "마지막 업로드 부분은 회색이라 잘 안 보이니 검정색으로
+      // 해달라"는 지적 반영 — 옅은 회색(#b6bfcc) 대신 카드 다른 진한 텍스트와 같은
+      // 색(#1b2430)으로 바꿨다.
       if (d.lastPubAbsText) {
-        x.fillStyle = '#b6bfcc'; x.font = '700 16px Pretendard, sans-serif';
-        x.fillText(`마지막 업로드: ${d.lastPubAbsText}`, 48, y + 104);
+        x.fillStyle = '#1b2430'; x.font = '700 16px Pretendard, sans-serif';
+        x.fillText(`마지막 업로드: ${d.lastPubAbsText}`, 48, y + 74);
       }
       return c;
     }
@@ -25406,6 +25427,7 @@
       } catch (e) { }
       $app.innerHTML = `
     <h1 class="page">🛠️ 관리자
+      <a href="#/admin/yttest" class="btn small ghost" style="text-decoration:none">🔗 경기 공식 링크 관리</a>
       <button class="btn small ghost" onclick="sessionStorage.removeItem('fp_admin');route()" style="color:#c62828">로그아웃</button></h1>
     <div class="sec-title" style="margin-top:26px">📢 공지 관리</div>
     ${annNeedPatch ? '<div class="empty">⚠️ admin_save_data 함수가 아직 없어 공지 저장이 안 됩니다. (선수 랭킹 갱신 기능과 같은 함수를 씁니다 — 랭킹 갱신이 이미 되고 있다면 이 메시지는 무시해도 됩니다)</div>' : `
