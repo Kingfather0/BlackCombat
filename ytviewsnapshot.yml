@@ -1,0 +1,31 @@
+name: 유튜브 조회수 스냅샷
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # 6시간마다 실행 (하루 4개 포인트 — 더 촘촘하게 보고 싶으면 이 값만 바꾸면 됨)
+  workflow_dispatch: {}
+
+# 이전 실행이 아직 안 끝났으면 새 스케줄 실행이 그 뒤에 계속 쌓이지 않도록 취소한다.
+concurrency:
+  group: yt-view-snapshot
+  cancel-in-progress: true
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    # yt-sync.yml과 같은 조건 — YT_SYNC_ENABLED가 켜져 있어야(=YT_BOT_SECRET 등 설정이
+    # 끝났어야) 스케줄 실행이 돈다. 수동 실행(workflow_dispatch)은 언제나 시도할 수 있다.
+    if: ${{ vars.YT_SYNC_ENABLED == 'true' || github.event_name == 'workflow_dispatch' }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 조회수 스냅샷 실행
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          YT_BOT_SECRET: ${{ secrets.YT_BOT_SECRET }}
+          YOUTUBE_API_KEY: ${{ vars.YOUTUBE_API_KEY }}
+        run: node scripts/yt-view-snapshot.js
