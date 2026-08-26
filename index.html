@@ -17689,36 +17689,96 @@
         </div>
         <div id="ytTestOut" style="margin-top:14px;white-space:pre-wrap;font:12px/1.5 monospace;background:rgba(120,130,150,.08);border-radius:10px;padding:12px;max-height:60vh;overflow:auto"></div>
       </div>
-      <!-- "경기 당일은 승부예측이랑 상관없이 그냥 공식 링크 연결하면 된다, 왜 자꾸
-           승부예측이랑 연관지으려고 하냐"는 지적 반영 — 승부예측 관리 화면(#/admin)의
-           대회 목록과는 완전히 분리된 전용 관리 화면. 승부예측 대회로 등록됐는지와
-           무관하게, 캘린더에 뜨는 경기(승부예측 대회 + 과거 이력) 전부를 한 목록으로
-           보여주고 여기서 바로 공식 링크 번호를 넣는다. -->
+      <!-- "승부예측 대회 여부와 상관없이... 텍스트는 제거해주고, 목록 불러오기도 이제
+           없어도될것같다 앞으로는 내가 등록할꺼니깐, 내가 직접 추가/수정/삭제 할 수 있는
+           기능 넣어줘"는 지적 반영(2026-08-26) — 승부예측 대회와 뒤섞어 보여주며 자동
+           제안을 확인하던 예전 방식(목록 불러오기 버튼 + 파란 제안 박스)을 걷어내고,
+           캘린더에 뜨는 경기(yt_event_history)를 관리자가 직접 등록/수정/삭제하는
+           화면으로 바꿨다. 목록은 버튼 없이 화면을 열면 바로 불러온다. -->
       <div class="card" style="margin-top:12px">
         <div style="font-weight:800;margin-bottom:6px">🔗 경기 공식 링크 관리</div>
-        <div class="note" style="margin-bottom:10px">승부예측 대회 여부와 상관없이, 캘린더에 뜨는 모든 경기(승부예측 대회 + 과거 이력)에 공식 홈페이지(blackcombat-official.com) 링크 번호를 붙일 수 있어요. 이미 있는 경기와 날짜가 같은 공식 경기를 자동으로 찾으면 여기 목록에 파란 제안 박스로 보여줘요 — 맞으면 "✅ 이 경기 맞음" 한 번만 누르면 돼요.</div>
-        <button class="btn" onclick="ytLoadEventLinks()">목록 불러오기</button>
-        <div id="ytEventLinkList" style="margin-top:4px"></div>
-      </div>
-      <!-- "지금까지 있는 것들은 너가 해주고, 앞으로는 내가 직접 등록하면 캘린더에 박히도록
-           관리자페이지에서 추가할 수 있도록 만들어주면 된다. 매일 정오쯤 자동화로 불러올
-           필요없다"는 지적 반영(2026-08-26) — 매일 자동 스크래핑 대신, 새 경기를 여기서
-           직접 등록하면 즉시 캘린더에 반영된다(yt_admin_add_official_match →
-           yt_event_history INSERT, yt_get_events_in_range가 그대로 읽음). -->
-      <div class="card" style="margin-top:12px">
-        <div style="font-weight:800;margin-bottom:6px">➕ 새 경기 직접 등록</div>
-        <div class="note" style="margin-bottom:10px">여기서 등록한 경기는 저장 즉시 캘린더에 빨간 점으로 나타나요. 공식 홈페이지 경기 번호(eventSeq)를 같이 넣으면 공식 링크도 처음부터 연결돼요.</div>
+        <div class="note" style="margin-bottom:10px">여기서 등록한 경기는 저장 즉시 캘린더에 빨간 점으로 나타나요. 공식 홈페이지 경기 번호(eventSeq)를 같이 넣으면 공식 링크도 처음부터 연결돼요. 아래 목록에서 수정·삭제도 바로 할 수 있어요.</div>
         <div style="display:grid;gap:8px;max-width:480px">
           <div class="field"><label>경기 제목</label><input id="ytNewMatchTitle" type="text" placeholder="예: 블랙컴뱃 17: ..."></div>
           <div class="field"><label>날짜/시각</label><input id="ytNewMatchDate" type="datetime-local"></div>
           <div class="field"><label>장소 (선택)</label><input id="ytNewMatchVenue" type="text" placeholder="예: 서울 올림픽공원 핸드볼경기장"></div>
           <div class="field"><label>공식 홈페이지 경기 번호(eventSeq, 선택)</label><input id="ytNewMatchSeq" type="number" placeholder="예: 293"></div>
         </div>
-        <button class="btn primary" style="margin-top:10px" onclick="ytAddOfficialMatch()">경기 등록</button>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn primary" id="ytMatchSaveBtn" onclick="ytSaveOfficialMatch()">경기 등록</button>
+          <button class="btn" id="ytMatchCancelBtn" style="display:none" onclick="ytCancelEditMatch()">취소</button>
+        </div>
         <div class="msg" id="ytNewMatchMsg" style="margin-top:6px"></div>
+        <div id="ytManualEventList" style="margin-top:10px"></div>
+      </div>`;
+      ytLoadManualEvents();
+    }
+    // 위 "🔗 경기 공식 링크 관리" 카드 전용 — yt_event_history를 관리자가 직접
+    // 추가/수정/삭제한다(유튜브_캘린더_5차보완_패치.sql 참고). 등록/수정한 경기는
+    // yt_get_events_in_range가 그대로 읽어 캘린더에 바로 반영된다.
+    async function ytLoadManualEvents() {
+      const box = document.getElementById('ytManualEventList');
+      if (!box) return;
+      box.innerHTML = '<div class="note">불러오는 중…</div>';
+      try {
+        const { data, error } = await sb.rpc('yt_admin_list_manual_events', { p_pass: adminPass() });
+        if (error || !data || data.ok === false) {
+          box.innerHTML = '<div class="note">⚠️ 유튜브_캘린더_5차보완_패치.sql을 먼저 Supabase에 실행해 주세요.</div>';
+          return;
+        }
+        window.__ytManualEvents = data.events || [];
+        box.innerHTML = window.__ytManualEvents.length
+          ? window.__ytManualEvents.map(e => ytManualEventRowHTML(e)).join('')
+          : '<div class="note">등록된 경기가 없어요.</div>';
+      } catch (err) {
+        box.innerHTML = '⚠️ 불러오기 실패: ' + esc(err && err.message || String(err));
+      }
+    }
+    function ytManualEventRowHTML(e) {
+      const dateText = new Date(e.event_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'long', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit' });
+      return `<div style="padding:8px 0;border-top:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div style="min-width:0">
+            <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.title)}</div>
+            <div class="note" style="margin:0">${esc(dateText)}${e.venue ? ` · ${esc(e.venue)}` : ''}${e.official_event_seq != null ? ` · eventSeq=${e.official_event_seq}` : ''}</div>
+          </div>
+          <span style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn small" onclick="ytEditOfficialMatch(${e.id})">수정</button>
+            <button class="btn small" style="color:#c62828" onclick="ytDeleteOfficialMatch(${e.id})">삭제</button>
+          </span>
+        </div>
       </div>`;
     }
-    async function ytAddOfficialMatch() {
+    // 목록에서 "수정"을 누르면 위 등록 폼에 그 경기 값을 채워두고, 저장 버튼이 새로
+    // INSERT하지 않고 그 경기를 UPDATE하도록 window.__ytManualEditingId에 id를 남긴다.
+    function ytEditOfficialMatch(id) {
+      const e = (window.__ytManualEvents || []).find(x => x.id === id);
+      if (!e) return;
+      window.__ytManualEditingId = id;
+      document.getElementById('ytNewMatchTitle').value = e.title || '';
+      // datetime-local 입력에 채우려면 KST 기준 "YYYY-MM-DDTHH:mm" 문자열이 필요하다.
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false
+      }).formatToParts(new Date(e.event_at));
+      const get = t => (parts.find(p => p.type === t) || {}).value || '00';
+      document.getElementById('ytNewMatchDate').value = `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}`;
+      document.getElementById('ytNewMatchVenue').value = e.venue || '';
+      document.getElementById('ytNewMatchSeq').value = e.official_event_seq != null ? e.official_event_seq : '';
+      document.getElementById('ytMatchSaveBtn').textContent = '수정 완료';
+      document.getElementById('ytMatchCancelBtn').style.display = '';
+      document.getElementById('ytNewMatchMsg').textContent = '';
+      document.getElementById('ytNewMatchTitle').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    function ytCancelEditMatch() {
+      window.__ytManualEditingId = null;
+      ['ytNewMatchTitle', 'ytNewMatchDate', 'ytNewMatchVenue', 'ytNewMatchSeq'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+      });
+      document.getElementById('ytMatchSaveBtn').textContent = '경기 등록';
+      document.getElementById('ytMatchCancelBtn').style.display = 'none';
+      document.getElementById('ytNewMatchMsg').textContent = '';
+    }
+    async function ytSaveOfficialMatch() {
       const titleEl = document.getElementById('ytNewMatchTitle');
       const dateEl = document.getElementById('ytNewMatchDate');
       const venueEl = document.getElementById('ytNewMatchVenue');
@@ -17735,96 +17795,36 @@
       const seqRaw = (seqEl.value || '').trim();
       if (seqRaw && !/^\d+$/.test(seqRaw)) { if (msgEl) msgEl.textContent = '⚠️ 경기 번호는 숫자만 입력해 주세요.'; return; }
       const seq = seqRaw ? Number(seqRaw) : null;
-      if (msgEl) msgEl.textContent = '등록 중…';
+      const editingId = window.__ytManualEditingId || null;
+      if (msgEl) msgEl.textContent = editingId ? '수정 중…' : '등록 중…';
       try {
-        const { data, error } = await sb.rpc('yt_admin_add_official_match', {
-          p_pass: adminPass(), p_title: title, p_event_at: eventAt, p_venue: venue, p_official_seq: seq
+        const { data, error } = await sb.rpc('yt_admin_upsert_official_match', {
+          p_pass: adminPass(), p_id: editingId, p_title: title, p_event_at: eventAt, p_venue: venue, p_official_seq: seq
         });
         if (error || !data || data.ok === false) {
-          if (msgEl) msgEl.textContent = '⚠️ ' + (error ? cleanErr(error.message) : ((data && data.code) || '등록 실패'));
+          if (msgEl) msgEl.textContent = '⚠️ ' + (error ? cleanErr(error.message) : ((data && data.code) || '저장 실패'));
           return;
         }
-        toastMsg('경기가 등록되었습니다. 캘린더에 바로 반영돼요.');
-        if (msgEl) msgEl.textContent = '';
-        titleEl.value = ''; dateEl.value = ''; venueEl.value = ''; seqEl.value = '';
-        ytLoadEventLinks();
+        toastMsg(editingId ? '경기가 수정되었습니다.' : '경기가 등록되었습니다. 캘린더에 바로 반영돼요.');
+        ytCancelEditMatch();
+        ytLoadManualEvents();
       } catch (err) {
-        if (msgEl) msgEl.textContent = '⚠️ 등록 실패: ' + esc(err && err.message || String(err));
+        if (msgEl) msgEl.textContent = '⚠️ 저장 실패: ' + esc(err && err.message || String(err));
       }
     }
-    // 위 "🔗 경기 공식 링크 관리" 카드 전용 — 승부예측 관리 화면(setOfficialSeq)과는
-    // 완전히 별개의 함수/RPC를 쓴다(유튜브_캘린더_3차보완_패치.sql 참고).
-    async function ytLoadEventLinks() {
-      const box = document.getElementById('ytEventLinkList');
-      if (!box) return;
-      box.innerHTML = '<div class="note">불러오는 중…</div>';
+    async function ytDeleteOfficialMatch(id) {
+      const e = (window.__ytManualEvents || []).find(x => x.id === id);
+      if (!e) return;
+      if (!confirm(`'${e.title}' 경기를 삭제할까요?\n캘린더에서도 즉시 사라집니다.`)) return;
       try {
-        const { data, error } = await sb.rpc('yt_admin_list_events', { p_pass: adminPass() });
-        if (error || !data || data.ok === false) {
-          box.innerHTML = '<div class="note">⚠️ 유튜브_캘린더_3차보완_패치.sql을 먼저 Supabase에 실행해 주세요.</div>';
-          return;
-        }
-        window.__ytEventLinkItems = data.events || [];
-        box.innerHTML = window.__ytEventLinkItems.length
-          ? window.__ytEventLinkItems.map((e, i) => ytEventLinkRowHTML(e, i)).join('')
-          : '<div class="note">등록된 경기 일정이 없어요.</div>';
+        const { data, error } = await sb.rpc('yt_admin_delete_official_match', { p_pass: adminPass(), p_id: id });
+        if (error || !data || data.ok === false) { toastMsg('⚠️ ' + (error ? cleanErr(error.message) : ((data && data.code) || '삭제 실패'))); return; }
+        toastMsg('경기가 삭제되었습니다.');
+        if (window.__ytManualEditingId === id) ytCancelEditMatch();
+        ytLoadManualEvents();
       } catch (err) {
-        box.innerHTML = '⚠️ 불러오기 실패: ' + esc(err && err.message || String(err));
+        toastMsg('⚠️ 삭제 실패: ' + (err && err.message || String(err)));
       }
-    }
-    // "내가 링크 하나하나 다 설정해야 하냐?"는 지적 반영 — 매주 GitHub Actions가
-    // 공식 홈페이지(blackcombat-official.com) 경기 목록을 긁어와(scripts/official-match-sync.js)
-    // yt_official_matches에 저장해두면, 서버(yt_admin_list_events)가 링크 없는 경기마다
-    // 날짜가 같은 공식 경기를 자동으로 찾아 suggested_seq로 제안해준다. 사람은 맞는지
-    // 확인만 하고 버튼 한 번(✅ 확인)으로 저장 — 완전 자동 저장은 아니다(엉뚱한 경기가
-    // 잘못 연결되는 걸 막기 위해 최종 확인은 항상 사람이 한다). 제안이 없거나 틀렸으면
-    // 예전처럼 직접 번호를 입력할 수도 있다.
-    function ytEventLinkRowHTML(e, i) {
-      const dateText = new Date(e.ev_time).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'long', day: 'numeric', weekday: 'short' });
-      const kindLabel = e.kind === 'tournament' ? '승부예측 대회' : '경기 이력';
-      const hasSuggestion = e.official_seq == null && e.suggested_seq != null;
-      return `<div style="padding:8px 0;border-top:1px solid var(--border)">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-          <div style="min-width:0">
-            <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(e.title)}</div>
-            <div class="note" style="margin:0">${esc(dateText)} · ${kindLabel}${e.official_seq != null ? ` · eventSeq=${e.official_seq}` : ''}</div>
-          </div>
-          <button class="btn small" onclick="ytSetEventLink(${i})">${e.official_seq != null ? '수정' : '직접 입력'}</button>
-        </div>
-        ${hasSuggestion ? `
-        <div style="margin-top:6px;padding:8px;border-radius:8px;background:rgba(29,78,216,.06);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
-          <div style="min-width:0;font-size:12.5px">🔎 같은 날짜 공식 경기 자동 매칭: <b>${esc(e.suggested_title || '')}</b>${e.suggested_venue ? ` · ${esc(e.suggested_venue)}` : ''} (eventSeq=${e.suggested_seq})</div>
-          <button class="btn small primary" onclick="ytConfirmSuggestedLink(${i})">✅ 이 경기 맞음</button>
-        </div>` : ''}
-      </div>`;
-    }
-    async function ytSaveEventLinkSeq(i, seq) {
-      const e = (window.__ytEventLinkItems || [])[i];
-      if (!e) return;
-      const { data, error } = await sb.rpc('yt_admin_set_event_official_seq', {
-        p_pass: adminPass(), p_kind: e.kind, p_id: e.id, p_seq: seq
-      });
-      if (error || !data || data.ok === false) { toastMsg('⚠️ ' + (error ? cleanErr(error.message) : ((data && data.code) || '저장 실패'))); return false; }
-      e.official_seq = seq;
-      toastMsg(seq != null ? '공식 링크가 저장되었습니다.' : '공식 링크가 해제되었습니다.');
-      const box = document.getElementById('ytEventLinkList');
-      if (box) box.innerHTML = window.__ytEventLinkItems.map((ev, idx) => ytEventLinkRowHTML(ev, idx)).join('');
-      return true;
-    }
-    // 자동 매칭 제안을 사람이 확인 버튼 한 번으로 확정 — prompt 없이 바로 저장.
-    function ytConfirmSuggestedLink(i) {
-      const e = (window.__ytEventLinkItems || [])[i];
-      if (!e || e.suggested_seq == null) return;
-      ytSaveEventLinkSeq(i, e.suggested_seq);
-    }
-    async function ytSetEventLink(i) {
-      const e = (window.__ytEventLinkItems || [])[i];
-      if (!e) return;
-      const v = prompt('공식 홈페이지 경기 번호(eventSeq)를 입력하세요.\n예: https://www.blackcombat-official.com/eventDetail.php?eventSeq=293 → 293\n비워두고 확인을 누르면 연결을 해제합니다.', e.official_seq != null ? String(e.official_seq) : '');
-      if (v === null) return;
-      const trimmed = v.trim();
-      if (trimmed && !/^\d+$/.test(trimmed)) return toastMsg('⚠️ 숫자만 입력해 주세요.');
-      await ytSaveEventLinkSeq(i, trimmed ? Number(trimmed) : null);
     }
     // ISO8601 재생시간("PT1M30S")을 초로 변환 — 유튜브 Shorts 판별용
     function ytParseISODuration(iso) {
