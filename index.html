@@ -17682,10 +17682,61 @@
            보여주고 여기서 바로 공식 링크 번호를 넣는다. -->
       <div class="card" style="margin-top:12px">
         <div style="font-weight:800;margin-bottom:6px">🔗 경기 공식 링크 관리</div>
-        <div class="note" style="margin-bottom:10px">승부예측 대회 여부와 상관없이, 캘린더에 뜨는 모든 경기(승부예측 대회 + 과거 이력)에 공식 홈페이지(blackcombat-official.com) 링크 번호를 붙일 수 있어요. 매일 공식 홈페이지 경기 목록을 자동으로 긁어와서, 날짜가 같은 경기를 찾으면 여기 목록에 파란 제안 박스로 미리 보여줘요 — 맞으면 "✅ 이 경기 맞음" 한 번만 누르면 돼요.</div>
+        <div class="note" style="margin-bottom:10px">승부예측 대회 여부와 상관없이, 캘린더에 뜨는 모든 경기(승부예측 대회 + 과거 이력)에 공식 홈페이지(blackcombat-official.com) 링크 번호를 붙일 수 있어요. 이미 있는 경기와 날짜가 같은 공식 경기를 자동으로 찾으면 여기 목록에 파란 제안 박스로 보여줘요 — 맞으면 "✅ 이 경기 맞음" 한 번만 누르면 돼요.</div>
         <button class="btn" onclick="ytLoadEventLinks()">목록 불러오기</button>
         <div id="ytEventLinkList" style="margin-top:4px"></div>
+      </div>
+      <!-- "지금까지 있는 것들은 너가 해주고, 앞으로는 내가 직접 등록하면 캘린더에 박히도록
+           관리자페이지에서 추가할 수 있도록 만들어주면 된다. 매일 정오쯤 자동화로 불러올
+           필요없다"는 지적 반영(2026-08-26) — 매일 자동 스크래핑 대신, 새 경기를 여기서
+           직접 등록하면 즉시 캘린더에 반영된다(yt_admin_add_official_match →
+           yt_event_history INSERT, yt_get_events_in_range가 그대로 읽음). -->
+      <div class="card" style="margin-top:12px">
+        <div style="font-weight:800;margin-bottom:6px">➕ 새 경기 직접 등록</div>
+        <div class="note" style="margin-bottom:10px">여기서 등록한 경기는 저장 즉시 캘린더에 빨간 점으로 나타나요. 공식 홈페이지 경기 번호(eventSeq)를 같이 넣으면 공식 링크도 처음부터 연결돼요.</div>
+        <div style="display:grid;gap:8px;max-width:480px">
+          <div class="field"><label>경기 제목</label><input id="ytNewMatchTitle" type="text" placeholder="예: 블랙컴뱃 17: ..."></div>
+          <div class="field"><label>날짜/시각</label><input id="ytNewMatchDate" type="datetime-local"></div>
+          <div class="field"><label>장소 (선택)</label><input id="ytNewMatchVenue" type="text" placeholder="예: 서울 올림픽공원 핸드볼경기장"></div>
+          <div class="field"><label>공식 홈페이지 경기 번호(eventSeq, 선택)</label><input id="ytNewMatchSeq" type="number" placeholder="예: 293"></div>
+        </div>
+        <button class="btn primary" style="margin-top:10px" onclick="ytAddOfficialMatch()">경기 등록</button>
+        <div class="msg" id="ytNewMatchMsg" style="margin-top:6px"></div>
       </div>`;
+    }
+    async function ytAddOfficialMatch() {
+      const titleEl = document.getElementById('ytNewMatchTitle');
+      const dateEl = document.getElementById('ytNewMatchDate');
+      const venueEl = document.getElementById('ytNewMatchVenue');
+      const seqEl = document.getElementById('ytNewMatchSeq');
+      const msgEl = document.getElementById('ytNewMatchMsg');
+      const title = (titleEl.value || '').trim();
+      const dateVal = dateEl.value;
+      if (!title) { if (msgEl) msgEl.textContent = '⚠️ 경기 제목을 입력해 주세요.'; return; }
+      if (!dateVal) { if (msgEl) msgEl.textContent = '⚠️ 날짜/시각을 입력해 주세요.'; return; }
+      // datetime-local 값은 타임존 정보가 없는 로컬 시각 문자열이라(예: "2026-08-29T19:00"),
+      // 이 화면을 보는 관리자가 KST 기준으로 입력한다고 가정하고 +09:00을 명시적으로 붙인다.
+      const eventAt = `${dateVal}:00+09:00`;
+      const venue = (venueEl.value || '').trim() || null;
+      const seqRaw = (seqEl.value || '').trim();
+      if (seqRaw && !/^\d+$/.test(seqRaw)) { if (msgEl) msgEl.textContent = '⚠️ 경기 번호는 숫자만 입력해 주세요.'; return; }
+      const seq = seqRaw ? Number(seqRaw) : null;
+      if (msgEl) msgEl.textContent = '등록 중…';
+      try {
+        const { data, error } = await sb.rpc('yt_admin_add_official_match', {
+          p_pass: adminPass(), p_title: title, p_event_at: eventAt, p_venue: venue, p_official_seq: seq
+        });
+        if (error || !data || data.ok === false) {
+          if (msgEl) msgEl.textContent = '⚠️ ' + (error ? cleanErr(error.message) : ((data && data.code) || '등록 실패'));
+          return;
+        }
+        toastMsg('경기가 등록되었습니다. 캘린더에 바로 반영돼요.');
+        if (msgEl) msgEl.textContent = '';
+        titleEl.value = ''; dateEl.value = ''; venueEl.value = ''; seqEl.value = '';
+        ytLoadEventLinks();
+      } catch (err) {
+        if (msgEl) msgEl.textContent = '⚠️ 등록 실패: ' + esc(err && err.message || String(err));
+      }
     }
     // 위 "🔗 경기 공식 링크 관리" 카드 전용 — 승부예측 관리 화면(setOfficialSeq)과는
     // 완전히 별개의 함수/RPC를 쓴다(유튜브_캘린더_3차보완_패치.sql 참고).
@@ -19616,28 +19667,32 @@
       const d = window.__ytShareCard || {};
       const { c, x } = kkoCardBase('영상 캘린더', '블랙컴뱃 잡담방',
         new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }));
+      // "카톡 보냈을 때 텍스트가 잘 안 보인다"는 지적 반영(2026-08-26) — 라벨 텍스트를
+      // 옅은 회색(#8a95a5)에서 검정(#1b2430)으로, 핵심 숫자(빨강/파랑)와 라벨 폰트 크기를
+      // 전반적으로 키웠다. 다만 "마지막 업로드: {날짜}" 줄은 검정으로 바꿨던 걸 다시
+      // 그레이로 되돌려 달라는 지적을 반영해 카드 상단 라벨과 같은 회색(#8a95a5)으로 뒀다
+      // (원래 쓰던 아주 옅은 회색 #b6bfcc는 안 보인다는 지적을 받았던 색이라 그대로
+      // 되돌리지 않고, 카드 다른 곳에서도 쓰는 중간 톤 회색을 골랐다).
       let y = 150;
       if (window.__ytLastPubMs) {
         const elapsedDays = Math.max(0, (Date.now() - window.__ytLastPubMs) / 86400000);
-        x.fillStyle = '#8a95a5'; x.font = '800 18px Pretendard, sans-serif';
+        x.fillStyle = '#1b2430'; x.font = '800 21px Pretendard, sans-serif';
         x.fillText('마지막 업로드 후 경과 시간', 48, 108);
-        x.fillStyle = '#e11d48'; x.font = '900 40px Pretendard, sans-serif';
-        x.fillText(fmtGapPrecise(elapsedDays), 48, 108 + 48);
-        y = 108 + 48 + 52;
+        x.fillStyle = '#e11d48'; x.font = '900 46px Pretendard, sans-serif';
+        x.fillText(fmtGapPrecise(elapsedDays), 48, 108 + 52);
+        y = 108 + 52 + 52;
       }
-      x.fillStyle = '#8a95a5'; x.font = '800 16px Pretendard, sans-serif';
+      x.fillStyle = '#1b2430'; x.font = '800 19px Pretendard, sans-serif';
       x.fillText('업로드 예측', 48, y);
-      x.fillStyle = '#1d4ed8'; x.font = '900 28px Pretendard, sans-serif';
-      gmFitFont(x, d.rangeHeadlineText || '', 704, '900', 28, 18);
-      x.fillText(d.rangeHeadlineText || '', 48, y + 36);
+      x.fillStyle = '#1d4ed8'; x.font = '900 34px Pretendard, sans-serif';
+      gmFitFont(x, d.rangeHeadlineText || '', 704, '900', 34, 20);
+      x.fillText(d.rangeHeadlineText || '', 48, y + 40);
       // "업로드 예측에 월요일 평균 수준 같은 건 제거하고 예측 날짜 사이 유력(파란색)
       // 텍스트만 유지하자"는 지적 반영 — 요일 근거 요약(shortReason, 예: "월요일 평균
-      // 수준")은 카드에서 아예 뺐다. "마지막 업로드 부분은 회색이라 잘 안 보이니 검정색으로
-      // 해달라"는 지적 반영 — 옅은 회색(#b6bfcc) 대신 카드 다른 진한 텍스트와 같은
-      // 색(#1b2430)으로 바꿨다.
+      // 수준")은 카드에서 아예 뺐다.
       if (d.lastPubAbsText) {
-        x.fillStyle = '#1b2430'; x.font = '700 16px Pretendard, sans-serif';
-        x.fillText(`마지막 업로드: ${d.lastPubAbsText}`, 48, y + 74);
+        x.fillStyle = '#8a95a5'; x.font = '700 16px Pretendard, sans-serif';
+        x.fillText(`마지막 업로드: ${d.lastPubAbsText}`, 48, y + 80);
       }
       return c;
     }
