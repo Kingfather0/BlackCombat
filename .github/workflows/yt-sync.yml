@@ -40,3 +40,6 @@ jobs:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
           YT_BOT_SECRET: ${{ secrets.YT_BOT_SECRET }}
+          YOUTUBE_API_KEY: ${{ vars.YOUTUBE_API_KEY }}
+          YT_CHANNEL_HANDLE: ${{ vars.YT_CHANNEL_HANDLE }}
+        run: node scripts/yt-sync.js
