@@ -2,7 +2,15 @@ name: 유튜브 업로드 자동 동기화
 
 on:
   schedule:
-    - cron: '*/10 * * * *'   # 10분마다 실행 (GitHub 사정에 따라 실제 실행은 몇 분 늦어질 수 있음)
+    # "10분마다 도는데 왜 87분씩 비냐"는 지적(2026-08-27) 반영 — 원래 '*/10 * * * *'는
+    # 정각 기준 매 10분(00·10·20·30·40·50분)에 딱 맞춰 도는데, 이 "정각/5의배수 분"은
+    # 전 세계 수많은 저장소의 스케줄 워크플로우가 똑같이 몰리는 시간대라 GitHub 서버가
+    # 가장 붐빈다(GitHub 공식 문서도 "정시 부근이 가장 혼잡하니 다른 분으로 스케줄하라"고
+    # 안내함). 그날 실행 로그를 보면 정각대 스케줄에서 몇 틱씩 통째로 드롭되는 게 원인으로
+    # 보여, 주기는 그대로 10분을 유지하면서(느려지지 않게) 혼잡한 정각대를 피해 3분으로
+    # 옮겼다 — 03·13·23·33·43·53분에 실행. 완전히 없앨 수는 없지만 드롭 빈도를 줄이는
+    # 목적. 그래도 계속 크게 밀리면 간격 자체를 늘리는 것도 재검토.
+    - cron: '3,13,23,33,43,53 * * * *'
   workflow_dispatch: {}
 
 # 이전 실행이 아직 안 끝났으면 새 스케줄 실행이 그 뒤에 계속 쌓이지 않도록,
@@ -32,6 +40,3 @@ jobs:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
           YT_BOT_SECRET: ${{ secrets.YT_BOT_SECRET }}
-          YOUTUBE_API_KEY: ${{ vars.YOUTUBE_API_KEY }}
-          YT_CHANNEL_HANDLE: ${{ vars.YT_CHANNEL_HANDLE }}
-        run: node scripts/yt-sync.js
