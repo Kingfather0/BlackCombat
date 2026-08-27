@@ -18342,7 +18342,10 @@
             const meta = ytCatMeta(best.cat);
             const lowSample = best.n < YT_LOW_SAMPLE_N;
             const ex = ytMostRecentLeadExample(leadTimeDetail, 'pre_event', best.cat);
-            const example = ex ? `지난 "${ex.event_title}" 때는 D-${Math.round(ex.days_before)}에 "${ex.video_title}"가 올라왔어요 — 이번에도 비슷한 시점 가능성` : null;
+            // "D-1/D-2가 헷갈리는데 이유 문구도 통일하자"는 지적 반영(2026-08-27) —
+            // 아래 label과 마찬가지로 D-n 표기 대신 "며칠 전"으로 풀어쓴다.
+            const exDaysBefore = ex ? Math.round(ex.days_before) : null;
+            const example = ex ? `지난 "${ex.event_title}" 때는 ${exDaysBefore === 0 ? '경기 당일' : `경기 ${exDaysBefore}일 전`}에 "${ex.video_title}"가 올라왔어요 — 이번에도 비슷한 시점 가능성` : null;
             // "가장 가까운 카테고리 1개만 보여주던 걸, 그 날짜와 충분히 가까운(±0.5일 이내)
             // 카테고리는 전부 보여주는 걸로 바꿔달라 — 예를 들면 D-1에 '계체 유력 ·
             // 트레일러 가능성' 이런 식으로"라는 지적 반영(2026-08-27) — 1위(best) 말고도
@@ -18353,16 +18356,16 @@
             const secondaryCats = candidates.slice(1, 3).map(c => ({ cat: c.cat, ...ytCatMeta(c.cat) }));
             const comboSuffix = secondaryCats.length ? ` · ${secondaryCats.map(c => c.label).join(' · ')} 가능성` : '';
             return {
-              // diff: 이 "특정 날짜" 자체의 D-n (카테고리 중앙값이 아니라). dist≤0.5 폭 안에서
-              // 며칠이 한꺼번에 같은 카테고리로 묶일 수 있는데, 그 며칠의 근거 한 줄이 전부
-              // 똑같은 문장으로 찍혀서 "다른 날짜인데 왜 같은 말이냐"는 지적을 받았던 부분 —
-              // 이 값을 짧은 근거 문구에 실제로 꽂아 날짜별로 달라지게 한다. 라벨에도 "이
-              // 날짜는 D-n"을 과거 평균과 나란히 보여줘서, 왜 이 요일이 해당되는지 숫자로
-              // 바로 확인할 수 있게 했다("무슨 근거냐"는 지적 반영).
+              // diff: 이 "특정 날짜" 자체가 경기 며칠 전인지(카테고리 중앙값이 아니라).
+              // 짧은 근거 문구(ytDayShortReason)와 날짜 병합(rdGroups) 로직이 이 값으로
+              // 날짜별 구분을 이미 하고 있어서 계속 들고 있지만, "D-1/D-2가 헷갈린다"는
+              // 지적 반영(2026-08-27)으로 라벨 문구 자체에는 더 이상 "D-n" 숫자를 찍지
+              // 않는다 — 아래에서 이미 이 카드 위에 정확한 날짜("8월 28일 (금)")가 같이
+              // 나오므로, 라벨은 "며칠 전" 같은 자연어로만 근거를 설명한다.
               type: 'pre-event-cat', cat: best.cat, icon: meta.emoji, lowSample, example, diff, secondaryCats,
               label: lowSample
-                ? `${meta.label} 영상이 올라올 수도 있어요${comboSuffix} (이 날짜는 D-${diff} · 과거 ${best.n}번 중 평균 D-${best.median_days_before} · 표본이 적어 참고만)`
-                : `${meta.label} 유력${comboSuffix} (이 날짜는 D-${diff} · 과거 평균 D-${best.median_days_before}, ${best.n}건 분석)`,
+                ? `${meta.label} 영상이 올라올 수도 있어요${comboSuffix} (과거 ${best.n}번 중 평균 ${best.median_days_before}일 전 · 표본이 적어 참고만)`
+                : `${meta.label} 유력${comboSuffix} (과거 평균 ${best.median_days_before}일 전, ${best.n}건 분석)`,
               weight: lowSample ? 1.0 : Math.min(2.2, 1 + best.n * 0.15), event: nextEvent,
             };
           }
@@ -18380,16 +18383,20 @@
             const meta = ytCatMeta(best.cat);
             const lowSample = best.n < YT_LOW_SAMPLE_N;
             const ex = ytMostRecentLeadExample(leadTimeDetail, 'post_event', best.cat);
-            const example = ex ? `지난 "${ex.event_title}" 때는 D+${Math.round(ex.days_after)}에 "${ex.video_title}"가 올라왔어요 — 이번에도 비슷한 시점 가능성` : null;
+            // "D-1/D-2가 헷갈리는데 이유 문구도 통일하자"는 지적 반영(2026-08-27) —
+            // pre_event와 동일하게 D+n 표기 대신 "며칠 후"로 풀어쓴다.
+            const exDaysAfter = ex ? Math.round(ex.days_after) : null;
+            const example = ex ? `지난 "${ex.event_title}" 때는 ${exDaysAfter === 0 ? '경기 당일' : `경기 ${exDaysAfter}일 후`}에 "${ex.video_title}"가 올라왔어요 — 이번에도 비슷한 시점 가능성` : null;
             // pre_event와 동일한 이유로(위 주석 참고) — 1위 말고도 같은 폭 안에 다른
             // 카테고리가 있으면 최대 2개까지 같이 보여준다.
             const secondaryCats = candidates.slice(1, 3).map(c => ({ cat: c.cat, ...ytCatMeta(c.cat) }));
             const comboSuffix = secondaryCats.length ? ` · ${secondaryCats.map(c => c.label).join(' · ')} 가능성` : '';
             return {
               type: 'post-event-cat', cat: best.cat, icon: meta.emoji === '🎥' ? '⭐' : meta.emoji, lowSample, example, diff, secondaryCats,
+              // 라벨 문구에서 D+n 숫자는 뺐다(위 pre-event-cat과 같은 이유, 2026-08-27).
               label: lowSample
-                ? `${meta.label} 영상이 올라올 수도 있어요${comboSuffix} (이 날짜는 D+${diff} · 경기 후 과거 ${best.n}번 중 평균 D+${best.median_days_after} · 표본이 적어 참고만)`
-                : `${meta.label} 유력${comboSuffix} (이 날짜는 D+${diff} · 경기 후 평균 D+${best.median_days_after}, ${best.n}건 분석)`,
+                ? `${meta.label} 영상이 올라올 수도 있어요${comboSuffix} (경기 후 과거 ${best.n}번 중 평균 ${best.median_days_after}일 후 · 표본이 적어 참고만)`
+                : `${meta.label} 유력${comboSuffix} (경기 후 평균 ${best.median_days_after}일 후, ${best.n}건 분석)`,
               weight: lowSample ? 1.0 : Math.min(2.2, 1 + best.n * 0.15), event: lastEvent,
             };
           }
@@ -18812,6 +18819,25 @@
         const lo = Math.min(topIdx, ...rdIdxs), hi = Math.max(topIdx, ...rdIdxs);
         rd = days.slice(lo, hi + 1);
       }
+      // "트레일러 median=1.5일이면 D-1·D-2 거리가 정확히 0.5로 동률이라 두 날짜 다
+      // 트레일러 후보인데, 정작 구간(rd)엔 D-1(8/28)만 들어가고 D-2(8/27)는 안 뜬다"는
+      // 지적 반영(2026-08-27) — rd는 원래 간격 통계(daysSinceForDay)만으로 정해져서,
+      // 바로 옆 날짜가 정확히 같은 카테고리 후보라도 그 통계 범위 밖이면 빠졌다. 구간
+      // 경계 바로 앞/뒤 날짜가 경계 날짜와 완전히 같은 카테고리(catKey 동일)면 더 이상
+      // 안 이어질 때까지 구간을 넓힌다 — "며칠 전인지"(days-before) 기준으로 이미 동률
+      // 판정된 날짜를 "마지막 업로드 후 며칠째"(간격 통계) 기준의 좁은 창 때문에 빠뜨리지
+      // 않기 위함이다. catKey는 아래 rdGroups 병합에도 그대로 재사용한다.
+      const catKey = d => {
+        if (!d.phase || d.phase.type === 'event-day') return null;
+        const sec = (d.phase.secondaryCats || []).map(c => c.cat).sort().join(',');
+        return `${d.phase.type}|${d.phase.cat}|${sec}|${d.phase.lowSample ? 1 : 0}`;
+      };
+      {
+        let loI = days.indexOf(rd[0]), hiI = days.indexOf(rd[rd.length - 1]);
+        while (loI > 0 && catKey(days[loI - 1]) != null && catKey(days[loI - 1]) === catKey(days[loI])) loI--;
+        while (hiI < days.length - 1 && catKey(days[hiI + 1]) != null && catKey(days[hiI + 1]) === catKey(days[hiI])) hiI++;
+        rd = days.slice(loI, hiI + 1);
+      }
       const rd0 = rd[0], rd1 = rd[rd.length - 1];
       const fmtMD = dt => `${dt.getMonth() + 1}월 ${dt.getDate()}일`;
       const rangeHeadlineText = rd0 === rd1
@@ -18844,12 +18870,7 @@
       // 날짜들의 phase가 완전히 같은 카테고리(type·cat·secondaryCats·lowSample까지
       // 전부 동일)면 한 줄로 병합한다. event-day/근거 없는(phase===null) 날짜는
       // 병합 대상에서 제외해 각자 자기 고유 문장(경기 당일 문구, 요일 빈도 문구)을
-      // 그대로 유지한다.
-      const catKey = d => {
-        if (!d.phase || d.phase.type === 'event-day') return null;
-        const sec = (d.phase.secondaryCats || []).map(c => c.cat).sort().join(',');
-        return `${d.phase.type}|${d.phase.cat}|${sec}|${d.phase.lowSample ? 1 : 0}`;
-      };
+      // 그대로 유지한다. catKey()는 위 rd 구간 확장에서 이미 정의했다.
       const rdGroups = [];
       rd.forEach(d => {
         const key = catKey(d);
