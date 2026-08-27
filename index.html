@@ -19279,6 +19279,15 @@
     }
     // "간격통계·업로드히스토리에서 여전히 카테고리(경기/컨텐츠 등)가 표시된다"는 지적
     // 반영(재요청) — 캘린더에서 이미 뺀 카테고리 구분을 이 공용 목록 행에서도 없앴다.
+    // "캘린더와 영상 히스토리에서 숏츠 영상과 일반 동영상을 구분하는 이모지를 각각
+    // 추가하자 — 숏츠는 ⚡️, 일반 동영상은 🎬"는 지적 반영(2026-08-27) — 위에서 뺀 건
+    // 경기/컨텐츠 같은 세부 카테고리 구분이고, 이건 그것과 무관하게 숏츠인지 아닌지만
+    // 한눈에 구분하려는 요청이라 별도로 다시 추가한다. is_short는 DB(yt_videos 테이블)가
+    // 직접 채워주는 필드라 category 문자열(override로 바뀔 수 있음)보다 더 신뢰할 수
+    // 있어 이걸 기준으로 삼는다.
+    function ytShortsEmoji(v) {
+      return v && v.is_short ? '⚡️' : '🎬';
+    }
     function ytVideoRowHTML(v, extraNote, gapDaysOverride) {
       const idx = ytRegisterVideo(v, extraNote);
       // "간격 통계에서도 영상에 직전 영상 대비 00:00:00 표시해달라"는 지적 반영 —
@@ -19301,7 +19310,7 @@
       return `<div class="yt-recent-row" role="button" tabindex="0" onclick="ytOpenVideoPreview(${idx})">
         <img class="yt-recent-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:700;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.title)}</div>
+          <div style="font-size:13px;font-weight:700;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ytShortsEmoji(v)} ${esc(v.title)}</div>
           <div class="note">${new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}${viewsText ? ` · ${esc(viewsText)}` : ''}</div>
           ${gapNote ? `<div class="note" style="color:var(--key-deep);font-weight:600;font-size:10.5px;margin-top:2px">${esc(gapNote)}</div>` : ''}
         </div>
@@ -19328,7 +19337,7 @@
           <div class="yt-vp-card">
             <div style="cursor:pointer" onclick="window.open('${esc(url)}','_blank','noopener');ytCloseVideoPreview()">
               <img class="yt-vp-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
-              <div class="yt-vp-title">${esc(v.title)}</div>
+              <div class="yt-vp-title">${ytShortsEmoji(v)} ${esc(v.title)}</div>
               <div class="note">${esc(dateText)}${viewsText ? ` · ${esc(viewsText)}` : ''}</div>
               ${entry.extraNote ? `<div class="yt-vp-extra">${entry.extraNote}</div>`
         : (ytPrevGapNote(v) ? `<div class="yt-vp-extra">${esc(ytPrevGapNote(v))}</div>` : '')}
@@ -19593,11 +19602,14 @@
           <div class="yt-hover-preview-row">
             <img src="${esc(v.thumbnail_url || '')}" loading="lazy">
             <div style="min-width:0">
-              <div class="yt-hover-preview-vtitle">${esc(v.title)}</div>
+              <div class="yt-hover-preview-vtitle">${ytShortsEmoji(v)} ${esc(v.title)}</div>
               <!-- "캘린더 날짜에 마우스오버하면 여전히 카테고리가 보인다"는 지적 반영 —
                    달력 칸 자체는 이미 이전 라운드에서 카테고리 구분을 없앴는데(위 주석
                    참고), 이 마우스오버 미리보기만 그 변경이 빠져 있었다. 카테고리
-                   이모지/라벨을 빼고 조회수만 남긴다. -->
+                   이모지/라벨을 빼고 조회수만 남긴다. "숏츠⚡️/일반🎬 구분 이모지를
+                   추가하자"는 별도 지적(2026-08-27) 반영으로 그 이모지만 다시 붙였다 —
+                   위에서 뺀 경기/컨텐츠 세부 카테고리 라벨과는 다른, 숏츠 여부만
+                   구분하는 표시라 이 지적과 배치되지 않는다. -->
               ${fmtViews(v.view_count) ? `<div class="yt-hover-preview-meta">${esc(fmtViews(v.view_count))}</div>` : ''}
               ${ytPrevGapNote(v) ? `<div class="yt-hover-preview-meta" style="color:var(--key-deep);font-weight:700">${esc(ytPrevGapNote(v))}</div>` : ''}
             </div>
