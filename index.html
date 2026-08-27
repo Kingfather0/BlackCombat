@@ -478,7 +478,8 @@
       color: var(--dim);
       text-align: center;
       padding: 36px 0;
-      font-size: 15px
+      font-size: 15px;
+      word-break: keep-all
     }
 
     .center {
@@ -531,7 +532,8 @@
 
     .countdown {
       color: #c62828;
-      font-weight: 800
+      font-weight: 800;
+      white-space: nowrap
     }
 
     /* match voting */
@@ -1839,7 +1841,8 @@
       font-size: 13px;
       color: var(--muted);
       font-weight: 700;
-      margin-top: 3px
+      margin-top: 3px;
+      word-break: keep-all
     }
 
     .note {
@@ -3292,7 +3295,8 @@
       font-family: 'Jua', 'Pretendard Variable', Pretendard, sans-serif;
       font-weight: 800;
       font-size: 20px;
-      color: var(--text)
+      color: var(--text);
+      word-break: keep-all
     }
 
     .gc-b b small {
@@ -3306,14 +3310,16 @@
     .gc-b span {
       font-size: 12.5px;
       color: var(--muted);
-      font-weight: 600
+      font-weight: 600;
+      word-break: keep-all
     }
 
     .gc-b .gc-top {
       font-size: 11.5px;
       color: #2563eb;
       margin-top: 3px;
-      font-weight: 700
+      font-weight: 700;
+      word-break: keep-all
     }
 
     .gc-go {
@@ -14382,8 +14388,8 @@
       // ── 섹션 1: 우리 방 승부예측 기록 (있을 때만) ──
       const predHTML = !rows.length ? '' : `
       <div class="stat-tiles" style="grid-template-columns:repeat(2,1fr)">
-        <div class="tile"><div class="v">${rows.length}경기</div><div class="k">예측 대상 경기</div></div>
-        <div class="tile"><div class="v">${rate}%</div><div class="k">우리 방 적중률</div></div>
+        <div class="tile"><div class="v">${rows.length}경기</div><div class="k fit-text">예측 대상 경기</div></div>
+        <div class="tile"><div class="v">${rate}%</div><div class="k fit-text">우리 방 적중률</div></div>
       </div>
       ${rows.map(r => `<div class="pcard" style="padding:11px 14px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
@@ -19019,7 +19025,12 @@
         <div class="yt-core-stats">
           <div class="yt-core-stat">
             <div class="yt-core-stat-label">🕒 마지막 업로드</div>
-            <div class="yt-core-stat-value">${lastPubAbsText || '-'}</div>
+            <!-- "화면 크기·해상도에 따라 이 값('8월 27일 19시 19분')이 두 줄로 밀린다"는
+                 지적 반영(2026-08-27) — 아이폰처럼 폰트가 커지거나 카드 폭이 좁아지는
+                 환경에서 줄바꿈되던 걸, 아래 "직전 대비"/"평소 주기" 보조줄과 같은
+                 fit-text(=fitTextOneLine, 최대 7.5px까지 폰트를 줄여 한 줄에 맞춤)로
+                 감싸 한 줄을 유지하게 했다. -->
+            <div class="yt-core-stat-value fit-text">${lastPubAbsText || '-'}</div>
             <!-- "직전 영상 대비에도 평소 경과 시간처럼 괄호 안에 (1.9일)을 넣어달라"는
                  지적 반영(2026-08-27) — 아래 "평소 경과 시간" 줄과 같은 형식(fmtGap로
                  일 단위 환산)을 그대로 맞췄다. -->
@@ -19033,7 +19044,11 @@
           </div>
           <div class="yt-core-stat">
             <div class="yt-core-stat-label">⏳ 경과 시간</div>
-            <div class="yt-core-stat-value accent" id="ytElapsedLiveWrap"><span id="ytElapsedH">00</span>시간 <span id="ytElapsedM">00</span>분 <span id="ytElapsedS">00</span>초</div>
+            <!-- 위 "마지막 업로드" 값과 같은 이유(2026-08-27)로 극단적으로 좁은 화면(구형
+                 아이폰 SE 등)에서 두 줄로 밀리는 걸 막기 위해 fit-text를 같이 붙였다.
+                 초 단위로 갱신되는 값이지만 자릿수(00~99)가 고정이라 폭이 거의 안
+                 바뀌므로, 초기 1회만 맞춰지는 fit-text 특성과도 잘 맞는다. -->
+            <div class="yt-core-stat-value accent fit-text" id="ytElapsedLiveWrap"><span id="ytElapsedH">00</span>시간 <span id="ytElapsedM">00</span>분 <span id="ytElapsedS">00</span>초</div>
             <!-- "경과 시간 항목 아래에 최근 n회 영상 기준 평균 경과 시간을 추가해달라"는
                  지적 반영(2026-08-27). 처음엔 최근 20회 단순평균(gap20)을 썼는데, 그러면
                  바로 아래 간격 통계 카드의 "평소 업로드 주기"(blendedGapDays — 최근
@@ -20622,7 +20637,7 @@
       if (!vis.allowed) {
         wrap.style.display = '';
         const b0 = wrap.querySelector('.gc-b b');
-        if (b0) b0.innerHTML = '블랙 퀴즈 <span style="font-size:11px;color:#d69411">🛠 점검 중</span>';
+        if (b0) b0.innerHTML = '블랙 퀴즈 <span style="font-size:11px;color:#d69411;white-space:nowrap">🛠 점검 중</span>';
         const el0 = document.getElementById('gTopQuiz');
         if (el0) el0.textContent = '점검 중입니다 — 잠시 후 다시 열립니다';
         return;
@@ -25667,10 +25682,10 @@
     <h1 class="page">${esc(me.nickname)}</h1>
     ${myBadges.length ? `<div style="margin-top:6px">${myBadges.map(b => badgeChip(b, true)).join(' ')}</div>` : ''}
     <div class="stat-tiles">
-      <div class="tile"><div class="v">${me.plays}</div><div class="k">참여 대회</div></div>
-      <div class="tile"><div class="v">${me.wins}</div><div class="k">🏆 우승</div></div>
-      <div class="tile"><div class="v">${me.hit}/${me.total}</div><div class="k">총 적중</div></div>
-      <div class="tile"><div class="v">${me.total ? Math.round(me.hit / me.total * 100) : 0}%</div><div class="k">평균 적중률</div></div>
+      <div class="tile"><div class="v">${me.plays}</div><div class="k fit-text">참여 대회</div></div>
+      <div class="tile"><div class="v">${me.wins}</div><div class="k fit-text">🏆 우승</div></div>
+      <div class="tile"><div class="v">${me.hit}/${me.total}</div><div class="k fit-text">총 적중</div></div>
+      <div class="tile"><div class="v">${me.total ? Math.round(me.hit / me.total * 100) : 0}%</div><div class="k fit-text">평균 적중률</div></div>
     </div>
     <div class="sec-title">대회별 기록</div>
     ${me.records.sort((a, b) => new Date(b.t.deadline) - new Date(a.t.deadline)).map(r => `
