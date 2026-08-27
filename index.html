@@ -10235,41 +10235,11 @@
       color: var(--muted)
     }
 
-    /* "간격통계에 있는 나머지들도 UI/차트로 가독성있게, 세로로 너무 길지 않게"라는 지적
-       반영 — 예전엔 항목 하나당 한 줄(2열 그리드로 5줄)이었는데, 미니 스탯을 한 줄에
-       여러 개 가로로 늘어놓는 방식으로 바꿔서 세로 길이를 크게 줄였다. */
-    .yt-gap-mini-row {
-      display: flex;
-      gap: 6px;
-      margin-top: 8px
-    }
-
-    .yt-gap-mini {
-      flex: 1;
-      min-width: 0;
-      text-align: center;
-      padding: 7px 2px;
-      background: #fff;
-      border-radius: 8px
-    }
-
-    .yt-gap-mini-n {
-      display: block;
-      font-size: 12.5px;
-      font-weight: 900;
-      color: var(--text)
-    }
-
-    .yt-gap-mini-lbl {
-      display: block;
-      font-size: 9px;
-      color: var(--muted);
-      font-weight: 700;
-      margin-top: 1px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis
-    }
+    /* 예전엔 여기(.yt-gap-mini-row/.yt-gap-mini)에 "평소 업로드 주기"·"이번 달 업로드"
+       미니 스탯 2칸이 있었다. "평소 업로드 주기"는 위쪽 "⏳ 경과 시간" 카드에 새로 추가한
+       "평소 경과 시간" 줄과 완전히 같은 숫자(blendedGapDays)라 중복이고, "이번 달 업로드"도
+       바로 아래 캘린더 아코디언 제목("2026년 8월 (N개)")에 이미 나오는 숫자와 중복이라는
+       지적 반영(2026-08-27)으로 이 섹션 자체를 없앴다 — 관련 클래스도 함께 정리. */
 
     /* 기존에 화면 아래쪽에 따로 떨어져 있던 "📈 업로드 주기 분석" 차트를 이 카드 안으로
        옮겨왔다 — 간격 통계 숫자와 그 추이를 한 카드에서 같이 보게 하려는 지적 반영.
@@ -18793,20 +18763,19 @@
       // stats90/stats365/cycleRecent 모두 서버에서 이미 쇼츠를 뺀 값이라 여기 나오는
       // "마지막 업로드"는 항상 쇼츠가 아닌 실제 동영상 기준이다.
       const fmtGap = v => v == null ? '-' : `${Math.round(v * 10) / 10}일`;
-      const monthCountText = monthCount != null ? `${monthCount}개` : '-';
-      const mini = (n, lbl) => `<div class="yt-gap-mini"><span class="yt-gap-mini-n">${n}</span><span class="yt-gap-mini-lbl">${lbl}</span></div>`;
       // "간격통계도 뭔가 번잡하다"는 지적 반영(4번째 개선) — 4칸 미니 스탯 + 문장형
       // 추이 요약을 다 걷어내고, 정말 필요한 숫자 2개(평소 주기·이번 달 업로드)만
-      // 남기고 나머지는 아래 차트(추이 그래프) 하나로 대체했다.
+      // 남기고 나머지는 아래 차트(추이 그래프) 하나로 대체했었다.
+      // "평소 업로드 주기·이번 달 업로드 미니 스탯은 이제 제거해도 되지 않냐"는 지적
+      // 반영(2026-08-27) — "평소 업로드 주기"는 위 "⏳ 경과 시간" 카드의 "평소 경과 시간"
+      // 줄과 완전히 같은 숫자(blendedGapDays)라 중복이고, "이번 달 업로드"도 바로 아래
+      // 캘린더 아코디언 제목("YYYY년 M월 (N개)")과 중복이라, 미니 스탯 줄 자체를 없애고
+      // 차트만 남겼다.
       const gapStatsHTML = `
         <div class="yt-gap-stats">
           <div class="yt-gap-stats-head">
             <span class="yt-gap-stats-title">간격 통계</span>
             <span class="yt-gap-stats-sub">쇼츠 제외</span>
-          </div>
-          <div class="yt-gap-mini-row">
-            ${mini(fmtGap(blendedGapDays), '평소 업로드 주기')}
-            ${mini(monthCountText, '이번 달 업로드')}
           </div>
           <div class="yt-gap-chart-wrap">${ytCycleChartHTML(cycleRecent, stats90, blendedGapDays)}</div>
         </div>`;
@@ -18827,15 +18796,19 @@
           <div class="yt-core-stat">
             <div class="yt-core-stat-label">⏳ 경과 시간</div>
             <div class="yt-core-stat-value accent" id="ytElapsedLiveWrap"><span id="ytElapsedH">00</span>:<span id="ytElapsedM">00</span>:<span id="ytElapsedS">00</span></div>
-            <!-- "경과 시간 항목 아래에 최근 n회 영상 기준 평균 경과 시간을 추가해달라,
-                 평소 업로드 주기 참고하면 되지 않겠냐"는 지적 반영(2026-08-27) — 바로 아래
-                 간격 통계 카드의 "평소 업로드 주기"(blendedGapDays, 최근 5/10/20회+전체
-                 가중평균)와 "최근 20개 간격 추이" 차트가 둘 다 최근 20회 창을 공유하는
-                 점에 맞춰, 여기서도 같은 최근 20회 평균(gap20)을 그대로 재사용했다 —
-                 화면 안에서 서로 다른 숫자가 또 나오는 걸 피하기 위함. 시:분:초와
-                 일 단위를 함께 보여줘서 위 실시간 카운터(시:분:초)와 바로 비교된다.
-                 20회 표본이 아직 안 쌓였으면(gap20 없음) 조용히 생략한다. -->
-            ${gap20 != null ? `<div class="yt-core-stat-sub" style="color:var(--key-deep);font-weight:800">최근 20회 평균 ${esc(fmtGapPrecise(gap20))} (${esc(fmtGap(gap20))})</div>` : ''}
+            <!-- "경과 시간 항목 아래에 최근 n회 영상 기준 평균 경과 시간을 추가해달라"는
+                 지적 반영(2026-08-27). 처음엔 최근 20회 단순평균(gap20)을 썼는데, 그러면
+                 바로 아래 간격 통계 카드의 "평소 업로드 주기"(blendedGapDays — 최근
+                 5/10/20회+전체 중앙값을 가중평균한, 예측 로직이 실제로 쓰는 "공식" 주기
+                 숫자)와 서로 다른 값이 또 나온다는 지적을 받아 blendedGapDays로 바꿨다 —
+                 예전에 "최근 20개 간격 추이" 차트의 점선 평균선도 같은 이유로 이미
+                 blendedGapDays로 통일해둔 적이 있어(주석 참고), 그 기준을 그대로 따른다.
+                 라벨도 "평소 업로드 주기"와 헷갈리지 않게 "평소 경과 시간"으로 달았다.
+                 색은 위 실시간 카운터(빨강)와 나란히 있을 때 옅은 빨강은 대비가 약해 잘
+                 안 보인다는 이 사이트의 반복된 지적(카톡 카드 등)과 같은 이유로, 대신
+                 옆 "마지막 업로드" 카드의 보조 줄과 같은 파랑(--key-deep)으로 맞춰
+                 두 카드의 보조 정보 색을 통일했다. -->
+            ${blendedGapDays != null ? `<div class="yt-core-stat-sub" style="color:var(--key-deep);font-weight:800">평소 경과 시간 ${esc(fmtGapPrecise(blendedGapDays))} (${esc(fmtGap(blendedGapDays))})</div>` : ''}
           </div>
         </div>`;
 
