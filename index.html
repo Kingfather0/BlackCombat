@@ -10452,10 +10452,31 @@
         guard++;
       }
     }
+    // "괄호 (1.0일)이 모바일에서 아래줄로 밀려서 두 줄이 된다, 한 줄에 넣을 방법 있냐"는
+    // 지적 반영(2026-08-27) — fitRowOneLine은 "한 행 안에 나란히 있는 여러 형제 요소"의
+    // 폭을 함께 줄여서 그 행 전체를 한 줄에 맞추는 용도라, 이 문장처럼 형제 요소 없이
+    // 한 덩어리 텍스트 자체가 길어서 줄바꿈되는 경우엔 맞지 않는다. 요소 자기 자신의
+    // 폰트만 줄여서 한 줄에 맞추는 유틸을 따로 만들었다 — 너무 좁은 화면이라 하한선
+    // (8px)까지 줄여도 안 들어가면, 어색하게 잘리는 것보다는 그냥 줄바꿈되게 둔다.
+    function fitTextOneLine(el) {
+      if (el.dataset.fitTextOrig === undefined) el.dataset.fitTextOrig = el.style.fontSize || '';
+      el.style.whiteSpace = 'nowrap';
+      el.style.fontSize = el.dataset.fitTextOrig;
+      let guard = 0;
+      while (el.scrollWidth > el.clientWidth + 1 && guard < 20) {
+        const size = parseFloat(getComputedStyle(el).fontSize);
+        if (size <= 7.5) { el.style.whiteSpace = ''; break; } // 7.5px = 하한선, 그래도 넘치면 줄바꿈 허용
+        el.style.fontSize = (size - 0.5) + 'px';
+        guard++;
+      }
+    }
     let __fitRowTimer = null;
     function initFitRowObserver() {
       if (!$app) return;
-      const run = () => { $app.querySelectorAll('.fit-row').forEach(fitRowOneLine); };
+      const run = () => {
+        $app.querySelectorAll('.fit-row').forEach(fitRowOneLine);
+        $app.querySelectorAll('.fit-text').forEach(fitTextOneLine);
+      };
       new MutationObserver(() => {
         clearTimeout(__fitRowTimer);
         __fitRowTimer = setTimeout(run, 30);
@@ -18848,7 +18869,13 @@
             <!-- "직전 영상 대비에도 평소 경과 시간처럼 괄호 안에 (1.9일)을 넣어달라"는
                  지적 반영(2026-08-27) — 아래 "평소 경과 시간" 줄과 같은 형식(fmtGap로
                  일 단위 환산)을 그대로 맞췄다. -->
-            ${gapStats.latest != null ? `<div class="yt-core-stat-sub" style="color:var(--key-deep);font-weight:800">직전 영상 대비 ${esc(fmtGapKorean(gapStats.latest))} (${esc(fmtGap(gapStats.latest))})</div>` : ''}
+            <!-- "괄호 (1.0일)이 모바일에서 아래줄로 밀린다, 한 줄에 넣어달라"는 지적
+                 반영(2026-08-27) — fitTextOneLine으로 폰트를 최대한 줄여도(8px 하한선)
+                 원래 문구("직전 영상 대비")는 좁은 화면 카드 폭(~120~130px)엔 여전히
+                 부족해서, 이 카드가 이미 "🕒 마지막 업로드" 맥락이라 뜻이 겹치는
+                 "영상"을 빼고 "직전 대비"로 줄이고, 괄호 앞 공백도 없앴다(둘 다 문구가
+                 아주 조금 짧아지지만 뜻은 그대로). -->
+            ${gapStats.latest != null ? `<div class="yt-core-stat-sub fit-text" style="color:var(--key-deep);font-weight:800">직전 대비 ${esc(fmtGapKorean(gapStats.latest))}(${esc(fmtGap(gapStats.latest))})</div>` : ''}
           </div>
           <div class="yt-core-stat">
             <div class="yt-core-stat-label">⏳ 경과 시간</div>
@@ -18865,7 +18892,10 @@
                  안 보인다는 이 사이트의 반복된 지적(카톡 카드 등)과 같은 이유로, 대신
                  옆 "마지막 업로드" 카드의 보조 줄과 같은 파랑(--key-deep)으로 맞춰
                  두 카드의 보조 정보 색을 통일했다. -->
-            ${blendedGapDays != null ? `<div class="yt-core-stat-sub" style="color:var(--key-deep);font-weight:800">평소 경과 시간 ${esc(fmtGapKorean(blendedGapDays))} (${esc(fmtGap(blendedGapDays))})</div>` : ''}
+            <!-- 위 "직전 대비"와 같은 이유(2026-08-27) — 바로 위 "⏳ 경과 시간" 라벨과
+                 "시간"이 겹치기도 하고, 원래 뜻(blendedGapDays = 평소 업로드 간격)에는
+                 "주기"가 더 정확한 표현이라 "평소 경과 시간"을 "평소 주기"로 줄였다. -->
+            ${blendedGapDays != null ? `<div class="yt-core-stat-sub fit-text" style="color:var(--key-deep);font-weight:800">평소 주기 ${esc(fmtGapKorean(blendedGapDays))}(${esc(fmtGap(blendedGapDays))})</div>` : ''}
           </div>
         </div>`;
 
