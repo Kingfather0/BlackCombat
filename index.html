@@ -13904,8 +13904,8 @@
           <button type="button" class="btn xs" onclick="toggleTkRevenue(this)">💰 예상 매출 보기 ▾</button>
           <div class="tk-rev-body" style="display:none">
             ${twoTier ? `
-            <div class="tk-rev-top"><span>💰 예상 매출(미분류 ${holdSeats.toLocaleString()}석 제외)</span><span class="tk-rev-sum" style="color:var(--text);font-size:15px;font-weight:800">${revNetSum.toLocaleString()}원</span></div>
-            <div class="tk-rev-top" style="margin-top:4px"><span>💰 예상 매출(미분류 포함 시 상한)</span><span class="tk-rev-sum" style="font-size:15px;font-weight:800">${revSum.toLocaleString()}원</span></div>` : `
+            <div class="tk-rev-top"><span>💰 예상 매출(미분류 포함 시 상한)</span><span class="tk-rev-sum" style="font-size:15px;font-weight:800">${revSum.toLocaleString()}원</span></div>
+            <div class="tk-rev-top" style="margin-top:4px"><span>💰 예상 매출(미분류 ${holdSeats.toLocaleString()}석 제외)</span><span class="tk-rev-sum" style="color:var(--text);font-size:15px;font-weight:800">${revNetSum.toLocaleString()}원</span></div>` : `
             <div class="tk-rev-top"><span>💰 예상 매출</span><span class="tk-rev-sum">${revSum.toLocaleString()}원</span></div>`}
             ${revRows.join('')}
             <div class="tk-rev-note">※ 좌석 등급별 정가 × 판매 수량 기준 추정 매출입니다.${twoTier ? (tkHoldsCfg && tkHoldsCfg.revNote || '') : ' 초대권·이벤트 티켓은 구분되지 않습니다.'}${skipped ? ' (총원/가격 정보가 없는 등급은 제외)' : ''}</div>
@@ -18827,6 +18827,15 @@
           <div class="yt-core-stat">
             <div class="yt-core-stat-label">⏳ 경과 시간</div>
             <div class="yt-core-stat-value accent" id="ytElapsedLiveWrap"><span id="ytElapsedH">00</span>:<span id="ytElapsedM">00</span>:<span id="ytElapsedS">00</span></div>
+            <!-- "경과 시간 항목 아래에 최근 n회 영상 기준 평균 경과 시간을 추가해달라,
+                 평소 업로드 주기 참고하면 되지 않겠냐"는 지적 반영(2026-08-27) — 바로 아래
+                 간격 통계 카드의 "평소 업로드 주기"(blendedGapDays, 최근 5/10/20회+전체
+                 가중평균)와 "최근 20개 간격 추이" 차트가 둘 다 최근 20회 창을 공유하는
+                 점에 맞춰, 여기서도 같은 최근 20회 평균(gap20)을 그대로 재사용했다 —
+                 화면 안에서 서로 다른 숫자가 또 나오는 걸 피하기 위함. 시:분:초와
+                 일 단위를 함께 보여줘서 위 실시간 카운터(시:분:초)와 바로 비교된다.
+                 20회 표본이 아직 안 쌓였으면(gap20 없음) 조용히 생략한다. -->
+            ${gap20 != null ? `<div class="yt-core-stat-sub" style="color:var(--key-deep);font-weight:800">최근 20회 평균 ${esc(fmtGapPrecise(gap20))} (${esc(fmtGap(gap20))})</div>` : ''}
           </div>
         </div>`;
 
@@ -18996,23 +19005,15 @@
         <div id="ytCycleDetail">${ytCycleGapDetailHTML(gaps[lastIdx], avgDays)}</div>`;
     }
 
-    // "그래프 점을 누르면 계속 열려 있는데, 여백이나 다른 곳 클릭하면 사라지게 해달라"는
-    // 지적 반영 — 차트 영역(.yt-gap-chart-wrap) 바깥을 클릭하면 상세를 닫는 리스너를
-    // 한 번만 등록한다(라우트를 옮겨 다녀도 document는 그대로라 중복 등록 방지 플래그로 막는다).
-    // "가장 최신 항목이 디폴트로 선택되어 있어야 한다"는 지적 반영(4번째 개선) — 바깥을
-    // 클릭하면 완전히 닫아버리는 대신, 디폴트 상태(가장 최근 항목 선택)로 되돌린다.
-    if (!window.__ytCycleDismissBound) {
-      window.__ytCycleDismissBound = true;
-      document.addEventListener('click', (e) => {
-        if (e.target.closest && e.target.closest('.yt-gap-chart-wrap')) return;
-        const gaps = window.__ytCycleGaps || [];
-        const box = document.getElementById('ytCycleDetail');
-        if (box && gaps.length) {
-          const lastIdx = gaps.length - 1;
-          if (window.__ytCycleSelIdx !== lastIdx) ytShowCycleInfo(lastIdx);
-        }
-      });
-    }
+    // "처음엔 최신 날짜 선택은 유지하되, 다른 날짜 선택 후 차트 밖(팝업 등)을 클릭해도
+    // 최신 날짜로 자동 이동하지 않게 해달라 — 다른 날짜 선택 후 팝업에서 밖으로 나가면
+    // 자꾸 최신 날짜로 선택돼서 불편하다"는 지적 반영. 예전엔 차트(.yt-gap-chart-wrap)
+    // 바깥을 클릭할 때마다 무조건 최신 항목으로 되돌렸는데, 상세 목록의 영상을 눌러 연
+    // 팝업(ytOpenVideoPreview)이 차트 바깥 DOM에 붙기 때문에 그 팝업을 닫으려고 바깥을
+    // 클릭하기만 해도 선택이 최신으로 튕겨버렸다. 이제 자동 되돌림 자체를 없앴다 — 처음
+    // 렌더될 때 최신 항목이 기본 선택되는 동작(ytCycleChartHTML의 lastIdx)은 그대로 두고,
+    // 선택을 바꾸는 유일한 방법은 차트에서 다른 날짜(또는 다시 최신 날짜)를 직접 누르는
+    // 것뿐이다.
 
     // "일찍 올림/늦게 올림 눌렀을 때 평균 대비 얼마나였는지 알면 인지하기 쉽겠다"는 지적
     // 반영 — 간격 자체(N일)뿐 아니라 그 평균(avgDays)보다 며칠 빠르거나 늦었는지도 같이 보여준다.
@@ -19026,7 +19027,16 @@
       const diffText = Math.abs(diff) < 0.1 ? '평균과 비슷해요'
         : diff > 0 ? `평균보다 <b>${fmtGapPrecise(Math.abs(diff))} 늦게</b> 올라왔어요` : `평균보다 <b>${fmtGapPrecise(Math.abs(diff))} 빠르게</b> 올라왔어요`;
       const extraNote = `이전 업로드 '${esc(prev.title)}'로부터 <b>${fmtGapPrecise(item.days)}</b> 만에 업로드됐어요 · ${diffText}`;
-      return `<div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px">${ytVideoRowHTML(v, extraNote)}</div>`;
+      // "간격추이에서 날짜 선택하면 보이는 직전 영상 대비 시간이랑, 그 영상을 클릭해서
+      // 여는 상세 팝업의 직전 영상 대비 시간이 서로 다르다"는 버그 지적 반영(2026-08-27).
+      // 원인: 이 목록 행의 짧은 "직전 영상 대비" 표시(ytVideoRowHTML의 gapNote)는 항상
+      // ytPrevGapNote(v)로 다시 계산했는데, 그건 이 차트가 쓰는 cycleRecent(쇼츠 제외
+      // 최근 20개)가 아니라 다른 화면(캘린더/히스토리)들과 공유하는 별도 목록
+      // (__ytAllVideosDesc, 쇼츠 포함)에서 "바로 이전 영상"을 다시 찾아 계산한 것이라
+      // item.days(이 차트가 이미 정확히 계산해둔 값)와 어긋날 수 있었다. 이제 이 차트에서
+      // 만든 행은 다시 계산하지 않고 item.days를 그대로 넘겨써서, 행에 보이는 숫자와
+      // 그 행을 눌러 여는 팝업의 숫자가 항상 똑같다.
+      return `<div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px">${ytVideoRowHTML(v, extraNote, item.days)}</div>`;
     }
 
     function ytShowCycleInfo(i) {
@@ -19068,14 +19078,20 @@
     }
     // "간격통계·업로드히스토리에서 여전히 카테고리(경기/컨텐츠 등)가 표시된다"는 지적
     // 반영(재요청) — 캘린더에서 이미 뺀 카테고리 구분을 이 공용 목록 행에서도 없앴다.
-    function ytVideoRowHTML(v, extraNote) {
+    function ytVideoRowHTML(v, extraNote, gapDaysOverride) {
       const idx = ytRegisterVideo(v, extraNote);
       // "간격 통계에서도 영상에 직전 영상 대비 00:00:00 표시해달라"는 지적 반영 —
       // 예전엔 extraNote(주기차트 상세의 "이전 업로드 '~'로부터 ~ 만에" 문장)가 있으면
       // 이 짧은 gapNote 줄을 아예 숨겨버려서, 정작 주기 차트 상세 목록(간격 통계)에서는
       // "직전 영상 대비" 줄이 보이지 않았다(그 문장은 행 안에는 안 찍히고, 클릭해서 여는
       // 모달에만 표시됐다). extraNote 유무와 상관없이 항상 짧은 gapNote를 보여준다.
-      const gapNote = ytPrevGapNote(v);
+      // "간격추이 날짜 선택 시 보이는 직전 영상 대비 시간과, 그 영상 클릭 시 팝업의
+      // 직전 영상 대비 시간이 다르다"는 버그 반영(2026-08-27) — 호출부(주기 차트)가
+      // 이미 정확한 간격(gapDaysOverride)을 알고 있을 때는 __ytAllVideosDesc 기준으로
+      // 다시 계산하는 ytPrevGapNote(v) 대신 그 값을 그대로 써서, 행과 팝업이 항상 같은
+      // 숫자를 보여주게 한다. 넘어오지 않으면(최근 업로드/캘린더 등 기존 호출부) 그대로
+      // ytPrevGapNote(v)를 쓴다.
+      const gapNote = gapDaysOverride != null ? `직전 영상 대비 ${fmtGapPrecise(gapDaysOverride)}` : ytPrevGapNote(v);
       // "모든 영상 리스트에 조회수도 표시해달라, 팬들은 조회수를 중요하게 본다"는
       // 지적 반영 — 날짜 옆에 " · "로 이어붙여서 한 줄에 같이 보여준다. 아직 조회수를
       // 못 받아온 옛 영상(view_count가 null)은 조용히 생략한다(0회처럼 잘못 보이지
