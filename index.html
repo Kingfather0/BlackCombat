@@ -19184,11 +19184,15 @@
       // 사이트 전역에서 쓰는 fmtGap(내림 반올림)을 써서 표시 방식이 달랐다 — 같은
       // fmtGap()으로 통일해 소수점 첫째 자리까지 항상 똑같이 보이게 했다. "— 위 간격
       // 통계와 같은 기준" 문구도 바깥 제목 통일로 더는 필요 없어 뺐다.
+      // "평소 업로드 주기가 살짝 아래에 배치돼 있는데 위로 올려달라 — 우측 '위=늦게
+      // 아래=빠르게'랑 동일한 라인에서 왼쪽에 정렬하면 될 것 같다"는 지적
+      // 반영(2026-08-27) — 두 줄로 나뉘어 있던 걸 한 줄(좌: 평소 업로드 주기, 우:
+      // 위=늦게 아래=빠르게)로 합쳤다.
       return `
-        <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:1px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1px">
+          <div class="note" style="font-size:9.5px;margin:0">점선 = 평소 업로드 주기(<b style="color:var(--key-deep)">${esc(fmtGap(avgDays))}</b>)</div>
           <div class="note" style="font-size:9.5px;margin:0">↕ 위=늦게 아래=빠르게</div>
         </div>
-        <div class="note" style="font-size:9.5px;margin:0 0 2px">점선 = 평소 업로드 주기(<b style="color:var(--key-deep)">${esc(fmtGap(avgDays))}</b>)</div>
         <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">
           <line x1="${PADX}" y1="${avgY}" x2="${W - PADX}" y2="${avgY}" stroke="var(--dim)" stroke-width="1" stroke-dasharray="4 3"></line>
           <polyline points="${pts}" fill="none" stroke="var(--key-deep)" stroke-width="2"></polyline>
