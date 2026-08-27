@@ -18833,7 +18833,22 @@
       // 이유가 이거다. 유력한 날이 경기 당일(event-day)일 때는 이 일반 시간대 추정을
       // 아예 붙이지 않는다.
       const showGenericHour = !(topDay.phase && topDay.phase.type === 'event-day');
-      const topPinpointText = `그중 가장 유력: ${isTop0 ? '오늘' : topDateText}${showGenericHour && hourText && !(isTop0 && hourPassedGrace) ? ` · ${hourText}경` : ''}${showGenericHour && isTop0 && hourPassedGrace ? ` · ${hourText} 예상 경과` : ''} — ${ytDayShortReason(topDay)}`;
+      // "'그중 가장 유력' 한 줄 대신, 유력 구간(rd)에 걸리는 날짜를 전부 줄바꿈해서
+      // 각각 보여달라"는 지적 반영(2026-08-27) — topDay 하나만 짚어주던 요약 줄을
+      // 없애고, 위에서 이미 구한 유력 구간(rd) 안의 모든 날짜를 한 줄씩 나열한다.
+      // 각 줄의 시간대 표기(hourText)와 "오늘" 라벨은 그 날짜 자신의 phase 기준으로
+      // 판단한다(topDay 기준 showGenericHour/isTop0을 그대로 재사용하면 다른 날짜에는
+      // 안 맞을 수 있어서 날짜별로 다시 계산).
+      const rangeDayLines = rd.map(d => {
+        const dIsToday = d === days[0];
+        const dDateText = dIsToday ? '오늘' : `${d.date.getMonth() + 1}월 ${d.date.getDate()}일 (${YT_DOW_LABEL[d.dow]})`;
+        const dShowGenericHour = !(d.phase && d.phase.type === 'event-day');
+        const dHourPassedGrace = dIsToday && hourPassedGrace;
+        const hourPart = dShowGenericHour && hourText
+          ? (dHourPassedGrace ? ` · ${hourText} 예상 경과` : ` · ${hourText}경`)
+          : '';
+        return `${dDateText}${hourPart} — ${ytDayShortReason(d)}`;
+      });
 
       // 매번 항상 보이는 문장 뭉치 대신, 상위 후보 요일의 근거만 기본으로 보여주고
       // 나머지 요일은 눌러야 근거가 뜨게 바꿨다 — "16%인데 눌러도 근거가 없다"는 지적은
@@ -18978,7 +18993,7 @@
             ${gaugeState.state ? `<button type="button" class="yt-pred-reason-btn ${gaugeState.stateCls}" onclick="ytTogglePredReason(event)" onmouseenter="ytShowPredReason()">${esc(gaugeState.state)} <span class="yt-pred-reason-arrow">▾</span></button>` : ''}
           </div>
           <div class="yt-pred-merged-headline">${esc(rangeHeadlineText)}</div>
-          <div class="yt-pred-merged-sub">${esc(topPinpointText)}</div>
+          <div class="yt-pred-merged-sub">${rangeDayLines.map(esc).join('<br>')}</div>
           ${ytRangeGaugeHTML(daysSinceLastPub, blendedGapDays, gapSigma, lastPub, reasonText)}
           <div id="ytPredReasonBox" class="yt-pred-reason-box" hidden>${reasonHTML}</div>
         </div>`;
