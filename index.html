@@ -18994,17 +18994,16 @@
       // "간격통계 항목에서 간격통계 텍스트를 최근 20개 간격 추이로 변경해달라"는 지적
       // 반영(2026-08-27) — 아래 차트 안에도 같은 뜻의 제목("최근 N개 간격 추이")이
       // 중복으로 있었는데, 그건 이 바깥 제목으로 통일하고 차트 안쪽 제목은 뺐다
-      // (ytCycleChartHTML 참고). 개수는 실제 표본(cycleRecent.length, 보통 20)을
-      // 그대로 쓴다.
+      // (ytCycleChartHTML 참고).
       // "20개는 업로드 개수인데 간격은 그보다 하나 적은(19개) 거라 20개 간격이라는
-      // 표현이 숫자가 안 맞는다"는 지적 반영(2026-08-27) — cycleRecent.length는
-      // 서버에서 받아온 "최근 업로드 개수"이지 차트에 찍히는 "간격 개수"(=업로드
-      // 개수-1)가 아니라서, "간격" 대신 "업로드"로 바꿔 숫자와 단위가 정확히
-      // 맞도록 했다.
+      // 표현이 숫자가 안 맞는다"는 지적 반영(2026-08-27) — 처음엔 "간격"을 "업로드"로
+      // 바꿔 숫자(cycleRecent.length)와 단위를 맞춰봤지만, 그래도 차트에 실제 찍히는
+      // 동그라미 개수(=업로드 개수-1)와 문구 속 숫자가 달라 보여 헷갈린다는 재지적을
+      // 받아, 아예 숫자를 빼고 "최근 업로드 추이"로 단순화했다.
       const gapStatsHTML = `
         <div class="yt-gap-stats">
           <div class="yt-gap-stats-head">
-            <span class="yt-gap-stats-title">최근 ${cycleRecent.length}개 업로드 추이</span>
+            <span class="yt-gap-stats-title">최근 업로드 추이</span>
             <span class="yt-gap-stats-sub">쇼츠 제외</span>
           </div>
           <div class="yt-gap-chart-wrap">${ytCycleChartHTML(cycleRecent, stats90, blendedGapDays)}</div>
@@ -19221,7 +19220,7 @@
       // 위=늦게 아래=빠르게)로 합쳤다.
       return `
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1px">
-          <div class="note" style="font-size:9.5px;margin:0">점선 = 평소 업로드 주기(<b style="color:var(--key-deep)">${esc(fmtGap(avgDays))}</b>)</div>
+          <div class="note" style="font-size:9.5px;margin:0">점선 = 평소 주기(<b style="color:var(--key-deep)">${esc(fmtGap(avgDays))}</b>)</div>
           <div class="note" style="font-size:9.5px;margin:0">↕ 위=늦게 아래=빠르게</div>
         </div>
         <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block">
