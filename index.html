@@ -18027,7 +18027,10 @@
       talk: { label: '컨텐츠', short: '컨텐츠', emoji: '🎉', color: '#7c3aed' },
       shorts: { label: 'Shorts', short: 'Shorts', emoji: '⚡', color: '#f59e0b' },
       'weigh-in': { label: '계체', short: '계체', emoji: '⚖️', color: '#16a34a' },
-      trailer: { label: '트레일러', short: '예고편', emoji: '🎬', color: '#0891b2' },
+      // "예고편이란게 트레일러라면 트레일러라고 표기하는게 맞다"는 지적 반영(2026-08-27) —
+      // short를 label과 다르게 "예고편"으로 따로 뒀던 게 오히려 헷갈림만 줬다(다른
+      // 카테고리는 전부 short===label). label과 통일했다.
+      trailer: { label: '트레일러', short: '트레일러', emoji: '🎬', color: '#0891b2' },
       'ticket-promo': { label: '티켓/직관', short: '티켓', emoji: '🎟️', color: '#ea580c' },
       'media-day': { label: '미디어데이', short: '미디어데이', emoji: '🍿', color: '#0d9488' },
     };
