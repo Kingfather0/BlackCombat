@@ -15813,7 +15813,7 @@
       const cd = countdownText(t.deadline);
 
       let html = `
-    <h1 class="page">${esc(t.title)} ${stateBadge(t)} <button type="button" id="tKkoBtn" class="kko-btn" onpointerdown="tKkoArm()" onclick="tKkoShareCard('${esc(t.id)}')" aria-label="카톡 공유" title="카톡 공유"></button></h1>
+    <h1 class="page">${esc(t.title)} ${stateBadge(t)} <button type="button" id="tKkoBtn" class="kko-btn" style="margin-left:auto" onpointerdown="tKkoArm()" onclick="tKkoShareCard('${esc(t.id)}')" aria-label="카톡 공유" title="카톡 공유"></button></h1>
     <div class="sub">
       🔒 ${fmtDT(t.deadline)} 마감
       ${cd ? ` &nbsp;·&nbsp; ${cdHTML(t.deadline)}` : ''}
@@ -18996,10 +18996,15 @@
       // 중복으로 있었는데, 그건 이 바깥 제목으로 통일하고 차트 안쪽 제목은 뺐다
       // (ytCycleChartHTML 참고). 개수는 실제 표본(cycleRecent.length, 보통 20)을
       // 그대로 쓴다.
+      // "20개는 업로드 개수인데 간격은 그보다 하나 적은(19개) 거라 20개 간격이라는
+      // 표현이 숫자가 안 맞는다"는 지적 반영(2026-08-27) — cycleRecent.length는
+      // 서버에서 받아온 "최근 업로드 개수"이지 차트에 찍히는 "간격 개수"(=업로드
+      // 개수-1)가 아니라서, "간격" 대신 "업로드"로 바꿔 숫자와 단위가 정확히
+      // 맞도록 했다.
       const gapStatsHTML = `
         <div class="yt-gap-stats">
           <div class="yt-gap-stats-head">
-            <span class="yt-gap-stats-title">최근 ${cycleRecent.length}개 간격 추이</span>
+            <span class="yt-gap-stats-title">최근 ${cycleRecent.length}개 업로드 추이</span>
             <span class="yt-gap-stats-sub">쇼츠 제외</span>
           </div>
           <div class="yt-gap-chart-wrap">${ytCycleChartHTML(cycleRecent, stats90, blendedGapDays)}</div>
