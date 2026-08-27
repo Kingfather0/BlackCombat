@@ -18083,21 +18083,12 @@
     // "직전 영상 대비 01:24:00만에 이런 식으로 시:분:초로 보여달라"는 지적 반영 —
     // "N일 N시간"처럼 단위 글자를 풀어쓰던 걸 시계 형태(HH:MM:SS)로 바꿨다. 하루가
     // 넘어가면 시(H) 자리가 24 이상으로 그냥 늘어난다(예: 30:15:42 = 1일 6시간 15분 42초).
-    function fmtGapPrecise(v) {
-      if (v == null) return '-';
-      const totalSec = Math.max(0, Math.round(v * 86400));
-      const h = Math.floor(totalSec / 3600);
-      const m = Math.floor((totalSec % 3600) / 60);
-      const s = totalSec % 60;
-      const pad = n => String(n).padStart(2, '0');
-      return `${pad(h)}:${pad(m)}:${pad(s)}`;
-    }
     // "00:00:00 처럼 콜론으로 된 것들을 00시간 00분 00초처럼 한글로 명확하게 일괄
     // 변경해달라"는 지적 반영(2026-08-27) — 페이지 안의 "경과/간격" 성격 시간 표시는
-    // 전부 이 포맷으로 통일한다. 콜론 표기(fmtGapPrecise)는 카카오톡 공유 카드
-    // (고정 폭 캔버스라 글자 수가 늘면 잘릴 위험이 있어 자동 축소 없이 그대로 쓰는 중)
-    // 전용으로만 남겨뒀다 — 카드 쪽도 한글로 바꾸고 싶으면 알려줘, 자동 축소를 붙여서
-    // 안전하게 바꿔줄게.
+    // 전부 이 포맷으로 통일한다. 처음엔 카카오톡 공유 카드(고정 폭 캔버스라 글자 수가
+    // 늘면 잘릴 위험)만 콜론 표기(옛 fmtGapPrecise)로 남겨뒀었는데, "카톡 썸네일에
+    // 경과 시간도 00시간 00분 00초로 바꿔달라"는 후속 요청으로 카드 쪽도 이 포맷 +
+    // gmFitFont() 자동 축소로 전환하면서 콜론 표기 함수 자체가 더는 안 쓰여 삭제했다.
     function fmtGapKorean(v) {
       if (v == null) return '-';
       const totalSec = Math.max(0, Math.round(v * 86400));
@@ -19787,7 +19778,11 @@
     // "카드 썸네일 상단에 다음 경기 대신 마지막 업로드 후 경과 시간을 보여달라"는 지적
     // 반영 — 카드를 열 때마다(공유 버튼을 누르는 그 순간) window.__ytLastPubMs(화면
     // 우측 상단 "경과 시간" 실시간 카운터와 같은 값)로 그 시점 경과 시간을 다시 계산해서
-    // 그린다. 형식도 화면의 "경과 시간" 패널과 같은 시:분:초(fmtGapPrecise).
+    // 그린다. 형식도 화면의 "경과 시간" 패널과 같은 "00시간 00분 00초"(fmtGapKorean) —
+    // "카톡 썸네일에 경과 시간 00:00:00로 나오는 부분도 00시간 00분 00초로 변경해줘"라는
+    // 지적 반영(2026-08-27). 콜론 표기(fmtGapPrecise)보다 글자 수가 늘어나 고정 폭
+    // 캔버스에서 잘릴 수 있으므로, 다른 카드 헤드라인(d.rangeHeadlineText)과 같은
+    // gmFitFont() 자동 축소를 여기도 적용해 넘치지 않게 했다.
     function ytDrawShareCard() {
       const d = window.__ytShareCard || {};
       const { c, x } = kkoCardBase('영상 캘린더', '블랙컴뱃 잡담방',
@@ -19816,8 +19811,10 @@
         const elapsedDays = Math.max(0, (Date.now() - window.__ytLastPubMs) / 86400000);
         x.fillStyle = '#1b2430'; x.font = '800 21px Pretendard, sans-serif';
         x.fillText('마지막 업로드 후 경과 시간', 48, y);
-        x.fillStyle = '#e11d48'; x.font = '900 46px Pretendard, sans-serif';
-        x.fillText(fmtGapPrecise(elapsedDays), 48, y + 52);
+        const elapsedText = fmtGapKorean(elapsedDays);
+        x.fillStyle = '#e11d48';
+        gmFitFont(x, elapsedText, 704, '900', 46, 26);
+        x.fillText(elapsedText, 48, y + 52);
         lastLineY = y + 52 + 40;
       }
       // "업로드 예측에 월요일 평균 수준 같은 건 제거하고 예측 날짜 사이 유력(파란색)
