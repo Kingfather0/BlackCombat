@@ -19705,7 +19705,7 @@
       // "캘린더가 주기분석보다 위에 있는 게 맞지 않냐"는 지적 반영 — 예측 카드 다음으로
       // 달력을 바로 보여주고, 보조 수치(요약칩·주기차트)는 그 아래로 내렸다.
       $app.innerHTML = `
-      <h1 class="page">영상 캘린더 <button type="button" id="ytKkoBtn" class="kko-btn" style="margin-left:auto" onpointerdown="ytKkoArm()" onclick="ytKkoShare()" aria-label="카톡 공유" title="카톡 공유"></button></h1>
+      <h1 class="page">영상 예측 캘린더 <button type="button" id="ytKkoBtn" class="kko-btn" style="margin-left:auto" onpointerdown="ytKkoArm()" onclick="ytKkoShare()" aria-label="카톡 공유" title="카톡 공유"></button></h1>
       <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://youtube.com/@${esc(YT_CHANNEL_HANDLE)}" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 유튜브</a> · 과거 패턴 기반 업로드 예측</div>
       ${ytPredictionHeroHTML(stats90, stats365, statsAll, nextEvent, lastEvent, leadTimes, milestone, eventDayStats, dowByContext, cycleRecent, leadTimeDetail, videos.length)}
       <details class="card yt-cal-details" style="margin-top:12px" open>
@@ -19842,7 +19842,7 @@
         const link = { mobileWebUrl: base + (o.path || ''), webUrl: base + (o.path || '') };
         Kakao.Share.sendDefault({
           objectType: 'feed',
-          // "초록 텍스트도 46px로" 요청으로 영상 캘린더 카드만 세로가 더 커져서(450),
+          // "초록 텍스트도 46px로" 요청으로 영상 예측 캘린더 카드만 세로가 더 커져서(450),
           // 카카오에 실제 이미지 크기를 정확히 알려줘야 미리보기가 안 찌그러진다 —
           // o.imageWidth/imageHeight로 카드별 실제 크기를 넘길 수 있게 하고, 안 넘기면
           // 기존 카드들과 동일하게 800×400을 그대로 쓴다(2026-08-27).
@@ -19897,7 +19897,7 @@
     // "초록색 '평소 업로드 주기' 텍스트도 파랑/빨강과 완전히 동일한 46px로 해달라"는
     // 지적 반영(2026-08-27) — 기존 400px 높이로는 세 줄(파랑·빨강·초록)을 전부 46px로
     // 채우면 하단 헤어라인/푸터와 겹쳐서 물리적으로 불가능했다. kkoCardBase()에 선택적
-    // height 인자를 추가해, 세로 공간이 더 필요한 카드(영상 캘린더)만 더 큰 높이를
+    // height 인자를 추가해, 세로 공간이 더 필요한 카드(영상 예측 캘린더)만 더 큰 높이를
     // 요청할 수 있게 했다 — 다른 카드(공지/티켓/승부예측 등)는 인자를 안 넘기면 그대로
     // 기존 400px을 쓰므로 영향 없다. 헤어라인/푸터 위치는 항상 "카드 하단에서부터의
     // 거리"(원래 400 기준 50px/26px)를 그대로 유지해서, 높이가 달라져도 하단 여백
@@ -19925,7 +19925,7 @@
       if (footerR) { x.textAlign = 'right'; x.fillText(footerR, 752, footerY); x.textAlign = 'left'; }
       return { c, x };
     }
-    // 영상 캘린더 공유 카드 — "최상단 카드에 카톡 버튼 추가해서 주요 내용 바로 발송하게
+    // 영상 예측 캘린더 공유 카드 — "최상단 카드에 카톡 버튼 추가해서 주요 내용 바로 발송하게
     // 해달라"는 지적 반영. ytPredictionHeroHTML()이 화면을 그릴 때마다 window.__ytShareCard에
     // 남겨두는 핵심 내용(다음 경기 일정 · 예측 헤드라인 · 마지막 업로드 시각)을 그대로
     // 카드에 그린다 — 화면에 보이는 것과 카드 내용이 항상 같은 소스에서 나오게 하기 위함.
@@ -19945,7 +19945,7 @@
       // 헤어라인까지 46px뿐인데 46px 폰트는 최소 90px 정도 필요). 이 카드만
       // kkoCardBase에 더 큰 높이(450)를 요청해서 세 줄이 전부 들어갈 공간을 확보한다.
       const CARD_H = 450;
-      const { c, x } = kkoCardBase('영상 캘린더', '블랙컴뱃 잡담방',
+      const { c, x } = kkoCardBase('영상 예측 캘린더', '블랙컴뱃 잡담방',
         new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' }), null, CARD_H);
       // "카톡 보냈을 때 텍스트가 잘 안 보인다"는 지적 반영(2026-08-26) — 라벨 텍스트를
       // 옅은 회색(#8a95a5)에서 검정(#1b2430)으로, 핵심 숫자(빨강/파랑)와 라벨 폰트 크기를
@@ -20015,7 +20015,7 @@
         const imageUrl = await kkoConsumePreload(btn, () => ytDrawShareCard());
         const d = window.__ytShareCard;
         const ok = imageUrl && kkoSendShare(imageUrl, {
-          title: d.nextEvent ? `📅 ${d.nextEvent.title}` : '📺 영상 캘린더',
+          title: d.nextEvent ? `📅 ${d.nextEvent.title}` : '📺 영상 예측 캘린더',
           desc: d.rangeHeadlineText || '업로드 예측을 확인해보세요',
           btnText: '영상 예측 캘린더 보기',
           path: '#/videos',
@@ -26161,7 +26161,7 @@
         <button class="btn small" onclick="editDeadline('${t.id}')">일정 변경</button>
         <button class="btn small" onclick="openMatchEdit('${t.id}')">대진 수정</button>
         <button class="btn small" onclick="openMembers('${t.id}')">참가자 관리</button>
-        <button class="btn small" onclick="setOfficialSeq('${t.id}', ${t.official_event_seq != null ? t.official_event_seq : 'null'})" title="공식 홈페이지(blackcombat-official.com) 경기 상세 페이지 번호 — 영상 캘린더의 경기 마커 클릭 시 이 번호로 이동합니다">🔗 공식 링크</button>
+        <button class="btn small" onclick="setOfficialSeq('${t.id}', ${t.official_event_seq != null ? t.official_event_seq : 'null'})" title="공식 홈페이지(blackcombat-official.com) 경기 상세 페이지 번호 — 영상 예측 캘린더의 경기 마커 클릭 시 이 번호로 이동합니다">🔗 공식 링크</button>
         <button class="btn small" style="color:#ff8b93" onclick="delTournament('${t.id}',
           '${esc(t.title).replace(/'/g, "\\'")}')">삭제</button>
       </div>
@@ -26175,7 +26175,7 @@
     }
     // "캘린더 경기 마커를 누르면 우리 사이트 투표 페이지 말고, 공식 홈페이지
     // (blackcombat-official.com)의 그 경기 상세 페이지로 이동하게 해달라"는 지적 반영 —
-    // 대회마다 공식 홈페이지의 eventSeq 번호를 관리자가 직접 입력해두면, 영상 캘린더의
+    // 대회마다 공식 홈페이지의 eventSeq 번호를 관리자가 직접 입력해두면, 영상 예측 캘린더의
     // 빨간 점을 클릭했을 때 그 번호로 외부 링크를 연다(ytOpenEventDay 참고).
     async function setOfficialSeq(tid, cur) {
       const v = prompt('공식 홈페이지 경기 번호(eventSeq)를 입력하세요.\n예: https://www.blackcombat-official.com/eventDetail.php?eventSeq=293 → 293\n비워두고 확인을 누르면 연결을 해제합니다.', cur != null ? String(cur) : '');
