@@ -18309,7 +18309,22 @@
             if (!lowSample) weight = Math.max(0.5, Math.min(2.2, ratio));
             evidence = { ratio, n: evMatch.n_events, lowSample };
           }
-          return { type: 'event-day', label: '경기 당일', weight, event: nextEvent, evidence };
+          // "계체량 영상은 경기 전날 거의 확정적으로 올라오는데 왜 얘기가 없냐"는 지적을
+          // 실측으로 확인해보니(2026-08-27, yt_get_event_lead_times 실제 결과: weigh-in
+          // n=18, median_days_before=0.2) — 계체는 사실 "D-1(하루 전)"이 아니라 "경기
+          // 당일"에 훨씬 더 가깝게(평균 0.2일 = 몇 시간 전) 올라오고 있었다. 그런데
+          // diff===0(경기 당일)인 이 분기는 원래 매치업(경기) 카테고리의 eventDayStats만
+          // 보고 pre_event 카테고리(트레일러/계체 등)는 아예 확인하지 않아서, median이
+          // 0에 가까운 계체 같은 카테고리가 D-1 폭(diff=1, dist=0.8)에도 못 들고 경기
+          // 당일 폭에서도 확인되지 않아 완전히 누락됐다 — 경기 당일도 pre_event 후보를
+          // 같이 찾아서 놓치지 않게 한다.
+          let secondaryCats = [];
+          if (leadTimes && leadTimes.pre_event) {
+            secondaryCats = ytFindPhaseCandidates(YT_PRE_EVENT_CATS, leadTimes.pre_event, 0, 'median_days_before')
+              .slice(0, 2).map(c => ({ cat: c.cat, ...ytCatMeta(c.cat) }));
+          }
+          const comboSuffix = secondaryCats.length ? ` · ${secondaryCats.map(c => c.label).join(' · ')} 가능성` : '';
+          return { type: 'event-day', label: `경기 당일${comboSuffix}`, weight, event: nextEvent, evidence, secondaryCats };
         }
         if (diff > 0 && leadTimes && leadTimes.pre_event) {
           // 여러 카테고리가 같은 날짜 후보에 걸치면(예: 티켓/직관은 D-0~3처럼 넓게 퍼져 있고
@@ -18406,14 +18421,17 @@
       if (d.phase) {
         if (d.phase.type === 'event-day') {
           const ev = d.phase.evidence;
+          // "계체가 실제로는 경기 당일에 가깝다"는 실측 반영(위 ytEventPhase 주석 참고) —
+          // 경기 당일에도 근접한 사전 예고성 카테고리(계체 등)가 있으면 같이 보여준다.
+          const comboShort = (d.phase.secondaryCats || []).map(c => ` · ${c.label} 가능성`).join('');
           if (!ev) {
-            lines.push('경기 당일 · 실측 데이터 없음');
+            lines.push(`경기 당일${comboShort} · 실측 데이터 없음`);
           } else if (ev.lowSample) {
-            lines.push(`경기 당일 · 과거 ${ev.n}회 평균 ${ev.ratio}배 (표본 적음)`);
+            lines.push(`경기 당일${comboShort} · 과거 ${ev.n}회 평균 ${ev.ratio}배 (표본 적음)`);
           } else {
-            lines.push(ev.ratio >= 1.1 ? `경기 당일 · 과거 ${ev.n}회 평균보다 ${ev.ratio}배 많이 올라왔어요`
-              : ev.ratio <= 0.9 ? `경기 당일 · 과거 ${ev.n}회 평균보다 ${Math.round((1 - ev.ratio) * 100)}% 적게 올라왔어요`
-                : `경기 당일 · 과거 ${ev.n}회 평균과 비슷해요`);
+            lines.push(ev.ratio >= 1.1 ? `경기 당일${comboShort} · 과거 ${ev.n}회 평균보다 ${ev.ratio}배 많이 올라왔어요`
+              : ev.ratio <= 0.9 ? `경기 당일${comboShort} · 과거 ${ev.n}회 평균보다 ${Math.round((1 - ev.ratio) * 100)}% 적게 올라왔어요`
+                : `경기 당일${comboShort} · 과거 ${ev.n}회 평균과 비슷해요`);
           }
         } else {
           lines.push(d.phase.label);
@@ -18442,15 +18460,18 @@
       if (d.phase) {
         if (d.phase.type === 'event-day') {
           const ev = d.phase.evidence;
-          if (!ev) return '경기 당일 · 실측 없음';
-          if (ev.lowSample) return `경기 당일 · 표본 ${ev.n}회뿐`;
+          // "계체가 실제로는 경기 당일에 가깝다"는 실측 반영 — 위 ytDayEvidenceLines와
+          // 동일하게 근접 카테고리를 짧은 버전에도 붙인다.
+          const comboShort = (d.phase.secondaryCats || []).map(c => ` · ${c.label} 가능성`).join('');
+          if (!ev) return `경기 당일${comboShort} · 실측 없음`;
+          if (ev.lowSample) return `경기 당일${comboShort} · 표본 ${ev.n}회뿐`;
           // "比 한자 대신 한글로 써달라"는 지적 반영.
           // "'평소 대비 1.2배'가 무슨 말이냐"는 지적 반영 — 뭐가 1.2배인지 주어가 빠져
           // 있었다. 이 배수는 "경기 당일에 평소 하루 평균보다 영상이 몇 배 더/덜
           // 올라왔는지"(yt_get_event_day_stats 실측)를 뜻한다 — 그 주어를 문장에 그대로 넣는다.
-          return ev.ratio >= 1.1 ? `경기 당일 · 평소보다 영상이 ${ev.ratio}배 많이 올라와요`
-            : ev.ratio <= 0.9 ? `경기 당일 · 평소보다 영상이 적게 올라와요`
-              : '경기 당일 · 평소와 비슷하게 올라와요';
+          return ev.ratio >= 1.1 ? `경기 당일${comboShort} · 평소보다 영상이 ${ev.ratio}배 많이 올라와요`
+            : ev.ratio <= 0.9 ? `경기 당일${comboShort} · 평소보다 영상이 적게 올라와요`
+              : `경기 당일${comboShort} · 평소와 비슷하게 올라와요`;
         }
         const meta = ytCatMeta(d.phase.cat);
         // dist≤1.5 폭 안에서 며칠이 같은 카테고리로 묶이면 예전엔 그 며칠 모두 완전히 똑같은
@@ -19858,11 +19879,19 @@
       // 후속 지적으로 한 단계 더 어두운 초록(#15803d)으로 바꿨다.
       // "괄호안에 1.8일 이것도 함께추가해줘"는 지적 반영 — 화면의 "평소 주기" 줄과 같은
       // 형식(fmtGap로 일 단위 환산 괄호)을 그대로 맞췄다.
+      // "평소 업로드 주기를 위에 업로드 예측과 동일한 텍스크기와 폰트와 컬러(검정)로하고
+      // 그 아래에 시간 분 초(일) 출력해줄수있냐"는 지적 반영(2026-08-27) — 라벨과
+      // 값을 한 줄에 같이 넣던 걸, 위 "업로드 예측"(검정, 800 19px)과 완전히 같은
+      // 스타일의 검정 라벨 줄 + 그 아래 초록 값 줄, 두 줄로 나눴다. 다만 이 라벨 아래
+      // 남은 세로 공간이 footer 헤어라인(y=350)까지 46px뿐이라, 값 폰트는 46px가 아닌
+      // 더 작은 크기(최대 22px)로 gmFitFont를 걸어 안 겹치게 했다.
       if (d.blendedGapDays != null) {
-        const cycleText = `평소 업로드 주기: ${fmtGapKorean(d.blendedGapDays)} (${fmtGap(d.blendedGapDays)})`;
+        x.fillStyle = '#1b2430'; x.font = '800 19px Pretendard, sans-serif';
+        x.fillText('평소 업로드 주기', 48, lastLineY);
+        const cycleText = `${fmtGapKorean(d.blendedGapDays)} (${fmtGap(d.blendedGapDays)})`;
         x.fillStyle = '#15803d';
-        gmFitFont(x, cycleText, 704, '800', 28, 18);
-        x.fillText(cycleText, 48, lastLineY);
+        gmFitFont(x, cycleText, 704, '800', 22, 14);
+        x.fillText(cycleText, 48, lastLineY + 27);
       }
       return c;
     }
