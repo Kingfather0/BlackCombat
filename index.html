@@ -10258,6 +10258,23 @@
       margin-top: 14px
     }
 
+    /* "앞으로 7일쪽은 배경이 흰색이고 위에 다른항목들은 배경이 약간 그레이인데 디자인적으로
+       어떻게생각하냐"는 지적 반영(2026-08-27) — 위 "경과 시간"/"업로드 예측"/"간격 통계"
+       박스들과 톤을 맞추기 위해 "앞으로 7일" 제목+날짜 스트립+상세 박스 전체를 같은
+       연한 회색-파랑(var(--card2)) 패널로 감싼다. 패널 안에서는 .yt-week-prob-head의
+       기존 margin-top(14px, 위 형제와의 간격용)이 이중으로 남지 않도록 0으로 없앤다. */
+    .yt-week-prob-panel {
+      margin-top: 12px;
+      padding: 13px 14px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 14px
+    }
+
+    .yt-week-prob-panel .yt-week-prob-head {
+      margin-top: 0
+    }
+
     .yt-week-prob-title {
       font-size: 12.5px;
       font-weight: 800;
@@ -10269,10 +10286,13 @@
       color: var(--muted)
     }
 
+    /* 개별 날짜 카드(.yt-prob-day)는 흰색 그대로 유지해서 회색 패널 위에서 버튼처럼
+       도드라지게 하고, 그 아래 근거 상세 박스만 흰색으로 바꿔 패널 안에 중첩된
+       하얀 박스로 보이게 한다(.yt-pred-merged 안의 .yt-pred-reason-box와 같은 패턴). */
     .yt-pred-detail {
       font-size: 11.5px;
       color: var(--text);
-      background: var(--card2);
+      background: #fff;
       border-radius: 10px;
       padding: 9px 11px;
       margin-top: 10px;
@@ -12439,7 +12459,7 @@
       const hm = t => new Date(t).toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
       const durMin = Math.round(ev.intervalH * 60);
       const durStr = ev.intervalH > 1.05 ? `${Math.round(ev.intervalH)}시간` : (durMin < 55 ? `${durMin}분` : '1시간');
-      const l1 = `⚡ ${dateStr} ${hm(ev.tPrev)}~${hm(ev.tCur)} · 잔여석 ${durStr} 새 ${ev.drop.toLocaleString()}석 급감(대량 구매·발권 추정)`;
+      const l1 = `⚡ ${dateStr} ${hm(ev.tPrev)}~${hm(ev.tCur)} · 잔여석 ${durStr} 새 ${ev.drop.toLocaleString()}석 급감`;
       if (brief) return l1;
       const gLabel = k => /석/.test(k) ? k : k + '석';
       const l2 = ev.gradeDrops.length ? `· ${ev.gradeDrops.map(g => `${gLabel(g.k)} -${g.n.toLocaleString()}석`).join(', ')}` : '';
@@ -13699,7 +13719,7 @@
         const recent = fresh.slice(-1);
         const olderCnt = allBulkEvents.length - recent.length;
         return recent.map(ev => `<div class="tk-bulk-alert">${esc(tkBulkAlertText(ev))}</div>`).join('')
-          + (olderCnt > 0 ? `<div class="sub" style="margin-top:5px;font-size:11px;color:var(--dim)">이 외 급감 의심 ${olderCnt}건 — 아래 판매 추이(10분 간격)의 ⚡ 점에서 확인할 수 있습니다.</div>` : '');
+          + (olderCnt > 0 ? `<div class="sub" style="margin-top:5px;font-size:11px;color:var(--dim)">이 외 급감 ${olderCnt}건 — 아래 판매 추이(10분 간격)의 ⚡ 점에서 확인할 수 있습니다.</div>` : '');
       })() : '';
       // "판매 대상"과 "전체 좌석"이 다른(=판매 대상이 아닌 좌석이 있는) 회차가 하나라도 있을 때만
       // "ⓘ 좌석 기준" 토글을 보여준다 — 둘이 같으면 안내할 차이가 없으므로 굳이 노출하지 않는다.
@@ -18042,6 +18062,21 @@
       const pad = n => String(n).padStart(2, '0');
       return `${pad(h)}:${pad(m)}:${pad(s)}`;
     }
+    // "00:00:00 처럼 콜론으로 된 것들을 00시간 00분 00초처럼 한글로 명확하게 일괄
+    // 변경해달라"는 지적 반영(2026-08-27) — 페이지 안의 "경과/간격" 성격 시간 표시는
+    // 전부 이 포맷으로 통일한다. 콜론 표기(fmtGapPrecise)는 카카오톡 공유 카드
+    // (고정 폭 캔버스라 글자 수가 늘면 잘릴 위험이 있어 자동 축소 없이 그대로 쓰는 중)
+    // 전용으로만 남겨뒀다 — 카드 쪽도 한글로 바꾸고 싶으면 알려줘, 자동 축소를 붙여서
+    // 안전하게 바꿔줄게.
+    function fmtGapKorean(v) {
+      if (v == null) return '-';
+      const totalSec = Math.max(0, Math.round(v * 86400));
+      const h = Math.floor(totalSec / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = totalSec % 60;
+      const pad = n => String(n).padStart(2, '0');
+      return `${pad(h)}시간 ${pad(m)}분 ${pad(s)}초`;
+    }
 
     // "모든 영상 리스트에 조회수도 표시해달라 — 팬들은 조회수를 중요하게 본다"는 지적
     // 반영 — 만/억 단위로 축약해서 보여주는 한국어 관용 표기(예: 12,345 → "1.2만회",
@@ -18791,11 +18826,14 @@
           <div class="yt-core-stat">
             <div class="yt-core-stat-label">🕒 마지막 업로드</div>
             <div class="yt-core-stat-value">${lastPubAbsText || '-'}</div>
-            ${gapStats.latest != null ? `<div class="yt-core-stat-sub" style="color:var(--key-deep);font-weight:800">직전 영상 대비 ${esc(fmtGapPrecise(gapStats.latest))}</div>` : ''}
+            <!-- "직전 영상 대비에도 평소 경과 시간처럼 괄호 안에 (1.9일)을 넣어달라"는
+                 지적 반영(2026-08-27) — 아래 "평소 경과 시간" 줄과 같은 형식(fmtGap로
+                 일 단위 환산)을 그대로 맞췄다. -->
+            ${gapStats.latest != null ? `<div class="yt-core-stat-sub" style="color:var(--key-deep);font-weight:800">직전 영상 대비 ${esc(fmtGapKorean(gapStats.latest))} (${esc(fmtGap(gapStats.latest))})</div>` : ''}
           </div>
           <div class="yt-core-stat">
             <div class="yt-core-stat-label">⏳ 경과 시간</div>
-            <div class="yt-core-stat-value accent" id="ytElapsedLiveWrap"><span id="ytElapsedH">00</span>:<span id="ytElapsedM">00</span>:<span id="ytElapsedS">00</span></div>
+            <div class="yt-core-stat-value accent" id="ytElapsedLiveWrap"><span id="ytElapsedH">00</span>시간 <span id="ytElapsedM">00</span>분 <span id="ytElapsedS">00</span>초</div>
             <!-- "경과 시간 항목 아래에 최근 n회 영상 기준 평균 경과 시간을 추가해달라"는
                  지적 반영(2026-08-27). 처음엔 최근 20회 단순평균(gap20)을 썼는데, 그러면
                  바로 아래 간격 통계 카드의 "평소 업로드 주기"(blendedGapDays — 최근
@@ -18808,7 +18846,7 @@
                  안 보인다는 이 사이트의 반복된 지적(카톡 카드 등)과 같은 이유로, 대신
                  옆 "마지막 업로드" 카드의 보조 줄과 같은 파랑(--key-deep)으로 맞춰
                  두 카드의 보조 정보 색을 통일했다. -->
-            ${blendedGapDays != null ? `<div class="yt-core-stat-sub" style="color:var(--key-deep);font-weight:800">평소 경과 시간 ${esc(fmtGapPrecise(blendedGapDays))} (${esc(fmtGap(blendedGapDays))})</div>` : ''}
+            ${blendedGapDays != null ? `<div class="yt-core-stat-sub" style="color:var(--key-deep);font-weight:800">평소 경과 시간 ${esc(fmtGapKorean(blendedGapDays))} (${esc(fmtGap(blendedGapDays))})</div>` : ''}
           </div>
         </div>`;
 
@@ -18874,28 +18912,32 @@
         ${predMergedHTML}
         ${gapStatsHTML}
         ${showGenericHour && isTop0 && hourPassedGrace ?`<div class="yt-pred-hero-alert">⏰ ${esc(hourText)}경 예상이 지났는데 아직 업로드가 없어요 — 이후 업로드 사례는 ${hourAfterPct}%(${hourAfterCount}건)뿐이에요.</div>` : ''}
-        <!-- "요일별 확률이 무슨 기준이냐, 소제목 있으면 좋겠다"는 지적 반영 — 이 구간이
-             정확히 뭘 보여주는 건지 이름표를 달아준다. 계산 기준도 요일 빈도 위주에서
-             간격 통계(마지막 업로드 후 경과일 분포) 위주로 바뀐 걸 반영했다. -->
-        <div class="yt-week-prob-head">
-          <span class="yt-week-prob-title">앞으로 7일, 업로드 확률</span>
-          <span class="yt-week-prob-sub">탭하면 날짜별 근거를 볼 수 있어요</span>
+        <!-- "앞으로 7일쪽 배경이 흰색이라 위 항목들이랑 안 맞는다"는 지적 반영(2026-08-27) —
+             제목+날짜 스트립+상세 박스를 .yt-week-prob-panel(회색-파랑)로 함께 감싼다. -->
+        <div class="yt-week-prob-panel">
+          <!-- "요일별 확률이 무슨 기준이냐, 소제목 있으면 좋겠다"는 지적 반영 — 이 구간이
+               정확히 뭘 보여주는 건지 이름표를 달아준다. 계산 기준도 요일 빈도 위주에서
+               간격 통계(마지막 업로드 후 경과일 분포) 위주로 바뀐 걸 반영했다. -->
+          <div class="yt-week-prob-head">
+            <span class="yt-week-prob-title">앞으로 7일, 업로드 확률</span>
+            <span class="yt-week-prob-sub">탭하면 날짜별 근거를 볼 수 있어요</span>
+          </div>
+          <!-- "요일 카드 아래 항상 켜진 설명 목록이 화면만 길게 만든다"는 지적 반영 — 7줄
+               전부를 상시 노출하던 목록을 없애고, 탭하거나(모바일) 마우스를 올리면(데스크톱)
+               그 날짜 근거만 아래 상세 박스에 뜨도록 단순화했다. -->
+          <div class="yt-prob-strip">
+            ${days.map((d, i) => `
+              <div id="ytProbDay-${i}" class="yt-prob-day${d.phase?.type === 'event-day' ? ' event-day' : ''}${i === 0 ? ' sel' : ''}" onclick="ytShowDayEvidence(${i})" onmouseenter="ytShowDayEvidence(${i})">
+                <div class="yt-prob-icon">${d.phase?.type === 'event-day' ? '🔴' : (d.phase?.icon || (d.milestoneBoost ? '📌' : ''))}</div>
+                <div class="yt-prob-dow">${YT_DOW_LABEL[d.dow]}</div>
+                <div class="yt-prob-date">${d.date.getDate()}</div>
+                <div class="yt-prob-pct">${d.pct}%</div>
+                <div class="yt-prob-bar-track"><div class="yt-prob-bar-fill" style="width:${d.pct}%"></div></div>
+                ${d.phase?.type === 'event-day' ? `<div class="yt-prob-live">LIVE</div>` : ''}
+              </div>`).join('')}
+          </div>
+          <div id="ytPredDetail" class="yt-pred-detail">${defaultDetailHTML}</div>
         </div>
-        <!-- "요일 카드 아래 항상 켜진 설명 목록이 화면만 길게 만든다"는 지적 반영 — 7줄
-             전부를 상시 노출하던 목록을 없애고, 탭하거나(모바일) 마우스를 올리면(데스크톱)
-             그 날짜 근거만 아래 상세 박스에 뜨도록 단순화했다. -->
-        <div class="yt-prob-strip">
-          ${days.map((d, i) => `
-            <div id="ytProbDay-${i}" class="yt-prob-day${d.phase?.type === 'event-day' ? ' event-day' : ''}${i === 0 ? ' sel' : ''}" onclick="ytShowDayEvidence(${i})" onmouseenter="ytShowDayEvidence(${i})">
-              <div class="yt-prob-icon">${d.phase?.type === 'event-day' ? '🔴' : (d.phase?.icon || (d.milestoneBoost ? '📌' : ''))}</div>
-              <div class="yt-prob-dow">${YT_DOW_LABEL[d.dow]}</div>
-              <div class="yt-prob-date">${d.date.getDate()}</div>
-              <div class="yt-prob-pct">${d.pct}%</div>
-              <div class="yt-prob-bar-track"><div class="yt-prob-bar-fill" style="width:${d.pct}%"></div></div>
-              ${d.phase?.type === 'event-day' ? `<div class="yt-prob-live">LIVE</div>` : ''}
-            </div>`).join('')}
-        </div>
-        <div id="ytPredDetail" class="yt-pred-detail">${defaultDetailHTML}</div>
         ${noteParts.length ? `<div class="yt-pred-note">${noteParts.join('<br>')}</div>` : ''}
       </div>`;
     }
@@ -18998,8 +19040,8 @@
       const v = item.video, prev = item.prev;
       const diff = Math.round((item.days - avgDays) * 10) / 10;
       const diffText = Math.abs(diff) < 0.1 ? '평균과 비슷해요'
-        : diff > 0 ? `평균보다 <b>${fmtGapPrecise(Math.abs(diff))} 늦게</b> 올라왔어요` : `평균보다 <b>${fmtGapPrecise(Math.abs(diff))} 빠르게</b> 올라왔어요`;
-      const extraNote = `이전 업로드 '${esc(prev.title)}'로부터 <b>${fmtGapPrecise(item.days)}</b> 만에 업로드됐어요 · ${diffText}`;
+        : diff > 0 ? `평균보다 <b>${fmtGapKorean(Math.abs(diff))} 늦게</b> 올라왔어요` : `평균보다 <b>${fmtGapKorean(Math.abs(diff))} 빠르게</b> 올라왔어요`;
+      const extraNote = `이전 업로드 '${esc(prev.title)}'로부터 <b>${fmtGapKorean(item.days)}</b> 만에 업로드됐어요 · ${diffText}`;
       // "간격추이에서 날짜 선택하면 보이는 직전 영상 대비 시간이랑, 그 영상을 클릭해서
       // 여는 상세 팝업의 직전 영상 대비 시간이 서로 다르다"는 버그 지적 반영(2026-08-27).
       // 원인: 이 목록 행의 짧은 "직전 영상 대비" 표시(ytVideoRowHTML의 gapNote)는 항상
@@ -19047,7 +19089,7 @@
       if (!(days > 0)) return null;
       // "직전 대비 00:00:00 만에 — 뒤에 동사 없이 '만에'로 끝나니 어색하다"는 지적
       // 반영 — 문장이 아니라 라벨이라 뒤에 이어지는 말이 없어서 "만에"를 뺐다.
-      return `직전 영상 대비 ${fmtGapPrecise(days)}`;
+      return `직전 영상 대비 ${fmtGapKorean(days)}`;
     }
     // "간격통계·업로드히스토리에서 여전히 카테고리(경기/컨텐츠 등)가 표시된다"는 지적
     // 반영(재요청) — 캘린더에서 이미 뺀 카테고리 구분을 이 공용 목록 행에서도 없앴다.
@@ -19064,7 +19106,7 @@
       // 다시 계산하는 ytPrevGapNote(v) 대신 그 값을 그대로 써서, 행과 팝업이 항상 같은
       // 숫자를 보여주게 한다. 넘어오지 않으면(최근 업로드/캘린더 등 기존 호출부) 그대로
       // ytPrevGapNote(v)를 쓴다.
-      const gapNote = gapDaysOverride != null ? `직전 영상 대비 ${fmtGapPrecise(gapDaysOverride)}` : ytPrevGapNote(v);
+      const gapNote = gapDaysOverride != null ? `직전 영상 대비 ${fmtGapKorean(gapDaysOverride)}` : ytPrevGapNote(v);
       // "모든 영상 리스트에 조회수도 표시해달라, 팬들은 조회수를 중요하게 본다"는
       // 지적 반영 — 날짜 옆에 " · "로 이어붙여서 한 줄에 같이 보여준다. 아직 조회수를
       // 못 받아온 옛 영상(view_count가 null)은 조용히 생략한다(0회처럼 잘못 보이지
