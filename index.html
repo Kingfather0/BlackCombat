@@ -18475,14 +18475,13 @@
         }
         const meta = ytCatMeta(d.phase.cat);
         // dist≤1.5 폭 안에서 며칠이 같은 카테고리로 묶이면 예전엔 그 며칠 모두 완전히 똑같은
-        // 문장("트레일러 유력")을 찍어서 "다른 날짜인데 왜 같은 말이냐"는 지적을 받았다 —
-        // 이 날짜 고유의 D-n/D+n을 반드시 붙여서 날짜마다 다르게 보이게 한다.
-        const dTag = d.phase.type === 'pre-event-cat' ? `D-${d.phase.diff}` : `D+${d.phase.diff}`;
-        // "D-1에 '계체 유력 · 트레일러 가능성' 이런 식으로 같이 표시해달라"는 지적
-        // 반영(2026-08-27) — 긴 근거 문구(label)와 같은 다른 후보 카테고리를 짧은 버전
-        // 에도 붙인다.
+        // 문장("트레일러 유력")을 찍어서 "다른 날짜인데 왜 같은 말이냐"는 지적을 받아서
+        // D-n/D+n 태그를 붙였었는데, 이제는 같은 카테고리인 연속 날짜를 아예 한 줄(날짜
+        // 구간)로 합쳐서 보여주므로 그 문제 자체가 사라졌다. "D-1/D-2가 헷갈린다"는
+        // 지적 반영(2026-08-27)으로 D-n/D+n 태그는 완전히 뺐다 — 날짜 자체(예: "8월
+        // 27일 (목)")가 이미 구분자 역할을 한다.
         const comboShort = (d.phase.secondaryCats || []).map(c => ` · ${c.short} 가능성`).join('');
-        return (d.phase.lowSample ? `${meta.short} 가능성${comboShort} ${dTag}(표본 적음)` : `${meta.short} 유력${comboShort} ${dTag}`);
+        return (d.phase.lowSample ? `${meta.short} 가능성${comboShort}(표본 적음)` : `${meta.short} 유력${comboShort}`);
       }
       if (d.dowPct == null) return '데이터 부족';
       if (d.dowPct >= 20) return `${YT_DOW_LABEL[d.dow]}요일 잦은 편`;
@@ -18839,15 +18838,48 @@
       // 각 줄의 시간대 표기(hourText)와 "오늘" 라벨은 그 날짜 자신의 phase 기준으로
       // 판단한다(topDay 기준 showGenericHour/isTop0을 그대로 재사용하면 다른 날짜에는
       // 안 맞을 수 있어서 날짜별로 다시 계산).
-      const rangeDayLines = rd.map(d => {
-        const dIsToday = d === days[0];
-        const dDateText = dIsToday ? '오늘' : `${d.date.getMonth() + 1}월 ${d.date.getDate()}일 (${YT_DOW_LABEL[d.dow]})`;
-        const dShowGenericHour = !(d.phase && d.phase.type === 'event-day');
+      // "트레일러가 median=1.5일이라 D-1·D-2 거리가 정확히 0.5로 똑같아서 두 날짜
+      // 모두에 뜨는데, 이럴 땐 '8월 27일(목)~28일(금) · 트레일러 유력 D-2~D-1'처럼
+      // 구간 한 줄로 합쳐 보여주는 게 낫지 않냐"는 지적 반영(2026-08-27) — 인접한
+      // 날짜들의 phase가 완전히 같은 카테고리(type·cat·secondaryCats·lowSample까지
+      // 전부 동일)면 한 줄로 병합한다. event-day/근거 없는(phase===null) 날짜는
+      // 병합 대상에서 제외해 각자 자기 고유 문장(경기 당일 문구, 요일 빈도 문구)을
+      // 그대로 유지한다.
+      const catKey = d => {
+        if (!d.phase || d.phase.type === 'event-day') return null;
+        const sec = (d.phase.secondaryCats || []).map(c => c.cat).sort().join(',');
+        return `${d.phase.type}|${d.phase.cat}|${sec}|${d.phase.lowSample ? 1 : 0}`;
+      };
+      const rdGroups = [];
+      rd.forEach(d => {
+        const key = catKey(d);
+        const last = rdGroups[rdGroups.length - 1];
+        if (key != null && last && last.key === key) last.days.push(d);
+        else rdGroups.push({ key, days: [d] });
+      });
+      // "D-1/D-2 헷갈리는데 제거하자, '오늘 28일' 이런 식 말고 '8월 27일 (목) ~ 8월
+      // 28일 (금)'처럼 양쪽 다 월까지 풀어서 써달라"는 지적 반영(2026-08-27) — 날짜
+      // 표기에서 "오늘" 축약과 D-n/D+n 태그를 모두 빼고, 며칠이 묶이든 항상 "N월 N일
+      // (요일)" 전체 형식을 양쪽 다 그대로 쓴다.
+      const rangeDayLines = rdGroups.map(g => {
+        const first = g.days[0], last = g.days[g.days.length - 1];
+        const dIsToday = first === days[0];
+        const fmtOne = d => `${d.date.getMonth() + 1}월 ${d.date.getDate()}일 (${YT_DOW_LABEL[d.dow]})`;
+        const dateLabel = g.days.length === 1 ? fmtOne(first) : `${fmtOne(first)} ~ ${fmtOne(last)}`;
+        const dShowGenericHour = !(first.phase && first.phase.type === 'event-day');
         const dHourPassedGrace = dIsToday && hourPassedGrace;
         const hourPart = dShowGenericHour && hourText
           ? (dHourPassedGrace ? ` · ${hourText} 예상 경과` : ` · ${hourText}경`)
           : '';
-        return `${dDateText}${hourPart} — ${ytDayShortReason(d)}`;
+        let reasonText;
+        if (g.days.length === 1) {
+          reasonText = ytDayShortReason(first);
+        } else {
+          const meta = ytCatMeta(first.phase.cat);
+          const comboShort = (first.phase.secondaryCats || []).map(c => ` · ${c.short} 가능성`).join('');
+          reasonText = `${meta.short}${first.phase.lowSample ? ' 가능성' : ' 유력'}${comboShort}`;
+        }
+        return `${dateLabel}${hourPart} — ${reasonText}`;
       });
 
       // 매번 항상 보이는 문장 뭉치 대신, 상위 후보 요일의 근거만 기본으로 보여주고
