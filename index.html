@@ -10430,6 +10430,24 @@
       return !SUPABASE_URL.includes('여기에') && !SUPABASE_ANON_KEY.includes('여기에');
     }
     function svrNow() { return new Date(Date.now() + timeOffset); }
+    // 서버가 내려주는 시각 문자열에 시간대 표기(Z 또는 +hh:mm/-hh:mm)가 빠져 있으면, 브라우저가
+    // 이걸 "UTC"가 아니라 "사용자 로컬 시간대"로 잘못 해석해버린다 — 한국(UTC+9) 사용자라면
+    // 실제 시각보다 최대 9시간 이른 시각으로 읽혀서, 이미 몇 시간 전에 지난 데드라인이 되어
+    // 버린다(블랙 퀴즈 타이머가 문제 시작하자마자 0초로 떨어지던 심각한 버그의 원인이 이것이었다,
+    // 2026-08-28). 어떤 경로로 시각 값이 들어오든 이 함수를 거치면, 시간대 표기가 있으면 그대로
+    // 존중하고 없을 때만 UTC로 못박아 해석한다 — 서버가 이미 정상 포맷으로 내려주고 있어도
+    // 그대로 통과되므로 부작용이 없다.
+    function svrSafeDate(v) {
+      if (v == null) return null;
+      if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+      if (typeof v === 'number') return new Date(v);
+      let s = String(v).trim();
+      if (!s) return null;
+      const hasTz = /(?:[zZ]|[+-]\d{2}:?\d{2})$/.test(s);
+      if (!hasTz) s = s.replace(' ', 'T') + 'Z';
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    }
 
     /* ---------- 좁은 화면에서 버튼/뱃지 줄바꿈 방지(자동 폰트 축소) ----------
        .fit-row 클래스를 가진 요소의 직계 자식들을 각각 확인해서, 화면이 좁아 텍스트가
@@ -11042,7 +11060,10 @@
       await gmVerifyWhitelistOnBoot();
       try {
         const { data } = await sb.rpc('server_now');
-        if (data) timeOffset = new Date(data).getTime() - Date.now();
+        // svrSafeDate로 시간대 표기 누락을 방어한다 — 이 offset이 잘못되면 블랙 퀴즈뿐 아니라
+        // 티켓 매진 예측·경기 카운트다운 등 서버 시각을 쓰는 모든 기능이 함께 틀어진다.
+        const sd = data ? svrSafeDate(data) : null;
+        if (sd) timeOffset = sd.getTime() - Date.now();
       } catch (e) { }
       // 선수 랭킹: 자동 갱신 파일(fighters.json)과 수동 갱신(DB) 중 더 최신 데이터 사용
       let cand = [];
@@ -17194,8 +17215,9 @@
       // 1번 문제 issued_at + 그 당시 timer_slack_ms로 스톱워치 기준 시각을 그대로 복원한다
       // (서버 quiz_close_attempt의 v_time 계산과 동일 기준) — 복구돼도 스톱워치가 0부터
       // 다시 시작하는 것처럼 보이지 않게 한다.
-      const swAnchor = d.q1_issued_at
-        ? (new Date(d.q1_issued_at).getTime() + (d.q1_timer_slack_ms || 0))
+      const q1IssuedAt = d.q1_issued_at ? svrSafeDate(d.q1_issued_at) : null;
+      const swAnchor = q1IssuedAt
+        ? (q1IssuedAt.getTime() + (d.q1_timer_slack_ms || 0))
         : 0;
       bqEnterPlay(d.question, d, d.remain_ms, swAnchor);
     }
@@ -17430,13 +17452,17 @@
       // "죽은 시간" 면제분) + limit_ms(서버 시계 기준 절대 시각)로 고정한다. 카운트다운/전환
       // 대기 등으로 화면 표시가 늦게 시작돼도 실제 판정 기준과 어긋나지 않는다 — 서버의
       // quiz_submit_answer 도 같은 timer_slack_ms 만큼을 면제해주므로 100% 같은 기준이다.
-      BQ.deadline = (q && q.issued_at)
-        ? (new Date(q.issued_at).getTime() + slackMs + limitMs)
+      // svrSafeDate: issued_at에 시간대 표기가 빠져 있어도 UTC로 강제 해석한다(위 svrNow 옆
+      // 정의 참고) — 이게 없으면 한국(UTC+9) 브라우저에서는 issued_at을 9시간 이른 시각으로
+      // 잘못 읽어, 데드라인이 이미 몇 시간 전으로 계산되어 타이머가 뜨자마자 0초로 떨어진다.
+      const issuedAt = q && q.issued_at ? svrSafeDate(q.issued_at) : null;
+      BQ.deadline = issuedAt
+        ? (issuedAt.getTime() + slackMs + limitMs)
         : (svrNow().getTime() + limitMs);
       // 스톱워치는 1번 문제에서 딱 한 번만 기준 시각을 고정한다(서버의 v_q1_issued + Q1의
       // timer_slack_ms와 정확히 같은 기준). 그 뒤로는 몇 번째 문제든 다시 건드리지 않는다.
       if (q && q.no === 1 && !BQ.swAnchor) {
-        BQ.swAnchor = (q.issued_at ? new Date(q.issued_at).getTime() : svrNow().getTime()) + slackMs;
+        BQ.swAnchor = (issuedAt ? issuedAt.getTime() : svrNow().getTime()) + slackMs;
         if (!BQ.swRaf) BQ.swRaf = requestAnimationFrame(bqStopwatchLoop);
       }
       const vEl = document.getElementById('bqTimeV');
