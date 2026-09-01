@@ -11753,7 +11753,7 @@
         div: '벤텀급', list: [
           ['C', '투신', '김재웅', 16, 8, 0, 'kr'], [1, '펜리르', 'Daniiar Toichubek', 12, 0, 0, 'kg'], [2, '무사', '타케나카 다이치', 17, 4, 1, 'jp'],
           [3, '빡세', '이진세', 7, 5, 0, 'kr'], [4, '백사자', 'Aydemir Kazbekov', 14, 2, 0, 'ru'], [5, '언더독', '박성준', 7, 6, 1, 'kr'],
-          [6, '불도저', '정경열', 5, 3, 0, 'kr'], [7, '골든보이', 'Matheus Correia', 12, 0, 0, 'br'], [8, '쿠르드 이글', 'Ruslan Amuyev', 11, 0, 0, 'ru'],
+          [6, '불도저', '정경열', 5, 3, 0, 'kr'], [7, '골든보이', 'Matheus Correia', 12, 0, 0, 'br'], [8, '쿠르드 이글', 'Ruslan Amuyev', 11, 0, 0, 'krd'],
           [9, '보오르추', 'Bat-Itgelt', 5, 1, 0, 'mn'], [10, '빅마우스', '김동규', 10, 8, 0, 'kr'], [11, '피카츄', 'Mukai Rukiya', 6, 2, 0, 'jp'],
           [12, '아이언 홀스', 'Felipe Gheno', 11, 5, 0, 'br'], [13, '구아라', 'Marcelo Guarilha', 25, 11, 1, 'br'], [14, '스컬', 'Ruslan Sariyev', 17, 5, 0, 'kz'],
           [15, '잉카', 'Miguel Meza', 8, 1, 0, 'pe'], [16, '홀리 비스트', '김대환', 15, 12, 1, 'kr'], [17, '찐홍이', '홍종태', 6, 6, 0, 'kr'],
@@ -11827,7 +11827,16 @@
           [3, '바비', '히라타 아야네', 4, 3, 0, 'jp'], [4, 'Libby', '조은비', 1, 7, 0, 'kr']]
       },
     ];
-    const flagImg = c => `<img class="flag" src="https://flagcdn.com/24x18/${c}.png" alt="${String(c).toUpperCase()}" width="18" height="14" loading="lazy" crossorigin="anonymous">`;
+    // flagcdn.com은 ISO 국가코드만 지원해서 쿠르디스탄처럼 국제적으로 승인된 국가가 아닌
+    // 지역(공식 랭킹 페이지엔 국기가 있음)은 flagcdn에 없다 — 이런 경우는 사이트에 직접
+    // 넣어둔 국기 이미지(레포 루트의 flag-*.svg)를 대신 쓴다. 코드를 새로 추가하려면 여기에
+    // 등록하고, scripts/update-rankings.js의 DEFAULT_FLAGS 값도 같은 코드로 맞춰야 한다.
+    const CUSTOM_FLAGS = { krd: 'flag-krd.svg' }; // 쿠르디스탄('쿠르드 이글' 등)
+    const flagImg = c => {
+      const custom = CUSTOM_FLAGS[c];
+      const src = custom || `https://flagcdn.com/24x18/${c}.png`;
+      return `<img class="flag" src="${src}" alt="${String(c).toUpperCase()}" width="18" height="14" loading="lazy" ${custom ? '' : 'crossorigin="anonymous"'}>`;
+    };
     // 닉네임 → 선수 정보 (대진 표시용)
     let FIGHTER_MAP = {};
     let fightersUpdatedAt = null;
@@ -15073,13 +15082,16 @@
       window.jbxTestTap = nick => { const n = nodes.find(x => x.nick === nick); if (n) select(n, true); }; // QA용: 화면 탭과 동일 동작
 
       // ── 국기 이미지 (flagcdn, 사이트 국기와 동일 출처) ──
+      // CUSTOM_FLAGS(위 flagImg 참고)에 있는 코드는 flagcdn 대신 레포에 직접 넣어둔
+      // 이미지를 쓴다 — flagcdn은 쿠르디스탄처럼 ISO 국가코드가 없는 지역은 지원 안 함.
       const flagImgs = new Map();
       function flagImgFor(cc) {
         if (!cc) return null;
         if (!flagImgs.has(cc)) {
           const img = new Image();
-          img.crossOrigin = 'anonymous';
-          img.src = 'https://flagcdn.com/w40/' + cc + '.png';
+          const custom = CUSTOM_FLAGS[cc];
+          if (!custom) img.crossOrigin = 'anonymous';
+          img.src = custom || ('https://flagcdn.com/w40/' + cc + '.png');
           flagImgs.set(cc, img);
         }
         const img = flagImgs.get(cc);
@@ -15640,7 +15652,17 @@
     // 카카오 카드로 공유한다. 메인이벤트는 마지막 경기로 간주(대진표 관례).
     function tDrawShareCard(t, matches, parts) {
       const evMs = t.event_at ? new Date(t.event_at).getTime() : (t.event_date ? new Date(t.event_date + 'T00:00:00+09:00').getTime() : null);
-      const dday = evMs != null ? Math.ceil((evMs - svrNow().getTime()) / 86400000) : null;
+      // D-day는 "오늘이 무슨 날짜냐"로 따져야 한다 — 밀리초 차이를 그대로 86400000으로 나눠
+      // 올림(Math.ceil)하면, 경기 당일이라도 아직 경기 시작 전(예: 오후 1시 시작인데 지금
+      // 오전)이면 아직 하루가 안 채워졌다는 이유로 D-1로 잘못 표시된다("오늘 경기 당일인데
+      // 카톡 공유 카드에 D-1로 뜬다"는 지적 반영, 2026-08-29) — 이 사이트 다른 곳(영상
+      // 캘린더의 D-day 배지 등)과 마찬가지로 캘린더 날짜(KST) 기준 "일수 차이"로만 계산한다.
+      const dday = evMs != null ? (() => {
+        const evD = ytKstParts(evMs), todayD = ytKstParts(svrNow());
+        const evDayMs = Date.UTC(evD.y, evD.m - 1, evD.d);
+        const todayDayMs = Date.UTC(todayD.y, todayD.m - 1, todayD.d);
+        return Math.round((evDayMs - todayDayMs) / 86400000);
+      })() : null;
       const live = tIsLive(t);
       const scoredN = matches.filter(m => m.winner === 'A' || m.winner === 'B').length;
       const pendingM = matches.filter(m => !(m.winner === 'A' || m.winner === 'B'));
