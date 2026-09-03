@@ -35,6 +35,14 @@ const YT_BOT_SECRET = process.env.YT_BOT_SECRET;
 // 채워서 덮어쓰면 된다.
 const YT_API_KEY = process.env.YOUTUBE_API_KEY || 'AIzaSyBfFV0GO3ndECt8N7xBmKDsp_JOchzLi-Y';
 const YT_CHANNEL_HANDLE = process.env.YT_CHANNEL_HANDLE || 'blackcombat';
+
+// YouTube API 키는 사이트(블붕이.com)에서 쓰는 공개 키라 Google Cloud에서 "HTTP 리퍼러" 제한이 걸려 있다.
+// GitHub Actions 같은 서버 환경은 Referer 헤더가 비어 있어 403(API_KEY_HTTP_REFERRER_BLOCKED)이 나므로,
+// 허용된 사이트 주소를 Referer로 붙여 호출한다. (다른 주소를 허용 목록에 쓰면 YT_REFERER 변수로 덮어쓰기)
+const YT_REFERER = process.env.YT_REFERER || 'https://xn--9r3b3ij2w.com/';
+function ytFetch(url) {
+  return fetch(url, { headers: { Referer: YT_REFERER, 'User-Agent': 'Mozilla/5.0 (compatible; blbungi-sync)' } });
+}
 const MAX_PAGES = Math.max(1, parseInt(process.env.YT_SYNC_PAGES || '2', 10) || 2);
 
 function bail(msg) {
@@ -87,7 +95,7 @@ async function upsertRows(rows) {
   try {
     console.log(`▶ 채널 정보 조회 중... (@${YT_CHANNEL_HANDLE})`);
     const chUrl = `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&forHandle=${encodeURIComponent(YT_CHANNEL_HANDLE)}&key=${YT_API_KEY}`;
-    const chRes = await fetch(chUrl);
+    const chRes = await ytFetch(chUrl);
     const chJson = await chRes.json();
     if (!chRes.ok) bail('채널 조회 실패: ' + JSON.stringify(chJson));
     const uploadsId = chJson.items && chJson.items[0] && chJson.items[0].contentDetails.relatedPlaylists.uploads;
@@ -100,7 +108,7 @@ async function upsertRows(rows) {
 
     for (let page = 1; page <= MAX_PAGES; page++) {
       const plUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=${uploadsId}&maxResults=50&key=${YT_API_KEY}` + (pageToken ? `&pageToken=${pageToken}` : '');
-      const plRes = await fetch(plUrl);
+      const plRes = await ytFetch(plUrl);
       const plJson = await plRes.json();
       if (!plRes.ok) { console.error(`❌ ${page}페이지 조회 실패:`, JSON.stringify(plJson)); break; }
       const items = plJson.items || [];
@@ -118,7 +126,7 @@ async function upsertRows(rows) {
       let statMap = {};
       if (ids.length) {
         const vUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${ids.join(',')}&key=${YT_API_KEY}`;
-        const vRes = await fetch(vUrl);
+        const vRes = await ytFetch(vUrl);
         const vJson = await vRes.json();
         if (vRes.ok) (vJson.items || []).forEach((v) => {
           statMap[v.id] = {
