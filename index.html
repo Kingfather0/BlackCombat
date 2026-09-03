@@ -11231,7 +11231,7 @@
       const ov = document.createElement('div');
       ov.id = 'pwaGo';
       ov.innerHTML = `<div class="pwago-box">
-    <img src="icon-192.png" alt="">
+    <img src="icon-192-maskable.png" alt="">
     <b>블붕이</b>
     <span>아래 버튼을 누르면 설치 창이 열립니다</span>
     <button>📱 설치하기</button>
@@ -21368,10 +21368,13 @@
     function gmDrawShirtText(ctx, hh, ww, flip, opts) {
       // 원본 스프라이트에서 티셔츠 글자를 지우고, 항상 정방향으로만 그려서
       // 캐릭터가 좌우 반전(flip)되어도 글자가 거꾸로 뒤집히지 않게 한다.
-      // opts.lines: 커스텀 문구(원본 스프라이트에 이미 "블붕이" 글자가 그려져 있으므로 기본값은 없음 — 지정 없으면 아무 것도 덧그리지 않는다),
+      // opts.lines: 커스텀 문구. 원본 스프라이트에 이미 "블붕이" 글자가 정방향으로 그려져 있으므로,
+      // flip이 없는(정방향) 포즈는 기본적으로 아무 것도 덧그리지 않는다(중복 방지).
+      // 다만 flip=true인 포즈(달리기·펀치·배틀 등 좌우 반전 실루엣)는 원본의 글자까지 함께 거울 반전되어
+      // 거꾸로 보이므로, 이 경우에만 항상 바른 방향의 "블붕이"를 덧그려 교정한다.
       // opts.shirt: 'black'|'white'(연승/도전자 티셔츠 색) — 지정 시 원본 스프라이트 위에 컴포지트로 색을 입힘
       opts = opts || {};
-      const lines = opts.lines && opts.lines.length ? opts.lines : [];
+      const lines = opts.lines && opts.lines.length ? opts.lines : (flip ? ['블붕이'] : []);
       if (!lines.length && !opts.shirt) { return; }
       const shirt = opts.shirt || null;
       ctx.save();
