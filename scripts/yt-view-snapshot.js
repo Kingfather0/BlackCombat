@@ -23,6 +23,14 @@ const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 const YT_BOT_SECRET = process.env.YT_BOT_SECRET;
 const YT_API_KEY = process.env.YOUTUBE_API_KEY || 'AIzaSyBfFV0GO3ndECt8N7xBmKDsp_JOchzLi-Y';
 
+// YouTube API 키는 사이트(블붕이.com)에서 쓰는 공개 키라 Google Cloud에서 "HTTP 리퍼러" 제한이 걸려 있다.
+// GitHub Actions 같은 서버 환경은 Referer 헤더가 비어 있어 403(API_KEY_HTTP_REFERRER_BLOCKED)이 나므로,
+// 허용된 사이트 주소를 Referer로 붙여 호출한다. (다른 주소를 허용 목록에 쓰면 YT_REFERER 변수로 덮어쓰기)
+const YT_REFERER = process.env.YT_REFERER || 'https://xn--9r3b3ij2w.com/';
+function ytFetch(url) {
+  return fetch(url, { headers: { Referer: YT_REFERER, 'User-Agent': 'Mozilla/5.0 (compatible; blbungi-sync)' } });
+}
+
 function bail(msg) {
   console.error('❌ ' + msg);
   process.exit(1);
@@ -75,7 +83,7 @@ function chunk(arr, n) {
       const ids = batch.map((v) => v.video_id).filter(Boolean);
       if (!ids.length) continue;
       const vUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${ids.join(',')}&key=${YT_API_KEY}`;
-      const vRes = await fetch(vUrl);
+      const vRes = await ytFetch(vUrl);
       const vJson = await vRes.json();
       if (!vRes.ok) { console.error(`❌ ${i + 1}/${batches.length} 배치 조회 실패:`, JSON.stringify(vJson)); continue; }
 
