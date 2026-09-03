@@ -7,11 +7,11 @@
   <title>🔥블랙컴뱃 잡담방🔥</title>
   <meta property="og:title" content="🔥블랙컴뱃 잡담방🔥">
   <meta property="og:description" content="승부예측 · 족보 · 업적 · 랭킹 · 게임">
-  <meta property="og:image" content="https://kingfather0.github.io/BlackCombat/og.jpg?v=3">
+  <meta property="og:image" content="https://xn--9r3b3ij2w.com/og.jpg?v=3">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://kingfather0.github.io/BlackCombat/">
+  <meta property="og:url" content="https://xn--9r3b3ij2w.com/">
   <meta name="description" content="격투기 승부예측 · 족보 · 업적 · 랭킹 · 게임">
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦁</text></svg>">
@@ -10404,7 +10404,8 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <!-- 카카오톡 공유(카드 발송)용 공식 SDK — 키는 JS SDK 도메인(kingfather0.github.io)에서만 동작 -->
+  <!-- 카카오톡 공유(카드 발송)용 공식 SDK — 키는 JS SDK 도메인(2026-09 블붕이.com/xn--9r3b3ij2w.com으로 이전,
+       Kakao Developers 콘솔의 플랫폼 등록 도메인도 같이 바꿔야 함)에서만 동작 -->
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js" crossorigin="anonymous"></script>
   <script>
     /* ================================================================
@@ -11589,7 +11590,7 @@
        ⚠️ 반드시 og:url과 완전히 동일한 형태(https:// + 끝 슬래시)로 써야 한다. 카카오는 URL을
        글자 그대로 캐시 키로 쓰기 때문에, "https://" 나 끝 슬래시가 하나라도 다르면 카카오 디버거로
        초기화한 캐시와 전혀 다른(한 번도 초기화 안 된) 캐시를 타서 옛날 미리보기가 나온다. */
-    const ANN_SHARE_LINK = 'https://kingfather0.github.io/BlackCombat/';
+    const ANN_SHARE_LINK = 'https://xn--9r3b3ij2w.com/';
     function annShareText(list) {
       const blocks = (list || []).map(a => {
         const lines = [`${a.title || ''}`];
@@ -13199,7 +13200,7 @@
     /* 티켓 페이지의 "수동 갱신(실시간 조회)"과 "카톡 공유"가 쓰는 화면 상태.
        viewTickets()가 렌더링할 때마다 새로 채워진다. */
     let tkLive = null;
-    const TK_SHARE_LINK = 'https://kingfather0.github.io/BlackCombat/#/tickets';
+    const TK_SHARE_LINK = 'https://xn--9r3b3ij2w.com/#/tickets';
     function tkBuildShareText(remainByGrade, atIso, totalsByGrade) {
       if (!tkLive) return;
       const lines = [`🎫 티켓 판매 현황 (${fmtSnapTime(atIso)})`];
@@ -17764,7 +17765,8 @@
        실패(미지원 브라우저·SDK 로드 실패 등) 시 false를 돌려주고, 호출한 쪽에서
        기존 텍스트 공유로 자연스럽게 폴백하면 된다. */
     const KAKAO_JS_KEY = '1f76607417b6d6628a91c115005574ba'; // JS SDK 도메인 제한이 걸린 공개용 키
-    // 유튜브 업로드 이력/예측 기능용 — HTTP 리퍼러(kingfather0.github.io) + YouTube Data API v3로
+    // 유튜브 업로드 이력/예측 기능용 — HTTP 리퍼러(2026-09 블붕이.com/xn--9r3b3ij2w.com으로 이전,
+    // Google Cloud Console의 API 키 HTTP 리퍼러 제한 목록도 같이 바꿔야 함) + YouTube Data API v3로
     // 제한된 공개용 키 (2026-08-24, 기능 프로토타입 단계, 관리자 전용 테스트 화면에서만 사용)
     const YT_API_KEY = 'AIzaSyBfFV0GO3ndECt8N7xBmKDsp_JOchzLi-Y';
     const YT_CHANNEL_HANDLE = 'blackcombat';
@@ -19943,7 +19945,7 @@
     function kkoSendShare(imageUrl, o) {
       if (!kkoInit() || !imageUrl) return false;
       try {
-        const base = 'https://kingfather0.github.io/BlackCombat/';
+        const base = 'https://xn--9r3b3ij2w.com/';
         const link = { mobileWebUrl: base + (o.path || ''), webUrl: base + (o.path || '') };
         Kakao.Share.sendDefault({
           objectType: 'feed',
