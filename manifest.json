@@ -1,6 +1,6 @@
 {
-  "name": "블컴 잡담방",
-  "short_name": "블컴 잡담방",
+  "name": "블붕이",
+  "short_name": "블붕이",
   "description": "블랙컴뱃 승부예측 · 랭킹 · 게임",
   "start_url": "./index.html",
   "id": "./index.html",
