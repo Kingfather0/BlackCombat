@@ -21331,6 +21331,7 @@
       ctx.fillStyle = `rgba(60,40,10,${.26 * shS})`;
       ctx.beginPath(); ctx.ellipse(x, footY + 5, ww * .42 * shS, 6.5, 0, 0, 7); ctx.fill();
       const gy = footY - yo;
+      const baseM = o.wantAnchors ? ctx.getTransform() : null;   // 호출 시점의 좌표계(DPR 스케일 등 포함) — 앵커를 이 좌표계로 되돌리기 위해
       ctx.save();
       ctx.translate(x, gy - hh * .5);
       let pose = null;
@@ -21374,8 +21375,10 @@
       let anchors = null;
       if (o.wantAnchors && P) {
         // 펀치 팔 오버레이가 이어 붙을 어깨 위치를 현재 변형(회전·스케일·통통) 기준 캔버스 좌표로 돌려준다
-        const m = ctx.getTransform();
-        const pt = m.transformPoint(new DOMPoint((P.shoulder.x - .5) * ww, (P.shoulder.y - .5) * hh));
+        // getTransform()은 캔버스 DPR 스케일까지 포함한 장치 좌표를 주므로, 호출 시점 좌표계(baseM)의
+        // 역행렬을 곱해 호출자가 그리는 좌표계로 되돌린다(모바일 고해상도 화면에서 팔이 엉뚱한 곳에 그려지던 원인)
+        const dev = ctx.getTransform().transformPoint(new DOMPoint((P.shoulder.x - .5) * ww, (P.shoulder.y - .5) * hh));
+        const pt = baseM.inverse().transformPoint(dev);
         anchors = { shoulder: { x: pt.x, y: pt.y }, hh, ww };
       }
       if (P && pose && !o.dead) {
@@ -21446,9 +21449,12 @@
       draw(hole.x1, hole.y0, 1, Math.min(hole.y1, cut));
       draw(0, hole.y1, 1, cut);
     }
-    function gmPunchArm(ctx, anc, fx, fy, side) {
+    function gmPunchArm(ctx, anc, fx, fy, side, opt) {
       // 어깨(anc.shoulder)에서 (fx,fy)까지 뻗은 팔 + 원본 주먹 조각을 팔 끝에 붙인다
+      // opt.fistScale: 주먹 확대율(기본 1.3 — 인게임은 잘 보이도록 더 크게), opt.armScale: 팔 굵기 배율
       if (!anc) return;
+      opt = opt || {};
+      const K = opt.fistScale || 1.3, A = opt.armScale || 1;
       const P = side === 'L' ? GM_PARTS.L : GM_PARTS.R;
       const img = side === 'L' ? gmLionImg : gmLionImgR;
       const hh = anc.hh, ww = anc.ww;
@@ -21458,14 +21464,14 @@
       const wx = fx - ux * hh * .05, wy = fy - uy * hh * .05;   // 손목(주먹 안쪽으로 살짝)
       ctx.save();
       ctx.lineCap = 'round';
-      ctx.strokeStyle = '#1e1508'; ctx.lineWidth = hh * .125;
+      ctx.strokeStyle = '#1e1508'; ctx.lineWidth = hh * .125 * A;
       ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(wx, wy); ctx.stroke();
       const g = ctx.createLinearGradient(sx - uy * hh * .05, sy + ux * hh * .05, sx + uy * hh * .05, sy - ux * hh * .05);
       g.addColorStop(0, '#d98a17'); g.addColorStop(.45, '#f6b322'); g.addColorStop(1, '#ffd45a');
-      ctx.strokeStyle = g; ctx.lineWidth = hh * .095;
+      ctx.strokeStyle = g; ctx.lineWidth = hh * .095 * A;
       ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(wx, wy); ctx.stroke();
-      // 주먹: 원본 그림의 주먹을 타원으로 오려 팔 방향으로 돌려 붙임
-      const F = P.fist, iw = img.width, ih = img.height, K = 1.3;   // 뻗은 주먹은 원본보다 살짝 크게(원근감)
+      // 주먹: 원본 그림의 주먹을 타원으로 오려 팔 방향으로 돌려 붙임(뻗은 주먹은 원본보다 크게 — 원근감 + 인지성)
+      const F = P.fist, iw = img.width, ih = img.height;
       ctx.translate(fx, fy);
       ctx.rotate(Math.atan2(dy, dx) + (side === 'L' ? -Math.PI / 2 : Math.PI / 2));
       ctx.beginPath(); ctx.ellipse(0, hh * .004 * K, ww * .092 * K, hh * .086 * K, 0, 0, 7); ctx.clip();   // 주먹만 남기고 팔뚝 잔여분은 잘라냄
@@ -21735,7 +21741,7 @@
         const el = (now - G.punch.t0) * slow;
         pt = el < 110 ? Math.pow(el / 110, 1.6) : el < 340 ? 1 - Math.pow((el - 110) / 230, 1.4) * .96 : 0;
       }
-      const lx = w * .25 + pt * w * .20;                            // 몸이 실제로 앞으로 크게 파고든다
+      const lx = w * .25 + pt * w * .12;                            // 몸이 앞으로 파고들되, 팔이 실제로 뻗어 보이도록 리치를 남겨 둔다
       const punching = pt > .12 && !!G.punch && !fever;
       const anc = gmLionSprite(ctx, lx, floorY, 128 * S, {
         pt,
@@ -21782,7 +21788,7 @@
           // 잽/강펀치 — 어깨에서 팔이 뻗어 나가고, 그 끝에 캐릭터 자신의 주먹(원본 그림 조각)이 붙는다
           const sx2 = anc ? anc.shoulder.x : lx + 30 * S, sy2 = anc ? anc.shoulder.y : floorY - 58 * S;
           const dx = padX - sx2, dy = padY - sy2, dist = Math.hypot(dx, dy) || 1;
-          const ARM_MAX = 92 * S, ext = Math.min(dist, ARM_MAX) * pt;
+          const ARM_MAX = 120 * S, ext = Math.min(dist, ARM_MAX) * pt;
           const ux = dx / dist, uy = dy / dist;
           const fx2 = sx2 + ux * ext, fy2 = sy2 + uy * ext;
           if (strong) gmFlameGlow(ctx, fx2, fy2, 17 * S);
@@ -21790,7 +21796,7 @@
           for (let i = 1; i <= 2; i++) {
             ctx.beginPath(); ctx.moveTo(sx2, sy2 + i * 7); ctx.lineTo(fx2 - 16 * S, fy2 + i * 5); ctx.stroke();
           }
-          gmPunchArm(ctx, anc, fx2, fy2, 'R');
+          gmPunchArm(ctx, anc, fx2, fy2, 'R', { fistScale: 1.7 + .5 * pt, armScale: 1.15 });   // 인게임은 주먹이 확실히 보이게 크게
         }
       }
     }
