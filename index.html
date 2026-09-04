@@ -21201,18 +21201,10 @@
           ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 9;
           [[10, 80, 52, 80], [2, 120, 46, 120], [14, 160, 56, 160]].forEach(l => { ctx.beginPath(); ctx.moveTo(l[0], l[1]); ctx.lineTo(l[2], l[3]); ctx.stroke(); });
         } else if (pose === 'punch') {
-          gmLionSprite(ctx, 92, 210, 156, { pt: .9, flip: true });
-          // 팔은 새 아트에서 앞으로 치켜든 주먹 위치(가슴 중앙이 아니라 어깨 앞)에서 뻗어 나가야 자연스럽다
-          const sx = 92 + 46, sy = 210 - 75, fx = 196, fy = 132;
-          ctx.lineCap = 'round';
-          ctx.strokeStyle = '#241a08'; ctx.lineWidth = 20;
-          ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(fx - 6, fy); ctx.stroke();
-          ctx.strokeStyle = '#f0a333'; ctx.lineWidth = 15;
-          ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(fx - 6, fy); ctx.stroke();
-          const gg = ctx.createRadialGradient(fx - 6, fy - 7, 3, fx, fy, 20);
-          gg.addColorStop(0, '#ffd97a'); gg.addColorStop(.55, '#f0a333'); gg.addColorStop(1, '#c07f18');
-          ctx.fillStyle = gg; ctx.strokeStyle = '#241a08'; ctx.lineWidth = 3.5;
-          ctx.beginPath(); ctx.arc(fx, fy, 20, 0, 7); ctx.fill(); ctx.stroke();
+          // 치켜든 주먹을 숨기고, 어깨에서 뻗은 팔 끝에 그 주먹 조각을 붙인다(캐릭터 자신의 주먹이 나가는 느낌)
+          const anc = gmLionSprite(ctx, 92, 210, 156, { pt: .9, flip: true, hideFist: true, wantAnchors: true });
+          const fx = 196, fy = 130;
+          gmPunchArm(ctx, anc, fx, fy, 'R');
           ctx.strokeStyle = 'rgba(255,210,60,.9)'; ctx.lineWidth = 6; ctx.lineCap = 'round';
           [[-35], [0], [35]].forEach(a => {
             const r = Math.PI * a[0] / 180;
@@ -21377,11 +21369,108 @@
         if (build) ctx.scale(build.sx, build.sy);
       }
       if (o.flip && !useR) ctx.scale(-1, 1);
-      // 새 캐릭터 아트는 팔·다리·발까지 통째로 그려져 있으므로 항상 원본 전체를 그린다.
-      // (예전처럼 하단을 잘라내고 procedural 다리를 붙이면 새 아트에서는 주먹·다리가 잘려 보인다.
-      //  달리기·점프의 움직임은 위에서 적용한 흔들림/통통/스쿼시&스트레치로 표현한다.)
-      ctx.drawImage(srcImg, -ww / 2, -hh * .5, ww, hh);
+      const P = isArt ? null : (useR ? GM_PARTS.R : GM_PARTS.L);
+      const iw = baseImg.width, ih = baseImg.height;
+      let anchors = null;
+      if (o.wantAnchors && P) {
+        // 펀치 팔 오버레이가 이어 붙을 어깨 위치를 현재 변형(회전·스케일·통통) 기준 캔버스 좌표로 돌려준다
+        const m = ctx.getTransform();
+        const pt = m.transformPoint(new DOMPoint((P.shoulder.x - .5) * ww, (P.shoulder.y - .5) * hh));
+        anchors = { shoulder: { x: pt.x, y: pt.y }, hh, ww };
+      }
+      if (P && pose && !o.dead) {
+        // 새 캐릭터 아트를 부위별로 잘라 움직인다 — 다리 두 개는 원본 그림에서 잘라낸 조각을 사타구니 아래
+        // 축(pivot)에서 회전/압축하고, 몸통(반바지까지)은 그 위에 통째로 덮어 그려 이음새를 가린다.
+        const lp = gmLegPose(pose);
+        for (let i = 0; i < 2; i++) {
+          const L = P.legs[i], a = lp[i];
+          ctx.save();
+          // 반바지 위로 다리 조각이 튀어나오지 않게, 사타구니 선 아래로만 그린다
+          ctx.beginPath(); ctx.rect(-ww, (L.y0 - .01 - .5) * hh, ww * 2, hh); ctx.clip();
+          ctx.translate((L.px - .5) * ww, (L.y0 - .5) * hh);
+          ctx.rotate(a.ang);
+          ctx.scale(1, a.sy);
+          ctx.drawImage(srcImg, L.x0 * iw, L.y0 * ih, (L.x1 - L.x0) * iw, (L.y1 - L.y0) * ih,
+            (L.x0 - L.px) * ww, 0, (L.x1 - L.x0) * ww, (L.y1 - L.y0) * hh);
+          ctx.restore();
+        }
+        gmDrawBodyCrop(ctx, srcImg, iw, ih, ww, hh, P.bodyCut, o.hideFist ? P.fist : null);
+      } else if (P && o.hideFist && P.fist) {
+        gmDrawBodyCrop(ctx, srcImg, iw, ih, ww, hh, 1, P.fist);
+      } else {
+        ctx.drawImage(srcImg, -ww / 2, -hh * .5, ww, hh);
+      }
       if (!o.dead && !isArt) gmDrawShirtText(ctx, hh, ww, !!o.flip, { lines: o.shirtLabel, shirt: o.shirtColor });    // 커스텀 문구/셔츠색 지정 시에만 덧그림(기본은 아무 것도 안 그림)
+      ctx.restore();
+      return anchors;
+    }
+    /* 부위별 스프라이트 좌표(원본 이미지 기준 0~1 비율) — 좌(L)/우(R) 아트 각각.
+       legs: 다리 조각 사각형과 회전축 x(px). bodyCut: 몸통을 이 높이(반바지 밑단)까지만 그림.
+       fist: 앞으로 치켜든 주먹(펀치 때 숨기고 이 조각을 뻗은 팔 끝에 붙임). shoulder: 펀치 팔이 시작되는 어깨. */
+    const GM_PARTS = {
+      L: {
+        bodyCut: .82,
+        legs: [{ x0: .04, x1: .42, y0: .79, y1: 1, px: .29 }, { x0: .42, x1: .78, y0: .79, y1: 1, px: .57 }],
+        fist: { x0: 0, x1: .20, y0: .48, y1: .67, cx: .095, cy: .565 }, shoulder: { x: .255, y: .585 }
+      },
+      R: {
+        bodyCut: .82,
+        legs: [{ x0: .22, x1: .58, y0: .79, y1: 1, px: .43 }, { x0: .58, x1: .96, y0: .79, y1: 1, px: .71 }],
+        fist: { x0: .80, x1: 1, y0: .48, y1: .67, cx: .905, cy: .565 }, shoulder: { x: .745, y: .585 }
+      }
+    };
+    function gmLegPose(pose) {
+      // 두 다리(0=화면 왼쪽, 1=화면 오른쪽)의 회전각(+는 발이 화면 왼쪽으로)과 세로 압축률
+      if (pose.mode === 'run') {
+        const s = Math.sin(pose.ph) * .55;                      // 앞뒤로 교차 스윙(약 ±30°)
+        const lift = Math.abs(Math.sin(pose.ph));
+        return [{ ang: s, sy: 1 - .06 * lift }, { ang: -s, sy: 1 - .06 * (1 - lift) }];
+      }
+      if (pose.mode === 'crouch') {
+        const q = pose.q;                                       // 1 = 최대 웅크림
+        return [{ ang: .22 * q, sy: 1 - .34 * q }, { ang: -.22 * q, sy: 1 - .34 * q }];
+      }
+      if (pose.mode === 'up') return [{ ang: .5, sy: .82 }, { ang: -.5, sy: .82 }];   // 점프: 다리 활짝
+      return [{ ang: .14, sy: 1 }, { ang: -.14, sy: 1 }];                             // 낙하/공중 중립
+    }
+    function gmDrawBodyCrop(ctx, src, iw, ih, ww, hh, cut, hole) {
+      // 몸통을 위에서 cut 높이까지 그림. hole(주먹 사각형)이 있으면 그 영역만 비워 둔다(펀치 팔이 대신 그려짐)
+      const draw = (x0, y0, x1, y1) => {
+        if (x1 <= x0 || y1 <= y0) return;
+        ctx.drawImage(src, x0 * iw, y0 * ih, (x1 - x0) * iw, (y1 - y0) * ih,
+          (x0 - .5) * ww, (y0 - .5) * hh, (x1 - x0) * ww, (y1 - y0) * hh);
+      };
+      if (!hole) { draw(0, 0, 1, cut); return; }
+      draw(0, 0, 1, hole.y0);
+      draw(0, hole.y0, hole.x0, Math.min(hole.y1, cut));
+      draw(hole.x1, hole.y0, 1, Math.min(hole.y1, cut));
+      draw(0, hole.y1, 1, cut);
+    }
+    function gmPunchArm(ctx, anc, fx, fy, side) {
+      // 어깨(anc.shoulder)에서 (fx,fy)까지 뻗은 팔 + 원본 주먹 조각을 팔 끝에 붙인다
+      if (!anc) return;
+      const P = side === 'L' ? GM_PARTS.L : GM_PARTS.R;
+      const img = side === 'L' ? gmLionImg : gmLionImgR;
+      const hh = anc.hh, ww = anc.ww;
+      const sx = anc.shoulder.x, sy = anc.shoulder.y;
+      const dx = fx - sx, dy = fy - sy, dist = Math.hypot(dx, dy) || 1;
+      const ux = dx / dist, uy = dy / dist;
+      const wx = fx - ux * hh * .05, wy = fy - uy * hh * .05;   // 손목(주먹 안쪽으로 살짝)
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#1e1508'; ctx.lineWidth = hh * .125;
+      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(wx, wy); ctx.stroke();
+      const g = ctx.createLinearGradient(sx - uy * hh * .05, sy + ux * hh * .05, sx + uy * hh * .05, sy - ux * hh * .05);
+      g.addColorStop(0, '#d98a17'); g.addColorStop(.45, '#f6b322'); g.addColorStop(1, '#ffd45a');
+      ctx.strokeStyle = g; ctx.lineWidth = hh * .095;
+      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(wx, wy); ctx.stroke();
+      // 주먹: 원본 그림의 주먹을 타원으로 오려 팔 방향으로 돌려 붙임
+      const F = P.fist, iw = img.width, ih = img.height, K = 1.3;   // 뻗은 주먹은 원본보다 살짝 크게(원근감)
+      ctx.translate(fx, fy);
+      ctx.rotate(Math.atan2(dy, dx) + (side === 'L' ? -Math.PI / 2 : Math.PI / 2));
+      ctx.beginPath(); ctx.ellipse(0, hh * .004 * K, ww * .092 * K, hh * .086 * K, 0, 0, 7); ctx.clip();   // 주먹만 남기고 팔뚝 잔여분은 잘라냄
+      ctx.drawImage(img, F.x0 * iw, F.y0 * ih, (F.x1 - F.x0) * iw, (F.y1 - F.y0) * ih,
+        (F.x0 - F.cx) * ww * K, (F.y0 - F.cy) * hh * K, (F.x1 - F.x0) * ww * K, (F.y1 - F.y0) * hh * K);
       ctx.restore();
     }
     function gmDrawShirtText(ctx, hh, ww, flip, opts) {
@@ -21647,10 +21736,13 @@
         pt = el < 110 ? Math.pow(el / 110, 1.6) : el < 340 ? 1 - Math.pow((el - 110) / 230, 1.4) * .96 : 0;
       }
       const lx = w * .25 + pt * w * .20;                            // 몸이 실제로 앞으로 크게 파고든다
-      gmLionSprite(ctx, lx, floorY, 128 * S, {
+      const punching = pt > .12 && !!G.punch && !fever;
+      const anc = gmLionSprite(ctx, lx, floorY, 128 * S, {
         pt,
         idleT: G.state === 'aim' ? now : 0,
         flip: true,
+        hideFist: punching,      // 펀치 중엔 치켜든 주먹을 숨기고 뻗은 팔 끝에 그 주먹을 붙인다
+        wantAnchors: true,
       });
       // 실제로 뻗어나가는 펀치/킥 오버레이 — 팔/다리 길이를 고정 리치로 제한해 이질감 제거
       if (pt > .12 && G.punch) {
@@ -21687,38 +21779,18 @@
             ctx.beginPath(); ctx.moveTo(hx2 - i * 6, hy2 + i * 4); ctx.lineTo(fx2 - 18 * S, fy2 + i * 4); ctx.stroke();
           }
         } else {
-          // 잽/강펀치 — 사자 자신의 주먹(금빛 앞발)이 고정된 리치만큼만 뻗는다
-          // 새 아트의 치켜든 앞주먹 위치(어깨 앞)에서 뻗어 나간다 — 가슴 중앙에서 나오면 이질감
-          const sx2 = lx + 38 * S, sy2 = floorY - 61 * S;
+          // 잽/강펀치 — 어깨에서 팔이 뻗어 나가고, 그 끝에 캐릭터 자신의 주먹(원본 그림 조각)이 붙는다
+          const sx2 = anc ? anc.shoulder.x : lx + 30 * S, sy2 = anc ? anc.shoulder.y : floorY - 58 * S;
           const dx = padX - sx2, dy = padY - sy2, dist = Math.hypot(dx, dy) || 1;
-          const ARM_MAX = 80 * S, ext = Math.min(dist, ARM_MAX) * pt;
+          const ARM_MAX = 92 * S, ext = Math.min(dist, ARM_MAX) * pt;
           const ux = dx / dist, uy = dy / dist;
           const fx2 = sx2 + ux * ext, fy2 = sy2 + uy * ext;
           if (strong) gmFlameGlow(ctx, fx2, fy2, 17 * S);
-          // 팔 (외곽선 + 금색)
-          ctx.lineCap = 'round';
-          ctx.strokeStyle = '#241a08'; ctx.lineWidth = 16 * S;
-          ctx.beginPath(); ctx.moveTo(sx2, sy2); ctx.lineTo(fx2 - 6 * S, fy2); ctx.stroke();
-          ctx.strokeStyle = '#f0a333'; ctx.lineWidth = 12 * S;
-          ctx.beginPath(); ctx.moveTo(sx2, sy2); ctx.lineTo(fx2 - 6 * S, fy2); ctx.stroke();
           ctx.strokeStyle = strong ? 'rgba(255,180,60,.6)' : 'rgba(255,255,255,.5)'; ctx.lineWidth = 3;
           for (let i = 1; i <= 2; i++) {
             ctx.beginPath(); ctx.moveTo(sx2, sy2 + i * 7); ctx.lineTo(fx2 - 16 * S, fy2 + i * 5); ctx.stroke();
           }
-          // 금빛 주먹 (앞발)
-          const r = 15 * S * (1 + pt * .25);
-          const gg = ctx.createRadialGradient(fx2 - r * .3, fy2 - r * .35, r * .15, fx2, fy2, r);
-          gg.addColorStop(0, '#ffd97a'); gg.addColorStop(.55, '#f0a333'); gg.addColorStop(1, '#c07f18');
-          ctx.fillStyle = gg;
-          ctx.strokeStyle = '#241a08'; ctx.lineWidth = 2.5 * S;
-          ctx.beginPath(); ctx.arc(fx2, fy2, r, 0, 7); ctx.fill(); ctx.stroke();
-          // 손가락 라인
-          ctx.strokeStyle = 'rgba(120,70,10,.55)'; ctx.lineWidth = 1.8 * S;
-          for (let i = -1; i <= 1; i++) {
-            ctx.beginPath(); ctx.arc(fx2 + r * .35, fy2 + i * r * .42, r * .34, -1.1, 1.1); ctx.stroke();
-          }
-          ctx.fillStyle = 'rgba(255,255,255,.4)';
-          ctx.beginPath(); ctx.ellipse(fx2 - r * .35, fy2 - r * .4, r * .3, r * .16, -.5, 0, 7); ctx.fill();
+          gmPunchArm(ctx, anc, fx2, fy2, 'R');
         }
       }
     }
