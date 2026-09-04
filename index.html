@@ -10400,7 +10400,7 @@
     <div class="empty">불러오는 중…</div>
   </div>
   <footer>
-    🔥블붕이🔥 &nbsp;|&nbsp; <a href="mailto:blackcombatfans@gmail.com">이메일 문의</a> &nbsp;|&nbsp; <a href="#/admin">관리자</a>
+    🔥블붕이🔥 &nbsp;|&nbsp; <a href="mailto:blackcombatfans@gmail.com">이메일</a> &nbsp;|&nbsp; <a href="#/admin">관리자</a>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -21202,16 +21202,17 @@
           [[10, 80, 52, 80], [2, 120, 46, 120], [14, 160, 56, 160]].forEach(l => { ctx.beginPath(); ctx.moveTo(l[0], l[1]); ctx.lineTo(l[2], l[3]); ctx.stroke(); });
         } else if (pose === 'punch') {
           gmLionSprite(ctx, 92, 210, 156, { pt: .9, flip: true });
-          const sx = 92 + 38, sy = 210 - 64, fx = 196, fy = 132;
+          // 팔은 새 아트에서 앞으로 치켜든 주먹 위치(가슴 중앙이 아니라 어깨 앞)에서 뻗어 나가야 자연스럽다
+          const sx = 92 + 46, sy = 210 - 75, fx = 196, fy = 132;
           ctx.lineCap = 'round';
-          ctx.strokeStyle = '#241a08'; ctx.lineWidth = 21;
-          ctx.beginPath(); ctx.moveTo(sx - 10, sy + 2); ctx.lineTo(fx - 6, fy); ctx.stroke();
-          ctx.strokeStyle = '#f0a333'; ctx.lineWidth = 16;
-          ctx.beginPath(); ctx.moveTo(sx - 10, sy + 2); ctx.lineTo(fx - 6, fy); ctx.stroke();
-          const gg = ctx.createRadialGradient(fx - 6, fy - 7, 3, fx, fy, 21);
+          ctx.strokeStyle = '#241a08'; ctx.lineWidth = 20;
+          ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(fx - 6, fy); ctx.stroke();
+          ctx.strokeStyle = '#f0a333'; ctx.lineWidth = 15;
+          ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(fx - 6, fy); ctx.stroke();
+          const gg = ctx.createRadialGradient(fx - 6, fy - 7, 3, fx, fy, 20);
           gg.addColorStop(0, '#ffd97a'); gg.addColorStop(.55, '#f0a333'); gg.addColorStop(1, '#c07f18');
           ctx.fillStyle = gg; ctx.strokeStyle = '#241a08'; ctx.lineWidth = 3.5;
-          ctx.beginPath(); ctx.arc(fx, fy, 21, 0, 7); ctx.fill(); ctx.stroke();
+          ctx.beginPath(); ctx.arc(fx, fy, 20, 0, 7); ctx.fill(); ctx.stroke();
           ctx.strokeStyle = 'rgba(255,210,60,.9)'; ctx.lineWidth = 6; ctx.lineCap = 'round';
           [[-35], [0], [35]].forEach(a => {
             const r = Math.PI * a[0] / 180;
@@ -21687,7 +21688,8 @@
           }
         } else {
           // 잽/강펀치 — 사자 자신의 주먹(금빛 앞발)이 고정된 리치만큼만 뻗는다
-          const sx2 = lx + 32 * S, sy2 = floorY - 51 * S;
+          // 새 아트의 치켜든 앞주먹 위치(어깨 앞)에서 뻗어 나간다 — 가슴 중앙에서 나오면 이질감
+          const sx2 = lx + 38 * S, sy2 = floorY - 61 * S;
           const dx = padX - sx2, dy = padY - sy2, dist = Math.hypot(dx, dy) || 1;
           const ARM_MAX = 80 * S, ext = Math.min(dist, ARM_MAX) * pt;
           const ux = dx / dist, uy = dy / dist;
@@ -21696,9 +21698,9 @@
           // 팔 (외곽선 + 금색)
           ctx.lineCap = 'round';
           ctx.strokeStyle = '#241a08'; ctx.lineWidth = 16 * S;
-          ctx.beginPath(); ctx.moveTo(sx2 - 10 * S, sy2 + 2 * S); ctx.lineTo(fx2 - 6 * S, fy2); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(sx2, sy2); ctx.lineTo(fx2 - 6 * S, fy2); ctx.stroke();
           ctx.strokeStyle = '#f0a333'; ctx.lineWidth = 12 * S;
-          ctx.beginPath(); ctx.moveTo(sx2 - 10 * S, sy2 + 2 * S); ctx.lineTo(fx2 - 6 * S, fy2); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(sx2, sy2); ctx.lineTo(fx2 - 6 * S, fy2); ctx.stroke();
           ctx.strokeStyle = strong ? 'rgba(255,180,60,.6)' : 'rgba(255,255,255,.5)'; ctx.lineWidth = 3;
           for (let i = 1; i <= 2; i++) {
             ctx.beginPath(); ctx.moveTo(sx2, sy2 + i * 7); ctx.lineTo(fx2 - 16 * S, fy2 + i * 5); ctx.stroke();
