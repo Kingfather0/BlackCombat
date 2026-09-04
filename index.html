@@ -21203,8 +21203,8 @@
         } else if (pose === 'punch') {
           // 치켜든 주먹을 숨기고, 어깨에서 뻗은 팔 끝에 그 주먹 조각을 붙인다(캐릭터 자신의 주먹이 나가는 느낌)
           const anc = gmLionSprite(ctx, 92, 210, 156, { pt: .9, flip: true, hideFist: true, wantAnchors: true });
-          const fx = 196, fy = 130;
-          gmPunchArm(ctx, anc, fx, fy, 'R');
+          const fx = 174, fy = 130;                                   // 타이틀 아이콘은 팔을 짧게, 주먹은 크게
+          gmPunchArm(ctx, anc, fx, fy, 'R', { fistScale: 1.75, armScale: 1.1 });
           ctx.strokeStyle = 'rgba(255,210,60,.9)'; ctx.lineWidth = 6; ctx.lineCap = 'round';
           [[-35], [0], [35]].forEach(a => {
             const r = Math.PI * a[0] / 180;
