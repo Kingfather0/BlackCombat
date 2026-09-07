@@ -2605,14 +2605,14 @@
       background: var(--key);
       color: #fff;
       font-weight: 800;
-      font-size: 13px;
-      padding: 9px 15px;
+      font-size: 11.5px;
+      padding: 6px 11px;
       border-radius: 999px;
       box-shadow: 0 4px 14px rgba(37, 99, 235, .35);
       font-family: inherit;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
       transition: background .15s
     }
 
@@ -10518,8 +10518,6 @@
     .v2-cta { display: flex; gap: 8px; margin-top: 22px; }
     .v2-btn { flex: none; display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 18px; border-radius: 6px; font-weight: 600; font-size: 14px; background: var(--ink); color: #fff; border: 1px solid var(--ink); font-family: inherit; cursor: pointer; white-space: nowrap; }
     .v2-btn.ghost { background: #fff; color: var(--text); border-color: var(--hair2); }
-    /* "앱 설치"는 보조 동작이라 주 버튼(오픈채팅 참여)보다 한 단계 작게 — 강조 위계를 분명히 함 */
-    .v2-cta .v2-btn.ghost { height: 34px; padding: 0 14px; font-size: 13px; align-self: center; }
     .v2-box-bot { grid-column: span 4; align-self: stretch; padding: 40px 0 32px; margin-top: 40px; }
     .v2-box-bot::before { content: "Chatbot"; display: block; font-size: 11px; font-weight: 700; letter-spacing: .12em; color: var(--dim); text-transform: uppercase; }
     .v2-box-bot h3 { display: block; font-size: 16px; font-weight: 700; margin: 6px 0 0; letter-spacing: -.02em; }
@@ -11483,7 +11481,6 @@
         </div>
         <div class="v2-cta">
           <a class="v2-btn" href="https://open.kakao.com/o/guJ1LAuh" target="_blank" rel="noopener">오픈채팅 참여</a>
-          <button type="button" class="v2-btn ghost" onclick="pwaInstallClick()">앱 설치</button>
         </div>
       </div>
       <div class="v2-box v2-box-bot">
@@ -28618,9 +28615,6 @@
       }
       var ftr = document.querySelector('footer');
       if (ftr) ftr.innerHTML = '<a href="mailto:blackcombatfans@gmail.com">이메일</a> &nbsp;|&nbsp; <a href="#/admin">관리자</a>';
-      // 앱 설치: 브라우저가 설치 가능(beforeinstallprompt)하다고 알려줄 때만 버튼 노출 — 그래야 누르면 바로 설치 팝업이 뜬다
-      var inst = document.querySelector('.v2-cta .v2-btn.ghost');
-      if (inst) { inst.style.display = ((typeof __pwaPrompt !== 'undefined' && __pwaPrompt) ? '' : 'none'); window.addEventListener('beforeinstallprompt', function () { inst.style.display = ''; }); }
       // 터치 판별: 탭 한 번에 mouseenter→click이 연달아 오므로, 터치일 때는 hover 계열 동작을 무시하고 click만 처리한다
       window.__v2Touch = false;
       document.addEventListener('pointerdown', function (e) { window.__v2Touch = (e.pointerType === 'touch' || e.pointerType === 'pen'); }, true);
