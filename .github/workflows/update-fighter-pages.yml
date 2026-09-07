@@ -1,0 +1,36 @@
+name: 선수 개인 전적 페이지 자동 생성
+
+on:
+  workflow_run:
+    workflows: ["선수 공식 전적 자동 갱신"]
+    types: [completed]
+  workflow_dispatch: {}     # GitHub에서 수동 실행 버튼도 제공(처음 설치 직후 즉시 생성할 때 사용)
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    # workflow_run으로 실행될 때는 대상 워크플로가 "성공"으로 끝났을 때만 진행.
+    # workflow_dispatch(수동 실행)일 때는 이 조건과 무관하게 항상 진행.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 선수별 전적 페이지(fighters/*.html) + sitemap.xml 생성
+        run: node scripts/generate-fighter-pages.js
+      - name: 변경 시 커밋
+        run: |
+          if [ -z "$(git status --porcelain fighters sitemap.xml)" ]; then
+            echo "변경 없음 - 커밋 생략"
+          else
+            git config user.name "fighter-pages-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git pull --rebase origin main || true
+            git add fighters sitemap.xml
+            git commit -m "선수 개인 전적 페이지 자동 생성/갱신 ($(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M'))"
+            git push
+          fi
