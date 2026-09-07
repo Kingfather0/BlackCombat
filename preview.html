@@ -10563,10 +10563,17 @@
       display: flex; flex-direction: column; align-items: center; text-align: center;
       gap: 3px; padding: 14px 10px; border: none; border-right: 1px solid var(--hair);
       font-size: 13.5px; font-weight: 700; color: var(--text); white-space: normal;
+      transition: background .15s ease, color .15s ease;
     }
     .v2-links a:nth-child(6n) { border-right: none; }
     .v2-links a::after { display: none; }
-    .v2-links a small { display: block; font-weight: 400; color: var(--dim); font-size: 11px; margin-top: 0; word-break: keep-all; }
+    .v2-links a small { display: block; font-weight: 400; color: var(--dim); font-size: 11px; margin-top: 0; word-break: keep-all; transition: color .15s ease; }
+    @media (hover: hover) {
+      .v2-links a:hover { background: var(--ink); color: #fff; }
+      .v2-links a:hover small { color: rgba(255, 255, 255, .72); }
+    }
+    .v2-links a:active { background: var(--ink); color: #fff; }
+    .v2-links a:active small { color: rgba(255, 255, 255, .72); }
     body[data-route="home"] #app { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 16px; align-items: start; }
     body[data-route="home"] #app > .empty { grid-column: 1 / -1; }
     .hm-sec { grid-column: span 6; }
