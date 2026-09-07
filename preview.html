@@ -10518,6 +10518,8 @@
     .v2-cta { display: flex; gap: 8px; margin-top: 22px; }
     .v2-btn { flex: none; display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 18px; border-radius: 6px; font-weight: 600; font-size: 14px; background: var(--ink); color: #fff; border: 1px solid var(--ink); font-family: inherit; cursor: pointer; white-space: nowrap; }
     .v2-btn.ghost { background: #fff; color: var(--text); border-color: var(--hair2); }
+    /* "앱 설치"는 보조 동작이라 주 버튼(오픈채팅 참여)보다 한 단계 작게 — 강조 위계를 분명히 함 */
+    .v2-cta .v2-btn.ghost { height: 34px; padding: 0 14px; font-size: 13px; align-self: center; }
     .v2-box-bot { grid-column: span 4; align-self: stretch; padding: 40px 0 32px; margin-top: 40px; }
     .v2-box-bot::before { content: "Chatbot"; display: block; font-size: 11px; font-weight: 700; letter-spacing: .12em; color: var(--dim); text-transform: uppercase; }
     .v2-box-bot h3 { display: block; font-size: 16px; font-weight: 700; margin: 6px 0 0; letter-spacing: -.02em; }
@@ -10528,10 +10530,10 @@
        폭보다 높이 제한에 걸려 실제로는 좁게 그려질 때도 모달 카드 자체는 520px를 그대로 차지해서
        이미지 양옆에 회색 여백이 크게 남았다(실제 발생했던 버그) — 모달 폭이 이미지 실제 렌더 폭을
        그대로 따라가도록(딱 붙게) width:auto로 바꿔서 여백을 없앤다. */
-    .v2-img-modal { width: auto; max-width: min(520px, 94vw); max-height: 90vh; }
+    .v2-img-modal { width: auto; max-width: min(520px, 94vw); max-height: 95vh; }
     /* PC(가로 여유가 있는 화면)에서는 세로로 긴 인포그래픽이 좁게 쪼그라들어 글자가 잘 안 보였다
        — 폭 상한을 넉넉하게 늘려서, 화면 높이가 허락하는 한 훨씬 크게 보이도록 함(모바일은 그대로 둠). */
-    @media (min-width: 1024px) { .v2-img-modal { max-width: min(760px, 90vw); } }
+    @media (min-width: 1024px) { .v2-img-modal { max-width: min(920px, 92vw); } }
     .v2-img-modal .modal-b { padding: 10px 14px 14px; text-align: center; }
     .modal .modal-b { padding-top: 14px; }
     /* 이미지가 세로로 긴 스크린샷이라, 폭 100%로 꽉 채우면 모달 밖으로 넘쳐 스크롤해야만 전체가
@@ -10541,7 +10543,7 @@
        래퍼가 모달 폭 전체를 차지해서(이미지는 그보다 좁게 중앙 정렬), 우하단 버튼이 이미지 모서리가
        아니라 래퍼의 빈 여백 쪽에 붙어버린다(실제 발생했던 버그). */
     .v2-img-wrap { position: relative; display: inline-block; max-width: 100%; line-height: 0; }
-    .v2-img-modal .modal-b img { display: block; max-width: 100%; max-height: calc(90vh - 112px); width: auto; height: auto; border-radius: 8px; border: 1px solid var(--hair); }
+    .v2-img-modal .modal-b img { display: block; max-width: 100%; max-height: calc(95vh - 112px); width: auto; height: auto; border-radius: 8px; border: 1px solid var(--hair); }
     .v2-img-modal .modal-h { min-width: min(260px, 90vw); }
     .v2-img-modal .v2-dl {
       position: absolute; right: 10px; bottom: 10px; display: flex; align-items: center; justify-content: center;
@@ -15928,7 +15930,7 @@
 
       // ── 중앙 사자 + 금빛 입자 ──
       const LION = new Image();
-      LION.src = 'jokbo_lion.png?v=2'; // 저장소 루트에 함께 올리는 이미지 (없으면 조용히 생략)
+      LION.src = 'jokbo_lion.png?v=3'; // 저장소 루트에 함께 올리는 이미지 (없으면 조용히 생략) — v3: 팔레트 PNG의 거친(계단현상) 투명 경계를 부드럽게 다시 렌더링
       const SPARKS = [];
       for (let i = 0; i < 220; i++) {
         const a = Math.random() * Math.PI * 2, rr = 300 + Math.random() * 2100;
