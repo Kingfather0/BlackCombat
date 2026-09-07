@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /preview.html
+
+Sitemap: https://xn--9r3b3ij2w.com/sitemap.xml
