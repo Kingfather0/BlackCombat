@@ -11504,7 +11504,7 @@
           <a href="#/matches">경기<small>승부예측 투표·결과</small></a>
           <a href="#/videos">영상<small>업로드 예측 캘린더</small></a>
           <a href="#/tickets">티켓<small>판매 현황·잔여석</small></a>
-          <a href="#/jokbo">선수<small>족보·업적·랭킹</small></a>
+          <a href="#/jokbo">선수<small>족보·랭킹·업적</small></a>
           <a href="#/ranking">격잘알<small>승부예측 랭킹</small></a>
           <a href="#/game">게임<small>미니게임 5종</small></a>
         </div>
@@ -15626,7 +15626,7 @@
       const officialHTML = !official.length ? '' : `
       <div class="sec-title" style="font-size:12.5px;margin-top:${(rows.length || official.length >= 2) ? 16 : 0}px;display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap">
         <span>공식 전적${recTxt ? ` <span style="color:var(--dim);font-size:11px;font-weight:700">${recTxt}</span>` : ''}</span>
-        ${sdUrl ? `<a href="${esc(sdUrl)}" target="_blank" rel="noopener" class="btn v2-petrol small" style="text-decoration:none">셔독에서 전체 전적 보기</a>` : ''}
+        ${sdUrl ? `<a href="${esc(sdUrl)}" target="_blank" rel="noopener" style="font-size:11px;color:#fff;font-weight:800;background:var(--teal);border-radius:8px;padding:2px 8px;text-decoration:none">셔독에서 보기</a>` : ''}
       </div>
       ${official.map(m => {
         const meFirst = m.a[0] === mySeq;
@@ -15673,8 +15673,8 @@
       : `<a href="${href}" style="padding:5px 15px;background:#fff;color:var(--muted);font-weight:700;font-size:13.5px;text-decoration:none">${label}</a>`;
     const rankTabsHTML = act => `<span style="display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;flex-shrink:0">
       ${rankTab(act === 'jokbo', '#/jokbo', '족보')}
-      ${rankTab(act === 'records', '#/records', '업적')}
       ${rankTab(act === 'fighters', '#/fighters', '랭킹')}
+      ${rankTab(act === 'records', '#/records', '업적')}
     </span>`;
     const frow = f => f[1] === '공석'
       ? `<div class="frow"><span class="frk c">👑</span><span class="fnm" style="color:var(--dim)">공석</span></div>`
