@@ -15565,8 +15565,8 @@
       // 승부예측 기록도, 공식 전적도 없을 때만 팝업 대신 안내 메시지
       if (!rows.length && !official.length) return toastMsg(`'${nick}' 선수의 기록이 아직 없습니다.`);
       const rate = totVotes ? Math.round(corrVotes / totVotes * 100) : 0;
-      const W = '<span class="badge" style="background:#d6e6fd;color:#1d4ed8;font-size:11px">승</span>';
-      const L = '<span class="badge" style="background:#fdecec;color:#a51c1c;font-size:11px">패</span>';
+      const W = '<span class="badge" style="background:none;color:#1d4ed8;font-size:11px">승</span>';
+      const L = '<span class="badge" style="background:none;color:#a51c1c;font-size:11px">패</span>';
       const DR = '<span class="badge" style="background:#eef1f6;color:#525d6b;font-size:11px">무</span>';
       // ── 섹션 1: 우리 방 승부예측 기록 (있을 때만) ──
       const predHTML = !rows.length ? '' : `
