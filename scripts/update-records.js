@@ -120,7 +120,9 @@ function parseMatches(html) {
         const matches = parseMatches(page);
         records[f.seq] = matches;
         // 상세 페이지의 "CERTIFIED BY SHERDOG" 링크 (없는 선수도 있으므로 있을 때만 저장)
-        const sd = (page.match(/href="(https?:\/\/(?:www\.)?sherdog\.com\/fighter\/[^"]+)"/i) || [])[1];
+        // 셔독은 www.sherdog.com 뿐 아니라 migration.sherdog.com 같은 다른 서브도메인으로도
+        // 링크가 걸리는 경우가 있어(예: 플라밍고/박정민), 서브도메인을 가리지 않고 넓게 잡는다.
+        const sd = (page.match(/href="(https?:\/\/(?:[\w-]+\.)?sherdog\.com\/fighter\/[^"]+)"/i) || [])[1];
         if (sd) sherdog[f.seq] = sd;
         ok++;
       } catch (e) {
