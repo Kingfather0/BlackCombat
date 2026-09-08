@@ -15503,9 +15503,13 @@
       // 다시 누르거나 점 밖을 누르면 닫힌다 — 실제 클릭 판정은 보이는 점(r=3) 위에 겹친 투명한
       // 큰 히트영역(r=9)이 받아서, 작은 점이라도 터치로 누르기 쉽게 한다.
       window.__rfcPts = pts.slice(1).map(p => {
+        // 공식 전적 목록과 동일한 방식: 각 선수 이름 바로 뒤에 그 선수의 결과를 붙여서
+        // "누가 이겼는지"가 이름과 헷갈리지 않게 한다(승/패 텍스트가 상대 이름에 붙어보이는 것 방지).
         const resTxt = p.res === 'W' ? '승' : p.res === 'L' ? '패' : p.res === 'N' ? '무효' : '무';
         const resCol = p.res === 'W' ? '#1d4ed8' : p.res === 'L' ? '#a51c1c' : '#525d6b';
-        return `<b>${esc(nick)}</b> vs <b>${esc(p.opp || '상대 미상')}</b> · <b style="color:${resCol}">${resTxt}</b>` +
+        const oppResTxt = p.res === 'W' ? '패' : p.res === 'L' ? '승' : p.res === 'N' ? '무효' : '무';
+        const oppResCol = p.res === 'W' ? '#a51c1c' : p.res === 'L' ? '#1d4ed8' : '#525d6b';
+        return `<b>${esc(nick)}</b> <b style="color:${resCol}">${resTxt}</b> <span style="color:var(--dim);font-weight:700">vs</span> <b>${esc(p.opp || '상대 미상')}</b> <b style="color:${oppResCol}">${oppResTxt}</b>` +
           `<div style="color:var(--dim);margin-top:2px">${esc(p.ev)}${p.mtd ? ' · ' + esc(p.mtd) : ''}</div>`;
       });
       const dots = pts.slice(1).map((p, idx) => {
