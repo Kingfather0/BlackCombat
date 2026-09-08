@@ -15576,7 +15576,7 @@
       </div>
       ${rows.map(r => `<div class="pcard" style="padding:11px 14px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-weight:800;font-size:14px">${fflagHTML(nick)}${esc(nick)} ${r.won ? W : L} <span style="color:var(--dim);font-weight:700">vs</span> <span style="cursor:pointer;background:#eef1f6;border-radius:8px;padding:2px 8px" onclick="openFighterStats('${String(r.opp).replace(/'/g, "\\'")}')" title="누르면 ${esc(r.opp)} 선수의 기록이 보입니다">${fflagHTML(r.opp)}${esc(r.opp)}</span> ${r.won ? L : W}</span>
+          <span style="font-weight:800;font-size:14px">${fflagHTML(nick)}${esc(nick)} ${r.won ? W : L} <span style="color:var(--dim);font-weight:700">vs</span> <span style="cursor:pointer;background:#eef1f6;color:#000;font-weight:800;border-radius:8px;padding:2px 8px" onclick="openFighterStats('${String(r.opp).replace(/'/g, "\\'")}')" title="누르면 ${esc(r.opp)} 선수의 기록이 보입니다">${fflagHTML(r.opp)}${esc(r.opp)}</span> ${r.won ? L : W}</span>
           <span style="color:var(--muted);font-size:13px;font-weight:700">우리 방 픽 ${r.pct}%</span>
         </div>
         <div style="font-size:12px;margin-top:2px"><a href="#/t/${r.tid}" onclick="this.closest('.modal-ov').remove()" style="color:var(--dim);font-weight:700">${esc(r.title)}</a></div>
@@ -15600,8 +15600,8 @@
         const myBadge = m.res === 'W' ? W : m.res === 'L' ? L : m.res === 'N' ? NCB : DR;
         const oppBadge = m.res === 'W' ? L : m.res === 'L' ? W : m.res === 'N' ? NCB : DR;
         const oppHTML = oppNick
-          ? `<span style="cursor:pointer;background:#eef1f6;border-radius:8px;padding:2px 8px" onclick="openFighterStats('${String(oppNick).replace(/'/g, "\\'")}')" title="누르면 ${esc(oppNick)} 선수의 기록이 보입니다">${fflagHTML(oppNick)}${esc(oppNick)}</span>`
-          : `<span>${fflagHTML(opp[1])}${esc(opp[1])}</span>`;
+          ? `<span style="cursor:pointer;background:#eef1f6;color:#000;font-weight:800;border-radius:8px;padding:2px 8px" onclick="openFighterStats('${String(oppNick).replace(/'/g, "\\'")}')" title="누르면 ${esc(oppNick)} 선수의 기록이 보입니다">${fflagHTML(oppNick)}${esc(oppNick)}</span>`
+          : `<span style="color:#000;font-weight:800">${fflagHTML(opp[1])}${esc(opp[1])}</span>`;
         // 피니시(KO/TKO/서브미션)든 판정이든 마무리 방법 텍스트는 항상 같은 회색 톤으로 통일.
         return `<div class="pcard" style="padding:11px 14px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
