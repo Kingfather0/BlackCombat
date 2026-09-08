@@ -10486,7 +10486,6 @@
     .t-card:hover { filter: none; transform: none; box-shadow: none; background: transparent; }
     .t-card .tt { font-size: 16px; font-weight: 700; letter-spacing: -.02em; }
     .t-card .meta { gap: 12px; font-size: 12.5px; color: var(--text); font-weight: 400; margin-top: 6px; }
-    .t-card .meta span:nth-child(n+2) { color: var(--dim); }
     .t-card .meta .countdown { color: var(--amber-text); font-weight: 600; }
 
     /* ── 홈 상단 배너 — 홈 화면에서만, 헤더 바로 아래 화면 전체 폭으로 깐다.
@@ -15441,9 +15440,16 @@
        값은 경기 순간에만 바뀌지만(각 지점의 점이 그 사실을 표현), 선은 읽기 편하도록
        지점 사이를 직선으로 잇는다 — 작은 차트에서 계단식보다 흐름이 깔끔하게 보인다.
        공식 경기 데이터는 날짜가 없어 가로축은 경기 순서다. 2경기 미만이면 생략. */
-    function recFlowChartHTML(nick, official) {
+    function recFlowChartHTML(nick, official, rec, mySeq) {
       if (!official || official.length < 2) return '';
       const seq = official.slice().reverse(); // 최신순 → 시간순
+      // 상대 닉네임: officialHTML과 같은 방식으로 a/b 중 내가 아닌 쪽을 찾아 랭킹 닉네임으로 해석
+      const oppNameOf = mch => {
+        const meFirst = mch.a && mch.a[0] === mySeq;
+        const opp = meFirst ? mch.b : mch.a;
+        if (!opp) return '';
+        return (rec && rec.data && rec.data.nicks && rec.data.nicks[opp[0]]) || opp[1] || '';
+      };
       let margin = 0, w = 0, l = 0, dr = 0, nc = 0;
       const pts = [{ i: 0, m: 0 }]; // 데뷔 전 0에서 시작
       seq.forEach((mch, i) => {
@@ -15451,7 +15457,7 @@
         else if (mch.res === 'L') { margin--; l++; }
         else if (mch.res === 'N') nc++; // 노 컨테스트(무효) — 승패에 안 센다
         else dr++;
-        pts.push({ i: i + 1, m: margin, res: mch.res, ev: mch.ev });
+        pts.push({ i: i + 1, m: margin, res: mch.res, ev: mch.ev, mtd: mch.m, opp: oppNameOf(mch) });
       });
       // 최근 연승/연패 계산 (무승부·무효는 흐름 유지로 보고 건너뜀)
       let streak = 0, streakRes = null;
@@ -15478,12 +15484,23 @@
       [mMax, mMin].forEach(v => {
         if (v !== 0) grid += `<text x="${padL - 4}" y="${y(v) + 3}" text-anchor="end" font-size="9" fill="#8a93a3">${v > 0 ? '+' + v : v}</text>`;
       });
-      // 직선: 각 경기 지점을 곧게 잇는다
+      // 직선: 각 경기 지점을 곧게 잇는다 — 선 색은 승/패와 무관한 중립 회색(강조는 점 색으로만)
       let path = `M ${x(0).toFixed(1)} ${y(0).toFixed(1)}`;
       for (let i = 1; i < pts.length; i++) path += ` L ${x(i).toFixed(1)} ${y(pts[i].m).toFixed(1)}`;
-      const dots = pts.slice(1).map(p => {
+      // 점을 누르면(호버 포함) 아래 정보칸에 "선수 vs 상대 · 승/패 · 몇 라운드에 끝났는지"를 보여준다.
+      // 다시 누르거나 점 밖을 누르면 닫힌다 — 실제 클릭 판정은 보이는 점(r=3) 위에 겹친 투명한
+      // 큰 히트영역(r=9)이 받아서, 작은 점이라도 터치로 누르기 쉽게 한다.
+      window.__rfcPts = pts.slice(1).map(p => {
+        const resTxt = p.res === 'W' ? '승' : p.res === 'L' ? '패' : p.res === 'N' ? '무효' : '무';
+        const resCol = p.res === 'W' ? '#1d4ed8' : p.res === 'L' ? '#a51c1c' : '#525d6b';
+        return `<b>${esc(nick)}</b> vs <b>${esc(p.opp || '상대 미상')}</b> · <b style="color:${resCol}">${resTxt}</b>` +
+          `<div style="color:var(--dim);margin-top:2px">${esc(p.ev)}${p.mtd ? ' · ' + esc(p.mtd) : ''}</div>`;
+      });
+      const dots = pts.slice(1).map((p, idx) => {
         const c = p.res === 'W' ? '#2563eb' : p.res === 'L' ? '#dc2626' : '#9aa3b2';
-        return `<circle cx="${x(p.i).toFixed(1)}" cy="${y(p.m).toFixed(1)}" r="3" fill="${c}"><title>${esc(p.ev)} ${p.res === 'W' ? '승' : p.res === 'L' ? '패' : p.res === 'N' ? '무효' : '무'}</title></circle>`;
+        const cx = x(p.i).toFixed(1), cy = y(p.m).toFixed(1);
+        return `<circle cx="${cx}" cy="${cy}" r="3" fill="${c}" class="rfc-dot" style="pointer-events:none"/>` +
+          `<circle cx="${cx}" cy="${cy}" r="9" fill="transparent" class="rfc-dot" style="cursor:pointer" onclick="rfcToggle(event,${idx})"><title>눌러서 경기 정보 보기</title></circle>`;
       }).join('');
       const evShort = s => { s = String(s); return s.length > 16 ? s.slice(0, 16) + '…' : s; };
       return `
@@ -15494,12 +15511,32 @@
       <div class="pcard" style="padding:8px 10px">
         <svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:480px;display:block;margin:0 auto" role="img" aria-label="${esc(nick)} 전적 흐름 그래프">
           ${grid}
-          <path d="${path}" fill="none" stroke="#94a8cc" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="${path}" fill="none" stroke="#9aa3b2" stroke-width="1.6" stroke-linejoin="round"/>
           ${dots}
           <text x="${padL}" y="${H - 5}" font-size="9" fill="#8a93a3">${esc(evShort(seq[0].ev))}</text>
           <text x="${W - padR}" y="${H - 5}" text-anchor="end" font-size="9" fill="#8a93a3">${esc(evShort(seq[seq.length - 1].ev))}</text>
         </svg>
+        <div id="rfc-info" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--hair);font-size:12.5px"></div>
       </div>`;
+    }
+    window.__rfcSel = null;
+    window.rfcToggle = function (ev, i) {
+      ev.stopPropagation();
+      const box = document.getElementById('rfc-info');
+      if (!box || !window.__rfcPts) return;
+      if (window.__rfcSel === i) { window.__rfcSel = null; box.style.display = 'none'; box.innerHTML = ''; return; }
+      window.__rfcSel = i;
+      box.style.display = 'block';
+      box.innerHTML = window.__rfcPts[i] || '';
+    };
+    if (!window.__rfcClickBound) {
+      window.__rfcClickBound = true;
+      document.addEventListener('click', e => {
+        const box = document.getElementById('rfc-info');
+        if (!box || box.style.display === 'none') return;
+        if (e.target.closest('.rfc-dot') || e.target.closest('#rfc-info')) return;
+        box.style.display = 'none'; box.innerHTML = ''; window.__rfcSel = null;
+      });
     }
     async function openFighterStats(nick) {
       if (!seasonCache) {
@@ -15528,7 +15565,7 @@
       // 승부예측 기록도, 공식 전적도 없을 때만 팝업 대신 안내 메시지
       if (!rows.length && !official.length) return toastMsg(`'${nick}' 선수의 기록이 아직 없습니다.`);
       const rate = totVotes ? Math.round(corrVotes / totVotes * 100) : 0;
-      const W = '<span class="badge" style="background:#e3edfd;color:#1d4ed8;font-size:11px">승</span>';
+      const W = '<span class="badge" style="background:#d6e6fd;color:#1d4ed8;font-size:11px">승</span>';
       const L = '<span class="badge" style="background:#fdecec;color:#a51c1c;font-size:11px">패</span>';
       const DR = '<span class="badge" style="background:#eef1f6;color:#525d6b;font-size:11px">무</span>';
       // ── 섹션 1: 우리 방 승부예측 기록 (있을 때만) ──
@@ -15565,15 +15602,12 @@
         const oppHTML = oppNick
           ? `<span style="cursor:pointer;background:#eef1f6;border-radius:8px;padding:2px 8px" onclick="openFighterStats('${String(oppNick).replace(/'/g, "\\'")}')" title="누르면 ${esc(oppNick)} 선수의 기록이 보입니다">${fflagHTML(oppNick)}${esc(oppNick)}</span>`
           : `<span>${fflagHTML(opp[1])}${esc(opp[1])}</span>`;
-        // 피니시(KO/TKO/서브미션)로 끝난 경기는 마무리 방법을 강조 — 이겼으면 파랑, 졌으면 빨강.
-        // 판정·무효 등은 기존 회색 유지. (rhClassify는 업적 페이지와 같은 분류 기준을 공유)
-        const mCls = rhClassify(m.m);
-        const mColor = (mCls === 'KO' || mCls === 'SUB') ? (m.res === 'W' ? '#1d4ed8' : m.res === 'L' ? '#a51c1c' : null) : null;
+        // 피니시(KO/TKO/서브미션)든 판정이든 마무리 방법 텍스트는 항상 같은 회색 톤으로 통일.
         return `<div class="pcard" style="padding:11px 14px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
           <span style="font-weight:800;font-size:14px">${fflagHTML(nick)}${esc(nick)} ${myBadge} <span style="color:var(--dim);font-weight:700">vs</span> ${oppHTML} ${oppBadge}</span>
         </div>
-        <div style="font-size:12px;margin-top:2px;color:var(--dim);font-weight:700">${esc(m.ev)}${m.m ? ` · <span${mColor ? ` style="color:${mColor}"` : ''}>${esc(m.m)}</span>` : ''}</div>
+        <div style="font-size:12px;margin-top:2px;color:var(--dim);font-weight:700">${esc(m.ev)}${m.m ? ` · ${esc(m.m)}` : ''}</div>
       </div>`;
       }).join('')}
       `;
@@ -15584,7 +15618,7 @@
       <button class="modal-x" onclick="history.back()">✕</button></div>
     <div class="modal-b">
       ${predHTML}
-      ${recFlowChartHTML(nick, official)}
+      ${recFlowChartHTML(nick, official, rec, mySeq)}
       ${officialHTML}
     </div></div>`;
       ov.onclick = e => { if (e.target === ov) history.back(); };
@@ -15786,14 +15820,14 @@
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
       ${rankTabsHTML('jokbo')}
       <span style="display:inline-flex;gap:8px;align-items:center">
-        <span id="jbx-sub" style="font-size:12px;font-weight:800;background:#eef2f8;color:#39445a;padding:4px 11px;border-radius:99px">😎 이기면 아버지</span>
+        <span id="jbx-sub" style="font-size:12px;font-weight:800;background:#eef2f8;color:#39445a;padding:4px 11px;border-radius:99px">이기면 아버지</span>
       </span>
     </div>
     <div id="jbx-wrap">
       <canvas id="jbx-cv"></canvas>
       <div id="jbx-btns">
-        <button id="jbx-back" type="button" style="display:none">전체</button>
-        <button id="jbx-full" type="button" title="전체화면으로 보기">⛶ 화면</button>
+        <button id="jbx-back" type="button" style="display:none" title="전체 화면(홈)으로 돌아가기">⌂</button>
+        <button id="jbx-full" type="button" title="전체화면으로 보기">⛶</button>
       </div>
       <div id="jbx-legend"></div>
       <div id="jbx-hint" class="fit-row">
@@ -16022,7 +16056,7 @@
         if (mode !== 'division') { backBtn.style.display = 'none'; return; }
         backBtn.style.display = 'block';
         if (selected) { backBtn.textContent = '해제'; backBtn.classList.add('sel'); }
-        else { backBtn.textContent = '전체'; backBtn.classList.remove('sel'); }
+        else { backBtn.textContent = '⌂'; backBtn.classList.remove('sel'); }
       }
       // 체급 확대 시: "전체화면"처럼 세로가 훨씬 긴 화면에서만 세대 간격을 늘려
       // 동그라미들이 화면을 꽉 채우도록 세로로 펼친다. 일반 화면은 기본 배치 유지,
@@ -16050,7 +16084,7 @@
         fitDivisionShape(dix);
         applyCenters();
         alpha = Math.max(alpha, .35); // 세대별로 펼쳐지는 움직임이 눈에 띄게 빠르도록
-        if (subEl) subEl.textContent = '😎 ' + DIVS[dix].name + ' · ' + parentWord(isFem(dix)) + ' → ' + childWord(isFem(dix));
+        if (subEl) subEl.textContent = DIVS[dix].name + ' · ' + parentWord(isFem(dix)) + ' → ' + childWord(isFem(dix));
         animToDivision(dix);
         followUntil = Date.now() + 2400; // 펼쳐지는 동안 카메라가 부드럽게 따라간다
         updateBackBtn();
@@ -16062,7 +16096,7 @@
         DIVS.forEach(d => { d.genGap = d.genGapOv; });
         applyCenters();
         alpha = Math.max(alpha, .35);
-        if (subEl) subEl.textContent = '😎 이기면 아버지';
+        if (subEl) subEl.textContent = '이기면 아버지';
         animToOverview();
         followUntil = Date.now() + 2400;
         updateBackBtn();
@@ -16534,7 +16568,7 @@
       }
       function syncFullBtn() {
         if (!fullBtn) return;
-        fullBtn.textContent = isFull() ? '✕ 닫기' : '⛶ 화면';
+        fullBtn.textContent = isFull() ? '✕' : '⛶';
         fullBtn.title = isFull() ? '전체화면 닫기' : '전체화면으로 보기';
       }
       function leavePseudoFull() {
@@ -28246,7 +28280,7 @@
         } else if (route === 'fighters' || route === 'records' || route === 'jokbo' || (route === 'game' && !document.body.dataset.sub)) {
           if (app.querySelector(':scope > h1.page')) return;
           if (!app.querySelector(':scope > .fit-row, :scope > .fgrid, :scope > .gcard, :scope > #gQuizCardWrap, :scope > .gmenu-head')) return;
-          var T = { fighters: '선수 순위', records: '찬란한 발자취', jokbo: '관계도', game: '미니게임' };
+          var T = { fighters: '선수 순위', records: '영광의 기록', jokbo: '관계도', game: '미니게임' };
           app.insertAdjacentHTML('afterbegin', '<h1 class="page" data-v8="1">' + T[route] + '</h1>');
         } else if (route === 'ranking') {
           var rc = app.querySelector(':scope > .card:has(.rules-b)'), rt = null;
