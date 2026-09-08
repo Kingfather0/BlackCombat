@@ -2311,6 +2311,11 @@
       box-shadow: 0 1px 3px rgba(20, 40, 80, .05)
     }
 
+    /* 전적 흐름 차트 툴팁 — 영상 페이지 "최근 업로드 추이" 차트와 동일한 방식(마우스오버/클릭 시
+       점 바로 아래 흰 박스로 팝업) */
+    .rfc-tip { display: none; }
+    .rfc-tip.on { display: block; position: absolute; z-index: 60; width: min(280px, calc(100% - 8px)); background: #fff; border: 1px solid var(--hair); border-radius: 8px; padding: 8px 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, .10); font-size: 12.5px; }
+
     .pcard-h {
       width: 100%;
       display: flex;
@@ -15499,8 +15504,8 @@
       const dots = pts.slice(1).map((p, idx) => {
         const c = p.res === 'W' ? '#2563eb' : p.res === 'L' ? '#dc2626' : '#9aa3b2';
         const cx = x(p.i).toFixed(1), cy = y(p.m).toFixed(1);
-        return `<circle cx="${cx}" cy="${cy}" r="3" fill="${c}" class="rfc-dot" style="pointer-events:none"/>` +
-          `<circle cx="${cx}" cy="${cy}" r="9" fill="transparent" class="rfc-dot" style="cursor:pointer" onclick="rfcToggle(event,${idx})"><title>눌러서 경기 정보 보기</title></circle>`;
+        return `<circle id="rfc-vdot-${idx}" cx="${cx}" cy="${cy}" r="3" fill="${c}" class="rfc-dot" style="pointer-events:none"/>` +
+          `<circle id="rfc-dot-${idx}" cx="${cx}" cy="${cy}" r="9" fill="transparent" class="rfc-dot" style="cursor:pointer" onmouseenter="rfcShow(${idx})" onclick="rfcToggle(event,${idx})"><title>마우스를 올리거나 눌러서 경기 정보 보기</title></circle>`;
       }).join('');
       const evShort = s => { s = String(s); return s.length > 16 ? s.slice(0, 16) + '…' : s; };
       return `
@@ -15508,7 +15513,7 @@
         <span>전적 흐름 <span style="color:var(--dim);font-size:11px;font-weight:700">블랙컴뱃 ${seq.length}경기</span></span>
         <span style="color:var(--dim);font-size:11px;font-weight:700">${w}승 ${l}패${dr ? ' ' + dr + '무' : ''}${nc ? ` · 무효 ${nc}` : ''}${streakTxt}</span>
       </div>
-      <div class="pcard" style="padding:8px 10px">
+      <div class="pcard" style="padding:8px 10px;position:relative">
         <svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:480px;display:block;margin:0 auto" role="img" aria-label="${esc(nick)} 전적 흐름 그래프">
           ${grid}
           <path d="${path}" fill="none" stroke="#9aa3b2" stroke-width="1.6" stroke-linejoin="round"/>
@@ -15516,27 +15521,58 @@
           <text x="${padL}" y="${H - 5}" font-size="9" fill="#8a93a3">${esc(evShort(seq[0].ev))}</text>
           <text x="${W - padR}" y="${H - 5}" text-anchor="end" font-size="9" fill="#8a93a3">${esc(evShort(seq[seq.length - 1].ev))}</text>
         </svg>
-        <div id="rfc-info" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--hair);font-size:12.5px"></div>
+        <div id="rfc-info" class="rfc-tip"></div>
       </div>`;
     }
-    window.__rfcSel = null;
+    // 영상 페이지 "최근 업로드 추이" 차트와 동일한 방식 — 점에 마우스오버하면 바로 그 점 아래에
+    // 흰 박스로 팝업, 클릭하면 고정(다시 누르거나 바깥을 누르면 닫힘). 터치 기기는 마우스오버가
+    // 사실상 안 뜨므로 클릭만으로 동작한다(window.__v2Touch로 구분).
+    window.__rfcPin = null;
+    function rfcRenderAt(i) {
+      const box = document.getElementById('rfc-info');
+      const dot = document.getElementById('rfc-dot-' + i);
+      const host = box && box.closest('.pcard');
+      if (!box || !dot || !host || !window.__rfcPts) return;
+      document.querySelectorAll('[id^="rfc-vdot-"]').forEach(el => {
+        el.setAttribute('r', '3'); el.setAttribute('stroke', 'none');
+      });
+      const vdot = document.getElementById('rfc-vdot-' + i);
+      if (vdot) { vdot.setAttribute('r', '4.5'); vdot.setAttribute('stroke', '#fff'); vdot.setAttribute('stroke-width', '1.5'); }
+      box.innerHTML = window.__rfcPts[i] || '';
+      box.classList.add('on');
+      const hr = host.getBoundingClientRect(), dr = dot.getBoundingClientRect(), bw = box.offsetWidth;
+      const left = dr.left + dr.width / 2 - hr.left - bw / 2;
+      box.style.left = Math.max(4, Math.min(left, hr.width - bw - 4)) + 'px';
+      box.style.top = (dr.bottom - hr.top + 8) + 'px';
+    }
+    function rfcHide() {
+      const box = document.getElementById('rfc-info');
+      if (box) { box.classList.remove('on'); box.innerHTML = ''; }
+      document.querySelectorAll('[id^="rfc-vdot-"]').forEach(el => { el.setAttribute('r', '3'); el.setAttribute('stroke', 'none'); });
+    }
+    window.rfcShow = function (i) {
+      if (window.__v2Touch) return;
+      rfcRenderAt(i);
+    };
     window.rfcToggle = function (ev, i) {
       ev.stopPropagation();
-      const box = document.getElementById('rfc-info');
-      if (!box || !window.__rfcPts) return;
-      if (window.__rfcSel === i) { window.__rfcSel = null; box.style.display = 'none'; box.innerHTML = ''; return; }
-      window.__rfcSel = i;
-      box.style.display = 'block';
-      box.innerHTML = window.__rfcPts[i] || '';
+      if (window.__rfcPin === i) { window.__rfcPin = null; rfcHide(); return; }
+      window.__rfcPin = i;
+      rfcRenderAt(i);
     };
-    if (!window.__rfcClickBound) {
-      window.__rfcClickBound = true;
-      document.addEventListener('click', e => {
-        const box = document.getElementById('rfc-info');
-        if (!box || box.style.display === 'none') return;
-        if (e.target.closest('.rfc-dot') || e.target.closest('#rfc-info')) return;
-        box.style.display = 'none'; box.innerHTML = ''; window.__rfcSel = null;
+    if (!window.__rfcHoverBound) {
+      window.__rfcHoverBound = true;
+      document.addEventListener('mouseover', e => {
+        const t = e.target;
+        const overDot = t.closest && t.closest('.rfc-dot');
+        const overBox = t.closest && t.closest('#rfc-info');
+        if (!overDot && !overBox && window.__rfcPin === null) rfcHide();
       });
+      document.addEventListener('pointerdown', e => {
+        const t = e.target;
+        if (t.closest && (t.closest('.rfc-dot') || t.closest('#rfc-info'))) return;
+        window.__rfcPin = null; rfcHide();
+      }, true);
     }
     async function openFighterStats(nick) {
       if (!seasonCache) {
@@ -15590,7 +15626,7 @@
       const officialHTML = !official.length ? '' : `
       <div class="sec-title" style="font-size:12.5px;margin-top:${(rows.length || official.length >= 2) ? 16 : 0}px;display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap">
         <span>공식 전적${recTxt ? ` <span style="color:var(--dim);font-size:11px;font-weight:700">${recTxt}</span>` : ''}</span>
-        ${sdUrl ? `<a href="${esc(sdUrl)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--dim);font-weight:700;text-decoration:underline">셔독에서 전체 전적 보기</a>` : ''}
+        ${sdUrl ? `<a href="${esc(sdUrl)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--text);font-weight:800;background:var(--bg2);border-radius:8px;padding:2px 8px;text-decoration:none">셔독에서 전체 전적 보기</a>` : ''}
       </div>
       ${official.map(m => {
         const meFirst = m.a[0] === mySeq;
