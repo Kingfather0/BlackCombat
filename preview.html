@@ -22,6 +22,9 @@
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"WebSite","name":"블붕이","alternateName":["블붕이.com","블랙컴뱃 블붕이"],"url":"https://xn--9r3b3ij2w.com/","inLanguage":"ko","description":"블랙컴뱃(Black Combat) 팬 커뮤니티 — 승부예측, 선수 전적·족보·랭킹, 티켓 판매 현황, 영상 업로드 예측"}
   </script>
+  <!-- 검색 노출(SEO): 구글 검색결과 파비콘은 data: SVG를 잘 못 읽어와 기본 지구본 아이콘으로
+       뜨는 경우가 많아, 실제 파일(icon-192.png)을 먼저 걸어준다. 브라우저 탭 아이콘은 그대로 동일. -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="icon"
     href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦁</text></svg>">
   <link rel="manifest" href="manifest.json">
@@ -11482,7 +11485,11 @@
   <datalist id="fighters-dl"></datalist>
   <div class="wrap">
     <div id="app">
-      <div class="empty">불러오는 중…</div>
+      <!-- 검색 노출(SEO): 자바스크립트 실행 전(또는 크롤러가 렌더링 전에 캡처하는 경우) 이 텍스트가
+           그대로 검색결과 스니펫에 잡힐 수 있어, "불러오는 중…" 같은 자리표시자 대신 실제 사이트
+           소개문을 넣어둔다. 페이지가 로드되면 즉시 라우터가 이 내용을 실제 화면으로 덮어써서
+           사용자에게는 아무 변화도 보이지 않는다. -->
+      <div class="empty">블붕이는 국내 MMA 단체 블랙컴뱃(Black Combat) 팬 커뮤니티입니다. 경기 승부예측, 선수 전적·족보·랭킹, 티켓 판매 현황, 영상 업로드 예측, 미니게임을 한곳에서 확인하세요. 불러오는 중…</div>
     </div>
     <aside class="v2-side" aria-label="블붕이 안내">
       <div class="v2-box v2-box-intro">
