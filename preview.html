@@ -10981,12 +10981,9 @@
     @keyframes vcBlink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
     body[data-route="t"] .vote-grid .match .no .vc-live { grid-column: 3; justify-self: end; color: var(--red); font-weight: 800; font-size: 12.5px; white-space: nowrap; }
     body[data-route="t"] .vote-grid .match .no .vc-live::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--red); margin-right: 5px; vertical-align: 1px; animation: vcBlink 1.2s ease-in-out infinite; }
-    /* LIVE 카드 빨간 테두리: inset box-shadow도, outline도 카드 상단의 회색 헤더 띠(.no —
-       position:relative라 부모의 outline보다 나중에 그려짐)에 위쪽·위 모서리가 가려졌다.
-       그래서 테두리를 카드 맨 위 층의 가상요소(::after, z-index)로 따로 얹어 헤더 띠 위에
-       온전히 보이게 한다. pointer-events:none이라 클릭은 그대로 통과. */
-    body[data-route="t"] .vote-grid .match.live { box-shadow: none; outline: none; position: relative; }
-    body[data-route="t"] .vote-grid .match.live::after { content: ""; position: absolute; inset: 0; border: 1.5px solid var(--red); border-radius: inherit; pointer-events: none; z-index: 5; }
+    /* LIVE 카드 빨간 테두리는 "조잡하다"는 지적으로 제거 — 진행 중 표시는 헤더의 "● 경기 진행 중"
+       빨간 라벨과 스텝 번호의 빨간 점만으로 충분하다. */
+    body[data-route="t"] .vote-grid .match.live { box-shadow: none; outline: none; }
     body[data-route="t"] .vote-grid .match .vc-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--hair); }
     body[data-route="t"] .vote-grid .match .vc-tag { display: inline-flex; }
     body[data-route="t"] .vote-grid .match .vc-tag .badge { display: inline-flex; align-items: center; background: var(--bg2) !important; color: var(--text) !important; font-weight: 700 !important; font-size: 12px !important; border-radius: 6px; padding: 4px 9px; line-height: 1.2; }
@@ -17300,13 +17297,16 @@
         const t = curT, matches = curMatches || [], parts = curParts || [];
         if (!t) return;
         const live = tIsLive(t);
+        const scoredN = matches.filter(m => m.winner === 'A' || m.winner === 'B').length;
         const imageUrl = await kkoConsumePreload(btn, () => tDrawShareCard(t, matches, parts));
         const ok = imageUrl && kkoSendShare(imageUrl, {
-          title: live ? `🔴 LIVE — ${t.title}` : t.title,
-          // 라이브 설명줄: 직전 경기 승자만 — 예: "🏆 미스터 초크 승 (4경기)".
-          // 아직 끝난 경기가 하나도 없으면 "경기 진행 전".
+          // 카톡 피드 카드에서 검은 글씨는 제목(title)뿐이고 설명(description)은 카카오톡이
+          // 항상 회색으로 그린다(사이트에서 색을 바꿀 수 없음). "승자 텍스트를 검정으로"라는
+          // 지적 반영으로 직전 경기 승자("🏆 미스터 초크 승 (4경기)" / "경기 진행 전")를
+          // 제목 줄에 넣고, 회색 설명줄에는 결과 반영 진행도만 둔다.
+          title: live ? `🔴 LIVE — ${t.title}\n${tPrevWinnerDesc(matches)}` : t.title,
           desc: live
-            ? tPrevWinnerDesc(matches)
+            ? `${scoredN}/${matches.length}경기 결과 반영`
             : `${(t.event_at || t.event_date) ? fmtEventDT(t) + ' · ' : ''}${parts.length}명 참여`,
           btnText: live ? '실시간 현황 보기' : (tState(t) === 'open' ? '예측하러 가기' : '결과 보러 가기'),
           path: `#/t/${encodeURIComponent(id)}`,
