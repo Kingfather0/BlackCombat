@@ -20328,8 +20328,23 @@
       // 예전엔 경기 당일을 "1순위 후보"에서 무조건 제외했는데, 그건 "당일엔 콘텐츠가 준다"는
       // 임의 가정이 있을 때나 맞는 얘기였다. 이제 당일 가중치도 실측 근거로 계산되므로, 진짜
       // 확률이 가장 높으면 경기 당일도 그대로 1순위로 보여준다(라이브 확정은 별도 LIVE 배지로).
+      // 반올림한 %가 아니라 원래 가중치(w)로 1순위를 고른다 — %끼리 동률/1%p 차이로 시간이 몇 분만
+      // 지나도 1순위가 뒤집히던 문제 방지.
       let topDay = days[0];
-      days.forEach(d => { if (d.pct > topDay.pct) topDay = d; });
+      days.forEach(d => { if (d.w > topDay.w) topDay = d; });
+      // "카톡 카드는 9월 10일~11일인데 PC 화면은 9월 10일~15일" — 아래 유력 구간(rd)은 간격 통계 범위로
+      // 정한 뒤 1순위(topDay)가 그 밖이면 거기까지 넓히는데, 구간 밖 날짜(예: 화요일 가중치)와 구간 안
+      // 날짜의 확률이 엇비슷하면 몇 분 차이로 1순위가 바뀌어 헤드라인이 10~11일 ↔ 10~15일로 널뛰었다.
+      // 구간 밖 날짜가 구간 안 최고 후보보다 뚜렷하게(15% 이상) 높을 때만 1순위로 인정하고, 아니면
+      // 구간 안 최고 후보를 1순위로 삼아 헤드라인이 안정적으로 유지되게 한다.
+      {
+        const inBand = days.filter(d => blendedGapDays != null && d.daysSinceForDay != null
+          && d.daysSinceForDay >= (blendedGapDays - gapSigma) && d.daysSinceForDay <= (blendedGapDays + gapSigma));
+        if (inBand.length && !inBand.includes(topDay)) {
+          let bestIn = inBand[0]; inBand.forEach(d => { if (d.w > bestIn.w) bestIn = d; });
+          if (!(topDay.w > bestIn.w * 1.15)) topDay = bestIn;
+        }
+      }
       const pctSum = days.reduce((s, d) => s + d.pct, 0);
       if (pctSum !== 100) topDay.pct += (100 - pctSum);
 
