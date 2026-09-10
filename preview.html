@@ -11127,6 +11127,12 @@
     /* ── 영상: 예측(5) | 캘린더(7) → 최근 영상. 경과 시간은 빨강, 나머지 색 없음 ── */
     body[data-route="videos"] #app > .sub { font-size: 12.5px !important; color: var(--dim) !important; }
     body[data-route="videos"] .yt-col1 > .yt-pred-hero-label { font-size: 15px !important; font-weight: 700 !important; color: var(--text) !important; }
+    /* "모바일에서 업로드 현황 제목과 마지막 업로드 사이 공백이 유독 크다"는 지적 반영 — PC(≥1024px)
+       에만 걸려 있던 제목 줄/통계 칸 간격 규칙(제목 패딩 0·아래 여백 10px, 칸 위 패딩 0)을 모든 폭에
+       적용해 모바일도 PC와 같은 간격이 되게 한다. */
+    body[data-route="videos"] .yt-col1 > .yt-pred-hero-label { display: flex; align-items: center; justify-content: space-between; min-height: 34px; margin: 0 0 10px !important; padding: 0 !important; }
+    body[data-route="videos"] .yt-col1 .yt-core-stats { border-bottom: none; }
+    body[data-route="videos"] .yt-col1 .yt-core-stat { padding-top: 0; }
     body[data-route="videos"] #app > .sub::after { content: " · 10분 간격 갱신"; }
     body[data-route="videos"] .yt-pred-hero { background: transparent; border: none; box-shadow: none; padding: 0; border-radius: 0; }
     /* #app > * 진입 애니메이션(fadeUp, fill-mode both)이 끝나도 transform 값이 남아 각 최상위
@@ -11196,8 +11202,6 @@
       body[data-route="videos"] .yt-pred-hero > .yt-col1, body[data-route="videos"] .yt-pred-hero > .yt-pred-merged, body[data-route="videos"] .yt-pred-hero > .yt-gap-stats { padding-top: 14px; }
       body[data-route="videos"] .yt-col1 > .yt-pred-hero-label, body[data-route="videos"] .yt-pred-merged-head, body[data-route="videos"] .yt-gap-stats-head { display: flex; align-items: center; justify-content: space-between; min-height: 34px; margin: 0 0 10px !important; padding: 0 !important; }
       body[data-route="videos"] .yt-col1 > .yt-pred-hero-label, body[data-route="videos"] .yt-pred-merged-title, body[data-route="videos"] .yt-gap-stats-title { font-size: 15px !important; font-weight: 700 !important; color: var(--text) !important; }
-      body[data-route="videos"] .yt-col1 .yt-core-stats { border-bottom: none; }
-      body[data-route="videos"] .yt-col1 .yt-core-stat { padding-top: 0; }
       body[data-route="videos"] .yt-pred-hero > .yt-core-stats, body[data-route="videos"] .yt-pred-hero > .yt-pred-merged, body[data-route="videos"] .yt-pred-hero > .yt-gap-stats { border-bottom: none; min-height: 132px; }
       body[data-route="videos"] .yt-pred-hero > .yt-week-prob-panel, body[data-route="videos"] .yt-pred-hero > .yt-views-panel { border-top: 1px solid var(--hair); }
       body[data-route="videos"] #app > .yt-cal-details { grid-column: 1; margin: 0 !important; padding-top: 28px !important; align-self: start; }
