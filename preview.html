@@ -10547,8 +10547,8 @@
       text-align: center
     }
 
-    .yt-cal-details summary {
-      cursor: pointer;
+    .yt-cal-details summary,
+    .yt-cal-details .yt-cal-head-title {
       font-weight: 800;
       padding: 2px 0;
       list-style: none;
@@ -11157,7 +11157,7 @@
     body[data-route="videos"] .yt-prob-bar-fill { background: var(--amber); border-radius: 0; }
     body[data-route="videos"] .yt-pred-detail { background: var(--bg2); border: none; box-shadow: none; border-radius: 4px; }
     body[data-route="videos"] .yt-cal-details.card { padding: 0 !important; border-bottom: none !important; margin: 0 !important; }
-    body[data-route="videos"] .yt-cal-details summary { font-weight: 800; font-size: 15px; padding: 0 0 10px; border-bottom: 1px solid var(--text); min-height: 42px; display: flex; align-items: center; justify-content: space-between; }
+    body[data-route="videos"] .yt-cal-details summary, body[data-route="videos"] .yt-cal-details .yt-cal-head-title { font-weight: 800; font-size: 15px; padding: 0 0 10px; border-bottom: 1px solid var(--text); min-height: 42px; display: flex; align-items: center; justify-content: space-between; }
     body[data-route="videos"] .yt-cal-head { color: var(--dim); font-size: 11px; font-weight: 700; letter-spacing: .06em; }
     body[data-route="videos"] .yt-cal-head .sun { color: var(--red); }
     body[data-route="videos"] .yt-cal-head .sat { color: var(--dim); }
@@ -11461,9 +11461,13 @@
     body[data-route="videos"] .yt-pred-hero > .yt-week-prob-panel.v2-panel, body[data-route="videos"] .yt-pred-hero > .yt-views-panel.v2-panel { border-top: none !important; margin: 12px 0 0 !important; }
     @media (min-width: 1024px) { body[data-route="videos"] #app > .yt-pred-hero { gap: 12px; } }
     body[data-route="videos"] .yt-cal-details.v2-panel { padding: 6px 18px 14px !important; }
-    body[data-route="videos"] .yt-cal-details > summary { padding: 12px 0; cursor: pointer; }
+    body[data-route="videos"] .yt-cal-details > summary, body[data-route="videos"] .yt-cal-details > .yt-cal-head-title { padding: 12px 0; }
     body[data-route="videos"] .yt-prob-day.sel.v2-tile { box-shadow: inset 0 0 0 1px var(--ink), 0 1px 2px rgba(0, 0, 0, .04) !important; }
-    body[data-route="videos"] .yt-recent-row.v2-row { padding: 10px 32px 10px 10px !important; margin: 0 -10px !important; border-bottom: none !important; }
+    /* "영상 히스토리에 가로 스크롤이 생긴다"는 지적 반영 — 행에 준 음수 좌우 여백(-10px)이
+       스크롤 상자(.yt-hist-list)보다 행을 20px 넓게 만들어 가로 스크롤이 생겼다. 음수 여백을
+       빼고 상자 쪽에서 가로 넘침을 아예 막는다. */
+    body[data-route="videos"] .yt-recent-row.v2-row { padding: 10px !important; margin: 0 !important; border-bottom: none !important; }
+    body[data-route="videos"] .yt-hist-list { overflow-x: hidden; }
     /* 표(격잘알·최종 순위): 패널 안에서 전부 흰 배경 */
     body[data-route] .tbl-scroll.v2-panel { padding: 0 12px !important; overflow-x: auto; }
     body[data-route] .tbl-scroll.v2-panel table, body[data-route] .tbl-scroll.v2-panel td, body[data-route] .tbl-scroll.v2-panel td.nick, body[data-route] .tbl-scroll.v2-panel th, body[data-route] .tbl-scroll.v2-panel th.nick { background: var(--paper) !important; }
@@ -11605,7 +11609,7 @@
       body[data-route="videos"] .yt-pred-hero > .yt-col1.v2-panel, body[data-route="videos"] .yt-pred-hero > .yt-pred-merged.v2-panel, body[data-route="videos"] .yt-pred-hero > .yt-gap-stats.v2-panel { margin: 0 0 12px !important; }
     }
     body[data-route="videos"] .yt-cal-details.v2-panel { margin: 0 0 14px !important; }
-    body[data-route="videos"] .yt-recent-row.v2-row { padding-right: 10px !important; }
+
     /* 선수 페이지 관리자 갱신 시각 배지 → 배경 없이 회색 글씨 */
     #app span[style*="#e3edfd"], #app span[style*="e3edfd"], #app span[style*="1d4ed8"] { background: transparent !important; background-color: transparent !important; color: var(--dim) !important; padding: 0 !important; font-weight: 500 !important; overflow: visible !important; text-overflow: clip !important; max-width: none !important; border-radius: 0 !important; }
     body[data-route="fighters"] .fit-row, body[data-route="records"] .fit-row, body[data-route="jokbo"] .fit-row { overflow: visible; flex-wrap: nowrap; }
@@ -21373,11 +21377,12 @@
       <h1 class="page">영상 예측 캘린더 <button type="button" id="ytKkoBtn" class="kko-btn" style="margin-left:auto" onpointerdown="ytKkoArm()" onclick="ytKkoShare()" aria-label="카톡 공유" title="카톡 공유"></button></h1>
       <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://youtube.com/@${esc(YT_CHANNEL_HANDLE)}" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 유튜브</a> · 과거 패턴 기반 업로드 예측</div>
       ${ytPredictionHeroHTML(stats90, stats365, statsAll, nextEvent, lastEvent, leadTimes, milestone, eventDayStats, dowByContext, cycleRecent, leadTimeDetail, videos.length)}
-      <details class="card yt-cal-details" style="margin-top:12px" open>
-        <summary>
+      <!-- "캘린더 접기/펼치기는 필요 없다, 항상 펼쳐진 상태로"라는 지적 반영 — <details>
+           대신 일반 블록. 제목 줄(summary 자리)은 그대로 두되 화살표를 빼고 클릭해도 반응 없음. -->
+      <div class="card yt-cal-details" style="margin-top:12px">
+        <div class="yt-cal-head-title">
           <span>${y}년 ${m}월 (${videos.length}개)</span>
-          <span class="arrow">▾</span>
-        </summary>
+        </div>
         <!-- "이전달/다음달 누르면 페이지가 새로고침되면서 맨 위로 스크롤된다, 캘린더만
              바뀌게 해달라"는 지적 반영 — location.hash를 직접 바꾸면 라우터 전체가
              다시 돌면서 스크롤도 맨 위로 초기화됐다. 이제 history.replaceState로 주소만
@@ -21391,7 +21396,7 @@
           <button class="btn small" onclick="ytGoMonth(1)">다음달 ›</button>
         </div>
         <div id="ytCalGridWrap">${ytCalendarGridHTML(y, m, videos, monthEvents)}</div>
-      </details>
+      </div>
       ${ytRecentListHTML(recent)}`;
       // 경과 시간 실시간 카운터는 DOM에 붙은 뒤에 시작해야 한다 — ytPredictionHeroHTML이
       // window.__ytLastPubMs에 마지막 업로드 시각을 남겨둔다.
@@ -21430,7 +21435,7 @@
       const mergedMap = new Map((window.__ytAllVideosDesc || []).map(v => [v.video_id, v]));
       videos.forEach(v => { if (v && v.video_id) mergedMap.set(v.video_id, v); });
       window.__ytAllVideosDesc = [...mergedMap.values()].sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
-      const summarySpan = document.querySelector('.yt-cal-details summary span');
+      const summarySpan = document.querySelector('.yt-cal-details .yt-cal-head-title span');
       if (summarySpan) summarySpan.textContent = `${y}년 ${m}월 (${videos.length}개)`;
       const monthInput = document.querySelector('.yt-month-input');
       if (monthInput) monthInput.value = monthKey;
