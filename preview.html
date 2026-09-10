@@ -10272,6 +10272,73 @@
       color: var(--muted)
     }
 
+    /* 최근 영상 조회수 차트 패널 — "앞으로 7일" 아래. 최근 업로드 추이(.yt-gap-stats)와 같은
+       카드 모양·제목 스타일이지만, 추이 차트의 팝업 로직(.yt-gap-stats 기준으로 열고 닫음)과
+       섞이지 않도록 클래스는 따로 둔다. */
+    .yt-views-panel {
+      margin-top: 12px;
+      padding: 13px 14px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      position: relative
+    }
+
+    .yt-views-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px
+    }
+
+    .yt-views-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text)
+    }
+
+    .yt-views-sub {
+      font-size: 10.5px;
+      color: var(--muted)
+    }
+
+    /* 조회수 차트 본체: 선은 고정 높이에 맞춰 늘린 SVG, 점은 %-좌표의 HTML 요소(폭과 무관하게
+       같은 크기). 보이는 점(::after)은 작고, 실제 터치/클릭 영역(.yt-views-dot)은 22px로 넉넉하게. */
+    .yt-views-plot {
+      position: relative;
+      height: 72px
+    }
+
+    .yt-views-dot {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      margin: -11px 0 0 -11px;
+      border-radius: 50%;
+      cursor: pointer
+    }
+
+    .yt-views-dot::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 6px;
+      height: 6px;
+      margin: -3px 0 0 -3px;
+      border-radius: 50%;
+      background: var(--key-deep)
+    }
+
+    .yt-views-dot.sel::after {
+      width: 10px;
+      height: 10px;
+      margin: -5px 0 0 -5px;
+      background: var(--red);
+      box-shadow: 0 0 0 1.5px #fff
+    }
+
     /* 예전엔 여기(.yt-gap-mini-row/.yt-gap-mini)에 "평소 업로드 주기"·"이번 달 업로드"
        미니 스탯 2칸이 있었다. "평소 업로드 주기"는 위쪽 "⏳ 경과 시간" 카드에 새로 추가한
        "평소 경과 시간" 줄과 완전히 같은 숫자(blendedGapDays)라 중복이고, "이번 달 업로드"도
@@ -10982,13 +11049,19 @@
     body[data-route="videos"] #ytCycleDetail { display: none; }
     body[data-route="videos"] #ytCycleDetail.on { display: block; position: absolute; z-index: 60; width: min(340px, calc(100% - 8px)); background: #fff; border: 1px solid var(--hair); border-radius: 8px; padding: 6px 12px 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, .10); }
     body[data-route="videos"] #ytCycleDetail.on > div { border-top: none !important; margin-top: 0 !important; padding-top: 0 !important; }
+    /* 최근 영상 조회수 차트 — 위 추이 차트와 같은 패널 모양 + 같은 팝업(점 아래 흰 박스) */
+    body[data-route="videos"] .yt-views-panel { background: transparent; border: none; border-radius: 0; padding: 14px 0; border-bottom: 1px solid var(--hair); margin: 0; position: relative; }
+    body[data-route="videos"] .yt-views-title { font-weight: 700; font-size: 14px; }
+    body[data-route="videos"] #ytViewsDetail { display: none; }
+    body[data-route="videos"] #ytViewsDetail.on { display: block; position: absolute; z-index: 60; width: min(340px, calc(100% - 8px)); background: #fff; border: 1px solid var(--hair); border-radius: 8px; padding: 6px 12px 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, .10); }
+    body[data-route="videos"] #ytViewsDetail.on > div { border-top: none !important; margin-top: 0 !important; padding-top: 0 !important; }
     body[data-route="videos"] .yt-recent-thumb { border-radius: 4px; }
     body[data-route="videos"] .yt-chip { border: 1px solid var(--hair2); background: transparent; font-weight: 500; border-radius: 4px; }
     @media (min-width: 1024px) {
       body[data-route="videos"] #app { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 0 32px; align-items: start; }
       body[data-route="videos"] #app > h1.page, body[data-route="videos"] #app > .sub, body[data-route="videos"] #app > .empty, body[data-route="videos"] #app > .yt-pred-hero { grid-column: 1 / -1; }
       body[data-route="videos"] #app > .yt-pred-hero { margin: 0; padding-top: 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 32px; align-items: start; }
-      body[data-route="videos"] .yt-pred-hero > .yt-event-line, body[data-route="videos"] .yt-pred-hero > .yt-week-prob-panel { grid-column: 1 / -1; }
+      body[data-route="videos"] .yt-pred-hero > .yt-event-line, body[data-route="videos"] .yt-pred-hero > .yt-week-prob-panel, body[data-route="videos"] .yt-pred-hero > .yt-views-panel { grid-column: 1 / -1; }
       body[data-route="videos"] .yt-pred-hero > .yt-col1, body[data-route="videos"] .yt-pred-hero > .yt-pred-merged, body[data-route="videos"] .yt-pred-hero > .yt-gap-stats { padding-top: 14px; }
       body[data-route="videos"] .yt-col1 > .yt-pred-hero-label, body[data-route="videos"] .yt-pred-merged-head, body[data-route="videos"] .yt-gap-stats-head { display: flex; align-items: center; justify-content: space-between; min-height: 34px; margin: 0 0 10px !important; padding: 0 !important; }
       body[data-route="videos"] .yt-col1 > .yt-pred-hero-label, body[data-route="videos"] .yt-pred-merged-title, body[data-route="videos"] .yt-gap-stats-title { font-size: 15px !important; font-weight: 700 !important; color: var(--text) !important; }
@@ -10997,7 +11070,7 @@
       body[data-route="videos"] .yt-pred-merged-headline { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
       body[data-route="videos"] .yt-pred-merged-headline .yt-pred-reason-btn { font-size: 12px; }
       body[data-route="videos"] .yt-pred-hero > .yt-core-stats, body[data-route="videos"] .yt-pred-hero > .yt-pred-merged, body[data-route="videos"] .yt-pred-hero > .yt-gap-stats { border-bottom: none; min-height: 132px; }
-      body[data-route="videos"] .yt-pred-hero > .yt-week-prob-panel { border-top: 1px solid var(--hair); }
+      body[data-route="videos"] .yt-pred-hero > .yt-week-prob-panel, body[data-route="videos"] .yt-pred-hero > .yt-views-panel { border-top: 1px solid var(--hair); }
       body[data-route="videos"] #app > .yt-cal-details { grid-column: 1; margin: 0 !important; padding-top: 28px !important; align-self: start; }
       body[data-route="videos"] #app > .card:not(.yt-cal-details) { grid-column: 2; margin: 0 !important; padding-top: 28px !important; }
       body[data-route="videos"] #app > .card:not(.yt-cal-details) > .sec-title { margin-top: 0; }
@@ -11261,7 +11334,7 @@
     /* 영상: 상단 3칸·7일 확률·달력·최근 영상 */
     body[data-route="videos"] .yt-event-line.v2-panel { border-top: none !important; padding: 12px 18px !important; }
     body[data-route="videos"] .yt-pred-hero > .yt-col1.v2-panel, body[data-route="videos"] .yt-pred-hero > .yt-pred-merged.v2-panel, body[data-route="videos"] .yt-pred-hero > .yt-gap-stats.v2-panel { padding: 16px 18px !important; margin: 0 !important; min-height: 0; }
-    body[data-route="videos"] .yt-pred-hero > .yt-week-prob-panel.v2-panel { border-top: none !important; margin: 12px 0 0 !important; }
+    body[data-route="videos"] .yt-pred-hero > .yt-week-prob-panel.v2-panel, body[data-route="videos"] .yt-pred-hero > .yt-views-panel.v2-panel { border-top: none !important; margin: 12px 0 0 !important; }
     @media (min-width: 1024px) { body[data-route="videos"] #app > .yt-pred-hero { gap: 12px; } }
     body[data-route="videos"] .yt-cal-details.v2-panel { padding: 6px 18px 14px !important; }
     body[data-route="videos"] .yt-cal-details > summary { padding: 12px 0; cursor: pointer; }
@@ -20442,6 +20515,7 @@
           </div>
           <div id="ytPredDetail" class="yt-pred-detail">${defaultDetailHTML}</div>
         </div>
+        ${ytViewsChartPanelHTML(cycleRecent)}
         ${noteParts.length ? `<div class="yt-pred-note">${noteParts.join('<br>')}</div>` : ''}
       </div>`;
     }
@@ -20579,6 +20653,103 @@
       if (dot) { dot.setAttribute('r', '4.5'); dot.setAttribute('fill', 'var(--red)'); dot.setAttribute('stroke', '#fff'); }
       const avgDays = window.__ytCycleAvgDays || 0;
       box.innerHTML = ytCycleGapDetailHTML(item, avgDays);
+    }
+
+    /* ── 최근 영상 조회수 차트 ("앞으로 7일, 업로드 확률" 아래) ──
+       "최근 영상 히스토리 기반으로 조회수 기준 차트를 추가해달라 — 어떤 영상이 조회수가
+       높고 낮은지 보려는 것, 쇼츠는 제외" 요청 반영. 데이터는 최근 업로드 추이 차트가 이미
+       받아둔 cycleRecent(쇼츠 제외 최근 20개, view_count 포함)를 그대로 재사용하므로 추가
+       조회가 없다. 점에 마우스오버/클릭하면 최근 업로드 추이 차트와 똑같이 그 점 아래에
+       영상 팝업(썸네일·제목·조회수 + 최근 N개 중 몇 위인지)이 뜬다. */
+    function ytViewsNum(n) { return String(fmtViews(n) || '').replace(/^조회수\s*/, ''); }
+    function ytViewsChartPanelHTML(recent) {
+      const n = (recent || []).filter(v => v && !v.is_short && v.view_count != null).length;
+      return `
+        <div class="yt-views-panel">
+          <div class="yt-views-head">
+            <span class="yt-views-title">최근 영상 조회수</span>
+            <span class="yt-views-sub">쇼츠 제외${n ? ` · 최근 ${n}개` : ''}</span>
+          </div>
+          <div class="yt-views-chart-wrap">${ytViewsChartHTML(recent)}</div>
+        </div>`;
+    }
+    function ytViewsChartHTML(recent) {
+      // 아직 조회수 스냅샷이 없는 영상(view_count null)은 0회로 잘못 보이지 않게 뺀다.
+      const items = (recent || []).filter(v => v && !v.is_short && v.view_count != null)
+        .sort((a, b) => new Date(a.published_at) - new Date(b.published_at));
+      if (items.length < 2) {
+        window.__ytViewsItems = [];
+        return `<div class="yt-cycle-empty">아직 조회수 데이터가 부족해 차트를 표시할 수 없어요.</div>`;
+      }
+      const vals = items.map(v => Number(v.view_count) || 0);
+      const avg = vals.reduce((s, x) => s + x, 0) / vals.length;
+      // 순위: 조회수 많은 순 (같은 조회수면 먼저 올라온 영상이 앞)
+      const ranked = vals.map((x, i) => ({ i, x })).sort((a, b) => b.x - a.x || a.i - b.i);
+      const rankOf = {}; ranked.forEach((r, k) => { rankOf[r.i] = k + 1; });
+      window.__ytViewsItems = items.map((v, i) => ({ video: v, views: vals[i], rank: rankOf[i] }));
+      window.__ytViewsAvg = avg;
+      // 최근 업로드 추이 차트와 같은 크기·여백(위/아래 글씨 자리와 데이터가 안 겹치게 고정 여백)
+      const W = 300, H = 58, PADX = 8, PLOT_TOP = 11, PLOT_BOTTOM = 44;
+      const maxV = Math.max(...vals, avg, 1) * 1.15;
+      const stepX = items.length > 1 ? (W - PADX * 2) / (items.length - 1) : 0;
+      const yFor = v => PLOT_BOTTOM - (v / maxV) * (PLOT_BOTTOM - PLOT_TOP);
+      const pts = vals.map((x, i) => `${(PADX + i * stepX).toFixed(1)},${yFor(x).toFixed(1)}`).join(' ');
+      const avgY = yFor(avg).toFixed(1);
+      // 기본 선택 = 최다 조회 영상 (이 차트의 목적이 "어떤 영상이 많이/적게 봤는지"라서)
+      const topIdx = ranked[0].i;
+      window.__ytViewsSelIdx = topIdx;
+      // 이 패널은 (추이 차트와 달리) 가로 전체를 쓰기 때문에 viewBox 비율대로 늘리면 PC에서
+      // 점이 거대해지고 차트가 납작해진다. 그래서 선(SVG)은 preserveAspectRatio=none으로
+      // 고정 높이에 맞춰 늘리고(선 굵기는 non-scaling-stroke로 일정), 점은 SVG 밖 HTML
+      // 요소로 %-좌표에 놓아 화면 폭과 무관하게 항상 같은 크기로 보이게 한다.
+      const dots = vals.map((x, i) => `<div id="ytViewsDot-${i}" class="yt-views-dot${i === topIdx ? ' sel' : ''}" style="left:${((PADX + i * stepX) / W * 100).toFixed(2)}%;top:${(yFor(x) / H * 100).toFixed(2)}%" onclick="ytShowViewsInfo(${i})" onmouseenter="ytShowViewsInfo(${i})" title="${esc(items[i].title)}"></div>`).join('');
+      const fmtD = s => new Date(s).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1px">
+          <div class="note" style="font-size:9.5px;margin:0">점선 = 평균(<b style="color:var(--key-deep)">${esc(ytViewsNum(avg))}</b>) · <span style="color:var(--red)">●</span> 최다 조회</div>
+          <div class="note" style="font-size:9.5px;margin:0">↕ 위=많이 아래=적게</div>
+        </div>
+        <div class="yt-views-plot">
+          <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;display:block">
+            <line x1="${PADX}" y1="${avgY}" x2="${W - PADX}" y2="${avgY}" stroke="var(--dim)" stroke-width="1" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"></line>
+            <polyline points="${pts}" fill="none" stroke="var(--key-deep)" stroke-width="2" vector-effect="non-scaling-stroke"></polyline>
+          </svg>
+          ${dots}
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:1px">
+          <span class="note" style="font-size:9px;margin:0">${esc(fmtD(items[0].published_at))}</span>
+          <span class="note" style="font-size:9px;margin:0">탭/마우스오버하면 상세</span>
+          <span class="note" style="font-size:9px;margin:0">${esc(fmtD(items[items.length - 1].published_at))}</span>
+        </div>
+        <div id="ytViewsDetail">${ytViewsDetailHTML(window.__ytViewsItems[topIdx])}</div>`;
+    }
+    function ytViewsDetailHTML(item) {
+      if (!item) return '';
+      const avg = window.__ytViewsAvg || 0;
+      const n = (window.__ytViewsItems || []).length;
+      const ratio = avg > 0 ? item.views / avg : null;
+      let cmp = '';
+      if (ratio != null) {
+        if (Math.abs(ratio - 1) < 0.1) cmp = '평균과 비슷해요';
+        else if (ratio >= 2) cmp = `평균보다 <b>${Math.round(ratio * 10) / 10}배 많아요</b>`;
+        else if (ratio > 1) cmp = `평균보다 <b>${Math.round((ratio - 1) * 100)}% 많아요</b>`;
+        else cmp = `평균보다 <b>${Math.round((1 - ratio) * 100)}% 적어요</b>`;
+      }
+      const extraNote = `최근 ${n}개 동영상 중 조회수 <b>${item.rank}위</b>${cmp ? ' · ' + cmp : ''}`;
+      // 순위·평균 대비는 이 차트의 핵심 정보라 (영상을 눌러 여는 팝업뿐 아니라) 점 아래 상세에도 바로 보여준다.
+      return `<div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px">${ytVideoRowHTML(item.video, extraNote)}
+        <div class="note" style="color:var(--key-deep);font-weight:600;font-size:10.5px;margin:2px 0 0 4px">${extraNote}</div></div>`;
+    }
+    function ytShowViewsInfo(i) {
+      const arr = window.__ytViewsItems || [];
+      const item = arr[i];
+      const box = document.getElementById('ytViewsDetail');
+      if (!box || !item) return;
+      window.__ytViewsSelIdx = i;
+      document.querySelectorAll('[id^="ytViewsDot-"]').forEach(el => el.classList.remove('sel'));
+      const dot = document.getElementById('ytViewsDot-' + i);
+      if (dot) dot.classList.add('sel');
+      box.innerHTML = ytViewsDetailHTML(item);
     }
 
     // 영상 목록(최근 업로드/캘린더 날짜별/주기 차트 상세)에서 항목을 누르면 곧장 유튜브로
@@ -27206,7 +27377,6 @@
     <div class="card">
       ${ANNOUNCEMENTS.length ? ANNOUNCEMENTS.map(annAdminRowHTML).join('') : '<div class="empty">등록된 공지가 없습니다.</div>'}
     </div>`}
-    ${homeImagesAdminHTML()}
     <div class="sec-title">📋 대회 관리</div>
     <button class="btn wide" id="create-toggle" onclick="toggleCreate(this)">➕ 새 대회 만들기</button>
     <div class="card" id="create-box" style="display:none">
@@ -27249,6 +27419,7 @@
       <div id="wl-list" style="max-height:340px;overflow-y:auto;margin-top:6px"></div>
     </div>
     ${siteStatsHTML}
+    ${homeImagesAdminHTML()}
     <div class="sec-title">⚙️ 관리자 비밀번호 변경</div>
     <div class="card" style="max-width:420px">
       <div class="field"><label>새 비밀번호 (4자 이상)</label><input id="p-new" type="password"></div>
@@ -27473,7 +27644,6 @@
       return `
     <div class="sec-title" style="margin-top:26px">🖼️ 홈 화면 이미지 관리</div>
     <div class="card">
-      <div class="note" style="margin-bottom:10px">파일을 선택하면 자동으로 적당한 크기로 압축해서 저장하고, 홈 화면에 바로 반영됩니다.</div>
       ${HOME_IMG_ROWS.map(([key, label, def]) => `
       <div style="display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--hair)">
         <img id="hi-prev-${key}" src="${HOME_IMG_OVERRIDE[key] || def}" style="width:96px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border);flex-shrink:0">
@@ -28364,7 +28534,7 @@
         root.querySelectorAll('.gt-hint').forEach(function (h) { h.classList.toggle('v2-need-login', /닉네임을 등록/.test(h.textContent)); });
         if (document.body.dataset.route === 'ranking') root.querySelectorAll('.card > button:not(.btn)').forEach(function (el) { el.classList.add('v2-toggle'); });
         // 내용 블록 → 흰 패널 (클릭 타일·모달 내부·숨김 래퍼 제외)
-        root.querySelectorAll('.card:not(.t-card):not(.tk-past):not(.pf-scope *):not(.modal *):not(.pcard):not(.match), .tbl-scroll, .yt-event-line, .yt-col1, .yt-pred-merged, .yt-gap-stats, .yt-week-prob-panel, .tk-dash-col, .tk-trend, .tk-dash-hist, .v2-box-bot').forEach(function (el) { el.classList.add('v2-panel'); });
+        root.querySelectorAll('.card:not(.t-card):not(.tk-past):not(.pf-scope *):not(.modal *):not(.pcard):not(.match), .tbl-scroll, .yt-event-line, .yt-col1, .yt-pred-merged, .yt-gap-stats, .yt-week-prob-panel, .yt-views-panel, .tk-dash-col, .tk-trend, .tk-dash-hist, .v2-box-bot').forEach(function (el) { el.classList.add('v2-panel'); });
         // 패널 안에 패널이 겹치면 안쪽은 평면으로
         root.querySelectorAll('.v2-panel .v2-panel').forEach(function (el) { el.classList.remove('v2-panel'); el.classList.add('v2-flat'); });
         if (document.body.dataset.route === 'ranking') root.querySelectorAll('#app > .card:has(input)').forEach(function (el) { el.classList.remove('v2-panel'); });
@@ -28872,6 +29042,36 @@
           var t = e.target;
           if (t.closest && (t.closest('#ytCycleDetail') || t.closest('circle[onclick*="ytShowCycleInfo"]'))) return;
           ytPin = null; ytBoxHide();
+        }, true);
+      }
+      // 영상: 최근 영상 조회수 — 위 추이 차트와 완전히 같은 방식(점 아래 팝업, 마우스오버/클릭 고정, 바깥 클릭 닫힘)
+      if (typeof ytShowViewsInfo === 'function') {
+        var _svi = ytShowViewsInfo, ytVPin = null;
+        var ytVBoxHide = function () { var box = document.getElementById('ytViewsDetail'); if (box) box.classList.remove('on'); };
+        var ytVBoxShow = function (i) {
+          var box = document.getElementById('ytViewsDetail'), dot = document.getElementById('ytViewsDot-' + i), host = box && box.closest('.yt-views-panel');
+          if (!box || !dot || !host) return;
+          box.classList.add('on'); box.dataset.i = i;
+          var hr = host.getBoundingClientRect(), dr = dot.getBoundingClientRect(), bw = box.offsetWidth;
+          var left = dr.left + dr.width / 2 - hr.left - bw / 2;
+          box.style.left = Math.max(0, Math.min(left, hr.width - bw)) + 'px';
+          box.style.top = (dr.bottom - hr.top + 8) + 'px';
+        };
+        window.ytShowViewsInfo = function (i) {
+          var ev = window.event, isClick = ev && ev.type === 'click';
+          if (!isClick && window.__v2Touch) return;
+          _svi(i);
+          if (isClick) { if (ytVPin === i) { ytVPin = null; ytVBoxHide(); return; } ytVPin = i; }
+          ytVBoxShow(i);
+        };
+        document.addEventListener('mouseover', function (e) {
+          var host = e.target.closest && e.target.closest('.yt-views-panel');
+          if (!host && ytVPin === null) ytVBoxHide();
+        });
+        document.addEventListener('pointerdown', function (e) {
+          var t = e.target;
+          if (t.closest && (t.closest('#ytViewsDetail') || t.closest('.yt-views-dot'))) return;
+          ytVPin = null; ytVBoxHide();
         }, true);
       }
       // 당첨 선물 안내: 이모지 띄어쓰기, 닉네임 칩 클릭 → 전적
