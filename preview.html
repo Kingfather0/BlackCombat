@@ -10303,30 +10303,90 @@
       color: var(--muted)
     }
 
-    /* 조회수 차트 본체: 세로 막대(영상 하나 = 막대 하나, 시간순). 위 추이 차트(선+점)와 한눈에
-       구분되도록 형태 자체를 다르게 했다. 최다 조회 막대는 앰버, 선택된 막대는 검정 테두리,
-       평균은 가로 점선. 막대 폭은 화면 폭에 따라 자동(flex). */
-    .yt-views-plot {
+    /* 조회수 차트 본체 — 세로축 눈금 + 평균 점선 + 막대 + 가로축 번호. 색은 사이트 톤:
+       일반 막대 회색, 최다 조회 앰버, 선택 검정. 막대 위 숫자 칩은 최다/선택 막대에만 보인다. */
+    .yt-views-legend {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      color: var(--muted);
+      margin: 2px 0 10px
+    }
+
+    .yt-views-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px
+    }
+
+    .yt-views-key {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #c9ccd3
+    }
+
+    .yt-views-key.top {
+      background: var(--amber, #f2b32a)
+    }
+
+    .yt-views-key.sel {
+      background: var(--text)
+    }
+
+    .yt-views-chart {
       position: relative;
-      height: 84px;
+      padding: 30px 0 0 38px
+    }
+
+    .yt-views-grid {
+      position: absolute;
+      left: 38px;
+      right: 0;
+      top: 30px;
+      bottom: 18px;
+      pointer-events: none
+    }
+
+    .yt-views-gl {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-top: 1px solid var(--hair, #e6e6ea)
+    }
+
+    .yt-views-gl > span {
+      position: absolute;
+      right: calc(100% + 8px);
+      top: -6px;
+      font-size: 10px;
+      color: var(--dim);
+      white-space: nowrap
+    }
+
+    .yt-views-bars {
+      position: relative;
       display: flex;
       align-items: flex-end;
-      gap: 3px;
-      padding: 0 2px;
-      border-bottom: 1px solid var(--border)
+      gap: 10px;
+      height: 130px;
+      padding: 0 4px
     }
 
     .yt-views-bar {
+      position: relative;
       flex: 1 1 0;
       min-width: 4px;
       background: #c9ccd3;
-      border-radius: 3px 3px 0 0;
+      border-radius: 4px 4px 0 0;
       cursor: pointer;
       transition: background .12s ease
     }
 
     .yt-views-bar:hover {
-      background: #9aa0aa
+      background: #a5aab3
     }
 
     .yt-views-bar.top,
@@ -10334,29 +10394,226 @@
       background: var(--amber, #f2b32a)
     }
 
-    .yt-views-bar.sel {
-      box-shadow: 0 0 0 1.5px var(--text)
+    .yt-views-bar.sel,
+    .yt-views-bar.sel:hover {
+      background: var(--text)
+    }
+
+    .yt-views-chip {
+      display: none;
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-weight: 800;
+      white-space: nowrap;
+      pointer-events: none;
+      background: var(--amber, #f2b32a);
+      color: #111
+    }
+
+    .yt-views-chip::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -4px;
+      border: 4px solid transparent;
+      border-top-color: var(--amber, #f2b32a);
+      border-bottom: 0
+    }
+
+    .yt-views-bar.top > .yt-views-chip,
+    .yt-views-bar.sel > .yt-views-chip {
+      display: block
+    }
+
+    .yt-views-bar.sel > .yt-views-chip {
+      background: var(--text);
+      color: #fff
+    }
+
+    .yt-views-bar.sel > .yt-views-chip::after {
+      border-top-color: var(--text)
+    }
+
+    .yt-views-bar.first > .yt-views-chip {
+      left: 0;
+      transform: none
+    }
+
+    .yt-views-bar.first > .yt-views-chip::after {
+      left: 8px;
+      margin-left: 0
+    }
+
+    .yt-views-bar.last > .yt-views-chip {
+      left: auto;
+      right: 0;
+      transform: none
+    }
+
+    .yt-views-bar.last > .yt-views-chip::after {
+      left: auto;
+      right: 4px;
+      margin-left: 0
     }
 
     .yt-views-avg {
       position: absolute;
-      left: 0;
+      left: 38px;
       right: 0;
+      margin-bottom: 18px;
       border-top: 1px dashed var(--dim);
       pointer-events: none
     }
 
-    .yt-views-key {
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      border-radius: 2px;
-      vertical-align: -1px;
-      background: #c9ccd3
+    .yt-views-avg > span {
+      position: absolute;
+      right: 2px;
+      bottom: 3px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      background: rgba(255, 255, 255, .85);
+      padding: 0 3px;
+      border-radius: 3px
     }
 
-    .yt-views-key.top {
-      background: var(--amber, #f2b32a)
+    .yt-views-xaxis {
+      display: flex;
+      gap: 10px;
+      padding: 0 4px;
+      height: 18px;
+      align-items: flex-end;
+      border-top: 1px solid var(--border)
+    }
+
+    .yt-views-xl {
+      flex: 1 1 0;
+      min-width: 0;
+      text-align: center;
+      font-size: 9.5px;
+      color: var(--dim);
+      line-height: 1
+    }
+
+    .yt-views-xl.sel {
+      color: var(--text);
+      font-weight: 800
+    }
+
+    .yt-views-axis-note {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 4px;
+      font-size: 10px;
+      color: var(--dim)
+    }
+
+    /* 아래 고정 상세 카드 */
+    .yt-views-card {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      margin-top: 14px;
+      padding: 12px;
+      background: var(--bg2, #ececf0);
+      border-radius: 10px
+    }
+
+    .yt-views-thumb {
+      width: 120px;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      border-radius: 6px;
+      background: #ddd;
+      cursor: pointer
+    }
+
+    .yt-views-info {
+      min-width: 0
+    }
+
+    .yt-views-date {
+      font-size: 11px;
+      color: var(--dim);
+      margin-bottom: 3px
+    }
+
+    .yt-views-vtitle {
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.35;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      cursor: pointer
+    }
+
+    .yt-views-meta {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 4px
+    }
+
+    .yt-views-meta b {
+      color: var(--text)
+    }
+
+    .yt-views-stat {
+      min-width: 128px;
+      padding: 10px 12px;
+      background: #fff;
+      border: 1px solid var(--hair, #e6e6ea);
+      border-radius: 8px;
+      text-align: left
+    }
+
+    .yt-views-stat-l {
+      font-size: 11px;
+      color: var(--dim)
+    }
+
+    .yt-views-stat-v {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -.03em;
+      line-height: 1.2;
+      margin: 2px 0;
+      white-space: nowrap
+    }
+
+    .yt-views-stat-v.up {
+      color: var(--amber-text, #9a5f06)
+    }
+
+    .yt-views-stat-v.down {
+      color: var(--muted)
+    }
+
+    .yt-views-stat-s {
+      font-size: 10.5px;
+      color: var(--dim);
+      white-space: nowrap
+    }
+
+    @media (max-width: 640px) {
+      .yt-views-bars { height: 110px; gap: 3px; padding: 0 2px; }
+      .yt-views-xaxis { gap: 3px; padding: 0 2px; }
+      .yt-views-xl { font-size: 8.5px; }
+      .yt-views-card { grid-template-columns: 96px minmax(0, 1fr); gap: 10px 12px; }
+      .yt-views-thumb { width: 96px; }
+      .yt-views-stat { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 8px 12px; min-width: 0; }
+      .yt-views-stat-l { white-space: nowrap; }
+      .yt-views-stat-v { font-size: 17px; margin: 0; }
+      .yt-views-stat-s { white-space: normal; margin-left: auto; text-align: right; line-height: 1.35; }
     }
 
     /* 예전엔 여기(.yt-gap-mini-row/.yt-gap-mini)에 "평소 업로드 주기"·"이번 달 업로드"
@@ -11026,9 +11283,9 @@
     body[data-route="videos"] #app > .sub::after { content: " · 10분 간격 갱신"; }
     body[data-route="videos"] .yt-pred-hero { background: transparent; border: none; box-shadow: none; padding: 0; border-radius: 0; }
     /* #app > * 진입 애니메이션(fadeUp, fill-mode both)이 끝나도 transform 값이 남아 각 최상위
-       요소가 자기만의 스태킹 컨텍스트가 된다. 그래서 예측 카드(.yt-pred-hero) 맨 아래 조회수 차트의
-       팝업(#ytViewsDetail, z-index 60)이 카드 밖으로 삐져나오면 뒤따르는 캘린더 카드가 그 위를
-       덮어 잘려 보였다. 예측 카드 자체를 뒤 형제들보다 위 층(z-index)으로 올려 팝업이 온전히 보이게 한다. */
+       요소가 자기만의 스태킹 컨텍스트가 된다. 예측 카드(.yt-pred-hero) 안에서 카드 밖으로 삐져나오는
+       팝업(최근 업로드 추이 #ytCycleDetail 등)이 뒤따르는 캘린더 카드에 덮여 잘리지 않도록,
+       예측 카드 자체를 뒤 형제들보다 위 층(z-index)으로 올려둔다. */
     body[data-route="videos"] #app > .yt-pred-hero { position: relative; z-index: 2; }
     body[data-route="videos"] .yt-pred-hero-label { color: var(--dim); font-weight: 600; font-size: 12px; padding: 12px 0 8px; }
     body[data-route="videos"] .yt-pred-badge-light { background: transparent; color: var(--dim); box-shadow: inset 0 0 0 1px var(--hair2); border-radius: 4px; }
@@ -11074,12 +11331,9 @@
     body[data-route="videos"] #ytCycleDetail { display: none; }
     body[data-route="videos"] #ytCycleDetail.on { display: block; position: absolute; z-index: 60; width: min(340px, calc(100% - 8px)); background: #fff; border: 1px solid var(--hair); border-radius: 8px; padding: 6px 12px 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, .10); }
     body[data-route="videos"] #ytCycleDetail.on > div { border-top: none !important; margin-top: 0 !important; padding-top: 0 !important; }
-    /* 최근 영상 조회수 차트 — 위 추이 차트와 같은 패널 모양 + 같은 팝업(점 아래 흰 박스) */
+    /* 최근 영상 조회수 차트 — 위 추이 차트와 같은 패널 모양(상세는 팝업이 아니라 아래 고정 카드) */
     body[data-route="videos"] .yt-views-panel { background: transparent; border: none; border-radius: 0; padding: 14px 0; border-bottom: 1px solid var(--hair); margin: 0; position: relative; }
     body[data-route="videos"] .yt-views-title { font-weight: 700; font-size: 14px; }
-    body[data-route="videos"] #ytViewsDetail { display: none; }
-    body[data-route="videos"] #ytViewsDetail.on { display: block; position: absolute; z-index: 60; width: min(340px, calc(100% - 8px)); background: #fff; border: 1px solid var(--hair); border-radius: 8px; padding: 6px 12px 10px; box-shadow: 0 8px 24px rgba(0, 0, 0, .10); }
-    body[data-route="videos"] #ytViewsDetail.on > div { border-top: none !important; margin-top: 0 !important; padding-top: 0 !important; }
     body[data-route="videos"] .yt-recent-thumb { border-radius: 4px; }
     body[data-route="videos"] .yt-chip { border: 1px solid var(--hair2); background: transparent; font-weight: 500; border-radius: 4px; }
     @media (min-width: 1024px) {
@@ -20684,9 +20938,23 @@
        "최근 영상 히스토리 기반으로 조회수 기준 차트를 추가해달라 — 어떤 영상이 조회수가
        높고 낮은지 보려는 것, 쇼츠는 제외" 요청 반영. 데이터는 최근 업로드 추이 차트가 이미
        받아둔 cycleRecent(쇼츠 제외 최근 20개, view_count 포함)를 그대로 재사용하므로 추가
-       조회가 없다. 점에 마우스오버/클릭하면 최근 업로드 추이 차트와 똑같이 그 점 아래에
-       영상 팝업(썸네일·제목·조회수 + 최근 N개 중 몇 위인지)이 뜬다. */
+       조회가 없다.
+       디자인은 사용자가 준 시안 구조를 따르되 색은 사이트 톤(검정+앰버, 파랑 없음)으로:
+       세로축 눈금(0/중간/최대) + 가로 점선 평균(라벨 포함) + 막대(일반=회색, 최다 조회=앰버,
+       선택=검정) + 막대 위 숫자 칩(최다/선택) + 가로축 번호(1=가장 오래된 영상) + 아래 고정
+       상세 카드(썸네일·제목·조회수·순위·평균 대비 %). 막대를 누르거나(PC는 마우스오버도)
+       선택이 바뀌면 칩과 상세 카드가 같이 바뀐다. 기본 선택 = 최다 조회 영상. */
     function ytViewsNum(n) { return String(fmtViews(n) || '').replace(/^조회수\s*/, ''); }
+    // 축 눈금용 짧은 표기: "조회수 100만회" → "100만", "조회수 3,200회" → "3,200"
+    function ytViewsAxis(n) { return n === 0 ? '0' : ytViewsNum(n).replace(/회$/, ''); }
+    // 최대값을 1·2·2.5·5·10 × 10^k 중 바로 위 값으로 올려 눈금이 깔끔한 숫자가 되게 한다
+    function ytViewsNiceTop(x) {
+      if (!(x > 0)) return 1;
+      const p = Math.pow(10, Math.floor(Math.log10(x)));
+      const m = x / p;
+      const nm = m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10;
+      return nm * p;
+    }
     function ytViewsChartPanelHTML(recent) {
       const n = (recent || []).filter(v => v && !v.is_short && v.view_count != null).length;
       return `
@@ -20713,57 +20981,88 @@
       const rankOf = {}; ranked.forEach((r, k) => { rankOf[r.i] = k + 1; });
       window.__ytViewsItems = items.map((v, i) => ({ video: v, views: vals[i], rank: rankOf[i] }));
       window.__ytViewsAvg = avg;
-      // "최근 업로드 추이(선 차트)와 디자인이 겹쳐 구분이 안 된다"는 지적 반영 — 영상별 조회수는
-      // 크기 비교가 목적이라 선이 아닌 세로 막대로 그린다(막대 하나 = 영상 하나, 시간순).
-      // 막대는 HTML 요소라 화면 폭에 따라 폭만 늘고 선 굵기·글씨는 그대로다.
-      const maxV = Math.max(...vals, avg, 1);
       const topIdx = ranked[0].i; // 기본 선택 = 최다 조회 영상
       window.__ytViewsSelIdx = topIdx;
-      const bars = vals.map((x, i) => `<div id="ytViewsDot-${i}" class="yt-views-bar${i === topIdx ? ' top sel' : ''}" style="height:${Math.max(2, x / maxV * 100).toFixed(2)}%" onclick="ytShowViewsInfo(${i})" onmouseenter="ytShowViewsInfo(${i})" title="${esc(items[i].title)}"></div>`).join('');
-      const fmtD = s => new Date(s).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
+      window.__ytViewsTopIdx = topIdx;
+      const top = ytViewsNiceTop(Math.max(...vals, avg, 1) * 1.02);
+      const pct = v => Math.max(0, Math.min(100, v / top * 100));
+      const n = items.length;
+      // 막대: 칩(숫자 라벨)은 모든 막대에 넣어두고 CSS로 최다/선택 막대에서만 보이게 한다 —
+      // 선택이 바뀔 때 클래스만 바꾸면 되도록. 양 끝 막대의 칩은 카드 밖으로 안 나가게 안쪽 정렬.
+      const bars = vals.map((x, i) => {
+        const cls = ['yt-views-bar', i === topIdx ? 'top' : '', i === topIdx ? 'sel' : '', i === 0 ? 'first' : '', i === n - 1 ? 'last' : ''].filter(Boolean).join(' ');
+        const chip = `${i === topIdx ? '최다 ' : ''}${esc(ytViewsNum(x).replace(/회$/, ''))}`;
+        return `<div id="ytViewsDot-${i}" class="${cls}" style="height:${Math.max(1.5, pct(x)).toFixed(2)}%" onclick="ytShowViewsInfo(${i})" onmouseenter="ytViewsHover(${i})" title="${esc(items[i].title)}"><span class="yt-views-chip">${chip}</span></div>`;
+      }).join('');
+      const xl = vals.map((x, i) => `<span class="yt-views-xl${i === topIdx ? ' sel' : ''}" id="ytViewsXl-${i}">${i + 1}</span>`).join('');
+      const fmtD = s => new Date(s).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' }).replace(/\.\s*$/, '').replace(/\s/g, '');
       return `
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1px">
-          <div class="note" style="font-size:9.5px;margin:0"><span class="yt-views-key top"></span> 최다 조회 · 점선 = 평균(<b>${esc(ytViewsNum(avg))}</b>)</div>
-          <div class="note" style="font-size:9.5px;margin:0">막대 하나 = 영상 하나 · 높을수록 많이 봄</div>
+        <div class="yt-views-legend">
+          <span><i class="yt-views-key"></i>일반 영상</span>
+          <span><i class="yt-views-key top"></i>최다 조회</span>
+          <span><i class="yt-views-key sel"></i>선택한 영상</span>
         </div>
-        <div class="yt-views-plot">
-          <div class="yt-views-avg" style="bottom:${(avg / maxV * 100).toFixed(2)}%"></div>
-          ${bars}
+        <div class="yt-views-chart">
+          <div class="yt-views-grid">
+            <div class="yt-views-gl" style="bottom:100%"><span>${esc(ytViewsAxis(top))}</span></div>
+            <div class="yt-views-gl" style="bottom:50%"><span>${esc(ytViewsAxis(top / 2))}</span></div>
+            <div class="yt-views-gl" style="bottom:0"><span>0</span></div>
+          </div>
+          <div class="yt-views-avg" style="bottom:${pct(avg).toFixed(2)}%"><span>평균 ${esc(ytViewsNum(avg).replace(/회$/, ''))}</span></div>
+          <div class="yt-views-bars">${bars}</div>
+          <div class="yt-views-xaxis">${xl}</div>
         </div>
-        <div style="display:flex;justify-content:space-between;margin-top:1px">
-          <span class="note" style="font-size:9px;margin:0">${esc(fmtD(items[0].published_at))}</span>
-          <span class="note" style="font-size:9px;margin:0">탭/마우스오버하면 상세</span>
-          <span class="note" style="font-size:9px;margin:0">${esc(fmtD(items[items.length - 1].published_at))}</span>
+        <div class="yt-views-axis-note">
+          <span>1 = 가장 오래된 영상 (${esc(fmtD(items[0].published_at))})</span>
+          <span>${n} = 최신 (${esc(fmtD(items[n - 1].published_at))})</span>
         </div>
-        <div id="ytViewsDetail">${ytViewsDetailHTML(window.__ytViewsItems[topIdx])}</div>`;
+        <div id="ytViewsCard">${ytViewsCardHTML(window.__ytViewsItems[topIdx])}</div>`;
     }
-    function ytViewsDetailHTML(item) {
+    // 차트 아래 고정 상세 카드 — 선택한 영상의 썸네일·제목·조회수·순위·평균 대비(%).
+    // 카드(썸네일/제목)를 누르면 다른 목록과 똑같이 영상 미리보기 팝업이 뜬다.
+    function ytViewsCardHTML(item) {
       if (!item) return '';
+      const v = item.video;
       const avg = window.__ytViewsAvg || 0;
       const n = (window.__ytViewsItems || []).length;
-      const ratio = avg > 0 ? item.views / avg : null;
-      let cmp = '';
-      if (ratio != null) {
-        if (Math.abs(ratio - 1) < 0.1) cmp = '평균과 비슷해요';
-        else if (ratio >= 2) cmp = `평균보다 <b>${Math.round(ratio * 10) / 10}배 많아요</b>`;
-        else if (ratio > 1) cmp = `평균보다 <b>${Math.round((ratio - 1) * 100)}% 많아요</b>`;
-        else cmp = `평균보다 <b>${Math.round((1 - ratio) * 100)}% 적어요</b>`;
-      }
-      const extraNote = `최근 ${n}개 동영상 중 조회수 <b>${item.rank}위</b>${cmp ? ' · ' + cmp : ''}`;
-      // 순위·평균 대비는 이 차트의 핵심 정보라 (영상을 눌러 여는 팝업뿐 아니라) 점 아래 상세에도 바로 보여준다.
-      return `<div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px">${ytVideoRowHTML(item.video, extraNote)}
-        <div class="note" style="color:var(--key-deep);font-weight:600;font-size:10.5px;margin:2px 0 0 4px">${extraNote}</div></div>`;
+      const diffPct = avg > 0 ? (item.views / avg - 1) * 100 : null;
+      const up = diffPct != null && diffPct >= 0;
+      const diffTxt = diffPct == null ? '-' : `${up ? '+' : '−'}${Math.abs(diffPct).toFixed(1)}%`;
+      const extraNote = `최근 ${n}개 동영상 중 조회수 <b>${item.rank}위</b> · 평균 대비 <b>${diffTxt}</b>`;
+      const idx = ytRegisterVideo(v, extraNote);
+      const dateText = new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'long', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit' });
+      const gap = ytPrevGapNote(v);
+      return `
+        <div class="yt-views-card">
+          <img class="yt-views-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy" onclick="ytOpenVideoPreview(${idx})" alt="">
+          <div class="yt-views-info">
+            <div class="yt-views-date">${esc(dateText)} 업로드</div>
+            <div class="yt-views-vtitle" role="button" tabindex="0" onclick="ytOpenVideoPreview(${idx})">${ytShortsEmoji(v)} ${esc(v.title)}</div>
+            <div class="yt-views-meta"><b>${esc(fmtViews(item.views) || '')}</b> · 최근 ${n}개 중 <b>${item.rank}위</b>${gap ? ` · ${esc(gap)}` : ''}</div>
+          </div>
+          <div class="yt-views-stat">
+            <div class="yt-views-stat-l">평균 대비</div>
+            <div class="yt-views-stat-v ${up ? 'up' : 'down'}">${up ? '▲' : '▼'} ${esc(diffTxt)}</div>
+            <div class="yt-views-stat-s">평균 ${esc(ytViewsNum(avg))} · 이 영상 ${esc(ytViewsNum(item.views))}</div>
+          </div>
+        </div>`;
     }
+    // PC에서는 막대에 마우스만 올려도 선택이 바뀐다(앞으로 7일 요일 카드와 같은 동작).
+    // 터치 기기는 mouseenter가 탭에 딸려 와서 어색하므로 탭(onclick)만 받는다.
+    function ytViewsHover(i) { if (window.__v2Touch) return; ytShowViewsInfo(i); }
     function ytShowViewsInfo(i) {
       const arr = window.__ytViewsItems || [];
       const item = arr[i];
-      const box = document.getElementById('ytViewsDetail');
-      if (!box || !item) return;
+      const card = document.getElementById('ytViewsCard');
+      if (!card || !item) return;
       window.__ytViewsSelIdx = i;
       document.querySelectorAll('[id^="ytViewsDot-"]').forEach(el => el.classList.remove('sel'));
-      const dot = document.getElementById('ytViewsDot-' + i);
-      if (dot) dot.classList.add('sel');
-      box.innerHTML = ytViewsDetailHTML(item);
+      document.querySelectorAll('[id^="ytViewsXl-"]').forEach(el => el.classList.remove('sel'));
+      const bar = document.getElementById('ytViewsDot-' + i);
+      if (bar) bar.classList.add('sel');
+      const xl = document.getElementById('ytViewsXl-' + i);
+      if (xl) xl.classList.add('sel');
+      card.innerHTML = ytViewsCardHTML(item);
     }
 
     // 영상 목록(최근 업로드/캘린더 날짜별/주기 차트 상세)에서 항목을 누르면 곧장 유튜브로
@@ -29056,36 +29355,6 @@
           var t = e.target;
           if (t.closest && (t.closest('#ytCycleDetail') || t.closest('circle[onclick*="ytShowCycleInfo"]'))) return;
           ytPin = null; ytBoxHide();
-        }, true);
-      }
-      // 영상: 최근 영상 조회수 — 위 추이 차트와 완전히 같은 방식(점 아래 팝업, 마우스오버/클릭 고정, 바깥 클릭 닫힘)
-      if (typeof ytShowViewsInfo === 'function') {
-        var _svi = ytShowViewsInfo, ytVPin = null;
-        var ytVBoxHide = function () { var box = document.getElementById('ytViewsDetail'); if (box) box.classList.remove('on'); };
-        var ytVBoxShow = function (i) {
-          var box = document.getElementById('ytViewsDetail'), dot = document.getElementById('ytViewsDot-' + i), host = box && box.closest('.yt-views-panel');
-          if (!box || !dot || !host) return;
-          box.classList.add('on'); box.dataset.i = i;
-          var hr = host.getBoundingClientRect(), dr = dot.getBoundingClientRect(), bw = box.offsetWidth;
-          var left = dr.left + dr.width / 2 - hr.left - bw / 2;
-          box.style.left = Math.max(0, Math.min(left, hr.width - bw)) + 'px';
-          box.style.top = (dr.bottom - hr.top + 8) + 'px';
-        };
-        window.ytShowViewsInfo = function (i) {
-          var ev = window.event, isClick = ev && ev.type === 'click';
-          if (!isClick && window.__v2Touch) return;
-          _svi(i);
-          if (isClick) { if (ytVPin === i) { ytVPin = null; ytVBoxHide(); return; } ytVPin = i; }
-          ytVBoxShow(i);
-        };
-        document.addEventListener('mouseover', function (e) {
-          var host = e.target.closest && e.target.closest('.yt-views-panel');
-          if (!host && ytVPin === null) ytVBoxHide();
-        });
-        document.addEventListener('pointerdown', function (e) {
-          var t = e.target;
-          if (t.closest && (t.closest('#ytViewsDetail') || t.closest('.yt-views-bar'))) return;
-          ytVPin = null; ytVBoxHide();
         }, true);
       }
       // 당첨 선물 안내: 이모지 띄어쓰기, 닉네임 칩 클릭 → 전적
