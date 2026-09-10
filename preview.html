@@ -20115,23 +20115,12 @@
       const nowPct = daysSinceLastPub != null ? pct(daysSinceLastPub) : null;
       const { stateCls } = ytGaugeState(daysSinceLastPub, blendedGapDays, gapSigma);
       const startLabel = lastPub ? `${lastPub.getMonth() + 1}.${lastPub.getDate()}` : '0일';
-      // "왼쪽엔 8.26처럼 날짜가 있는데 오른쪽은 왜 며칠(2~4.2일)로만 나오냐, 오른쪽도
-      // 같은 방식(실제 날짜)으로 표기해달라"는 지적 반영 — 평소 범위(low~high일)를
-      // 마지막 업로드일 기준 실제 달력 날짜로 환산해서 "8.28~8.30"처럼 보여준다.
-      const fmtMD = n => `${n.getMonth() + 1}.${n.getDate()}`;
-      let rangeLabel = `평소 ${Math.round(low * 10) / 10}~${Math.round(high * 10) / 10}일`;
-      if (lastPub) {
-        const lowDate = new Date(lastPub.getTime() + low * 86400000);
-        const highDate = new Date(lastPub.getTime() + high * 86400000);
-        rangeLabel = fmtMD(lowDate) === fmtMD(highDate) ? fmtMD(lowDate) : `${fmtMD(lowDate)}~${fmtMD(highDate)}`;
-      }
-      // "유력한 기간(8.26~8.28) 라벨이 막대 오른쪽 끝에 붙어 있어서, 그 라벨이 실제
-      // 강조된 구간(막대 위 옅은 영역) 위치가 아니라 그냥 차트의 마지막 지점을 가리키는
-      // 것처럼 보인다"는 지적 반영 — 라벨을 더 이상 좌우 끝에 고정된 두 span으로 두지
-      // 않고, 실제 강조 구간(bandLeft~bandRight)의 가운데 아래에 오도록 절대 위치로
-      // 옮긴다. 라벨이 잘리지 않게 10~94% 사이로만 클램프한다(구간이 축 맨 끝에 붙어도
-      // 라벨 텍스트 자체는 항상 화면 안에 보이도록).
-      const rangeLabelPct = Math.min(94, Math.max(10, (bandLeft + bandRight) / 2));
+      // 예전엔 평소 범위(low~high일)를 실제 날짜로 환산한 라벨("9.10~9.11")을 띠 아래에
+      // 붙였는데, 위 헤드라인의 예측 구간("9월 10일~9월 15일 사이 유력")과 서로 다른 것을
+      // 재는데도 같은 날짜 형식이라 "왜 숫자가 다르냐"는 혼동을 낳았다. 이 게이지는
+      // "마지막 업로드 후 평소 주기 대비 어디쯤인지"만 보여주는 보조 역할이므로 날짜 라벨은
+      // 마지막 업로드일(왼쪽) 하나만 남긴다. 평소 주기 수치는 우측 상태 버튼의 근거 문장에
+      // 그대로 나온다.
       return `
         <div class="yt-linebar" title="${esc(reasonText || '')}">
           <div class="yt-linebar-track">
@@ -20140,7 +20129,6 @@
           </div>
           <div class="yt-linebar-labels">
             <span class="yt-linebar-label-start">${esc(startLabel)}</span>
-            <span class="yt-linebar-label-range" style="left:${rangeLabelPct.toFixed(1)}%">${esc(rangeLabel)}</span>
           </div>
         </div>`;
     }
