@@ -11550,6 +11550,10 @@
     /* ---------- 초기화 ---------- */
     const $app = document.getElementById('app');
     let sb = null;            // supabase client
+    // 홈 화면 3개 이미지(최상단 배너 · 블붕이 챗봇 안내 · 블붕이 키워드 안내)를 관리자 페이지에서
+    // 직접 바꿀 수 있게 하는 오버라이드 — site_data(key:'home_images')에 저장되며, 비어 있으면
+    // 기본 이미지 파일(banner-hero.jpg 등)을 그대로 쓴다.
+    let HOME_IMG_OVERRIDE = { banner: '', guide: '', cmd: '' };
     let timeOffset = 0;       // 서버시간 - 내시간 (ms)
     let pollTimer = null;     // 자동 새로고침 타이머
 
@@ -12181,6 +12185,7 @@
         }
         sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
+      applyHomeImageOverrides(); // 홈 배너/챗봇 안내 이미지 오버라이드 — 기다리지 않고 완료되는 대로 반영
       initPresence();
       initFitRowObserver();
       renderHeaderIdentity();
@@ -12601,6 +12606,20 @@
        admin_save_data(site_data 키 'announcements')에 통째로 저장/조회한다 — 선수 랭킹(fighters)과
        똑같은 방식이라 새 테이블/SQL 실행이 필요 없다. 관리자 페이지에서 추가·수정·삭제하면 바로
        반영되고, 시작~종료 기간 안에 있는 공지만 홈 화면 승부예측 위에 자동으로 뜨고 사라진다. */
+    /* ── 홈 화면 이미지 오버라이드 (최상단 배너 · 블붕이 챗봇/키워드 안내) ──
+       마찬가지로 site_data(key:'home_images')에 { banner, guide, cmd } 형태로 저장한다. 값이
+       비어 있으면(기본 상태) 기존처럼 banner-hero.jpg / chatbot-guide.jpg / chatbot-commands.jpg를
+       그대로 쓰고, 관리자 페이지에서 이미지를 올리면 그 자리를 대체한다. */
+    async function applyHomeImageOverrides() {
+      try {
+        const { data } = await sb.from('site_data').select('value').eq('key', 'home_images').single();
+        if (data && data.value) HOME_IMG_OVERRIDE = Object.assign({ banner: '', guide: '', cmd: '' }, data.value);
+      } catch (e) { }
+      if (HOME_IMG_OVERRIDE.banner) {
+        const img = document.querySelector('.v2-hero-banner img');
+        if (img) img.src = HOME_IMG_OVERRIDE.banner;
+      }
+    }
     let ANNOUNCEMENTS = [];
     async function fetchAnnouncements() {
       try {
@@ -27080,6 +27099,7 @@
       const annRes = await fetchAnnouncements();
       ANNOUNCEMENTS = annRes.items || [];
       const annNeedPatch = !!annRes.needPatch;
+      await applyHomeImageOverrides(); // 관리자 화면은 항상 최신 저장값을 다시 받아와서 보여준다
       // 방문 통계의 "승부예측 상세" 항목에 대회명을 붙여 보여주기 위한 대회ID→대회명 표
       window.__fpTournamentTitles = {};
       d.list.forEach(t => { window.__fpTournamentTitles[String(t.id)] = t.title || ''; });
@@ -27186,6 +27206,7 @@
     <div class="card">
       ${ANNOUNCEMENTS.length ? ANNOUNCEMENTS.map(annAdminRowHTML).join('') : '<div class="empty">등록된 공지가 없습니다.</div>'}
     </div>`}
+    ${homeImagesAdminHTML()}
     <div class="sec-title">📋 대회 관리</div>
     <button class="btn wide" id="create-toggle" onclick="toggleCreate(this)">➕ 새 대회 만들기</button>
     <div class="card" id="create-box" style="display:none">
@@ -27438,6 +27459,105 @@
       // 처음 펼칠 때 선물 등수 입력줄(기본 1등·2등)을 채워둔다
       const gt = document.getElementById('c-gift-tiers');
       if (!open && gt && !gt.innerHTML) renderGiftTierRows(gt, [{ desc: '', max: 2 }, { desc: '', max: 5 }]);
+    }
+    /* ── 홈 화면 이미지 관리 (최상단 배너 · 블붕이 챗봇/키워드 안내) ──
+       파일을 고르면 브라우저에서 캔버스로 적당히 리사이즈·압축(JPEG)해서 data: URL로 만든 뒤
+       admin_save_data(site_data 키 'home_images')에 저장한다. 새 SQL 패치가 필요 없다 —
+       fighters/announcements와 똑같은 범용 저장 함수를 재사용하기 때문. */
+    const HOME_IMG_ROWS = [
+      ['banner', '최상단 배너', 'banner-hero.jpg', 1600],
+      ['guide', '블붕이 챗봇 안내 이미지', 'chatbot-guide.jpg', 900],
+      ['cmd', '블붕이 키워드 안내 이미지', 'chatbot-commands.jpg', 900],
+    ];
+    function homeImagesAdminHTML() {
+      return `
+    <div class="sec-title" style="margin-top:26px">🖼️ 홈 화면 이미지 관리</div>
+    <div class="card">
+      <div class="note" style="margin-bottom:10px">파일을 선택하면 자동으로 적당한 크기로 압축해서 저장하고, 홈 화면에 바로 반영됩니다.</div>
+      ${HOME_IMG_ROWS.map(([key, label, def]) => `
+      <div style="display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--hair)">
+        <img id="hi-prev-${key}" src="${HOME_IMG_OVERRIDE[key] || def}" style="width:96px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--border);flex-shrink:0">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:800;font-size:13.5px">${label}</div>
+          <div style="font-size:11.5px;color:var(--dim)" id="hi-sub-${key}">${HOME_IMG_OVERRIDE[key] ? '현재: 직접 업로드한 이미지 사용 중' : '현재: 기본 이미지 사용 중'}</div>
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <input type="file" accept="image/*" id="hi-file-${key}" style="display:none" onchange="hiPickFile('${key}')">
+            <button class="btn xs" onclick="document.getElementById('hi-file-${key}').click()">이미지 선택</button>
+            <button class="btn xs ghost" id="hi-reset-${key}" style="${HOME_IMG_OVERRIDE[key] ? '' : 'display:none'}" onclick="hiReset('${key}')">기본으로 되돌리기</button>
+          </div>
+        </div>
+      </div>`).join('')}
+      <div class="msg" id="hi-msg" style="margin-top:8px"></div>
+    </div>`;
+    }
+    // 선택한 이미지 파일을 캔버스로 그려 maxW 기준으로 축소하고 JPEG로 압축한 data: URL을 만든다.
+    function hiCompressImage(file, maxW, quality) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          let w = img.naturalWidth, h = img.naturalHeight;
+          if (!w || !h) return reject(new Error('이미지 크기를 읽을 수 없습니다.'));
+          if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+          const cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          const ctx = cv.getContext('2d');
+          ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); // 투명 PNG가 검게 안 뜨도록 흰 배경 위에 그린다
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(cv.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('이미지 파일을 읽을 수 없습니다.')); };
+        img.src = url;
+      });
+    }
+    async function hiPickFile(key) {
+      const inp = document.getElementById('hi-file-' + key);
+      const f = inp && inp.files && inp.files[0];
+      if (!f) return;
+      const row = HOME_IMG_ROWS.find(r => r[0] === key);
+      const msg = document.getElementById('hi-msg');
+      const show = (c, s) => { if (msg) { msg.className = 'msg ' + c; msg.textContent = s; } };
+      if (!/^image\//.test(f.type)) { show('err', '이미지 파일만 선택할 수 있어요.'); inp.value = ''; return; }
+      show('', '이미지 압축 중…');
+      try {
+        const dataUrl = await hiCompressImage(f, row ? row[3] : 1200, 0.82);
+        const next = Object.assign({}, HOME_IMG_OVERRIDE, { [key]: dataUrl });
+        const { error } = await sb.rpc('admin_save_data', { p_pass: adminPass(), p_key: 'home_images', p_value: next });
+        if (error) {
+          if (/function|not find/i.test(error.message || '')) return show('err', 'admin_save_data 함수가 아직 없어 저장할 수 없습니다. (다른 관리자 기능이 이미 되고 있다면 이 메시지는 무시해도 됩니다)');
+          return show('err', cleanErr(error.message));
+        }
+        HOME_IMG_OVERRIDE = next;
+        const prevImg = document.getElementById('hi-prev-' + key);
+        if (prevImg) prevImg.src = dataUrl;
+        const sub = document.getElementById('hi-sub-' + key);
+        if (sub) sub.textContent = '현재: 직접 업로드한 이미지 사용 중';
+        const resetBtn = document.getElementById('hi-reset-' + key);
+        if (resetBtn) resetBtn.style.display = '';
+        if (key === 'banner') { const bimg = document.querySelector('.v2-hero-banner img'); if (bimg) bimg.src = dataUrl; }
+        show('ok', '✅ 저장했습니다. 홈 화면에 바로 반영됩니다.');
+      } catch (e) {
+        show('err', '이미지 처리 중 문제가 발생했습니다: ' + (e.message || e));
+      }
+      inp.value = '';
+    }
+    async function hiReset(key) {
+      const msg = document.getElementById('hi-msg');
+      const show = (c, s) => { if (msg) { msg.className = 'msg ' + c; msg.textContent = s; } };
+      const next = Object.assign({}, HOME_IMG_OVERRIDE, { [key]: '' });
+      const { error } = await sb.rpc('admin_save_data', { p_pass: adminPass(), p_key: 'home_images', p_value: next });
+      if (error) return show('err', cleanErr(error.message));
+      HOME_IMG_OVERRIDE = next;
+      const row = HOME_IMG_ROWS.find(r => r[0] === key);
+      const prevImg = document.getElementById('hi-prev-' + key);
+      if (prevImg && row) prevImg.src = row[2];
+      const sub = document.getElementById('hi-sub-' + key);
+      if (sub) sub.textContent = '현재: 기본 이미지 사용 중';
+      const resetBtn = document.getElementById('hi-reset-' + key);
+      if (resetBtn) resetBtn.style.display = 'none';
+      if (key === 'banner') { const bimg = document.querySelector('.v2-hero-banner img'); if (bimg && row) bimg.src = row[2]; }
+      show('ok', '기본 이미지로 되돌렸습니다.');
     }
     async function adminLogin() {
       const pass = document.getElementById('a-pass').value;
@@ -28501,11 +28621,14 @@
       })();
       // 홈 사이드 "블붕이 챗봇" / "@블붕이 키워드" 클릭 → 안내 이미지 팝업 (+ 다운로드 버튼)
       window.v2ImgPop = function (kind) {
-        var IMG = { guide: ['chatbot-guide.jpg', '\uBE14\uBD95\uC774 \uCC57\uBD07 \uCD94\uAC00 \u00B7 \uC0AC\uC6A9 \uBC29\uBC95'], cmd: ['chatbot-commands.jpg', '\uBE14\uBD95\uC774 \uCC57\uBD07 \uBA85\uB839\uC5B4'] };
+        // \uAD00\uB9AC\uC790\uAC00 \uC774\uBBF8\uC9C0\uB97C \uC9C1\uC811 \uBC14\uAFD4\uB454 \uAC8C \uC788\uC73C\uBA74(HOME_IMG_OVERRIDE) \uADF8\uAC78 \uC4F0\uACE0, \uC5C6\uC73C\uBA74 \uAE30\uBCF8 \uD30C\uC77C.
+        var ov0 = (typeof HOME_IMG_OVERRIDE !== 'undefined' && HOME_IMG_OVERRIDE) || {};
+        var IMG = { guide: [ov0.guide || 'chatbot-guide.jpg', '\uBE14\uBD95\uC774 \uCC57\uBD07 \uCD94\uAC00 \u00B7 \uC0AC\uC6A9 \uBC29\uBC95'], cmd: [ov0.cmd || 'chatbot-commands.jpg', '\uBE14\uBD95\uC774 \uCC57\uBD07 \uBA85\uB839\uC5B4'] };
         var it = IMG[kind]; if (!it) return;
+        var dlName = kind + '.jpg'; // \uC624\uBC84\uB77C\uC774\uB4DC\uB294 data: URL\uC774\uB77C \uC6D0\uBCF8 \uD30C\uC77C\uBA85\uC774 \uC5C6\uC73C\uBBC0\uB85C \uACE0\uC815 \uD30C\uC77C\uBA85 \uC0AC\uC6A9
         var ov = document.createElement('div'); ov.className = 'modal-ov';
         var dlIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 10l5 5 5-5"></path><path d="M5 21h14"></path></svg>';
-        ov.innerHTML = '<div class="modal v2-img-modal"><div class="modal-h"><span><b>' + it[1] + '</b></span><button class="modal-x" onclick="history.back()">\u2715</button></div><div class="modal-b"><div class="v2-img-wrap"><img src="' + it[0] + '" alt="' + it[1] + '"><a class="v2-dl" href="' + it[0] + '" download="' + it[0] + '" aria-label="\uC774\uBBF8\uC9C0 \uB2E4\uC6B4\uB85C\uB4DC" title="\uC774\uBBF8\uC9C0 \uB2E4\uC6B4\uB85C\uB4DC">' + dlIcon + '</a></div></div></div>';
+        ov.innerHTML = '<div class="modal v2-img-modal"><div class="modal-h"><span><b>' + it[1] + '</b></span><button class="modal-x" onclick="history.back()">\u2715</button></div><div class="modal-b"><div class="v2-img-wrap"><img src="' + it[0] + '" alt="' + it[1] + '"><a class="v2-dl" href="' + it[0] + '" download="' + dlName + '" aria-label="\uC774\uBBF8\uC9C0 \uB2E4\uC6B4\uB85C\uB4DC" title="\uC774\uBBF8\uC9C0 \uB2E4\uC6B4\uB85C\uB4DC">' + dlIcon + '</a></div></div></div>';
         ov.onclick = function (e) { if (e.target === ov) history.back(); };
         if (typeof pushModal === 'function') pushModal(ov); else document.body.appendChild(ov);
       };
