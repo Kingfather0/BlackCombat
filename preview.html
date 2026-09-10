@@ -11148,6 +11148,11 @@
     body[data-route="videos"] .yt-pred-merged, body[data-route="videos"] .yt-gap-stats, body[data-route="videos"] .yt-week-prob-panel { background: transparent; border: none; border-radius: 0; padding: 14px 0; border-bottom: 1px solid var(--hair); margin: 0; }
     body[data-route="videos"] .yt-pred-merged-title, body[data-route="videos"] .yt-gap-stats-title, body[data-route="videos"] .yt-week-prob-title { font-weight: 700; font-size: 14px; }
     body[data-route="videos"] .yt-pred-merged-headline { font-weight: 800; font-size: 20px; letter-spacing: -.03em; }
+    /* 헤드라인 줄 오른쪽에 상태 버튼("평소 범위 안 ▾", v2 스크립트가 이 줄로 옮김). 예전엔 PC(≥1024px)
+       에서만 flex라 모바일에선 버튼이 글자 바로 뒤에 붙었다("모바일에서도 참고용 아래 우측 정렬"
+       지적) — 모든 폭에서 flex + margin-left:auto로 항상 오른쪽 끝에 두고, 좁으면 다음 줄 오른쪽으로 내려간다. */
+    body[data-route="videos"] .yt-pred-merged-headline { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
+    body[data-route="videos"] .yt-pred-merged-headline .yt-pred-reason-btn { font-size: 12px; margin-left: auto; }
     body[data-route="videos"] .yt-pred-merged-sub { color: var(--muted); }
     body[data-route="videos"] svg polyline { stroke-width: 1.5px; vector-effect: non-scaling-stroke; }
     body[data-route="videos"] svg line[stroke-dasharray] { vector-effect: non-scaling-stroke; stroke-width: 1px; stroke: var(--hair2); }
@@ -11193,8 +11198,6 @@
       body[data-route="videos"] .yt-col1 > .yt-pred-hero-label, body[data-route="videos"] .yt-pred-merged-title, body[data-route="videos"] .yt-gap-stats-title { font-size: 15px !important; font-weight: 700 !important; color: var(--text) !important; }
       body[data-route="videos"] .yt-col1 .yt-core-stats { border-bottom: none; }
       body[data-route="videos"] .yt-col1 .yt-core-stat { padding-top: 0; }
-      body[data-route="videos"] .yt-pred-merged-headline { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-      body[data-route="videos"] .yt-pred-merged-headline .yt-pred-reason-btn { font-size: 12px; }
       body[data-route="videos"] .yt-pred-hero > .yt-core-stats, body[data-route="videos"] .yt-pred-hero > .yt-pred-merged, body[data-route="videos"] .yt-pred-hero > .yt-gap-stats { border-bottom: none; min-height: 132px; }
       body[data-route="videos"] .yt-pred-hero > .yt-week-prob-panel, body[data-route="videos"] .yt-pred-hero > .yt-views-panel { border-top: 1px solid var(--hair); }
       body[data-route="videos"] #app > .yt-cal-details { grid-column: 1; margin: 0 !important; padding-top: 28px !important; align-self: start; }
@@ -20394,9 +20397,11 @@
       }
       const rd0 = rd[0], rd1 = rd[rd.length - 1];
       const fmtMD = dt => `${dt.getMonth() + 1}월 ${dt.getDate()}일`;
+      // "'사이 유력' 같은 꼬리말은 굳이 필요 없다"는 지적 반영 — 카드 제목이 이미 "업로드
+      // 예측"이라 날짜(구간)만으로 뜻이 통한다. 카톡 카드/설명줄도 같은 문자열을 쓴다.
       const rangeHeadlineText = rd0 === rd1
-        ? `${fmtMD(rd0.date)} (${YT_DOW_LABEL[rd0.dow]}) 유력`
-        : `${fmtMD(rd0.date)}~${fmtMD(rd1.date)} 사이 유력`;
+        ? `${fmtMD(rd0.date)} (${YT_DOW_LABEL[rd0.dow]})`
+        : `${fmtMD(rd0.date)}~${fmtMD(rd1.date)}`;
       // 구간 안에서도 가장 확률 높은 날짜(topDay)는 그대로 짚어주되, "확정"이 아니라
       // "그 중에서는"이라는 어감으로 톤을 낮췄다.
       // "그중 가장 유력: ... 텍스트가 두 줄로 넘친다"는 지적 반영 — 상세 근거
