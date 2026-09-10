@@ -19211,7 +19211,7 @@
         <div class="bq-tr"><span>오늘의 도전</span><b>${d.attempts_used} / ${(BQ.cfg && BQ.cfg.daily_attempts) || 3}</b></div>
       </div>
       <div class="bq-acts">
-        <button class="primary" id="bqAgain" ${d.attempts_left > 0 ? '' : 'disabled'}>
+        <button class="primary" id="bqAgain">
           ${d.attempts_left > 0 ? '다시 도전하기' : '내일 다시 만나요'}</button>
       </div>
       ${d.best && d.best.correct_count != null ? `<div class="bq-note">오늘의 공식 기록(최고 기록)은
@@ -19240,7 +19240,9 @@
       gmApplyPoses();
 
       const again = document.getElementById('bqAgain');
-      if (again && !again.disabled) again.onclick = () => bqConfirmStart();
+      // 도전 횟수가 남았으면 재도전, 다 썼으면("내일 다시 만나요") 게임 메뉴 목록으로 이동
+      // — 예전엔 비활성 버튼이라 눌러도 아무 반응이 없었다.
+      if (again) again.onclick = () => { if (d.attempts_left > 0) bqConfirmStart(); else location.hash = '#/game'; };
       document.getElementById('bqHome').onclick = () => bqRenderHome();
       document.getElementById('bqRankBtn').onclick = () => {
         bqRenderHome().then(() => {
