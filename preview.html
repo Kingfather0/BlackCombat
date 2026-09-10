@@ -10303,40 +10303,60 @@
       color: var(--muted)
     }
 
-    /* 조회수 차트 본체: 선은 고정 높이에 맞춰 늘린 SVG, 점은 %-좌표의 HTML 요소(폭과 무관하게
-       같은 크기). 보이는 점(::after)은 작고, 실제 터치/클릭 영역(.yt-views-dot)은 22px로 넉넉하게. */
+    /* 조회수 차트 본체: 세로 막대(영상 하나 = 막대 하나, 시간순). 위 추이 차트(선+점)와 한눈에
+       구분되도록 형태 자체를 다르게 했다. 최다 조회 막대는 앰버, 선택된 막대는 검정 테두리,
+       평균은 가로 점선. 막대 폭은 화면 폭에 따라 자동(flex). */
     .yt-views-plot {
       position: relative;
-      height: 72px
+      height: 84px;
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      padding: 0 2px;
+      border-bottom: 1px solid var(--border)
     }
 
-    .yt-views-dot {
+    .yt-views-bar {
+      flex: 1 1 0;
+      min-width: 4px;
+      background: #c9ccd3;
+      border-radius: 3px 3px 0 0;
+      cursor: pointer;
+      transition: background .12s ease
+    }
+
+    .yt-views-bar:hover {
+      background: #9aa0aa
+    }
+
+    .yt-views-bar.top,
+    .yt-views-bar.top:hover {
+      background: var(--amber, #f2b32a)
+    }
+
+    .yt-views-bar.sel {
+      box-shadow: 0 0 0 1.5px var(--text)
+    }
+
+    .yt-views-avg {
       position: absolute;
-      width: 22px;
-      height: 22px;
-      margin: -11px 0 0 -11px;
-      border-radius: 50%;
-      cursor: pointer
+      left: 0;
+      right: 0;
+      border-top: 1px dashed var(--dim);
+      pointer-events: none
     }
 
-    .yt-views-dot::after {
-      content: "";
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 6px;
-      height: 6px;
-      margin: -3px 0 0 -3px;
-      border-radius: 50%;
-      background: var(--key-deep)
+    .yt-views-key {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      vertical-align: -1px;
+      background: #c9ccd3
     }
 
-    .yt-views-dot.sel::after {
-      width: 10px;
-      height: 10px;
-      margin: -5px 0 0 -5px;
-      background: var(--red);
-      box-shadow: 0 0 0 1.5px #fff
+    .yt-views-key.top {
+      background: var(--amber, #f2b32a)
     }
 
     /* 예전엔 여기(.yt-gap-mini-row/.yt-gap-mini)에 "평소 업로드 주기"·"이번 달 업로드"
@@ -11005,6 +11025,11 @@
     body[data-route="videos"] .yt-col1 > .yt-pred-hero-label { font-size: 15px !important; font-weight: 700 !important; color: var(--text) !important; }
     body[data-route="videos"] #app > .sub::after { content: " · 10분 간격 갱신"; }
     body[data-route="videos"] .yt-pred-hero { background: transparent; border: none; box-shadow: none; padding: 0; border-radius: 0; }
+    /* #app > * 진입 애니메이션(fadeUp, fill-mode both)이 끝나도 transform 값이 남아 각 최상위
+       요소가 자기만의 스태킹 컨텍스트가 된다. 그래서 예측 카드(.yt-pred-hero) 맨 아래 조회수 차트의
+       팝업(#ytViewsDetail, z-index 60)이 카드 밖으로 삐져나오면 뒤따르는 캘린더 카드가 그 위를
+       덮어 잘려 보였다. 예측 카드 자체를 뒤 형제들보다 위 층(z-index)으로 올려 팝업이 온전히 보이게 한다. */
+    body[data-route="videos"] #app > .yt-pred-hero { position: relative; z-index: 2; }
     body[data-route="videos"] .yt-pred-hero-label { color: var(--dim); font-weight: 600; font-size: 12px; padding: 12px 0 8px; }
     body[data-route="videos"] .yt-pred-badge-light { background: transparent; color: var(--dim); box-shadow: inset 0 0 0 1px var(--hair2); border-radius: 4px; }
     body[data-route="videos"] .yt-event-line { background: transparent; border: none; border-top: 1px solid var(--text); border-bottom: 1px solid var(--hair); border-radius: 0; padding: 12px 0; }
@@ -20688,33 +20713,22 @@
       const rankOf = {}; ranked.forEach((r, k) => { rankOf[r.i] = k + 1; });
       window.__ytViewsItems = items.map((v, i) => ({ video: v, views: vals[i], rank: rankOf[i] }));
       window.__ytViewsAvg = avg;
-      // 최근 업로드 추이 차트와 같은 크기·여백(위/아래 글씨 자리와 데이터가 안 겹치게 고정 여백)
-      const W = 300, H = 58, PADX = 8, PLOT_TOP = 11, PLOT_BOTTOM = 44;
-      const maxV = Math.max(...vals, avg, 1) * 1.15;
-      const stepX = items.length > 1 ? (W - PADX * 2) / (items.length - 1) : 0;
-      const yFor = v => PLOT_BOTTOM - (v / maxV) * (PLOT_BOTTOM - PLOT_TOP);
-      const pts = vals.map((x, i) => `${(PADX + i * stepX).toFixed(1)},${yFor(x).toFixed(1)}`).join(' ');
-      const avgY = yFor(avg).toFixed(1);
-      // 기본 선택 = 최다 조회 영상 (이 차트의 목적이 "어떤 영상이 많이/적게 봤는지"라서)
-      const topIdx = ranked[0].i;
+      // "최근 업로드 추이(선 차트)와 디자인이 겹쳐 구분이 안 된다"는 지적 반영 — 영상별 조회수는
+      // 크기 비교가 목적이라 선이 아닌 세로 막대로 그린다(막대 하나 = 영상 하나, 시간순).
+      // 막대는 HTML 요소라 화면 폭에 따라 폭만 늘고 선 굵기·글씨는 그대로다.
+      const maxV = Math.max(...vals, avg, 1);
+      const topIdx = ranked[0].i; // 기본 선택 = 최다 조회 영상
       window.__ytViewsSelIdx = topIdx;
-      // 이 패널은 (추이 차트와 달리) 가로 전체를 쓰기 때문에 viewBox 비율대로 늘리면 PC에서
-      // 점이 거대해지고 차트가 납작해진다. 그래서 선(SVG)은 preserveAspectRatio=none으로
-      // 고정 높이에 맞춰 늘리고(선 굵기는 non-scaling-stroke로 일정), 점은 SVG 밖 HTML
-      // 요소로 %-좌표에 놓아 화면 폭과 무관하게 항상 같은 크기로 보이게 한다.
-      const dots = vals.map((x, i) => `<div id="ytViewsDot-${i}" class="yt-views-dot${i === topIdx ? ' sel' : ''}" style="left:${((PADX + i * stepX) / W * 100).toFixed(2)}%;top:${(yFor(x) / H * 100).toFixed(2)}%" onclick="ytShowViewsInfo(${i})" onmouseenter="ytShowViewsInfo(${i})" title="${esc(items[i].title)}"></div>`).join('');
+      const bars = vals.map((x, i) => `<div id="ytViewsDot-${i}" class="yt-views-bar${i === topIdx ? ' top sel' : ''}" style="height:${Math.max(2, x / maxV * 100).toFixed(2)}%" onclick="ytShowViewsInfo(${i})" onmouseenter="ytShowViewsInfo(${i})" title="${esc(items[i].title)}"></div>`).join('');
       const fmtD = s => new Date(s).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric' });
       return `
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1px">
-          <div class="note" style="font-size:9.5px;margin:0">점선 = 평균(<b style="color:var(--key-deep)">${esc(ytViewsNum(avg))}</b>) · <span style="color:var(--red)">●</span> 최다 조회</div>
-          <div class="note" style="font-size:9.5px;margin:0">↕ 위=많이 아래=적게</div>
+          <div class="note" style="font-size:9.5px;margin:0"><span class="yt-views-key top"></span> 최다 조회 · 점선 = 평균(<b>${esc(ytViewsNum(avg))}</b>)</div>
+          <div class="note" style="font-size:9.5px;margin:0">막대 하나 = 영상 하나 · 높을수록 많이 봄</div>
         </div>
         <div class="yt-views-plot">
-          <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;display:block">
-            <line x1="${PADX}" y1="${avgY}" x2="${W - PADX}" y2="${avgY}" stroke="var(--dim)" stroke-width="1" stroke-dasharray="4 3" vector-effect="non-scaling-stroke"></line>
-            <polyline points="${pts}" fill="none" stroke="var(--key-deep)" stroke-width="2" vector-effect="non-scaling-stroke"></polyline>
-          </svg>
-          ${dots}
+          <div class="yt-views-avg" style="bottom:${(avg / maxV * 100).toFixed(2)}%"></div>
+          ${bars}
         </div>
         <div style="display:flex;justify-content:space-between;margin-top:1px">
           <span class="note" style="font-size:9px;margin:0">${esc(fmtD(items[0].published_at))}</span>
@@ -29070,7 +29084,7 @@
         });
         document.addEventListener('pointerdown', function (e) {
           var t = e.target;
-          if (t.closest && (t.closest('#ytViewsDetail') || t.closest('.yt-views-dot'))) return;
+          if (t.closest && (t.closest('#ytViewsDetail') || t.closest('.yt-views-bar'))) return;
           ytVPin = null; ytVBoxHide();
         }, true);
       }
