@@ -10981,7 +10981,10 @@
     @keyframes vcBlink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
     body[data-route="t"] .vote-grid .match .no .vc-live { grid-column: 3; justify-self: end; color: var(--red); font-weight: 800; font-size: 12.5px; white-space: nowrap; }
     body[data-route="t"] .vote-grid .match .no .vc-live::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--red); margin-right: 5px; vertical-align: 1px; animation: vcBlink 1.2s ease-in-out infinite; }
-    body[data-route="t"] .vote-grid .match.live { box-shadow: inset 0 0 0 1.5px var(--red); }
+    /* LIVE 카드 빨간 테두리: 예전 inset box-shadow는 카드 상단의 회색 헤더 띠(.no, 자체 배경)에
+       가려져 위쪽 선이 안 보였다("위쪽 외곽선이 표시되지 않는다"는 지적). outline은 자식 위에
+       그려지므로 헤더 띠까지 감싸는 온전한 테두리가 된다(모서리는 border-radius를 따라감). */
+    body[data-route="t"] .vote-grid .match.live { box-shadow: none; outline: 1.5px solid var(--red); outline-offset: -1.5px; }
     body[data-route="t"] .vote-grid .match .vc-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--hair); }
     body[data-route="t"] .vote-grid .match .vc-tag { display: inline-flex; }
     body[data-route="t"] .vote-grid .match .vc-tag .badge { display: inline-flex; align-items: center; background: var(--bg2) !important; color: var(--text) !important; font-weight: 700 !important; font-size: 12px !important; border-radius: 6px; padding: 4px 9px; line-height: 1.2; }
@@ -17100,6 +17103,29 @@
       }
       return html;
     }
+    // 직전에 끝난 경기(결과가 들어간 마지막 경기) — 라이브 카드의 "이전 경기" 줄과 카톡 문구에 쓴다.
+    function tPrevScoredMatch(matches) {
+      for (let i = matches.length - 1; i >= 0; i--) if (matches[i].winner === 'A' || matches[i].winner === 'B') return matches[i];
+      return null;
+    }
+    // "🏆 승자 vs 패자" — 원래 대진 순서(A vs B)는 유지하고 이긴 쪽 이름 앞에만 🏆를 붙인다.
+    function tPrevMatchText(m) {
+      const a = (m.winner === 'A' ? '🏆 ' : '') + m.fighter_a, b = (m.winner === 'B' ? '🏆 ' : '') + m.fighter_b;
+      return `${a} vs ${b}`;
+    }
+    function tPrevMatchSegs(m, winCol, dimCol) {
+      const segA = { t: (m.winner === 'A' ? '🏆 ' : '') + m.fighter_a, c: m.winner === 'A' ? winCol : dimCol, w: m.winner === 'A' ? '900' : '700' };
+      const segB = { t: (m.winner === 'B' ? '🏆 ' : '') + m.fighter_b, c: m.winner === 'B' ? winCol : dimCol, w: m.winner === 'B' ? '900' : '700' };
+      return [segA, { t: ' vs ', c: dimCol, w: '700' }, segB];
+    }
+    // 캔버스에 색/굵기가 다른 조각들을 한 줄로 이어 그린다. 전체가 maxW를 넘으면 글자 크기를
+    // minPx까지 줄여서 맞춘다(gmFitFont와 같은 방식).
+    function kkoDrawSegs(x, segs, sx, y, maxW, px, minPx) {
+      const widthAt = f => segs.reduce((w, sg) => { x.font = `${sg.w} ${f}px Pretendard, sans-serif`; return w + x.measureText(sg.t).width; }, 0);
+      let f = px; while (f > minPx && widthAt(f) > maxW) f -= 1;
+      let cx = sx; x.textAlign = 'left';
+      segs.forEach(sg => { x.font = `${sg.w} ${f}px Pretendard, sans-serif`; x.fillStyle = sg.c; x.fillText(sg.t, cx, y); cx += x.measureText(sg.t).width; });
+    }
     // 대회 D-day 대진표 카드 (800×400) — 대회명·D-n·일시·메인이벤트·나머지 대진을 담아
     // 카카오 카드로 공유한다. 메인이벤트는 마지막 경기로 간주(대진표 관례).
     function tDrawShareCard(t, matches, parts) {
@@ -17219,16 +17245,26 @@
           x.fillStyle = '#b6bfcc'; x.font = '900 13px Pretendard, sans-serif';
           x.fillText('M A I N   E V E N T', 48, 172);
         }
+        // 라이브 중엔 그 자리에 "이전 경기 · 🏆 승자 vs 패자"를 그린다 — 이전 경기 / 진행 중 경기 /
+        // 다음 경기 3단 구성("이전 경기 승자도 잘 보이게 추가해달라"는 지적 반영). 승자 이름은
+        // 진하게, 나머지는 회색.
+        const prevM = live ? tPrevScoredMatch(matches) : null;
+        if (live && prevM) {
+          const segs = tPrevMatchSegs(prevM, '#1b2430', '#7c8798');
+          kkoDrawSegs(x, [{ t: '이전 경기  ·  ', c: '#7c8798', w: '700' }].concat(segs), 48, 172, 704, 20, 14);
+        }
         const chip = (px, w, fill) => {
           x.save(); x.shadowColor = 'rgba(30,50,90,.18)'; x.shadowBlur = 14; x.shadowOffsetY = 4;
           x.fillStyle = fill; x.beginPath();
           if (x.roundRect) x.roundRect(px, 188, w, 72, 14); else x.rect(px, 188, w, 72);
           x.fill(); x.restore();
         };
+        // 색은 사이트 승부예측 카드와 동일하게 왼쪽 = 페트롤 블루(--teal), 오른쪽 = 바이올렛(--vio)
+        // ("카톡 썸네일도 대진 카드와 같은 청록/보라로" 지적 반영).
         const rg = x.createLinearGradient(48, 0, 392, 0);
-        rg.addColorStop(0, '#e11d48'); rg.addColorStop(1, '#c62828');
+        rg.addColorStop(0, '#1f5f74'); rg.addColorStop(1, '#174a5b');
         const bl = x.createLinearGradient(408, 0, 752, 0);
-        bl.addColorStop(0, '#2563eb'); bl.addColorStop(1, '#1d4ed8');
+        bl.addColorStop(0, '#6b45a0'); bl.addColorStop(1, '#55357f');
         chip(48, 344, rg); chip(408, 344, bl);
         x.textAlign = 'center'; x.fillStyle = '#fff';
         const fit = (name, maxW) => { let f = 29; x.font = `900 ${f}px Pretendard, sans-serif`; while (f > 18 && x.measureText(name).width > maxW) { f -= 2; x.font = `900 ${f}px Pretendard, sans-serif`; } };
@@ -17281,11 +17317,14 @@
         if (!t) return;
         const live = tIsLive(t);
         const scoredN = matches.filter(m => m.winner === 'A' || m.winner === 'B').length;
+        const prevM = live ? tPrevScoredMatch(matches) : null;
         const imageUrl = await kkoConsumePreload(btn, () => tDrawShareCard(t, matches, parts));
         const ok = imageUrl && kkoSendShare(imageUrl, {
           title: live ? `🔴 LIVE — ${t.title}` : t.title,
+          // 라이브 설명줄: "지난 경기 결과 반영(4/15)" 대신 직전 경기 결과를 바로 보여준다 —
+          // 예: "🏆 미스터 초크 vs 도깨비발 (4/15)". 아직 끝난 경기가 없으면 예전 문구 유지.
           desc: live
-            ? `지난 경기 결과 반영(${scoredN}/${matches.length})`
+            ? (prevM ? `${tPrevMatchText(prevM)} (${scoredN}/${matches.length})` : `지난 경기 결과 반영(${scoredN}/${matches.length})`)
             : `${(t.event_at || t.event_date) ? fmtEventDT(t) + ' · ' : ''}${parts.length}명 참여`,
           btnText: live ? '실시간 현황 보기' : (tState(t) === 'open' ? '예측하러 가기' : '결과 보러 가기'),
           path: `#/t/${encodeURIComponent(id)}`,
