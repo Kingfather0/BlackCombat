@@ -1,0 +1,31 @@
+name: 티켓 구역별 좌석 백업
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # 15분마다 (GitHub 사정에 따라 실제 실행은 몇 분 늦어질 수 있음)
+  workflow_dispatch: {}       # GitHub에서 수동 실행 버튼도 제공
+
+# 이전 실행이 아직 안 끝났으면 새 스케줄 실행이 뒤에 쌓이지 않도록 취소한다.
+# (매번 최신 상태를 다시 저장하는 방식이라 취소해도 잃는 데이터가 없다)
+concurrency:
+  group: ticket-zone-snapshot
+  cancel-in-progress: true
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    # TICKET_ZONE_SNAPSHOT_ENABLED 변수가 true일 때만 스케줄 실행. 수동 실행은 이 값과
+    # 상관없이 항상 가능. (해당 행사의 구역별 좌석 지도를 더 이상 안 쓰게 되면 꺼두세요)
+    if: vars.TICKET_ZONE_SNAPSHOT_ENABLED == 'true' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 구역별 좌석 백업
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          ADMIN_PASS: ${{ secrets.ADMIN_PASS }}
+        run: node scripts/ticket-zone-snapshot.js
