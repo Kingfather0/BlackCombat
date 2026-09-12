@@ -15008,13 +15008,19 @@
         if (!periodEnd || d > periodEnd) periodEnd = d;
       });
       const TK_STALE_MS = 60 * 60 * 1000;
-      const trackingEnded = !isPreview && rows.length > 0 && (
+      // 이 행사 자체가 날짜상 끝났는지(기간 종료 다음날 이후, 또는 최근 기록이 1시간 넘게
+      // 없음) — 아래 트래킹용 trackingEnded와 달리 isPreview(지난 티켓 개별 페이지) 여부와
+      // 무관하게 판단한다. 구역별 좌석 지도의 "종료" 안내 문구가 지난 티켓 개별 페이지에서도
+      // 정확히 뜨게 하려면 이 값이 필요함(지난 티켓 페이지는 항상 isPreview=true라
+      // trackingEnded는 여기서 늘 false로 강제되어 이 용도로 못 씀).
+      const eventDateEnded = rows.length > 0 && (
         periodEnd
           ? (Date.now() >= periodEnd.getTime() + 86400000)
           : (Date.now() - new Date(rows[0].captured_at).getTime() > TK_STALE_MS));
+      const trackingEnded = !isPreview && eventDateEnded;
       // 구역별 실시간 좌석 지도(아래)가 실패 문구를 고를 때 참고하는 전역 플래그 —
-      // 행사 추적이 이미 끝났으면 "종료" 안내를, 아니면 "잠시 후 재시도" 안내를 보여준다.
-      window.__tkZonesEventEnded = trackingEnded;
+      // 행사가 이미 끝났으면 "종료" 안내를, 아니면 "잠시 후 재시도" 안내를 보여준다.
+      window.__tkZonesEventEnded = eventDateEnded;
 
       // 지난 티켓 목록 — 현재 화면(메인)에서만 보여준다. 추적이 종료된 상태면
       // 지금까지 보던 티켓도 이 목록에 포함시킨다.
