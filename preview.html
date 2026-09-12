@@ -1196,7 +1196,7 @@
     }
 
     .tk-live-poly-err {
-      fill: #f3d9c4
+      fill: #dadde2
     }
 
     .tk-live-poly-label {
@@ -14107,6 +14107,13 @@
           await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
           return tkFetchZoneSeats(zone, true);
         }
+        // 실시간 조회가 끝내 실패하면, 백업 스냅샷에 이 구역 데이터가 있는지 확인해 대신 쓴다
+        // ("종료 직전 마지막 상태 유지") — 없으면(봇을 아직 안 돌렸거나 이 구역만 빠졌으면)
+        // 기존처럼 실패로 처리한다.
+        const snap = TK_LIVE_SNAPSHOT && TK_LIVE_SNAPSHOT.zones && TK_LIVE_SNAPSHOT.zones[zone.placeId];
+        if (snap && Array.isArray(snap.seats) && snap.seats.length) {
+          return { ok: true, stale: true, staleAt: snap.capturedAt || TK_LIVE_SNAPSHOT.at, apiTotal: snap.apiTotal, remain: snap.remain, sold: snap.sold, seats: snap.seats };
+        }
         return { ok: false };
       }
     }
@@ -14234,10 +14241,10 @@
       if (!result) {
         stateClass = 'tk-live-poly-loading'; title = `${zone.name} · 불러오는 중…`; mosaic = '';
       } else if (!result.ok) {
-        stateClass = 'tk-live-poly-err'; title = `${zone.name} · 불러오기 실패`; mosaic = '';
+        stateClass = 'tk-live-poly-err'; title = `${zone.name} · ${tkZoneFailMsg()}`; mosaic = '';
       } else {
         stateClass = 'tk-live-poly-ok';
-        title = `${zone.name} · 잔여 ${result.remain.toLocaleString()}/${zone.total.toLocaleString()}석 · 눌러서 상세보기`;
+        title = `${zone.name} · 잔여 ${result.remain.toLocaleString()}/${zone.total.toLocaleString()}석${result.stale ? ` (${fmtSnapTime(result.staleAt)} 기준)` : ''} · 눌러서 상세보기`;
         mosaic = tkLiveZoneMosaicSvg(zone, pts, result);
       }
       const clipId = `tk-clip-${zone.placeId}`;
@@ -14273,8 +14280,8 @@
       const result = window.__tkLiveResults[idx];
       let body;
       if (!result) body = '불러오는 중…';
-      else if (!result.ok) body = '불러오기 실패';
-      else body = `잔여 ${result.remain.toLocaleString()} / ${zone.total.toLocaleString()}석`;
+      else if (!result.ok) body = tkZoneFailMsg();
+      else body = `잔여 ${result.remain.toLocaleString()} / ${zone.total.toLocaleString()}석${result.stale ? ` (${fmtSnapTime(result.staleAt)} 기준)` : ''}`;
       tip.innerHTML = `<b>${esc(zone.name)}</b> · ${body}`;
       const rect = wrap.getBoundingClientRect();
       let x = ev.clientX - rect.left, y = ev.clientY - rect.top;
@@ -14298,7 +14305,7 @@
       const color = TK_LIVE_GRADE_COLOR[zone.gradeCode];
       const head = `<div class="tk-live-modal-head"><b>${esc(zone.name)}</b><span style="color:${color}">${esc(gname)}</span><button type="button" class="tk-live-modal-close" onclick="tkLiveZoneCloseDetail()">✕</button></div>`;
       if (!result || !result.ok || !result.seats || !result.seats.length) {
-        return `${head}<div class="tk-live-zone-loading">${!result ? '불러오는 중…' : '불러오기 실패 — 잠시 후 다시 시도해주세요'}</div>`;
+        return `${head}<div class="tk-live-zone-loading">${!result ? '불러오는 중…' : tkZoneFailMsg()}</div>`;
       }
       const rows = tkGroupSeatRows(result.seats, zone);
       let body = '';
@@ -14308,7 +14315,7 @@
         if (r.aisleAfter) body += `<div class="tk-live-aisle">통로</div>`;
       });
       return `${head}
-        <div class="tk-live-modal-sub">잔여 ${result.remain.toLocaleString()} / ${zone.total.toLocaleString()}석 · ▲ 무대(CAGE) 방향 — 1열이 가장 가까운 좌석입니다</div>
+        <div class="tk-live-modal-sub">잔여 ${result.remain.toLocaleString()} / ${zone.total.toLocaleString()}석${result.stale ? ` · ${fmtSnapTime(result.staleAt)} 기준 스냅샷` : ''} · ▲ 무대(CAGE) 방향 — 1열이 가장 가까운 좌석입니다</div>
         <div class="tk-live-modal-rows">${body}</div>`;
     }
     function tkLiveZoneOpenDetail(idx) {
@@ -14414,7 +14421,7 @@
       const body = sorted.map(d => {
         const color = TK_LIVE_GRADE_COLOR[d.zone.gradeCode];
         if (!d.loaded) return `<div class="tk-row1-zone"><b>${esc(d.zone.name)}</b><span style="font-size:11.5px;color:var(--dim)">불러오는 중…</span></div>`;
-        if (!d.ok) return `<div class="tk-row1-zone"><b>${esc(d.zone.name)}</b><span style="font-size:11.5px;color:var(--dim)">불러오기 실패</span></div>`;
+        if (!d.ok) return `<div class="tk-row1-zone"><b>${esc(d.zone.name)}</b><span style="font-size:11.5px;color:var(--dim)">${window.__tkZonesEventEnded ? '종료' : '불러오기 실패'}</span></div>`;
         const seatsHtml = d.seats.map(s => `<i style="background:${s.sold ? '#dadde2' : color}" title="${esc(d.zone.name)} ${d.row}열 ${s.num}번 · ${s.sold ? '매진' : '잔여'}"></i>`).join('');
         const remainHtml = d.remain > 0
           ? `<span class="tk-row1-remain">잔여 ${d.remain}석</span>`
@@ -14487,6 +14494,23 @@
     // 새로고침 버튼은 없고 페이지 진입 시 1회만 자동으로 불러온다 — 다시 불러오려면 브라우저
     // 새로고침(PC는 F5, 모바일은 화면 당겨서 새로고침)을 쓰면 된다.
     let tkLiveZonesLoading = false;
+    // 실시간 조회가 실패했을 때 대신 보여줄 "마지막으로 성공했던 상태" 백업본.
+    // scripts/ticket-zone-snapshot.js 봇이 주기적으로 29CM을 직접 조회해 site_data
+    // 키 'tk_zone_snapshot'에 저장해두면, 행사가 끝나 29CM 실시간 조회가 막힌 뒤에도
+    // 그 마지막 상태를 계속 보여줄 수 있다(아무 백업도 없으면 null인 채로 기존처럼 동작).
+    let TK_LIVE_SNAPSHOT = null;
+    async function tkLoadLiveZoneSnapshot() {
+      try {
+        const { data } = await sb.from('site_data').select('value').eq('key', 'tk_zone_snapshot').single();
+        if (data && data.value && data.value.zones) TK_LIVE_SNAPSHOT = data.value;
+      } catch (e) { /* 백업이 없거나 아직 봇을 안 돌렸으면 조용히 무시 — 기존처럼 동작 */ }
+    }
+    // 백업 스냅샷도 없이 실시간 조회까지 완전히 실패했을 때 보여줄 문구 — 행사 추적이
+    // 이미 종료된 상태(window.__tkZonesEventEnded)면 "종료" 안내로, 아직 진행 중인데
+    // 일시적으로 실패한 거면 재시도를 권하는 기존 문구로 나눠 보여준다.
+    function tkZoneFailMsg() {
+      return window.__tkZonesEventEnded ? '행사 종료로 좌석 상세 정보를 더 이상 제공하지 않습니다' : '불러오기 실패 — 잠시 후 다시 시도해주세요';
+    }
     async function tkLoadLiveSeatMap() {
       if (tkLiveZonesLoading) return;
       const svg = document.getElementById('tk-live-map-svg');
@@ -14988,6 +15012,9 @@
         periodEnd
           ? (Date.now() >= periodEnd.getTime() + 86400000)
           : (Date.now() - new Date(rows[0].captured_at).getTime() > TK_STALE_MS));
+      // 구역별 실시간 좌석 지도(아래)가 실패 문구를 고를 때 참고하는 전역 플래그 —
+      // 행사 추적이 이미 끝났으면 "종료" 안내를, 아니면 "잠시 후 재시도" 안내를 보여준다.
+      window.__tkZonesEventEnded = trackingEnded;
 
       // 지난 티켓 목록 — 현재 화면(메인)에서만 보여준다. 추적이 종료된 상태면
       // 지금까지 보던 티켓도 이 목록에 포함시킨다.
@@ -15490,7 +15517,7 @@
       tkFitTotalLine();
       tkFitForecastLines();
       tkFitPies();
-      if (liveZonesEnabled) tkLoadLiveSeatMap();
+      if (liveZonesEnabled) { tkLoadLiveZoneSnapshot().then(() => { if (!navStale(__g)) tkLoadLiveSeatMap(); }); }
     }
 
     /* ── 선수 정보 보관함 저장 ── 랭킹 갱신은 공식 랭킹 페이지 기준으로 목록을 통째로
