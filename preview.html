@@ -15917,7 +15917,7 @@
       const officialHTML = !official.length ? '' : `
       <div class="sec-title" style="font-size:12.5px;margin-top:${(rows.length || official.length >= 2) ? 16 : 0}px;display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap">
         <span>공식 전적${recTxt ? ` <span style="color:var(--dim);font-size:11px;font-weight:700">${recTxt}</span>` : ''}</span>
-        ${sdUrl ? `<a href="${esc(sdUrl)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--text);font-weight:800;background:var(--bg2);border-radius:8px;padding:2px 8px;text-decoration:none">셔독에서 보기</a>` : ''}
+        ${sdUrl ? `<a href="${esc(sdUrl)}" target="_blank" rel="noopener" style="font-size:11px;color:#fff;font-weight:800;background:var(--ink);border-radius:8px;padding:2px 8px;text-decoration:none">셔독에서 보기</a>` : ''}
       </div>
       ${official.map(m => {
         const meFirst = m.a[0] === mySeq;
