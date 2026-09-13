@@ -11504,8 +11504,7 @@
     body[data-route="videos"] #app > .yt-pred-hero { margin-top: 14px !important; padding-top: 0 !important; }
     body[data-route="videos"] #app > .yt-pred-hero { margin-bottom: 14px !important; }
     body[data-route="videos"] .yt-pred-hero > .yt-col1.v2-panel, body[data-route="videos"] .yt-pred-hero > .yt-pred-merged.v2-panel, body[data-route="videos"] .yt-pred-hero > .yt-gap-stats.v2-panel { height: auto; }
-    body[data-route="ranking"] .sec-title .v2-rules-btn { font-size: 13px !important; height: 34px; padding: 0 14px; margin-left: auto; background: var(--teal) !important; color: #fff !important; border: none !important; border-radius: 8px; font-weight: 700; }
-    @media (hover: hover) { body[data-route="ranking"] .sec-title .v2-rules-btn:hover { background: #174a5b !important; color: #fff !important; } }
+    body[data-route="ranking"] .sec-title .v2-rules-btn { font-size: 13px !important; height: 34px; padding: 0 14px; margin-left: auto; border-radius: 8px; font-weight: 700; }
     .v2-rules-pop .rule { padding: 7px 0; font-size: 14px; border-bottom: 1px solid var(--hair); }
     .v2-rules-pop .note { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
     /* 선수 목록: 이름 한 줄 고정, 공석 행도 같은 타일 모양(클릭 X) */
@@ -15918,7 +15917,7 @@
       const officialHTML = !official.length ? '' : `
       <div class="sec-title" style="font-size:12.5px;margin-top:${(rows.length || official.length >= 2) ? 16 : 0}px;display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap">
         <span>공식 전적${recTxt ? ` <span style="color:var(--dim);font-size:11px;font-weight:700">${recTxt}</span>` : ''}</span>
-        ${sdUrl ? `<a href="${esc(sdUrl)}" target="_blank" rel="noopener" style="font-size:11px;color:#fff;font-weight:800;background:var(--teal);border-radius:8px;padding:2px 8px;text-decoration:none">셔독에서 보기</a>` : ''}
+        ${sdUrl ? `<a href="${esc(sdUrl)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--text);font-weight:800;background:var(--bg2);border-radius:8px;padding:2px 8px;text-decoration:none">셔독에서 보기</a>` : ''}
       </div>
       ${official.map(m => {
         const meFirst = m.a[0] === mySeq;
