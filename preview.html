@@ -10272,6 +10272,13 @@
       color: var(--muted)
     }
 
+    /* "업로드 현황" 헤더도 최근 업로드 추이·최근 영상 조회수와 동일하게 "쇼츠 제외" 표시 —
+       실제로 마지막 업로드·경과 시간·평소 주기 계산 모두 쇼츠를 제외한 값이라 표시만 맞춘다. */
+    .yt-pred-hero-sub {
+      font-size: 10.5px;
+      color: var(--muted)
+    }
+
     /* 최근 영상 조회수 차트 패널 — "앞으로 7일" 아래. 최근 업로드 추이(.yt-gap-stats)와 같은
        카드 모양·제목 스타일이지만, 추이 차트의 팝업 로직(.yt-gap-stats 기준으로 열고 닫음)과
        섞이지 않도록 클래스는 따로 둔다. */
@@ -15917,7 +15924,7 @@
       const officialHTML = !official.length ? '' : `
       <div class="sec-title" style="font-size:12.5px;margin-top:${(rows.length || official.length >= 2) ? 16 : 0}px;display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap">
         <span>공식 전적${recTxt ? ` <span style="color:var(--dim);font-size:11px;font-weight:700">${recTxt}</span>` : ''}</span>
-        ${sdUrl ? `<a href="${esc(sdUrl)}" target="_blank" rel="noopener" style="font-size:11px;color:#fff;font-weight:800;background:var(--ink);border-radius:8px;padding:2px 8px;text-decoration:none">셔독에서 보기</a>` : ''}
+        ${sdUrl ? `<a href="${esc(sdUrl)}" target="_blank" rel="noopener" class="btn primary" style="height:auto;font-size:11px;font-weight:800;border-radius:8px;padding:2px 8px;text-decoration:none">셔독에서 보기</a>` : ''}
       </div>
       ${official.map(m => {
         const meFirst = m.a[0] === mySeq;
@@ -20666,6 +20673,7 @@
       <div class="yt-pred-hero">
         <div class="yt-pred-hero-label">
           <span>다음 업로드 예측</span>
+          <span class="yt-pred-hero-sub">쇼츠 제외</span>
           <span class="yt-pred-badge-light">참고용</span>
         </div>
         ${eventLineHTML}
