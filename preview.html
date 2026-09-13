@@ -14326,6 +14326,10 @@
         <div class="tk-live-modal-rows">${body}</div>`;
     }
     function tkLiveZoneOpenDetail(idx) {
+      // 모바일(터치)에서는 mouseleave가 안 일어나 호버 말풍선(.tk-live-tip)이 계속 남아있는
+      // 채로 상세 팝업이 열려버렸다 — 팝업을 열 때 항상 먼저 말풍선을 닫아 PC에서 마우스를
+      // 치웠을 때와 같은 상태로 맞춘다.
+      tkLiveZoneLeave();
       let modal = document.getElementById('tk-live-modal');
       if (!modal) {
         modal = document.createElement('div');
