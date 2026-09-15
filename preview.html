@@ -9423,7 +9423,20 @@
       background: var(--text);
       color: #fff;
       font-size: 9.5px;
-      font-weight: 800
+      font-weight: 800;
+      /* 2026-09-15: 배지에 "N개" 뒤로 숏츠/동영상 이모지(⚡️🎬)가 붙으면서 글자 수가
+         늘 수 있어, 아주 좁은 칸(구형 아이폰 SE 등)에서 줄바꿈되어 16px 높이를 넘지
+         않도록 안전망을 둔다. */
+      white-space: nowrap;
+      overflow: hidden
+    }
+
+    /* 숏츠⚡️+동영상🎬 이모지가 둘 다 붙는 날은 "N개 ⚡️🎬"가 좁은 칸에서 살짝 넘칠 수
+       있어, 폰트/여백을 살짝만 줄여 잘리지 않게 맞춘다(2026-09-15). */
+    .yt-day-badge--dual {
+      font-size: 8.5px;
+      padding: 0 2px;
+      letter-spacing: -0.2px
     }
 
     @media (max-width: 480px) {
@@ -9982,12 +9995,15 @@
       top: 0
     }
 
+    /* "9.10" 시작 라벨과 같은 크기/글꼴/색(.yt-linebar-labels에서 상속: 9px, 700,
+       var(--dim))으로 파란 예측 범위 띠 중앙 아래에 "예측 범위" 캡션을 붙인다
+       (2026-09-15) — 색만 진하게 강조하던 이전 버전과 달리 시작 라벨과 동일하게
+       맞춰 "같은 톤의 보조 설명"으로 보이게 한다. */
     .yt-linebar-label-range {
       position: absolute;
       top: 0;
       transform: translateX(-50%);
-      white-space: nowrap;
-      color: var(--key-deep)
+      white-space: nowrap
     }
 
     @media (max-width: 380px) {
@@ -20240,6 +20256,10 @@
       // "마지막 업로드 후 평소 주기 대비 어디쯤인지"만 보여주는 보조 역할이므로 날짜 라벨은
       // 마지막 업로드일(왼쪽) 하나만 남긴다. 평소 주기 수치는 우측 상태 버튼의 근거 문장에
       // 그대로 나온다.
+      // "파란 막대가 예측 범위인 건 알겠는데, 그렇다고 표시가 안 돼 있다. 9.10 라벨과
+      // 같은 크기/글꼴/색으로 막대 아래에 '예측 범위'라고 적어달라"는 지적 반영(2026-09-15)
+      // — 파란 띠(bandLeft~bandRight) 중앙 아래에 캡션을 centered로 붙인다.
+      const bandCenterPct = (bandLeft + bandRight) / 2;
       return `
         <div class="yt-linebar" title="${esc(reasonText || '')}">
           <div class="yt-linebar-track">
@@ -20248,6 +20268,7 @@
           </div>
           <div class="yt-linebar-labels">
             <span class="yt-linebar-label-start">${esc(startLabel)}</span>
+            <span class="yt-linebar-label-range" style="left:${bandCenterPct.toFixed(1)}%">예측 범위</span>
           </div>
         </div>`;
     }
@@ -21240,7 +21261,18 @@
         // 동그라미로 통일하자"는 지적 반영(2차) — 이모지·카테고리 구분을 아예 없애고
         // 그날 올라온 영상 개수만 배지 하나로 보여준다. "동그라미 안 숫자가 어색하다"는
         // 지적(3차) 반영 — 원형 대신 셀 폭에 맞춘 네모 바 + "N개" 표기로 바꿨다.
-        const countBadge = items.length ? `<span class="yt-day-badge">${items.length}개</span>` : '';
+        // 2026-09-15: "N개만으로는 숏츠/동영상 구성이 안 보여 불편하다, 숏츠⚡️/동영상🎬
+        // 이모지로 날짜별 표시를 추가해달라"는 지적 반영 — 위에서 뺀 건 경기/컨텐츠 같은
+        // 세부 카테고리 구분(그건 여러 종류라 다시 넣으면 지적(2차)이 되풀이됨)이고, 이건
+        // ytShortsEmoji()가 이미 쓰는 숏츠 여부 단 하나의 축이라 성격이 다르다. 영상마다
+        // 하나씩 붙이면(예: 숏츠 3개면 ⚡️⚡️⚡️) 바쁜 날 칸이 넘칠 수 있어, "그날 숏츠가
+        // 있었는지/동영상이 있었는지" 종류별로 한 번씩만(최대 ⚡️🎬 두 글자) 덧붙인다.
+        const dayHasShort = items.some(v => v.is_short);
+        const dayHasVideo = items.some(v => !v.is_short);
+        const dayTypeEmojis = (dayHasShort ? '⚡️' : '') + (dayHasVideo ? '🎬' : '');
+        // 숏츠+동영상이 같이 있어 이모지 2개가 붙는 날은 글자 수가 늘어 좁은 모바일
+        // 칸(아이폰 SE 등)에서 살짝 잘릴 수 있어, 그 경우에만 폭에 맞게 살짝 작게 표시.
+        const countBadge = items.length ? `<span class="yt-day-badge${dayHasShort && dayHasVideo ? ' yt-day-badge--dual' : ''}">${items.length}개${dayTypeEmojis ? ' ' + dayTypeEmojis : ''}</span>` : '';
         // "경기 날짜를 캘린더에 붉은 동그라미로 표시하고, 클릭하면 경기 페이지로
         // 이동하게 해달라"는 지적 반영 — 승부예측 페이지가 있는 경기(tournament_id
         // 있음)만 클릭하면 이동하고, 페이지가 없는 과거 이력은 툴팁으로 이름만 보여준다.
