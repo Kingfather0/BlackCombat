@@ -10867,12 +10867,15 @@
     .pcard-h { background: transparent; }
     .stat-chip { border-radius: 5px; background: var(--bg2) !important; color: var(--text) !important; font-weight: 600; }
     .stat-chip[style*="#fdecec"] { color: var(--red) !important; background: transparent !important; box-shadow: none; padding-left: 0; padding-right: 0; }
-    .pf-scope label { background: transparent !important; border: none !important; color: var(--red); font-weight: 700; }
+    .pf-scope label { background: transparent !important; border: none !important; color: var(--text); font-weight: 700; }
     .pf-scope input[type="checkbox"] { accent-color: var(--ink); }
     .pf-scope .card { border: none !important; padding: 0 0 12px !important; background: transparent !important; box-shadow: none !important; flex-wrap: wrap; row-gap: 10px; }
     .pf-in { border: 1px solid var(--hair2) !important; border-radius: 8px !important; height: 42px; box-sizing: border-box; }
     .pf-scope .pf-count { margin-left: auto; }
-    .pf-scope label:has(.pf-missing-only) { background: transparent !important; border: 1px solid var(--hair2) !important; color: var(--red) !important; border-radius: 8px !important; height: 34px; box-sizing: border-box; }
+    /* "미완료자 라벨이 빨간색이라 시선이 압도된다"는 지적 반영(2026-09-15) — 이 셀렉터가
+       :has()+!important로 위 .pf-scope label 규칙보다 더 강하게 먹혀서, 마크업 쪽
+       inline color만 바꿔선 반영되지 않았다(진짜 원인은 여기). 중립 톤으로 변경. */
+    .pf-scope label:has(.pf-missing-only) { background: transparent !important; border: 1px solid var(--hair2) !important; color: var(--text) !important; border-radius: 8px !important; height: 34px; box-sizing: border-box; }
     @media (max-width: 640px) { .pf-scope .pf-in { flex: 1 1 100%; min-width: 0; } }
     .mv-h.a, .mv-h.b { background: var(--bg2); color: var(--text); padding: 10px 12px; border-radius: 8px 8px 0 0; border-bottom: none; margin: -11px -11px 10px; }
     .mv-h span { font-weight: 500; color: var(--dim); margin-left: 4px; }
