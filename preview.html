@@ -15086,22 +15086,25 @@
       // 나란히 보여준다 — 문구는 자동 기록에 실려온 buyLabel/buyLabel2를 쓰고, 혹시 없으면
       // (구버전 기록 등) 안전하게 기본 문구로 대체한다.
       const buyBtnHTML = meta.buyUrl
-        ? `<a class="btn primary small" style="flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">${esc(meta.buyLabel || '예매하러 가기')}</a>`
+        ? `<a class="btn primary small" style="flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">${esc(meta.buyLabel || '예매')}</a>`
         : '';
       const buyBtn2HTML = meta.buyUrl2
-        ? `<a class="btn primary small" style="flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl2)}" target="_blank" rel="noopener">${esc(meta.buyLabel2 || '두 번째 예매하기')}</a>`
+        ? `<a class="btn primary small" style="flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl2)}" target="_blank" rel="noopener">${esc(meta.buyLabel2 || '예매 2')}</a>`
         : '';
       // "현재 티켓으로 돌아가기"는 "예매하러 가기"(파란색 강조 버튼)와 색을 다르게 둬서
       // 외부 예매 사이트로 나가는 버튼과 사이트 내부 이동 버튼을 한눈에 구분되게 한다.
-      const backBtnHTML = isPreview
-        ? `<a class="btn small" style="background:#0d9488;border-color:#0f766e;color:#fff;flex-shrink:0;white-space:nowrap" href="#/tickets">현재 티켓으로 돌아가기</a>`
-        : '';
       // 2026-09-15: 버튼이 2~3개(지정석/비지정 나뉜 행사는 "예매 2개 + 돌아가기")로 늘어나면
       // 카드 폭이 좁은 화면(모바일은 물론, PC도 이 카드 자체가 화면 전체 폭이 아니라 KPI 3칸 중
-      // 1칸이라 생각보다 좁음)에서 줄바꿈되어 두 줄로 깨졌다. flex-wrap 대신 가로 스크롤로 바꿔서
-      // PC·모바일 모두 항상 한 줄을 유지하고, 다 안 보이면 옆으로 스와이프/스크롤해서 보게 한다.
+      // 1칸이라 생각보다 좁음)에서 줄바꿈되어 두 줄로 깨졌다 — 줄바꿈 대신 스크롤로 바꾸는 것도
+      // 시도했지만 "한눈에 다 보이면 좋겠다"는 피드백으로 문구 자체를 짧게 줄여
+      // ("예매하기"→"예매", "현재 티켓으로 돌아가기"→"현재 티켓 보기") 스크롤 없이 한 줄에
+      // 다 들어가게 했다. flex-wrap:nowrap은 혹시 문구가 더 긴 다른 행사가 와도 최소한
+      // 두 줄로 깨지진 않고(넘치는 만큼만 살짝 가려짐) 안전망으로 남겨둔다.
+      const backBtnHTML = isPreview
+        ? `<a class="btn small" style="background:#0d9488;border-color:#0f766e;color:#fff;flex-shrink:0;white-space:nowrap" href="#/tickets">현재 티켓 보기</a>`
+        : '';
       const actionBtnsHTML = (buyBtnHTML || buyBtn2HTML || backBtnHTML)
-        ? `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px">${buyBtnHTML}${buyBtn2HTML}${backBtnHTML}</div>`
+        ? `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:nowrap">${buyBtnHTML}${buyBtn2HTML}${backBtnHTML}</div>`
         : '';
       const dpParts = [];
       if (meta.eventDateText) dpParts.push('📅 ' + esc(meta.eventDateText));
