@@ -17,6 +17,9 @@ on:
       item_id_29cm:
         description: '(선택) 29CM 테스트용 티켓 상품번호 — https://ticket.29cm.co.kr/catalog/{이 숫자}'
         required: false
+      ticket_url_alt:
+        description: '(선택) 같은 행사의 두 번째 상품 페이지(예: 비지정석) — 채우면 첫 번째 상품과 합쳐서 기록'
+        required: false
       event_key_29cm:
         description: '(선택) 29CM 테스트용 event_key — 비워두면 실제 행사 데이터에 기록됨. 다른 티켓으로 테스트할 땐 꼭 채워서(예: test_29cm_preview) 실제 데이터와 섞이지 않게 하세요.'
         required: false
@@ -69,6 +72,11 @@ jobs:
           TICKET_URL: ${{ github.event.inputs.ticket_url || vars.TICKET_URL }}
           TARGET_DATE: ${{ github.event.inputs.target_date || vars.TICKET_TARGET_DATE }}
           EVENT_KEY: ${{ github.event.inputs.event_key || vars.TICKET_EVENT_KEY }}
+          # 지정석/비지정처럼 같은 행사를 상품 페이지 2개로 나눠 파는 경우에만 채운다.
+          # (예: 2026-09 "복마전" — 지정석/비지정 상품이 URL이 서로 다름) 비워두면 기존과 동일.
+          TICKET_URL_ALT: ${{ github.event.inputs.ticket_url_alt || vars.TICKET_URL_ALT }}
+          TICKET_URL_LABEL: ${{ vars.TICKET_URL_LABEL }}
+          TICKET_URL_ALT_LABEL: ${{ vars.TICKET_URL_ALT_LABEL }}
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
           TICKET_BOT_SECRET: ${{ secrets.TICKET_BOT_SECRET }}
