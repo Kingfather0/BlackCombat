@@ -11122,6 +11122,23 @@
     .tk-hourly .tk-trend-labels { margin-top: 6px; }
     .tk-dash-trends .tk-card > .tk-trend:first-child .tk-day-chart, .tk-hourly .tk-day-chart { height: 72px; }
     @media (min-width: 1024px) { .tk-dash-trends .tk-card > .tk-trend:first-child { grid-column: 1; } .tk-dash-trends .tk-card > .tk-hourly { grid-column: 2; } }
+    /* 2026-09-15(3): 위 .tk-hourly 여백 제거(margin/padding/border 0)는 구역별 좌석 지도가
+       있는 행사(.tk-dash-trends, 일별·시간별이 좌우 2열로 나란히 배치)를 위한 것이었는데,
+       지도가 없는 행사(.tk-dash-col, 복마전 등 — 일별 아래에 시간별이 세로로 쌓임)에서도
+       똑같이 적용돼 두 차트가 거의 붙어 보였다. 세로로 쌓이는 경우(.tk-dash-col)만 시간별→
+       10분 간격 전환(tk-min10, 아래 참고)과 같은 간격/구분선으로 복원한다. */
+    body[data-route="tickets"] .tk-dash-col .card.tk-card > .tk-hourly {
+      border-top: 1px solid var(--hair) !important;
+      margin-top: 18px !important;
+      padding-top: 14px !important;
+    }
+    /* 2026-09-15(3): "일별" 차트 아래 범례 설명(연한 막대/빨간 막대 안내 문구)은 필요 없다는
+       피드백 — 위 .tk-dash-trends 스코프 hide 규칙이 지도 없는 행사(.tk-dash-col)에서는 먹지
+       않았던 것이 원인이라, 카드 구조(다음 형제가 .tk-hourly인 첫 번째 .tk-trend) 자체로
+       다시 잡아 어떤 레이아웃에서도 항상 숨긴다. */
+    body[data-route="tickets"] .card.tk-card > .tk-trend:has(+ .tk-hourly) > .tk-rev-note {
+      display: none !important;
+    }
     .tk-dash-hist { margin-top: 22px; }
     .tk-dash-hist > .sec-title { margin: 0 !important; font-size: 15px; font-weight: 700; padding-bottom: 10px; min-height: 42px; align-items: center; }
     .tk-hist-tbl { width: 100%; border-collapse: collapse; }
