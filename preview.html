@@ -11034,6 +11034,12 @@
     .tk-dash-main { align-items: stretch; }
     .tk-dash-main .tk-dash-col { display: flex; flex-direction: column; }
     .tk-dash-main .tk-dash-col > .card:last-child { flex: 1; }
+    /* 2026-09-15: 구역별 좌석 지도가 없는 행사(예: 복마전)는 "판매·잔여 좌석"(등급 여러 개라
+       내용이 긺)과 "판매 추이"(막대 몇 개라 내용이 짧음)가 짝을 이루는데, 위 stretch로 두 카드
+       바깥 테두리 높이는 맞춰지지만 짧은 쪽은 내용이 위쪽에만 붙고 아래는 텅 빈 채로 남아
+       "크기가 안 맞는다"는 인상을 준다. 내용을 세로 중앙에 배치해 빈 공간을 자연스럽게 분산시킨다
+       (내용이 이미 카드 높이를 다 채우는 쪽에는 영향 없음). */
+    .tk-dash-main .tk-dash-col > .card:last-child { display: flex; flex-direction: column; justify-content: center; }
     .tk-dash-main, .tk-dash-bottom, .tk-dash-trends { display: grid; gap: 0 32px; margin-top: 6px; align-items: start; }
     .tk-dash-col { min-width: 0; padding-top: 24px; }
     .tk-dash-col > .sec-title { margin: 0 !important; font-size: 15px; font-weight: 700; padding-bottom: 10px; min-height: 42px; align-items: center; }
@@ -15080,18 +15086,22 @@
       // 나란히 보여준다 — 문구는 자동 기록에 실려온 buyLabel/buyLabel2를 쓰고, 혹시 없으면
       // (구버전 기록 등) 안전하게 기본 문구로 대체한다.
       const buyBtnHTML = meta.buyUrl
-        ? `<a class="btn primary small" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">${esc(meta.buyLabel || '예매하러 가기')}</a>`
+        ? `<a class="btn primary small" style="flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">${esc(meta.buyLabel || '예매하러 가기')}</a>`
         : '';
       const buyBtn2HTML = meta.buyUrl2
-        ? `<a class="btn primary small" href="${esc(meta.buyUrl2)}" target="_blank" rel="noopener">${esc(meta.buyLabel2 || '두 번째 예매하기')}</a>`
+        ? `<a class="btn primary small" style="flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl2)}" target="_blank" rel="noopener">${esc(meta.buyLabel2 || '두 번째 예매하기')}</a>`
         : '';
       // "현재 티켓으로 돌아가기"는 "예매하러 가기"(파란색 강조 버튼)와 색을 다르게 둬서
       // 외부 예매 사이트로 나가는 버튼과 사이트 내부 이동 버튼을 한눈에 구분되게 한다.
       const backBtnHTML = isPreview
-        ? `<a class="btn small" style="background:#0d9488;border-color:#0f766e;color:#fff" href="#/tickets">현재 티켓으로 돌아가기</a>`
+        ? `<a class="btn small" style="background:#0d9488;border-color:#0f766e;color:#fff;flex-shrink:0;white-space:nowrap" href="#/tickets">현재 티켓으로 돌아가기</a>`
         : '';
+      // 2026-09-15: 버튼이 2~3개(지정석/비지정 나뉜 행사는 "예매 2개 + 돌아가기")로 늘어나면
+      // 카드 폭이 좁은 화면(모바일은 물론, PC도 이 카드 자체가 화면 전체 폭이 아니라 KPI 3칸 중
+      // 1칸이라 생각보다 좁음)에서 줄바꿈되어 두 줄로 깨졌다. flex-wrap 대신 가로 스크롤로 바꿔서
+      // PC·모바일 모두 항상 한 줄을 유지하고, 다 안 보이면 옆으로 스와이프/스크롤해서 보게 한다.
       const actionBtnsHTML = (buyBtnHTML || buyBtn2HTML || backBtnHTML)
-        ? `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">${buyBtnHTML}${buyBtn2HTML}${backBtnHTML}</div>`
+        ? `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px">${buyBtnHTML}${buyBtn2HTML}${backBtnHTML}</div>`
         : '';
       const dpParts = [];
       if (meta.eventDateText) dpParts.push('📅 ' + esc(meta.eventDateText));
