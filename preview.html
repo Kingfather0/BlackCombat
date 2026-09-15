@@ -11040,6 +11040,26 @@
        "크기가 안 맞는다"는 인상을 준다. 내용을 세로 중앙에 배치해 빈 공간을 자연스럽게 분산시킨다
        (내용이 이미 카드 높이를 다 채우는 쪽에는 영향 없음). */
     .tk-dash-main .tk-dash-col > .card:last-child { display: flex; flex-direction: column; justify-content: center; }
+    /* 2026-09-15(2): 위 중앙 정렬로 빈 공간이 위아래로 고르게는 나뉘지만, 모바일은 카드가
+       내용 높이만큼만 커서 문제없는데 PC는 옆 카드(판매·잔여 좌석, 등급이 많아 김)에 맞춰
+       카드가 크게 늘어나다 보니 일별/시간별 막대 차트(고정 높이)가 차지하는 비중이 작아
+       "공백이 크다"는 인상은 여전했다. PC에서만 두 차트 블록이 카드에 남는 높이를 나눠 갖고
+       (flex:1), 그 안의 막대 그래프 영역도 같이 커지도록 해서 빈 공간 자체를 줄인다.
+       (막대 높이는 %기반이라 컨테이너가 커지면 막대도 그만큼 커져서 자동으로 채워진다.) */
+    @media (min-width: 1024px) {
+      body[data-route="tickets"] .card.tk-card > .tk-trend:has(+ .tk-hourly),
+      body[data-route="tickets"] .card.tk-card > .tk-hourly {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+      body[data-route="tickets"] .card.tk-card > .tk-trend:has(+ .tk-hourly) .tk-day-chart,
+      body[data-route="tickets"] .card.tk-card > .tk-hourly .tk-day-chart {
+        flex: 1;
+        height: auto;
+        min-height: 56px;
+      }
+    }
     .tk-dash-main, .tk-dash-bottom, .tk-dash-trends { display: grid; gap: 0 32px; margin-top: 6px; align-items: start; }
     .tk-dash-col { min-width: 0; padding-top: 24px; }
     .tk-dash-col > .sec-title { margin: 0 !important; font-size: 15px; font-weight: 700; padding-bottom: 10px; min-height: 42px; align-items: center; }
@@ -15085,26 +15105,32 @@
       // 2026-09-15: 지정석/비지정처럼 한 행사에 예매 링크가 2개면(meta.buyUrl2) 버튼도 2개
       // 나란히 보여준다 — 문구는 자동 기록에 실려온 buyLabel/buyLabel2를 쓰고, 혹시 없으면
       // (구버전 기록 등) 안전하게 기본 문구로 대체한다.
+      // 2026-09-15(2): 문구를 짧게 줄인 건 지정석/비지정처럼 버튼이 2~3개로 늘어나는 행사
+      // (예: 복마전) 한정 문제였다 — 블랙컴뱃/로드FC처럼 예매 링크가 1개뿐인 기존 티켓까지
+      // "예매"로 줄어드니 맥락 없이 뜬금없어 보인다는 피드백을 받아, meta.buyUrl2(두 번째
+      // 예매 링크) 유무로 "지정석/비지정형" 행사인지 구분해 그 경우에만 짧은 문구 +
+      // flex-wrap:nowrap(줄바꿈 방지)을 쓰고, 기존처럼 예매 링크가 1개뿐인 행사는 원래
+      // 문구("예매하러 가기"/"현재 티켓으로 돌아가기")와 원래 줄바꿈 동작을 그대로 유지한다.
+      const isDualProductEvent = !!meta.buyUrl2;
       const buyBtnHTML = meta.buyUrl
-        ? `<a class="btn primary small" style="flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">${esc(meta.buyLabel || '예매')}</a>`
+        ? `<a class="btn primary small" style="flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">${esc(meta.buyLabel || (isDualProductEvent ? '예매' : '예매하러 가기'))}</a>`
         : '';
       const buyBtn2HTML = meta.buyUrl2
         ? `<a class="btn primary small" style="flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl2)}" target="_blank" rel="noopener">${esc(meta.buyLabel2 || '예매 2')}</a>`
         : '';
       // "현재 티켓으로 돌아가기"는 "예매하러 가기"(파란색 강조 버튼)와 색을 다르게 둬서
       // 외부 예매 사이트로 나가는 버튼과 사이트 내부 이동 버튼을 한눈에 구분되게 한다.
-      // 2026-09-15: 버튼이 2~3개(지정석/비지정 나뉜 행사는 "예매 2개 + 돌아가기")로 늘어나면
+      // 2026-09-15: 버튼이 3개(지정석/비지정 나뉜 행사는 "예매 2개 + 돌아가기")로 늘어나면
       // 카드 폭이 좁은 화면(모바일은 물론, PC도 이 카드 자체가 화면 전체 폭이 아니라 KPI 3칸 중
       // 1칸이라 생각보다 좁음)에서 줄바꿈되어 두 줄로 깨졌다 — 줄바꿈 대신 스크롤로 바꾸는 것도
-      // 시도했지만 "한눈에 다 보이면 좋겠다"는 피드백으로 문구 자체를 짧게 줄여
-      // ("예매하기"→"예매", "현재 티켓으로 돌아가기"→"현재 티켓 보기") 스크롤 없이 한 줄에
-      // 다 들어가게 했다. flex-wrap:nowrap은 혹시 문구가 더 긴 다른 행사가 와도 최소한
-      // 두 줄로 깨지진 않고(넘치는 만큼만 살짝 가려짐) 안전망으로 남겨둔다.
+      // 시도했지만 "한눈에 다 보이면 좋겠다"는 피드백으로 그 경우(isDualProductEvent)만 문구를
+      // 줄여("현재 티켓으로 돌아가기"→"현재 티켓 보기") 스크롤 없이 한 줄에 다 들어가게 했다.
+      // 예매 링크가 1개뿐인 기존 행사(버튼 최대 2개)는 원래 문구·원래 줄바꿈 동작 그대로다.
       const backBtnHTML = isPreview
-        ? `<a class="btn small" style="background:#0d9488;border-color:#0f766e;color:#fff;flex-shrink:0;white-space:nowrap" href="#/tickets">현재 티켓 보기</a>`
+        ? `<a class="btn small" style="background:#0d9488;border-color:#0f766e;color:#fff;flex-shrink:0;white-space:nowrap" href="#/tickets">${isDualProductEvent ? '현재 티켓 보기' : '현재 티켓으로 돌아가기'}</a>`
         : '';
       const actionBtnsHTML = (buyBtnHTML || buyBtn2HTML || backBtnHTML)
-        ? `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:nowrap">${buyBtnHTML}${buyBtn2HTML}${backBtnHTML}</div>`
+        ? `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:${isDualProductEvent ? 'nowrap' : 'wrap'}">${buyBtnHTML}${buyBtn2HTML}${backBtnHTML}</div>`
         : '';
       const dpParts = [];
       if (meta.eventDateText) dpParts.push('📅 ' + esc(meta.eventDateText));
