@@ -9334,14 +9334,21 @@
     /* 경기 날짜 표시(붉은 동그라미) — "홈페이지에서 확인한 경기 날짜도 캘린더에
        표시하고, 클릭하면 경기 페이지로 이동하게 해달라"는 지적 반영. 날짜 숫자
        바로 왼쪽에 작은 점으로 붙여서 별도 공간을 차지하지 않는다. */
+    /* 2026-09-15(2차): 숏츠⚡️/동영상🎬 이모지가 날짜 숫자 옆(yt-daynum-row)으로 오면서
+       기존에 그 줄을 같이 쓰던 경기 점(dot)까지 더하면 좁은 모바일 칸(~37px)에서 셋이
+       한 줄에 다 안 들어가 점이 셀 밖으로 잘려나가는 문제가 생겼다. 점은 날짜 숫자와
+       나란히 놓일 필요가 없는 보조 표시라, 칸 왼쪽 위 모서리에 독립적으로 고정해 그
+       줄의 폭 다툼에서 아예 빼냈다. */
     .yt-event-dot {
-      display: inline-block;
+      position: absolute;
+      top: 8px;
+      left: 8px;
       width: 7px;
       height: 7px;
       border-radius: 50%;
       background: var(--red);
       cursor: pointer;
-      flex-shrink: 0
+      z-index: 1
     }
 
     .yt-daynum-row {
@@ -9424,19 +9431,18 @@
       color: #fff;
       font-size: 9.5px;
       font-weight: 800;
-      /* 2026-09-15: 배지에 "N개" 뒤로 숏츠/동영상 이모지(⚡️🎬)가 붙으면서 글자 수가
-         늘 수 있어, 아주 좁은 칸(구형 아이폰 SE 등)에서 줄바꿈되어 16px 높이를 넘지
-         않도록 안전망을 둔다. */
       white-space: nowrap;
       overflow: hidden
     }
 
-    /* 숏츠⚡️+동영상🎬 이모지가 둘 다 붙는 날은 "N개 ⚡️🎬"가 좁은 칸에서 살짝 넘칠 수
-       있어, 폰트/여백을 살짝만 줄여 잘리지 않게 맞춘다(2026-09-15). */
-    .yt-day-badge--dual {
-      font-size: 8.5px;
-      padding: 0 2px;
-      letter-spacing: -0.2px
+    /* 2026-09-15(2차): 숏츠⚡️/동영상🎬 구분 이모지는 "N개" 배지가 아니라 날짜 숫자
+       줄(yt-daynum-row)에 붙는다 — "1개짜리 날도 배지 옆에 이모지가 붙어 번잡해
+       보인다, 날짜 숫자 옆에 표시해달라"는 지적 반영. 경기 표시 빨간 점(yt-event-dot)과
+       같은 줄에 나란히 놓이므로 크기를 그 톤에 맞춘다. */
+    .yt-day-type-emoji {
+      font-size: 9px;
+      line-height: 1;
+      flex-shrink: 0
     }
 
     @media (max-width: 480px) {
@@ -21270,9 +21276,13 @@
         const dayHasShort = items.some(v => v.is_short);
         const dayHasVideo = items.some(v => !v.is_short);
         const dayTypeEmojis = (dayHasShort ? '⚡️' : '') + (dayHasVideo ? '🎬' : '');
-        // 숏츠+동영상이 같이 있어 이모지 2개가 붙는 날은 글자 수가 늘어 좁은 모바일
-        // 칸(아이폰 SE 등)에서 살짝 잘릴 수 있어, 그 경우에만 폭에 맞게 살짝 작게 표시.
-        const countBadge = items.length ? `<span class="yt-day-badge${dayHasShort && dayHasVideo ? ' yt-day-badge--dual' : ''}">${items.length}개${dayTypeEmojis ? ' ' + dayTypeEmojis : ''}</span>` : '';
+        // 2026-09-15(2차): "1개짜리 날은 'N개' 배지 옆에 이모지가 붙으니 번잡해 보인다,
+        // 날짜 숫자 옆에 표시해달라"는 지적 반영 — 이모지를 배지에서 빼서 날짜 숫자
+        // 줄(yt-daynum-row, 경기 표시 빨간 점 자리)로 옮기고, 배지는 다시 "N개"만 표시.
+        const countBadge = items.length ? `<span class="yt-day-badge">${items.length}개</span>` : '';
+        const dayTypeEmojiSpan = dayTypeEmojis
+          ? `<span class="yt-day-type-emoji" title="${dayHasShort && dayHasVideo ? '숏츠+동영상' : dayHasShort ? '숏츠' : '동영상'}">${dayTypeEmojis}</span>`
+          : '';
         // "경기 날짜를 캘린더에 붉은 동그라미로 표시하고, 클릭하면 경기 페이지로
         // 이동하게 해달라"는 지적 반영 — 승부예측 페이지가 있는 경기(tournament_id
         // 있음)만 클릭하면 이동하고, 페이지가 없는 과거 이력은 툴팁으로 이름만 보여준다.
@@ -21290,8 +21300,9 @@
         // "NEW 배지가 여전히 모바일에서 날짜 숫자를 가린다"는 지적(3차) 반영 — 위치를
         // 이리저리 옮겨봐도 좁은 칸에서 계속 부딪히니, 아예 배지 자체를 없앴다.
         cells += `<div id="ytCell-${d}" class="yt-cell${items.length ? ' has' : ''}${isToday ? ' today' : ''}${dowCls}" ${items.length ? `onclick="ytOpenDayModal(${d})"` : ''}${hoverAttrs}>
+          ${eventDot}
           <div class="yt-daynum-row">
-            ${eventDot}
+            ${dayTypeEmojiSpan}
             <div class="yt-daynum">${isToday ? `<span class="yt-daynum-today">${d}</span>` : d}</div>
           </div>
           <div class="yt-day-badge-wrap">${countBadge}</div>
@@ -27230,7 +27241,7 @@
       return `
     <div class="card" style="padding:10px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <input class="pf-in" placeholder="닉네임 검색" oninput="applyPartFilter(this)" style="flex:1;min-width:120px;background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:9px 12px;color:var(--text);outline:none;font-size:15px">
-      ${matches.length ? `<label style="display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;color:#a51c1c;flex-shrink:0;cursor:pointer;white-space:nowrap;background:#fdecec;border:1px solid #f0c4c4;border-radius:8px;padding:6px 10px" title="등록된 ${matches.length}경기를 전부 예측하지 않은 참가자만 보여줍니다">
+      ${matches.length ? `<label style="display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;color:var(--text);flex-shrink:0;cursor:pointer;white-space:nowrap;background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:6px 10px" title="등록된 ${matches.length}경기를 전부 예측하지 않은 참가자만 보여줍니다">
         <input type="checkbox" class="pf-missing-only" onchange="applyPartFilter(this)" style="cursor:pointer;margin:0"> 미완료자
       </label>` : ''}
       <span class="pf-count" data-total="${parts.length}" data-missing-total="${missingTotal}" style="color:var(--dim);font-size:13px;font-weight:700;flex-shrink:0;white-space:nowrap">${parts.length}명 참여</span>
