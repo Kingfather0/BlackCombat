@@ -13296,7 +13296,7 @@
        깃허브 액션(auto/scripts/ticket-watch.js)이 주기적으로 예매 페이지를 확인해
        ticket_snapshots 테이블에 기록하면, 이 페이지가 그 기록을 읽어서 보여준다.
        TICKET_EVENT_KEY는 깃허브 저장소 Variables의 EVENT_KEY 값과 반드시 동일해야 함. */
-    const TICKET_EVENT_KEY = 'bc_2026_0726'; // ★ 실제 행사에 맞게 필요 시 수정 (깃허브 EVENT_KEY와 동일해야 함)
+    const TICKET_EVENT_KEY = 'yachaclub_bokmajeon002_2026_1011'; // ★ 실제 행사에 맞게 필요 시 수정 (깃허브 EVENT_KEY와 동일해야 함)
     // 자동 추출이 실패한 항목의 대체값. 이전에는 UI 확인용으로 뮤지컬 〈엘리자벳〉 정보가
     // 들어 있었지만, 다른 행사(로드FC 등)에 엘리자벳 정보가 잘못 표시되는 문제가 있어 전부 비웠다 —
     // 이제 자동 추출(또는 북마클릿 기록)에 값이 있는 항목만 화면에 표시된다.
@@ -13321,6 +13321,11 @@
         if (m.place == null && r.meta.place) m.place = r.meta.place;
         if (m.openText == null && r.meta.openText) m.openText = r.meta.openText;
         if (m.buyUrl == null && r.meta.buyUrl) m.buyUrl = r.meta.buyUrl;
+        // 2026-09-15: 지정석/비지정처럼 한 행사를 상품 페이지 2개로 나눠 파는 경우
+        // (scripts/ticket-watch.js의 TICKET_URL_ALT) — 두 번째 예매 링크와 두 버튼의 문구.
+        if (m.buyUrl2 == null && r.meta.buyUrl2) m.buyUrl2 = r.meta.buyUrl2;
+        if (m.buyLabel == null && r.meta.buyLabel) m.buyLabel = r.meta.buyLabel;
+        if (m.buyLabel2 == null && r.meta.buyLabel2) m.buyLabel2 = r.meta.buyLabel2;
         // 출처(어느 예매처에서 가져온 기록인지) — 예전 기록(NOL 초기)엔 이 필드가 없으므로
         // 못 찾으면 아래에서 'NOL 티켓'으로 대체한다(기존 화면과 동일하게 유지).
         if (m.platform == null && r.meta.platform) m.platform = r.meta.platform;
@@ -13331,6 +13336,9 @@
         place: m.place || TICKET_INFO.place,
         openText: m.openText || TICKET_INFO.openText,
         buyUrl: m.buyUrl || TICKET_INFO.buyUrl,
+        buyUrl2: m.buyUrl2 || null,
+        buyLabel: m.buyLabel || null,
+        buyLabel2: m.buyLabel2 || null,
         platform: m.platform || TICKET_INFO.platform
       };
     }
@@ -15068,16 +15076,22 @@
       // 지난 뒤에 그 행사의 원래 예매 페이지를 다시 찾고 싶을 때가 있을 수 있어서(예매 기간이
       // 지나 실제로는 안 열릴 수도 있지만, 페이지 자체로는 이동 가능하다). 지난 티켓 화면에서는
       // 왼쪽에 "예매하러 가기", 오른쪽에 기존 "현재 티켓으로 돌아가기"를 나란히 보여준다.
+      // 2026-09-15: 지정석/비지정처럼 한 행사에 예매 링크가 2개면(meta.buyUrl2) 버튼도 2개
+      // 나란히 보여준다 — 문구는 자동 기록에 실려온 buyLabel/buyLabel2를 쓰고, 혹시 없으면
+      // (구버전 기록 등) 안전하게 기본 문구로 대체한다.
       const buyBtnHTML = meta.buyUrl
-        ? `<a class="btn primary small" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">예매하러 가기</a>`
+        ? `<a class="btn primary small" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">${esc(meta.buyLabel || '예매하러 가기')}</a>`
+        : '';
+      const buyBtn2HTML = meta.buyUrl2
+        ? `<a class="btn primary small" href="${esc(meta.buyUrl2)}" target="_blank" rel="noopener">${esc(meta.buyLabel2 || '두 번째 예매하기')}</a>`
         : '';
       // "현재 티켓으로 돌아가기"는 "예매하러 가기"(파란색 강조 버튼)와 색을 다르게 둬서
       // 외부 예매 사이트로 나가는 버튼과 사이트 내부 이동 버튼을 한눈에 구분되게 한다.
       const backBtnHTML = isPreview
         ? `<a class="btn small" style="background:#0d9488;border-color:#0f766e;color:#fff" href="#/tickets">현재 티켓으로 돌아가기</a>`
         : '';
-      const actionBtnsHTML = (buyBtnHTML || backBtnHTML)
-        ? `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">${buyBtnHTML}${backBtnHTML}</div>`
+      const actionBtnsHTML = (buyBtnHTML || buyBtn2HTML || backBtnHTML)
+        ? `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">${buyBtnHTML}${buyBtn2HTML}${backBtnHTML}</div>`
         : '';
       const dpParts = [];
       if (meta.eventDateText) dpParts.push('📅 ' + esc(meta.eventDateText));
