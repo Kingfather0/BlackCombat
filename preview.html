@@ -10101,18 +10101,6 @@
       margin-top: 4px
     }
 
-    .yt-pred-hero-alert {
-      margin-top: 8px;
-      padding: 8px 10px;
-      background: #fff4e5;
-      border: 1px solid #f3c988;
-      border-radius: 10px;
-      font-size: 11px;
-      color: #9a5b00;
-      line-height: 1.5;
-      font-weight: 600
-    }
-
     .yt-pred-badge-light {
       background: #fff;
       color: var(--key-deep);
@@ -20343,19 +20331,9 @@
       const today = ytTodayKST();
       const milestoneDayMs = milestone ? (() => { const k = ytKstParts(milestone._t); return new Date(k.y, k.m - 1, k.d).getTime(); })() : null;
 
-      // "오늘 오후 7시경 유력"이라고 해놓고 이미 7시가 지났는데 안 올라왔으면 그대로 두는 건
-      // 거짓말이나 마찬가지라는 피드백 반영 — 오늘이 예측일이고, 오늘 아직 업로드가 없는 채로
-      // 예상 시간대(+30분 여유)를 지났으면 별도로 "시간대 경과" 경고를 근거와 함께 보여준다.
-      const nowKst = ytKstParts(svrNow());
-      const lastPubKst = lastPub ? ytKstParts(lastPub) : null;
-      const uploadedToday = !!(lastPubKst && lastPubKst.y === today.y && lastPubKst.m === today.m && lastPubKst.d === today.d);
-      const nowDecimalHour = nowKst.h + nowKst.min / 60;
-      const hourPassedGrace = peakHour != null && !uploadedToday && nowDecimalHour > (peakHour + 0.5);
-      let hourAfterPct = null, hourAfterCount = 0;
-      if (hourPassedGrace) {
-        hourAfterCount = hourEntries.filter(h => h > peakHour).reduce((s, h) => s + (Number(hh[h]) || 0), 0);
-        hourAfterPct = hourSampleTotal ? Math.round(hourAfterCount / hourSampleTotal * 100) : 0;
-      }
+      // 2026-09-15: "예상 시간대가 지났는데 업로드가 없어요 — 이후 업로드 사례는 N%(M건)"
+      // 경고 배너는 사용자가 "자리만 차지한다"며 제거를 요청해 삭제했다. 이 배너 전용으로만
+      // 쓰이던 계산(hourPassedGrace/hourAfterPct/hourAfterCount 등)도 함께 정리한다.
 
       // "월요일 빈도가 높다는 게 근거로 빈약하다 — 그럼 매주 월요일마다 뜨는거냐? 마지막
       // 업로드 후 표준편차 분석해서 +며칠~+며칠 사이가 유력하다는 식으로 예측하는 게
@@ -20755,7 +20733,6 @@
         ${coreStatsHTML}
         ${predMergedHTML}
         ${gapStatsHTML}
-        ${showGenericHour && isTop0 && hourPassedGrace ?`<div class="yt-pred-hero-alert">⏰ ${esc(hourText)}경 예상이 지났는데 아직 업로드가 없어요 — 이후 업로드 사례는 ${hourAfterPct}%(${hourAfterCount}건)뿐이에요.</div>` : ''}
         <!-- "앞으로 7일쪽 배경이 흰색이라 위 항목들이랑 안 맞는다"는 지적 반영(2026-08-27) —
              제목+날짜 스트립+상세 박스를 .yt-week-prob-panel(회색-파랑)로 함께 감싼다. -->
         <div class="yt-week-prob-panel">
