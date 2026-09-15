@@ -603,8 +603,11 @@ async function scrapeTicketPage(context, url, label) {
         console.error(`⚠️ 두 번째 상품(${TICKET_URL_ALT_LABEL}) 확인 중 오류 — 이번엔 건너뛰고 첫 번째 상품만 기록합니다: ` + (e && e.message ? e.message : String(e)));
         meta.buyUrl2 = TICKET_URL_ALT;
       }
-      meta.buyLabel = (TICKET_URL_LABEL ? `${TICKET_URL_LABEL} ` : '') + '예매하기';
-      meta.buyLabel2 = `${TICKET_URL_ALT_LABEL} 예매하기`;
+      // 2026-09-15: "지정석 예매하기"/"비지정 예매하기"(+ 미리보기의 "현재 티켓으로 돌아가기")
+      // 버튼 3개가 한 줄에 안 들어가고 줄바꿈되는 문제가 있어 문구를 "예매하기"→"예매"로 줄임
+      // (preview.html의 버튼 줄 CSS도 함께 손봄 — 그쪽 주석 참고).
+      meta.buyLabel = (TICKET_URL_LABEL ? `${TICKET_URL_LABEL} ` : '') + '예매';
+      meta.buyLabel2 = `${TICKET_URL_ALT_LABEL} 예매`;
     }
 
     let recorded = 0;
