@@ -13397,6 +13397,16 @@
         platform: m.platform || TICKET_INFO.platform
       };
     }
+    // 특정 행사에서 오픈 초반 혼선(예: 상품 2개 중 한쪽만 캡처된 불완전한 기록)으로 남은
+    // 스냅샷 id를 지정하면 "판매 추이"/기록 목록에서 조용히 제외한다. DB에서 실제로 지우는
+    // 건 아니고(공개 API 키는 삭제 권한이 없음) 화면 표시에서만 뺀다 — 원본 데이터는 그대로
+    // 남아있어 나중에 필요하면 언제든 되돌릴 수 있다.
+    // 2026-09-17: 복마전 002(yachaclub_bokmajeon002_2026_1011) id=3360 — 북마클릿으로
+    // 지정석만 캡처되어 비지정(야차스탠딩/피버존/휠체어) 데이터가 빠진 채 총원도 실측치
+    // 그대로(3,033석, 공식 보정 전)였던 과도기 기록. 사용자 확인 후 제외 결정.
+    const TK_EXCLUDE_SNAPSHOT_IDS = {
+      'yachaclub_bokmajeon002_2026_1011': [3360],
+    };
     async function fetchTicketSnapshots(eventKey) {
       // Supabase는 요청 1번에 최대 1,000행까지만 주므로, 판매 시작~종료 기간의 기록을
       // 전부 보여주기 위해 1,000행씩 여러 번 나눠서 다 가져온다.
@@ -13413,6 +13423,8 @@
         all.push(...(data || []));
         if (!data || data.length < PAGE) break;
       }
+      const excludeIds = TK_EXCLUDE_SNAPSHOT_IDS[eventKey];
+      if (excludeIds && excludeIds.length) return all.filter(r => !excludeIds.includes(r.id));
       return all;
     }
     // 자동 기록 스크립트(ticket-watch.js)가 실행될 때마다 "지금 이 경기를 본다"고 Supabase에
@@ -13489,9 +13501,13 @@
         // 예상 매출 내역과 동일한 스타일로, 미분류(미배정) 좌석이 섞인 등급에는
         // "(미분류 N석 포함)" 주석을 판매 줄 끝에 붙인다(TK_HOLDS_BY_EVENT 등록 행사 공통).
         const holdCnt = holds && holds[k];
-        const holdTag = holdCnt ? ` <span style="color:var(--dim);font-size:10.5px;font-weight:600">(미분류 ${holdCnt}석 포함)</span>` : '';
+        // 2026-09-17: "○석 중 ○석 판매 · 전체의 N% · 미분류 N석 포함" 순서로 통일(라이브에 이미
+        // 노출 중이던 표기 방식) — 카톡 공유/도넛 범례 합치기(아래 v2-compact, tk-pie-item 코드)가
+        // .tk-pct-sub 안의 "○석 중 ○석" 패턴과 hold span의 10.5px 스타일을 그대로 파싱하므로,
+        // 문구만 바꾸고 그 두 훅은 그대로 유지한다(하위 호환).
+        const holdTag = holdCnt ? ` · <span style="color:var(--dim);font-size:10.5px;font-weight:600">미분류 ${holdCnt}석 포함</span>` : '';
         const statusLine = soldPct != null
-          ? `<div class="tk-bar"><i style="width:${soldPct}%"></i></div><div class="tk-pct">${soldPct}% 판매 <span class="tk-pct-sub">(총 ${total.toLocaleString()}석 중 ${(total - remain).toLocaleString()}석 판매)</span>${holdTag}</div>`
+          ? `<div class="tk-bar"><i style="width:${soldPct}%"></i></div><div class="tk-pct"><span class="tk-pct-sub">${total.toLocaleString()}석 중 ${(total - remain).toLocaleString()}석 판매</span> · 전체의 ${soldPct}%${holdTag}</div>`
           : '';
         // 등급명이 이미 "~석"으로 끝나면(예: 시야방해석) 뒤에 "석"을 또 붙이지 않는다("시야방해석석" 방지).
         const gradeLabel = /석$/.test(k) ? k : k + '석';
