@@ -12550,7 +12550,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-09-18T03:47:15+09:00';
+    const BUILD_ID = '2026-09-18T03:50:02+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -15062,11 +15062,11 @@
          tkFitForecastLines()가 글자를 조금씩 줄여 항상 한 줄에 맞춘다
        - 잔여석은 본문 대신 아래 회색 근거 줄에 표시해 본문을 짧게 유지한다 */
     function tkForecastLine(fc, eventEnd, total, labelHTML) {
-      // 문구 전체(이모지 포함)를 옅은 배경의 알약(칩) 형태로 감싼다 — 텍스트 색보다 연한 같은 계열 배경
-      // 2026-09-18: "볼드에 폰트도 크다, 기존 데이터 출력 문구처럼 해달라"는 지적 반영 —
-      // 색상 칩(상태별 색 구분)은 그대로 두되, 굵기는 일반(400)으로, 크기는 다른 카드 본문
-      // 텍스트 수준(13.5→12.5px)으로 낮춘다.
-      const wrap = (color, bg, txt) => `<div class="tk-fc-line" style="font-size:12.5px;line-height:1.6;white-space:nowrap;overflow:hidden" data-basesize="12.5">${labelHTML || ''}<span style="font-weight:500;color:${color};background:${bg};padding:3px 10px;border-radius:9px;display:inline-block">${txt}</span></div>`;
+      // 2026-09-18: "볼드에 폰트도 크다, 배경컬러도 싫다, 그레이 말고 블랙으로" 지적 반영 —
+      // 예전엔 옅은 배경의 알약(칩) + 상태별 색(파랑/초록/빨강 등)이었는데, 전부 빼고 다른
+      // 카드 본문과 똑같은 일반 텍스트(검정, var(--text))로 통일한다. color/bg 인자는 더
+      // 이상 안 쓰지만 호출부를 안 건드리려고 시그니처는 유지한다.
+      const wrap = (color, bg, txt) => `<div class="tk-fc-line" style="font-size:12.5px;line-height:1.6;white-space:nowrap;overflow:hidden;color:var(--text)" data-basesize="12.5">${labelHTML || ''}${txt}</div>`;
       // 2026-09-18: 예전엔 기록이 부족하면(오픈 직후 24시간 이내 등) "매진 예측 시뮬레이션"
       // 카드 자체를 통째로 안 만들었는데("비어있으니깐 이상하다"는 지적) — 예상 매출 보기처럼
       // 카드/항목 자체는 항상 보여주고, 안에 "데이터 수집 중" 문구만 대신 넣는 방식으로 변경.
