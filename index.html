@@ -12550,7 +12550,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-09-18T03:50:02+09:00';
+    const BUILD_ID = '2026-09-18T03:52:29+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -15525,7 +15525,7 @@
       const forecastHTML = fcParts.length ? `
       <div class="card tk-total-card" style="margin-top:10px">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px">
-          <span class="tk-trend-title" style="margin-bottom:0">매진 예측 시뮬레이션</span>
+          <span class="tk-trend-title" style="margin-bottom:0">매진 예측</span>
           <button type="button" onclick="tkInfoToggle('tk-fc-info')" onmouseenter="tkInfoHover('tk-fc-info',true)" onmouseleave="tkInfoHover('tk-fc-info',false)"
             style="border:none;background:none;padding:0;cursor:pointer;font-size:11px;color:var(--dim);font-weight:700;text-decoration:underline;white-space:nowrap;flex-shrink:0">ⓘ 예측 기준</button>
         </div>
