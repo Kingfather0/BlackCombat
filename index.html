@@ -12524,6 +12524,23 @@
       route();
     }
     window.addEventListener('hashchange', route);
+    // 2026-09-17: "영상 예측 캘린더" 카톡 공유 카드의 버튼을 눌러도 항상 티켓 페이지로만
+    // 이동한다는 신고 — 코드상 kkoSendShare가 만드는 링크(#/videos 등)는 등급별로 정확한데,
+    // 카카오톡 인앱 브라우저 일부 환경에서 URL의 해시(#...) 부분이 실제 페이지 로드 전에
+    // 유실되는(주소창엔 있어도 location.hash가 빈 채로 뜨는) 사례가 보고돼 있다 — 해시는
+    // 서버로 전송되지 않는 순수 클라이언트 정보라, 인앱 브라우저의 리다이렉트/프리뷰 처리
+    // 단계에서 이런 유실이 생길 수 있다. 원인을 100% 특정하기 어려워서, 해시 대신 항상
+    // 살아남는 쿼리스트링(?r=videos 등)에도 같은 목적지를 함께 실어 보내고(kkoSendShare
+    // 쪽 수정), 여기서 부팅 시 해시가 비어 있는데 ?r= 값이 있으면 그 값으로 해시를 복원한다.
+    (function () {
+      try {
+        const qs = new URLSearchParams(location.search);
+        const r = qs.get('r');
+        if (r && (!location.hash || location.hash === '#/' || location.hash === '#')) {
+          history.replaceState(null, '', location.pathname + '#/' + r.replace(/^\/+/, ''));
+        }
+      } catch (e) { }
+    })();
 
     /* ── 자동 업데이트 감지 ──
        홈 화면에 추가한 앱(특히 아이폰)은 아이콘을 눌러 다시 열 때 새로고침 없이 예전 화면을
@@ -21728,7 +21745,14 @@
       if (!kkoInit() || !imageUrl) return false;
       try {
         const base = 'https://xn--9r3b3ij2w.com/';
-        const link = { mobileWebUrl: base + (o.path || ''), webUrl: base + (o.path || '') };
+        // 2026-09-17: 카톡 인앱 브라우저 일부 환경에서 URL의 #해시 부분이 유실돼(버튼을
+        // 눌러도 항상 홈/티켓 등 엉뚱한 화면으로 감) 목적지가 제대로 안 열리는 신고 —
+        // 해시는 클라이언트 전용 정보라 인앱 브라우저의 내부 처리 과정에서 사라질 수 있다.
+        // 서버로도 전달되는(더 안전한) 쿼리스트링(?r=videos 등)에 같은 목적지를 함께 실어
+        // 보내고, 앱 부팅 시(위 route() 직전 IIFE) 해시가 비어 있으면 이 값으로 복원한다.
+        const routeOnly = String(o.path || '').replace(/^#\/?/, '');
+        const path = (routeOnly ? '?r=' + encodeURIComponent(routeOnly) : '') + (o.path || '');
+        const link = { mobileWebUrl: base + path, webUrl: base + path };
         Kakao.Share.sendDefault({
           objectType: 'feed',
           // "초록 텍스트도 46px로" 요청으로 영상 예측 캘린더 카드만 세로가 더 커져서(450),
