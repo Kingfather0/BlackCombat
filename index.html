@@ -11726,6 +11726,14 @@
     body[data-route="tickets"] .v2-pie-txt { white-space: normal; word-break: keep-all; font-variant-numeric: tabular-nums; }
     body[data-route="tickets"] .v2-pie-bar { margin-top: 9px; height: 3px; border-radius: 99px; background: var(--bg2); overflow: hidden; }
     body[data-route="tickets"] .v2-pie-bar i { display: block; height: 100%; border-radius: 99px; }
+    /* 2026-09-17: 등급 8개 초과(예: 복마전 002 12개)면 목록을 숨기지 않고 한눈에 다 보이도록
+       대신 각 행을 촘촘하게(dense) — 세로 여백/글자 크기만 줄인다. */
+    body[data-route="tickets"] .tk-pie-legend.v2-dense .tk-pie-item.v2-merged { padding: 6px 0; min-height: 0; }
+    body[data-route="tickets"] .tk-pie-legend.v2-dense .v2-pie-l1 { gap: 6px; font-size: 13px; }
+    body[data-route="tickets"] .tk-pie-legend.v2-dense .v2-pie-price { font-size: 11px; }
+    body[data-route="tickets"] .tk-pie-legend.v2-dense .v2-pie-remain { font-size: 13px; }
+    body[data-route="tickets"] .tk-pie-legend.v2-dense .v2-pie-l2 { margin-top: 3px; font-size: 11px; }
+    body[data-route="tickets"] .tk-pie-legend.v2-dense .v2-pie-bar { margin-top: 5px; }
     body[data-route] .v2-flat { background: transparent !important; border: none !important; box-shadow: none !important; border-radius: 0 !important; margin: 0 !important; }
     /* 텍스트 링크는 밑줄로 구분 */
     body[data-route] .hm-h a { text-decoration: underline; text-decoration-color: var(--hair2); text-underline-offset: 3px; }
@@ -29341,6 +29349,12 @@
               '<div class="v2-pie-l2"><span class="v2-pie-txt">' + line2.join(' · ') + '</span></div>';
             legend.appendChild(it);
           });
+          // 2026-09-18: 등급이 많은 행사(복마전 002 등 12개)는 목록이 길다는 피드백으로 한때
+          // "상위 5개만 보이고 더보기로 펼치기"를 시도했으나, 사용자가 "한눈에 다 보여야 한다"고
+          // 되돌려달라 해서 제거함(2026-09-17) — 대신 각 행을 더 촘촘하게(compact) 그려서
+          // 12개가 다 있어도 스크롤 부담이 적도록 CSS만 조정(.v2-merged 쪽 padding/줄간격 축소).
+          var legendItems = [].slice.call(legend.querySelectorAll(':scope > .tk-pie-item.v2-merged'));
+          if (legendItems.length > 8) legend.classList.add('v2-dense');
           grades.forEach(function (x) { x.style.display = 'none'; });
           var gcard = grades[0].closest('.card'); if (gcard && ![].some.call(gcard.children, function (c) { return c.style.display !== 'none' && getComputedStyle(c).display !== 'none' && c.getBoundingClientRect().height > 2; })) gcard.style.display = 'none';
           var wrap = app.querySelector('.tk-pie-wrap'); if (wrap) { wrap.classList.add('v2-pie-merged'); var blk = wrap.parentElement; if (blk) blk.classList.add('v2-pie-block'); var cardEl = blk && blk.closest('.card'); if (cardEl) cardEl.classList.add('v2-pie-card'); var tt = blk && blk.querySelector(':scope > .tk-trend-title'); if (tt) tt.style.display = 'none'; }
