@@ -11528,6 +11528,14 @@
     body[data-route="tickets"] .tk-dash-col.v2-panel, body[data-route="tickets"] .tk-trend.v2-panel, body[data-route="tickets"] .tk-dash-hist.v2-panel { margin: 12px 0 0 !important; }
     body[data-route="tickets"] .tk-dash-col > .card { border-bottom: none !important; }
     body[data-route="tickets"] .tk-dash-past { gap: 0 12px; }
+    /* 2026-09-17: "지난 티켓"이 모바일에서도 PC와 같은 3열 그리드(.tk-dash-past 기본값,
+       11170행)를 그대로 써서 카드 하나하나가 좁게 눌려 세로로 길어 보이는 문제 — 데스크톱
+       전용(min-width:1024px)으로 열 수를 넓히는 .tk-dash-main과 달리 이 규칙엔 그런 모바일
+       기본값이 없었다. 1024px 미만(모바일/태블릿)에서는 1열로 강제해 카드가 화면 폭 전체를
+       쓰는 가로로 넓은 한 줄짜리 카드로 보이게 한다. */
+    @media (max-width: 1023px) {
+      body[data-route="tickets"] .tk-dash-past { grid-template-columns: 1fr !important; }
+    }
     /* 영상: 상단 3칸·7일 확률·달력·최근 영상 */
     body[data-route="videos"] .yt-event-line.v2-panel { border-top: none !important; padding: 12px 18px !important; }
     body[data-route="videos"] .yt-pred-hero > .yt-col1.v2-panel, body[data-route="videos"] .yt-pred-hero > .yt-pred-merged.v2-panel, body[data-route="videos"] .yt-pred-hero > .yt-gap-stats.v2-panel { padding: 16px 18px !important; margin: 0 !important; min-height: 0; }
@@ -15121,7 +15129,11 @@
         // 두 대회를 동시에 추적하다 같은 날 끝났을 때(예: 로드FC·블랙컴뱃 둘 다 8/29) 보조로
         // 기록되던 대회가 몇 분 차이로 메인 대회 위에 올라오는 어색한 순서가 될 수 있어서,
         // "나중에 오픈한(=더 최신 대회) 티켓이 항상 위"가 되도록 시작 기록 기준으로 정렬한다.
-        const past = events.filter(e => trackingEnded || e.event_key !== eventKey)
+        // 2026-09-17: 개발 중 레이아웃 확인용으로 넣었던 가짜 데이터(test_bokmajeon_preview,
+        // scripts/insert-test-ticket-preview.html 참고)가 실제 기록과 섞여 "지난 티켓"에 노출되는
+        // 문제 — 실제 판매 데이터가 아니므로 이 목록에서는 항상 제외한다(DB 데이터는 그대로 둠).
+        const TK_PAST_EXCLUDE_EVENT_KEYS = ['test_bokmajeon_preview'];
+        const past = events.filter(e => (trackingEnded || e.event_key !== eventKey) && !TK_PAST_EXCLUDE_EVENT_KEYS.includes(e.event_key))
           .sort((a, b) => new Date(b.first_at) - new Date(a.first_at));
         if (past.length) {
           pastHTML = `
@@ -15157,11 +15169,26 @@
       // flex-wrap:nowrap(줄바꿈 방지)을 쓰고, 기존처럼 예매 링크가 1개뿐인 행사는 원래
       // 문구("예매하러 가기"/"현재 티켓으로 돌아가기")와 원래 줄바꿈 동작을 그대로 유지한다.
       const isDualProductEvent = !!meta.buyUrl2;
+      // 2026-09-17: "지정석 예매"/"비지정 예매"(자동 기록에 실려온 buyLabel/buyLabel2 원문)를
+      // "지정석 예매하러 가기"/"비지정석 예매하러 가기"로 통일해달라는 요청 — 자동 기록의 라벨
+      // 문구를 매번 통째로 새로 저장하는 대신, 표시 시점에 "OOO 예매" 패턴을 찾아 "석"이
+      // 없으면 붙이고 끝을 "예매하러 가기"로 바꿔준다. 패턴에 안 맞는 문구(예: 기존처럼
+      // 아예 라벨이 없어 기본값 "예매하러 가기"를 쓰는 경우)는 그대로 둔다 — 블랙컴뱃/로드FC 등
+      // 예매 링크가 1개뿐인 기존 행사는 이 함수를 거쳐도 문구가 바뀌지 않는다.
+      const tkBuyLabelFull = (label, fallback) => {
+        const src = label || fallback || '예매하러 가기';
+        const m = String(src).match(/^(.*?)\s*예매$/);
+        if (!m) return src;
+        let prefix = m[1];
+        if (prefix && !/석$/.test(prefix)) prefix += '석';
+        return (prefix ? prefix + ' ' : '') + '예매하러 가기';
+      };
       const buyBtnHTML = meta.buyUrl
-        ? `<a class="btn primary small" style="flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">${esc(meta.buyLabel || (isDualProductEvent ? '예매' : '예매하러 가기'))}</a>`
+        ? `<a class="btn primary small" style="flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">${esc(tkBuyLabelFull(meta.buyLabel, isDualProductEvent ? null : '예매하러 가기'))}</a>`
         : '';
+      // 2026-09-17: 비지정석 버튼은 지정석(파란 강조) 버튼과 헷갈리지 않게 회색으로 구분한다.
       const buyBtn2HTML = meta.buyUrl2
-        ? `<a class="btn primary small" style="flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl2)}" target="_blank" rel="noopener">${esc(meta.buyLabel2 || '예매 2')}</a>`
+        ? `<a class="btn primary small" style="background:#6b7280;border-color:#4b5563;color:#fff;flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl2)}" target="_blank" rel="noopener">${esc(tkBuyLabelFull(meta.buyLabel2, '비지정석 예매하러 가기'))}</a>`
         : '';
       // "현재 티켓으로 돌아가기"는 "예매하러 가기"(파란색 강조 버튼)와 색을 다르게 둬서
       // 외부 예매 사이트로 나가는 버튼과 사이트 내부 이동 버튼을 한눈에 구분되게 한다.
@@ -15177,8 +15204,11 @@
       const backBtnHTML = isPreview
         ? `<a class="btn small" style="background:#0d9488;border-color:#0f766e;color:#fff;flex-shrink:0;white-space:nowrap" href="#/tickets">${isDualProductEvent ? '뒤로가기' : '현재 티켓으로 돌아가기'}</a>`
         : '';
+      // 2026-09-17: 버튼 문구가 다시 길어져서(지정석/비지정석 각각 "…예매하러 가기") 좁은
+      // 화면에서 세 버튼이 한 줄에 다 안 들어갈 수 있다 — 줄바꿈으로 깨지는 대신
+      // 가로 스크롤로 넘어가게 해서 항상 한 줄을 유지한다(글자가 잘리거나 겹치지 않음).
       const actionBtnsHTML = (buyBtnHTML || buyBtn2HTML || backBtnHTML)
-        ? `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:${isDualProductEvent ? 'nowrap' : 'wrap'}">${buyBtnHTML}${buyBtn2HTML}${backBtnHTML}</div>`
+        ? `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:${isDualProductEvent ? 'nowrap' : 'wrap'}${isDualProductEvent ? ';overflow-x:auto' : ''}">${buyBtnHTML}${buyBtn2HTML}${backBtnHTML}</div>`
         : '';
       const dpParts = [];
       if (meta.eventDateText) dpParts.push('📅 ' + esc(meta.eventDateText));
@@ -15599,7 +15629,12 @@
       });
       tkBuildShareText(liveRemain, newestAt, liveTotals);
       // 카카오 카드 공유용 데이터 — 화면에 보이는 것과 같은 스냅샷 기준 (2026-08-23)
-      tkLive.cardData = { total: (hasTotal && sumTotal > 0) ? sumTotal : null, remainMap: liveRemain, at: newestAt, title: (meta && meta.title) || '', wordmark: (eventKey === 'road_2026_0811') ? '로드FC' : '블랙컴뱃' };
+      // 2026-09-17: 카톡 공유 카드 우측 상단 워드마크 — 로드FC/블랙컴뱃 외에 주최 단체가
+      // 다른 행사(야차클럽 복마전 등)도 생겨서, event_key 접두사로 주최를 구분해 보여준다.
+      const tkCardWordmark = eventKey === 'road_2026_0811' ? '로드FC'
+        : /^yachaclub_/.test(eventKey) ? '야차클럽'
+        : '블랙컴뱃';
+      tkLive.cardData = { total: (hasTotal && sumTotal > 0) ? sumTotal : null, remainMap: liveRemain, at: newestAt, title: (meta && meta.title) || '', wordmark: tkCardWordmark };
 
       // 구역별 실시간 좌석 현황 — 이 행사(BC_2026_0829)에서만, "전체 좌석"과 "잔여 좌석" 사이에 넣는다.
       const liveZonesEnabled = (eventKey === 'BC_2026_0829');
