@@ -1,1 +1,0 @@
-javascript:eval(decodeURIComponent(%27fetch%28%22https%3A%2F%2Fraw.githubusercontent.com%2FKingfather0%2FBlackCombat%2Fmain%2Fscripts%2Fbokmajeon002-wheelchair-render-diag.js%22%2B%22%3Ft%3D%22%2BDate.now%28%29%29.then%28r%3D%3Er.text%28%29%29.then%28eval%29%27))
