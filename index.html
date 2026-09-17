@@ -13951,7 +13951,18 @@
       const pr = plot.getBoundingClientRect();
       const dr = dotEl.getBoundingClientRect();
       const anchorX = dr.left + dr.width / 2 - pr.left;                                      // 요소의 가로 중앙
-      const anchorY = dr.top - pr.top + (dotEl.classList.contains('tk-day-col') ? 0 : dr.height / 2); // 점은 중심, 막대는 위쪽 끝
+      // 2026-09-18: 막대 길이와 상관없이 말풍선이 항상 차트 맨 위에 뜨는 버그 신고 — 원인은
+      // .tk-day-col(막대 하나를 감싸는 클릭 영역)이 실제로는 "차트 전체 높이"이고, 눈에 보이는
+      // 막대(.tk-day-fill)는 그 안에서 아래쪽 정렬로 일부만 채워지는 구조인데, 여기서는 항상
+      // dotEl(=.tk-day-col) 자신의 top을 anchor로 썼기 때문에 막대 길이와 무관하게 컨테이너
+      // 맨 위(= 차트 맨 위)로 계산됐던 것. 실제로 채워진 막대 요소의 top을 따로 찾아서 쓴다.
+      let anchorY;
+      if (dotEl.classList.contains('tk-day-col')) {
+        const fillEl = dotEl.querySelector('.tk-day-pos .tk-day-fill') || dotEl.querySelector('.tk-day-fill') || dotEl;
+        anchorY = fillEl.getBoundingClientRect().top - pr.top;
+      } else {
+        anchorY = dr.top - pr.top + dr.height / 2; // 점(원형 마커)은 중심
+      }
       const tw = tip.offsetWidth, th = tip.offsetHeight;
       // 가로: 중앙 정렬하되 차트 밖으로 잘리지 않게 안쪽으로 보정
       tip.style.left = Math.max(-4, Math.min(anchorX - tw / 2, pr.width - tw + 4)) + 'px';
