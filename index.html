@@ -15155,8 +15155,11 @@
       // 시도했지만 "한눈에 다 보이면 좋겠다"는 피드백으로 그 경우(isDualProductEvent)만 문구를
       // 줄여("현재 티켓으로 돌아가기"→"현재 티켓 보기") 스크롤 없이 한 줄에 다 들어가게 했다.
       // 예매 링크가 1개뿐인 기존 행사(버튼 최대 2개)는 원래 문구·원래 줄바꿈 동작 그대로다.
+      // 2026-09-17: 지정석/비지정형(복마전002 등) 청록 버튼 문구를 "현재 티켓 보기"에서
+      // "뒤로가기"로 변경(사용자 요청, 화살표 없이 텍스트만) — 예매 링크가 1개뿐인 기존
+      // 행사의 "현재 티켓으로 돌아가기" 문구는 그대로 둔다.
       const backBtnHTML = isPreview
-        ? `<a class="btn small" style="background:#0d9488;border-color:#0f766e;color:#fff;flex-shrink:0;white-space:nowrap" href="#/tickets">${isDualProductEvent ? '현재 티켓 보기' : '현재 티켓으로 돌아가기'}</a>`
+        ? `<a class="btn small" style="background:#0d9488;border-color:#0f766e;color:#fff;flex-shrink:0;white-space:nowrap" href="#/tickets">${isDualProductEvent ? '뒤로가기' : '현재 티켓으로 돌아가기'}</a>`
         : '';
       const actionBtnsHTML = (buyBtnHTML || buyBtn2HTML || backBtnHTML)
         ? `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:${isDualProductEvent ? 'nowrap' : 'wrap'}">${buyBtnHTML}${buyBtn2HTML}${backBtnHTML}</div>`
