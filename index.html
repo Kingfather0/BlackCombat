@@ -12550,7 +12550,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-09-18T03:09:41+09:00';
+    const BUILD_ID = '2026-09-18T03:28:26+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -27590,7 +27590,7 @@
       const streaks = computeStreaks(d);
       if (navStale(__g)) return; $app.innerHTML = `
     <h1 class="page">격잘알 랭킹</h1>
-    <div class="sub">누적 대회 ${d.finals.length}개 · <b>우승 횟수 기준</b> (동률 시 총 적중 수)</div>
+    <div class="sub" style="font-size:11px;color:var(--dim)">누적 대회 ${d.finals.length}개 · 우승 횟수 기준 (동률 시 총 적중 수)</div>
     <div class="card" style="display:flex;gap:8px;padding:12px;align-items:center">
       <input id="rk-search" placeholder="닉네임 검색 (전적 보기)" style="flex:1;min-width:0;box-sizing:border-box;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);outline:none;font-size:15px" oninput="filterRankTable()" onkeydown="if(event.key==='Enter')searchNick()">
       <button class="btn primary small" style="white-space:nowrap;flex-shrink:0" onclick="searchNick()">검색</button>
