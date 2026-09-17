@@ -13533,7 +13533,11 @@
     // 등급 수가 팔레트 길이를 넘으면 색이 겹친다) 9번째·10번째 색을 미리 추가해뒀다. 기존 8색과
     // 색상환(hue) 위치가 겹치지 않는 갈색·청록색을 골랐고, 명도(밝기) 대비도 기존 팔레트와
     // 비슷한 수준으로 맞춰 색약 시뮬레이션에서도 기존 색상들과 구분되도록 했다.
-    const TK_PIE_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948', '#8c564b', '#17a2b8'];
+    // 2026-09-17: 복마전 002(야차클럽)는 등급이 12개(VVIP·VIP·R1·R2·S1·S2·A1·A2·단차·야차스탠딩·
+    // 피버존·휠체어)라 10색으로도 2개가 겹쳤다 — 기존 10색과 색상환 위치가 겹치지 않는
+    // 연두색·중성 회색을 11번째·12번째로 추가했다(연두는 기존 초록·황색과, 회색은 색이 있는
+    // 색상들과 확실히 구분되는 무채색).
+    const TK_PIE_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948', '#8c564b', '#17a2b8', '#8bc34a', '#6b6b6b'];
     // 등급별 색상: 티켓 플랫폼이 원래 쓰는 공식 등급 색(meta.gradeColors, 29CM API의
     // seatGradeColorCode)이 있으면 그걸 그대로 쓴다 — 판매 페이지와 색이 통일되어 더 직관적이다.
     // 그 값을 모르는 등급(구버전 캡처, NOL 등)은 기존처럼 팔레트를 순환해서 쓰되, "블랙티넘"만은
@@ -14698,7 +14702,7 @@
     const TK_SHARE_LINK = 'https://xn--9r3b3ij2w.com/#/tickets';
     function tkBuildShareText(remainByGrade, atIso, totalsByGrade) {
       if (!tkLive) return;
-      const lines = [`🎫 티켓 판매 현황 (${fmtSnapTime(atIso)})`];
+      const lines = [`티켓 판매 현황 (${fmtSnapTime(atIso)})`];
       if (tkLive.overallTotal) {
         const sumRemain = Object.values(remainByGrade).reduce((s, v) => s + (v || 0), 0);
         const sold = tkLive.overallTotal - sumRemain;
@@ -14911,7 +14915,7 @@
       const sold = Math.max(0, cd.total - remain);
       const imageUrl = await kkoConsumePreload(btn, () => tkDrawShareCard(cd));
       const ok = imageUrl && kkoSendShare(imageUrl, {
-        title: '🎫 티켓 판매 현황',
+        title: '티켓 판매 현황',
         desc: `총 ${cd.total.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${(sold / cd.total * 100).toFixed(1)}%)`,
         btnText: '티켓 현황 보기',
         path: '#/tickets',
@@ -15187,8 +15191,11 @@
         ? `<a class="btn primary small" style="flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">${esc(tkBuyLabelFull(meta.buyLabel, isDualProductEvent ? null : '예매하러 가기'))}</a>`
         : '';
       // 2026-09-17: 비지정석 버튼은 지정석(파란 강조) 버튼과 헷갈리지 않게 회색으로 구분한다.
+      // 2026-09-17: border-color만 지정했더니 .btn.primary 기본 규칙(border 두께/스타일은
+      // 그대로 두고 색만 바뀌는 캐스케이드) 때문에 회색 배경 위에 진한(거의 검정) 테두리가
+      // 남아 눈에 띈다는 피드백 — 아예 테두리를 없애 배경색만으로 보이게 한다.
       const buyBtn2HTML = meta.buyUrl2
-        ? `<a class="btn primary small" style="background:#6b7280;border-color:#4b5563;color:#fff;flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl2)}" target="_blank" rel="noopener">${esc(tkBuyLabelFull(meta.buyLabel2, '비지정석 예매하러 가기'))}</a>`
+        ? `<a class="btn primary small" style="background:#6b7280;border:none;color:#fff;flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl2)}" target="_blank" rel="noopener">${esc(tkBuyLabelFull(meta.buyLabel2, '비지정석 예매하러 가기'))}</a>`
         : '';
       // "현재 티켓으로 돌아가기"는 "예매하러 가기"(파란색 강조 버튼)와 색을 다르게 둬서
       // 외부 예매 사이트로 나가는 버튼과 사이트 내부 이동 버튼을 한눈에 구분되게 한다.
@@ -15377,7 +15384,12 @@
       // 임시 안내: 정확한 좌석배치도 기반 총원(breakdown)이 아니라 "선예매 오픈 시점 잔여석
       // 합계" 추정치로만 총원을 알고 있을 때, 그 사실을 짧게 밝혀둔다. 17시 일반예매 전환 후
       // 좌석 선택 화면에서 정확한 총원을 확인하면 이 줄은 지워도 된다 (2026-08-18 임시 조치).
-      const estimateNoteHTML = (hasTotal && !hasBreakdown) ? `
+      // 2026-09-17: hasBreakdown은 TK_HOLDS_BY_EVENT(미배정 좌석 분해)가 있는 행사만 true가 되는
+      // 별개 신호라, 복마전 002처럼 공식 등급별 총원(meta.gradeTotals)을 이미 정확히 보정해둔
+      // 행사에서도 "추정치"라는 이 임시 안내가 계속 남아있었다 — metaTotalsByRound에 값이 있으면
+      // (=사람이 확인한 정확한 등급별 총원을 알고 있다는 뜻) 이 안내를 띄우지 않는다.
+      const hasMetaGradeTotals = metaTotalsByRound.size > 0;
+      const estimateNoteHTML = (hasTotal && !hasBreakdown && !hasMetaGradeTotals) ? `
         <div class="sub" style="margin-top:6px;font-size:11px;color:var(--dim)">※ 현재 ${sumTotal.toLocaleString()}석은 선예매 오픈 시점 잔여석 합계(총 좌석 API 미존재) · 17시 일반 예매 오픈 후 갱신 예정</div>` : '';
       // 안내: 이 행사(BC_2026_0829)에서 확인된 두 가지 특수 상황을 밝혀둔다(2026-08-21 갱신).
       // 1) 미분류 762석 — 29CM 공개 API(등급/잔여/좌석배치도) 어디에도 안 잡히는 좌석. 구역별
@@ -15509,10 +15521,17 @@
           // 로드FC: 가격 정보가 담긴 유일한 캡처(8/11)는 잘못된 총원(3,070)을 담고 있어 DB에서
           // 삭제 대상이라, 전 등급 정가를 NOL 상품 페이지 가격표(2026-08-20 실측 확인)로 여기
           // 고정해둔다. 기록에 가격이 있으면 그 값이 우선하고, 없는 등급만 이 표로 보충한다.
+          // 복마전 002: NOL 예매 페이지에 등급별 가격이 캡처되지 않는 행사라(휠체어석 등
+          // GA/스탠딩 등급은 애초에 개별 가격 API가 없음), 유저가 직접 캡처해 전달해준
+          // 가격표(2026-09-17)를 고정값으로 둔다. 내부 등급 키는 "석" 접미사 없이 grades/
+          // gradeTotals와 동일하게 맞춘다(gradeRowsHTML이 표시할 때 "석"을 붙여준다).
           const fb = (eventKey === 'road_2026_0811') ? {
             'VIP 플로어(1열)': 500000, 'VIP 플로어(2열)': 350000, 'VIP 플로어(3열)': 220000,
             'VIP 플로어(4열)': 198000, 'VIP 플로어(5열)': 176000, 'VIP 플로어(6열)': 176000,
             'S석(지정석)': 150000, '일반석(지정석)': 88000,
+          } : (eventKey === 'yachaclub_bokmajeon002_2026_1011') ? {
+            VVIP: 1800000, VIP: 1200000, R1: 450000, S1: 400000, A1: 350000, R2: 350000,
+            S2: 300000, A2: 250000, '단차': 120000, '야차스탠딩': 70000, '피버존': 50000, '휠체어': 50000,
           } : null;
           return fb ? Object.assign({}, fb, p || {}) : p;
         })();
@@ -28810,9 +28829,12 @@
     try {
       var M = { matchup: '#5f5f66', talk: '#5f5f66', shorts: '#5f5f66', 'weigh-in': '#5f5f66', trailer: '#5f5f66', 'ticket-promo': '#5f5f66', 'media-day': '#5f5f66' };
       Object.keys(M).forEach(function (k) { if (typeof YT_CATS !== 'undefined' && YT_CATS[k]) YT_CATS[k].color = M[k]; });
-      // 티켓 등급별 원그래프·구역 배치도 색도 원색 대신 차분한 톤으로(채택 시 TK_PIE_COLORS / TK_LIVE_GRADE_COLOR에 반영)
-      var P = ['#f2b32a', '#111111', '#8e8e93', '#c9a24a', '#5f5f66', '#e39c14', '#cfcfd6', '#8b6a3c', '#3c3c43', '#f5dc9a'];
-      if (typeof TK_PIE_COLORS !== 'undefined') TK_PIE_COLORS.splice.apply(TK_PIE_COLORS, [0, TK_PIE_COLORS.length].concat(P));
+      // 티켓 등급별 원그래프·구역 배치도 색도 원색 대신 차분한 톤으로(디자인 v4 미리보기 실험)
+      // — 2026-09-17: 이 "차분한 톤" 팔레트(금색·회색 계열 위주)가 실제로는 등급이 10개가 넘는
+      // 행사(복마전 002 등)에서 "색이 너무 겹쳐 보인다"는 피드백으로 이어져, 판매·잔여 좌석
+      // 목록의 등급 구분색(TK_PIE_COLORS)에는 더 이상 적용하지 않는다(색약 시뮬레이션까지
+      // 검증된 원래의 구분 잘 되는 팔레트를 그대로 사용). 구역 배치도 전용 색(TK_LIVE_GRADE_COLOR)은
+      // 이 목록과 무관해 미리보기 톤을 그대로 둔다.
       if (typeof TK_LIVE_GRADE_COLOR !== 'undefined') { TK_LIVE_GRADE_COLOR['001'] = '#c9a24a'; TK_LIVE_GRADE_COLOR['002'] = '#f2b32a'; TK_LIVE_GRADE_COLOR['003'] = '#8b6a3c'; TK_LIVE_GRADE_COLOR['004'] = '#3c3c43'; TK_LIVE_GRADE_COLOR['005'] = '#8e8e93'; TK_LIVE_GRADE_COLOR['006'] = '#e39c14'; }
     } catch (e) { }
   </script>
@@ -29261,6 +29283,7 @@
           if (!grades.length) return;
           var items = app.querySelectorAll('.tk-pie-item:not(.v2-merged)');
           if (!items.length) return;
+          var matched = [];
           items.forEach(function (it) {
             var top = it.firstElementChild; if (!top) return;
             var chip = it.querySelector('.tk-pie-chip'), spans = top.querySelectorAll(':scope > span');
@@ -29273,6 +29296,7 @@
               var re = g.querySelector('.tk-grade-remain'); remain = tx(re); soldOut = !!(re && re.classList.contains('sold-out'));
               var pc = g.querySelector('.tk-pct');
               if (pc) { pct = (tx(pc).match(/([\d.]+)%/) || [])[1] || ''; var sb = pc.querySelector('.tk-pct-sub'); sub = tx(sb).replace(/^\u00B7\s*/, ''); var hd = pc.querySelector('span[style*="10.5px"]'); hold = tx(hd).replace(/[()]/g, ''); }
+              matched.push(g);
             }
             var mini = it.querySelector('.tk-pie-minibar i'); var innerW = mini ? mini.style.width : '';
             var color = chip ? chip.style.background : '';
@@ -29290,7 +29314,11 @@
               '<div class="v2-pie-bar"><i style="width:' + bw + ';background:' + (soldOut ? 'var(--red)' : color) + '"></i></div>' +
               '<div class="v2-pie-l2"><span class="v2-pie-txt">' + line2.join(' \u00B7 ') + '</span></div>';
           });
-          grades.forEach(function (x) { x.style.display = 'none'; });
+          // 2026-09-17: 판매량 0인 등급(예: 휠체어석)은 도넛 범례 자체가 없어(gradePieHTML이
+          // 0건 등급을 그리지 않음) 위 루프에서 매칭되지 못한다 — 예전엔 매칭 여부와 상관없이
+          // .tk-grade를 전부 숨겨서 그런 등급이 화면에서 통째로 사라졌다. 실제로 범례에 합쳐진
+          // (matched) 항목만 숨기고, 매칭되지 못한 항목은 원래의 상세 목록 형태로 남겨둔다.
+          matched.forEach(function (x) { x.style.display = 'none'; });
           var gcard = grades[0].closest('.card'); if (gcard && ![].some.call(gcard.children, function (c) { return c.style.display !== 'none' && getComputedStyle(c).display !== 'none' && c.getBoundingClientRect().height > 2; })) gcard.style.display = 'none';
           var wrap = app.querySelector('.tk-pie-wrap'); if (wrap) { wrap.classList.add('v2-pie-merged'); var blk = wrap.parentElement; if (blk) blk.classList.add('v2-pie-block'); var cardEl = blk && blk.closest('.card'); if (cardEl) cardEl.classList.add('v2-pie-card'); var tt = blk && blk.querySelector(':scope > .tk-trend-title'); if (tt) tt.style.display = 'none'; }
         })();
