@@ -29276,49 +29276,72 @@
         }
         // 등급별 판매율 옆에 "판매 석수 / 총 석수"를 짧게 표시 — "(총 120석 중 118석 판매)" → "· 118 / 120석"
         app.querySelectorAll('.tk-pct-sub:not(.v2-compact)').forEach(function (sub) { var m = sub.textContent.match(/총\s*([\d,]+)석\s*중\s*([\d,]+)석/); if (m) { sub.textContent = '\u00B7 ' + m[1] + '\uC11D \uC911 ' + m[2] + '\uC11D \uD310\uB9E4'; sub.classList.add('v2-compact'); } });
-        // 잔여 좌석: 도넛 범례에 등급별 상세(가격·판매/총석·잔여/매진·미분류)를 합치고, 아래 중복 목록은 숨긴다
+        // 잔여 좌석: 도넛 범례에 등급별 상세(가격·판매/총석·잔여/매진·미분류)를 합치고, 아래 중복 목록은 숨긴다.
+        // 2026-09-17 재작성: 예전엔 도넛 범례(.tk-pie-item, 판매량>0인 등급만 있음)를 기준으로 돌면서
+        // 대응하는 .tk-grade를 찾아 합쳤다 — 그래서 ①판매량 0인 등급(휠체어석 등)은 범례 자체가 없어
+        // 매칭이 안 됐고(못 찾으면 그냥 숨겨버려 화면에서 사라짐 — 이미 한 번 고침), ②매칭 안 된
+        // 등급은 원래 있던 .tk-grade 목록 자리(범례 블록보다 한참 아래, 화면 맨 끝)에 그대로 남아서
+        // 가격순 정렬이 깨져 보였다(예: 50,000원인 휠체어석이 1,800,000원 VVIP석보다 아래에 표시).
+        // 지금은 반대로 — 이미 가격순으로 정렬된 .tk-grade 목록(grades, gradeRowsHTML이 만든 순서)을
+        // 기준으로 돌면서, 대응하는 범례 항목이 있으면 합치고 없으면(판매량 0) 같은 모양으로 새로
+        // 만들어서, legend.appendChild로 grades 순서 그대로 범례에 끼워 넣는다 — appendChild는 이미
+        // DOM에 있는 요소를 호출 순서대로 다시 옮기므로, 이 루프가 끝나면 범례 전체가 항상 가격순이 된다.
         (function () {
           var tx = function (el) { return el ? el.textContent.replace(/\s+/g, ' ').trim() : ''; };
           var grades = [].slice.call(app.querySelectorAll('.tk-grade'));
           if (!grades.length) return;
-          var items = app.querySelectorAll('.tk-pie-item:not(.v2-merged)');
-          if (!items.length) return;
-          var matched = [];
-          items.forEach(function (it) {
-            var top = it.firstElementChild; if (!top) return;
-            var chip = it.querySelector('.tk-pie-chip'), spans = top.querySelectorAll(':scope > span');
-            var label = tx(spans[1]), shareTx = tx(spans[2]);
-            var share = (shareTx.match(/([\d.]+)%/) || [])[1] || '';
-            var g = grades.find(function (x) { var n = tx(x.querySelector('.tk-grade-name')); return n.indexOf(label) === 0 || label.indexOf(n.replace(/\s*[\d,]+원.*$/, '')) === 0; });
-            var price = '', remain = '', soldOut = false, pct = '', sub = '', hold = '';
-            if (g) {
-              var pe = g.querySelector('.tk-grade-name span'); price = tx(pe);
-              var re = g.querySelector('.tk-grade-remain'); remain = tx(re); soldOut = !!(re && re.classList.contains('sold-out'));
-              var pc = g.querySelector('.tk-pct');
-              if (pc) { pct = (tx(pc).match(/([\d.]+)%/) || [])[1] || ''; var sb = pc.querySelector('.tk-pct-sub'); sub = tx(sb).replace(/^\u00B7\s*/, ''); var hd = pc.querySelector('span[style*="10.5px"]'); hold = tx(hd).replace(/[()]/g, ''); }
-              matched.push(g);
+          var legend = app.querySelector('.tk-pie-legend');
+          if (!legend) return; // 도넛 자체가 안 그려진 경우(판매된 등급이 1개뿐 등) — 기존 목록 그대로 둔다
+          var unmerged = [].slice.call(legend.querySelectorAll('.tk-pie-item:not(.v2-merged)'));
+          grades.forEach(function (g, gi) {
+            var nameEl = g.querySelector('.tk-grade-name');
+            var priceEl = nameEl && nameEl.querySelector('span');
+            var price = tx(priceEl);
+            var gName = tx(nameEl).replace(price, '').trim();
+            var re = g.querySelector('.tk-grade-remain'); var remain = tx(re); var soldOut = !!(re && re.classList.contains('sold-out'));
+            var pct = '', sub = '', hold = '';
+            var pc = g.querySelector('.tk-pct');
+            if (pc) { pct = (tx(pc).match(/([\d.]+)%/) || [])[1] || ''; var sb = pc.querySelector('.tk-pct-sub'); sub = tx(sb).replace(/^·\s*/, ''); var hd = pc.querySelector('span[style*="10.5px"]'); hold = tx(hd).replace(/[()]/g, ''); }
+
+            var it, color, share = '', innerW = '';
+            var idx = unmerged.findIndex(function (cand) {
+              var top = cand.firstElementChild; if (!top) return false;
+              var spans = top.querySelectorAll(':scope > span');
+              var label = tx(spans[1]);
+              return label.indexOf(gName) === 0 || gName.indexOf(label) === 0;
+            });
+            if (idx >= 0) {
+              it = unmerged.splice(idx, 1)[0];
+              var top = it.firstElementChild;
+              var chip = it.querySelector('.tk-pie-chip'), spans = top.querySelectorAll(':scope > span');
+              var shareTx = tx(spans[2]);
+              share = (shareTx.match(/([\d.]+)%/) || [])[1] || '';
+              var mini = it.querySelector('.tk-pie-minibar i'); innerW = mini ? mini.style.width : '';
+              color = chip ? chip.style.background : '';
+            } else {
+              // 판매량 0이라 도넛 범례가 없던 등급(휠체어석 등) — 같은 모양의 항목을 새로 만든다.
+              it = document.createElement('div');
+              it.className = 'tk-pie-item';
+              color = (typeof TK_PIE_COLORS !== 'undefined' && TK_PIE_COLORS.length) ? TK_PIE_COLORS[gi % TK_PIE_COLORS.length] : '#9e9ea6';
             }
-            var mini = it.querySelector('.tk-pie-minibar i'); var innerW = mini ? mini.style.width : '';
-            var color = chip ? chip.style.background : '';
             var line2 = [];
             var soldN = '', totN = '', remN = '';
-            if (sub) { var sm = sub.match(/([\d,]+)\uC11D \uC911 ([\d,]+)\uC11D/); if (sm) { totN = sm[1]; soldN = sm[2]; } }
-            if (remain) { var rm = remain.match(/([\d,]+)\uC11D/); if (rm) remN = rm[1]; }
-            var right = soldOut ? '\uB9E4\uC9C4' : ((soldN ? soldN + '\uC11D \uD310\uB9E4' : '') + (soldN && remN ? ' \u00B7 ' : '') + (remN ? remN + '\uC11D \uB0A8\uC74C' : (soldN ? '' : remain)));
+            if (sub) { var sm = sub.match(/([\d,]+)석 중 ([\d,]+)석/); if (sm) { totN = sm[1]; soldN = sm[2]; } }
+            if (remain) { var rm = remain.match(/([\d,]+)석/); if (rm) remN = rm[1]; }
+            var right = soldOut ? '매진' : ((soldN ? soldN + '석 판매' : '') + (soldN && remN ? ' · ' : '') + (remN ? remN + '석 남음' : (soldN ? '' : remain)));
             if (sub) line2.push(sub);
-            if (share) line2.push('\uC804\uCCB4\uC758 ' + share + '%');
+            if (share) line2.push('전체의 ' + share + '%');
             if (hold) line2.push(hold);
             it.classList.add('v2-merged');
+            // 판매량 0이면 pct가 "0.0"이라 bw가 '0%'가 되는데, .v2-pie-bar 자체에 트랙 배경이
+            // 있어서(CSS) 0%짜리 항목도 빈 막대(트랙)로는 보인다 — "막대가 아예 없다"는 문제 해결.
             var bw = soldOut ? '100%' : (innerW || (pct ? Math.min(100, +pct) + '%' : '0%'));
-            it.innerHTML = '<div class="v2-pie-l1"><span class="tk-pie-chip" style="background:' + color + '"></span><b class="v2-pie-name">' + label + '</b>' + (price ? '<span class="v2-pie-price">' + price + '</span>' : '') + '<span class="v2-pie-remain' + (soldOut ? ' out' : '') + '">' + right + '</span></div>' +
+            it.innerHTML = '<div class="v2-pie-l1"><span class="tk-pie-chip" style="background:' + color + '"></span><b class="v2-pie-name">' + gName + '</b>' + (price ? '<span class="v2-pie-price">' + price + '</span>' : '') + '<span class="v2-pie-remain' + (soldOut ? ' out' : '') + '">' + right + '</span></div>' +
               '<div class="v2-pie-bar"><i style="width:' + bw + ';background:' + (soldOut ? 'var(--red)' : color) + '"></i></div>' +
-              '<div class="v2-pie-l2"><span class="v2-pie-txt">' + line2.join(' \u00B7 ') + '</span></div>';
+              '<div class="v2-pie-l2"><span class="v2-pie-txt">' + line2.join(' · ') + '</span></div>';
+            legend.appendChild(it);
           });
-          // 2026-09-17: 판매량 0인 등급(예: 휠체어석)은 도넛 범례 자체가 없어(gradePieHTML이
-          // 0건 등급을 그리지 않음) 위 루프에서 매칭되지 못한다 — 예전엔 매칭 여부와 상관없이
-          // .tk-grade를 전부 숨겨서 그런 등급이 화면에서 통째로 사라졌다. 실제로 범례에 합쳐진
-          // (matched) 항목만 숨기고, 매칭되지 못한 항목은 원래의 상세 목록 형태로 남겨둔다.
-          matched.forEach(function (x) { x.style.display = 'none'; });
+          grades.forEach(function (x) { x.style.display = 'none'; });
           var gcard = grades[0].closest('.card'); if (gcard && ![].some.call(gcard.children, function (c) { return c.style.display !== 'none' && getComputedStyle(c).display !== 'none' && c.getBoundingClientRect().height > 2; })) gcard.style.display = 'none';
           var wrap = app.querySelector('.tk-pie-wrap'); if (wrap) { wrap.classList.add('v2-pie-merged'); var blk = wrap.parentElement; if (blk) blk.classList.add('v2-pie-block'); var cardEl = blk && blk.closest('.card'); if (cardEl) cardEl.classList.add('v2-pie-card'); var tt = blk && blk.querySelector(':scope > .tk-trend-title'); if (tt) tt.style.display = 'none'; }
         })();
