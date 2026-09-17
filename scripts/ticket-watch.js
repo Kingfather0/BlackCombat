@@ -159,6 +159,14 @@ function extractMeta(bodyText, pageTitle, h1Title) {
   // 합쳐서 "블루스퀘어 우리은행홀"이 되어야 함). 다음 라벨 줄이 나올 때까지 이어붙인다.
   // 페이지에 같은 이름의 라벨이 여러 번 나올 수도 있어서(예: 상단 탭 메뉴에도 "장소"라는
   // 글자가 있음), 처음으로 값을 제대로 찾은 것만 쓰고 그 이후 중복은 무시한다.
+  // 2026-09-17 수정: NOL 상품 페이지 상단에 탭 메뉴(상품상세/가격/취소 및 환불규정/장소/리뷰/
+  // 관련 공연)가 추가되면서 "장소"라는 글자가 실제 장소 정보보다 먼저, 탭 이름으로도 한 번 더
+  // 나오게 됐다. 실측(복마전 002): "…장소\n리뷰\n관련 공연\n장소\n킨텍스 제1전시장 3홀\n기간…" —
+  // 첫 "장소"는 탭 메뉴 항목이고 그 다음 줄들(리뷰/관련 공연)도 다른 탭 이름이라, 예전 로직은
+  // "리뷰 관련 공연"을 장소로 잘못 저장했다. 탭 메뉴에 쓰이는 단어들을 걸러서, 수집된 내용이
+  // 전부 탭 메뉴 단어뿐이면 장소로 채택하지 않고(meta.place를 null로 남겨) 다음 "장소" 줄에서
+  // 다시 시도하게 한다.
+  const NAV_TAB_WORDS = new Set(['상품상세', '가격', '취소 및 환불규정', '리뷰', '관련 공연', '판매자 정보', '예매 안내사항', '기획사', '상품']);
   const labelSet = new Set(['장소', '기간', '시간', '연령', '일반 예매']);
   for (let i = 0; i < lines.length; i++) {
     const isPlace = lines[i] === '장소' && meta.place == null;
@@ -171,8 +179,12 @@ function extractMeta(bodyText, pageTitle, h1Title) {
       j++;
     }
     if (!collected.length) continue;
-    if (isPlace) meta.place = collected.join(' ');
-    else meta.dateText = collected.join(' ');
+    if (isPlace) {
+      if (collected.every((c) => NAV_TAB_WORDS.has(c))) continue; // 탭 메뉴 오탐 — 다음 "장소"에서 재시도
+      meta.place = collected.join(' ');
+    } else {
+      meta.dateText = collected.join(' ');
+    }
   }
 
   const openMatch = bodyText.match(
