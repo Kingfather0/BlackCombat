@@ -12550,7 +12550,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-09-18T11:16:51+09:00';
+    const BUILD_ID = '2026-09-18T13:03:00+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -15144,6 +15144,24 @@
       tkHoldsCfg = TK_HOLDS_BY_EVENT[eventKey] || null;
       let rows; try { rows = await fetchTicketSnapshots(eventKey); } catch (e) { return fail(e, __g); }
 
+      // 2026-09-18: NOL에서 관리자가 회차 표시 시간을 고치면(예: 복마전 002 — 오후 6시→3시)
+      // round_label 문자열이 통째로 바뀌어 예전 기록과 완전히 다른 회차로 갈라지는 사고가
+      // 있었다. ticket-watch.js는 이날부로 playSeq 기준으로 새 기록부터는 안 갈라지게
+      // 고쳤지만, 그 전에 이미 저장된 옛 기록(예: "6:00 PM")은 여전히 다른 이름표를 달고
+      // 있다 — 그대로 두면 "전체 좌석"은 괜찮아도 판매 추이처럼 "이 회차의 과거 이력"을
+      // 보여주는 화면에서 옛 기록이 통째로 빠져 보인다(예: 시간 전환 전날인 9/17 데이터가
+      // 통째로 사라져 보임). 알려진 옛 이름표를 지금 쓰는 이름표로 합쳐서 과거 이력이 끊기지
+      // 않고 계속 이어지게 한다.
+      const TK_ROUND_LABEL_ALIASES = {
+        'yachaclub_bokmajeon002_2026_1011': { '2026.10.11(일) 6:00 PM': '2026.10.11(일) 3:00 PM' },
+      };
+      const roundAliasMap = TK_ROUND_LABEL_ALIASES[eventKey];
+      if (roundAliasMap) {
+        rows = rows.map(r => (r.round_label && roundAliasMap[r.round_label])
+          ? Object.assign({}, r, { round_label: roundAliasMap[r.round_label] })
+          : r);
+      }
+
       // 경기 "기간"이 지난 티켓은 새 티켓 등록을 기다리지 않고 자동으로 "지난 티켓"으로
       // 내려보낸다. 예) 기간이 2026.07.26(하루짜리 경기)이면 7/27 00:00부터,
       // "2026.08.16 ~ 2026.11.15" 같은 기간형이면 마지막 날짜 다음날 00:00부터.
@@ -15300,23 +15318,12 @@
       // "전체 좌석"에 계속 이중으로 더해진다. 자동 봇(ticket-watch.js)은 매시 정각 그 순간
       // 페이지에 실제로 보이는 회차만 골라서 기록하므로(사라진 회차는 더 이상 기록되지 않음),
       // 가장 최근 전체 기록 시각보다 24시간 넘게 갱신이 없는 회차는 "예매 페이지에서 사라진
-      // 회차"로 보고 걸러낸다. (가장 최신 기록을 가진 회차 자신은 diff=0이라 항상 살아남는다.)
+      // 회차"로 보고 걸러낸다. (가장 최신 기록을 가진 회차 자신은 diff=0이라 항상 살아남는다.
+      // 복마전 002의 "6:00 PM"은 위 TK_ROUND_LABEL_ALIASES에서 이미 "3:00 PM"으로 합쳐지므로
+      // 여기서 더 손댈 필요가 없다 — 이 필터는 앞으로 생길 다른 사고에 대한 일반 안전망이다.)
       const STALE_ROUND_MS = 24 * 3600 * 1000;
       const newestAtMs = new Date(newestAt).getTime();
-      // 2026-09-18: 복마전 002는 실측 데이터로 원인을 확정했다 — 읽기 전용 진단 스크립트로
-      // 최근 300건을 direct 조회한 결과, 9/18 00:21까지는 "6:00 PM"으로만 계속 찍히다가 00:31
-      // 부터 지금까지(13건 연속) "3:00 PM"으로만 찍히고 있다. 즉 NOL이 이 행사의 회차 표시
-      // 시간을 그 사이에 18:00→15:00으로 실제로 바꿨고, "6:00 PM"은 그 뒤로 완전히 죽었다.
-      // 24시간 필터는 아직 하루가 안 지나 못 거르지만(죽은 지 몇 시간밖에 안 됨), 전환이
-      // 이미 실측으로 확정됐으므로 이 행사만은 "6:00 PM"을 지금 바로 제외한다 — 총원은 건드리지
-      // 않는다(3:00 PM 쪽에 3차 보정으로 이미 정확한 4,403석이 들어가 있음). NOL이 다시 바뀌면
-      // (그럴 일은 없어 보이지만) 이 줄만 지우면 된다.
-      const TK_DEAD_ROUND_LABELS = {
-        'yachaclub_bokmajeon002_2026_1011': new Set(['2026.10.11(일) 6:00 PM']),
-      };
-      const deadRoundSet = TK_DEAD_ROUND_LABELS[eventKey];
       const latestRows = [...latestByRound.values()]
-        .filter(r => !deadRoundSet || !deadRoundSet.has(r.round_label || ''))
         .filter(r => (newestAtMs - new Date(r.captured_at).getTime()) <= STALE_ROUND_MS)
         .sort((a, b) => String(a.round_label || '').localeCompare(String(b.round_label || '')));
 
