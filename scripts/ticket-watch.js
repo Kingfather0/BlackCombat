@@ -306,6 +306,45 @@ async function fetchExistingSnapshotCount(roundLabel) {
   }
 }
 
+// 2026-09-18 추가 — NOL API가 순간적으로 일부 등급(구역) 응답을 통째로 못 내려줘서, 직전까지
+// 잘 잡히던 등급이 이번 수집에서만 사라진 채로 기록되는 사고가 있었다(복마전 002, 08:41 —
+// 피버존/휠체어/야차스탠딩이 그 한 번만 빠져서 "전체 좌석"이 순간적으로 확 틀어졌다가 10분
+// 뒤 저절로 정상화됨). 이제부터는 그런 모양(직전 정상 기록엔 있던 등급이 이번엔 없음)이
+// 보이면 이번 수집은 아예 기록하지 않고 건너뛴다 — 다음 실행(보통 10분 뒤) 때 다시 시도하면
+// 대부분 저절로 해결된다. 단, 이 상태가 오래 지속되면(마지막 정상 기록이 3시간 넘게 오래됐으면)
+// 진짜로 그 등급이 없어졌을 수도 있으니 더 이상 막지 않고 그대로 기록한다(영구 결측 방지).
+async function isSuspiciouslyIncomplete(grades, roundLabel) {
+  try {
+    const params = new URLSearchParams({
+      event_key: `eq.${EVENT_KEY}`,
+      select: 'grades,captured_at',
+      order: 'captured_at.desc',
+      limit: '1',
+    });
+    if (roundLabel) params.set('round_label', `eq.${roundLabel}`);
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/ticket_snapshots?${params.toString()}`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    });
+    if (!res.ok) return false;
+    const rows = await res.json().catch(() => null);
+    if (!Array.isArray(rows) || !rows.length) return false; // 첫 기록 — 비교할 이전 기록이 없음
+    const last = rows[0];
+    const lastKeys = Object.keys(last.grades || {});
+    const curKeys = new Set(Object.keys(grades || {}));
+    const missing = lastKeys.filter(k => !curKeys.has(k));
+    if (!missing.length) return false;
+    const ageMs = Date.now() - new Date(last.captured_at).getTime();
+    if (ageMs > 3 * 3600 * 1000) {
+      console.warn(`⚠️ ${roundLabel ? `[${roundLabel}] ` : ''}등급 [${missing.join(', ')}]이(가) 이번에도 빠졌지만, 마지막 정상 기록이 이미 ${(ageMs / 3600000).toFixed(1)}시간 전이라 더 미루지 않고 그대로 기록합니다 (실제로 없어진 등급일 수 있어 확인이 필요할 수 있습니다).`);
+      return false;
+    }
+    console.warn(`⏭️ ${roundLabel ? `[${roundLabel}] ` : ''}직전 정상 기록엔 있던 등급 [${missing.join(', ')}]이(가) 이번엔 안 잡혀서(NOL 응답 순간 결측으로 추정) 이번 수집은 건너뜁니다 — 다음 실행 때 다시 시도합니다.`);
+    return true;
+  } catch (_) {
+    return false; // 확인 자체가 실패하면 안전하게 기존 동작대로 그대로 기록 진행
+  }
+}
+
 // 등급별 "총 좌석수"는 예매 사이트 화면 어디에도 직접 나오지 않는다(잔여석만 보여줌).
 // 대신, 이 회차를 통틀어 우리가 "처음으로" 기록하는 순간이라면 그때의 잔여석 = 총원이라고
 // 볼 수 있다(아직 아무도 안 샀을 가능성이 가장 높은 시점이므로). 이후 회차에는 그 총원을
@@ -685,8 +724,10 @@ async function scrapeTicketPage(context, url, label) {
     }
 
     let recorded = 0;
+    let skippedIncomplete = 0;
     for (const [roundLabel, grades] of gradesByRound) {
       if (!grades || Object.keys(grades).length === 0) continue;
+      if (await isSuspiciouslyIncomplete(grades, roundLabel)) { skippedIncomplete++; continue; }
       const totals = await computeTotalsToRecord(grades, roundLabel);
       // 이 회차 고유의 goodsCode/playSeq를 meta에 같이 남겨둔다 — 나중에 NOL에서 이 회차의
       // 표시 시간이 또 바뀌어도(resolveStableRoundLabel이 이 값들로 조회) round_label을
@@ -703,8 +744,12 @@ async function scrapeTicketPage(context, url, label) {
       recorded++;
     }
 
-    if (recorded === 0) throw new Error('파싱된 회차가 없어 기록하지 못했습니다.');
-    console.log(`✅ ${recorded}개 회차 기록 완료`);
+    if (recorded === 0 && skippedIncomplete === 0) throw new Error('파싱된 회차가 없어 기록하지 못했습니다.');
+    if (recorded === 0 && skippedIncomplete > 0) {
+      console.log(`⏭️ ${skippedIncomplete}개 회차 모두 결측 의심으로 이번엔 건너뜀 — 다음 실행 때 재시도 (오류 아님)`);
+    } else {
+      console.log(`✅ ${recorded}개 회차 기록 완료${skippedIncomplete ? ` (${skippedIncomplete}개는 결측 의심으로 건너뜀)` : ''}`);
+    }
   } catch (err) {
     console.error('❌ ' + (err && err.message ? err.message : String(err)));
     await browser.close();
