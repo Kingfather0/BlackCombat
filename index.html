@@ -12550,7 +12550,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-09-18T03:52:29+09:00';
+    const BUILD_ID = '2026-09-18T10:52:16+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -15289,13 +15289,24 @@
       window.__tkPieSeq = 0;
 
       // round_label(회차)별로 가장 최근 기록 1개씩 뽑아서 "현재 판매 현황"으로 보여준다.
+      const newestAt = rows[0].captured_at;
       const latestByRound = new Map();
       rows.forEach(r => {
         const key = r.round_label || '__default__';
         if (!latestByRound.has(key)) latestByRound.set(key, r);
       });
-      const latestRows = [...latestByRound.values()].sort((a, b) => String(a.round_label || '').localeCompare(String(b.round_label || '')));
-      const newestAt = rows[0].captured_at;
+      // 2026-09-18: 테스트용으로 잠깐 만들었다가 지운 상품 페이지(예: 9/15에 켰다 끈 복마전 002
+      // 테스트 티켓 페이지) 등, 예매 사이트에서 이미 사라진 회차의 옛 기록이 round_label만 다른
+      // 채로 계속 남아있으면 위 latestByRound에 영원히 걸려서 "전체 좌석"에 계속 이중으로
+      // 더해진다. 자동 봇(ticket-watch.js)은 매시 정각 그 순간 페이지에 실제로 보이는 회차만
+      // 골라서 기록하므로(사라진 회차는 더 이상 기록되지 않음), 가장 최근 전체 기록 시각보다
+      // 24시간 넘게 갱신이 없는 회차는 "예매 페이지에서 사라진 회차"로 보고 걸러낸다.
+      // (가장 최신 기록을 가진 회차 자신은 diff=0이라 항상 살아남는다 — 단일 회차 행사는 영향 없음.)
+      const STALE_ROUND_MS = 24 * 3600 * 1000;
+      const newestAtMs = new Date(newestAt).getTime();
+      const latestRows = [...latestByRound.values()]
+        .filter(r => (newestAtMs - new Date(r.captured_at).getTime()) <= STALE_ROUND_MS)
+        .sort((a, b) => String(a.round_label || '').localeCompare(String(b.round_label || '')));
 
       // ⚡ 일괄 발권(이벤트표/단체석) 의심 급감 감지 — 회차별로 미리 계산해서
       // 상단 알림 카드와 시간별 차트(주황 점 + 참고 문구)가 함께 쓴다.
@@ -15374,6 +15385,12 @@
       // "ⓘ 좌석 기준" 박스에 쓸, 회차 합산 전체/판매대상/미배정 좌석 수 — 세 값을 모두 아는
       // 회차만 더해서 셋의 합이 항상 정확히 맞도록 한다 (일부만 아는 회차가 섞여 숫자가 안 맞는 걸 방지).
       let sumOverallForNote = 0, sumSellableForNote = 0, sumNoGradeForNote = 0, hasBreakdown = false;
+      // 2026-09-18: "전체 좌석"이 여러 회차의 총원을 그냥 다 더한 숫자라는 걸 모르면(예: 복마전
+      // 002처럼 오후 3시 회차 도중에 오후 6시 회차가 새로 열려 총원이 갑자기 확 뛰면) 사용자가
+      // "집계 오류 아니냐"고 오해하기 쉽다(실제로 이런 문의를 받음 — 저녁 회차가 진짜로 열린
+      // 것으로 확인됨, 버그 아님). 회차가 2개 이상이면 회차별 총원을 따로 기록해뒀다가 "전체
+      // 좌석" 숫자 바로 아래에 "N시 회차 A석 + N시 회차 B석" 식으로 풀어서 보여준다.
+      const roundBreakdown = [];
       latestRows.forEach(r => {
         const grades = r.grades || {}, totals = r.totals || {};
         const key = r.round_label || '__default__';
@@ -15391,14 +15408,22 @@
         if (effectiveTotal != null) {
           const remainSum = Object.keys(grades).reduce((s, k) => s + ((grades[k] && grades[k].remain) || 0), 0);
           sumTotal += effectiveTotal; sumRemainForTotal += remainSum; hasTotal = true;
+          roundBreakdown.push({ label: r.round_label || '', total: effectiveTotal });
           return;
         }
+        let roundTotal = 0;
         Object.keys(grades).forEach(k => {
           const remain = grades[k] && grades[k].remain;
           const total = totals[k];
-          if (total != null && remain != null) { sumTotal += total; sumRemainForTotal += remain; hasTotal = true; }
+          if (total != null && remain != null) { sumTotal += total; sumRemainForTotal += remain; hasTotal = true; roundTotal += total; }
         });
+        if (roundTotal > 0) roundBreakdown.push({ label: r.round_label || '', total: roundTotal });
       });
+      // 회차가 2개 이상이고, 회차별 총원을 전부 알 때만 풀어서 보여준다(하나라도 모르면 합계
+      // 숫자와 안 맞아 보일 수 있어 차라리 생략 — 합계 숫자 자체는 항상 정확함).
+      const roundBreakdownHTML = (roundBreakdown.length > 1 && roundBreakdown.every(x => x.total > 0))
+        ? `<div class="sub" style="margin-top:4px;font-size:11.5px;color:var(--dim)">※ ${roundBreakdown.map(x => `${x.label ? esc(x.label) + ' ' : ''}${x.total.toLocaleString()}석`).join(' + ')} = 총 ${sumTotal.toLocaleString()}석 (회차 ${roundBreakdown.length}개 합산)</div>`
+        : '';
       // "전체 좌석"도 "잔여 좌석"과 동일하게 카드 밖 섹션 제목으로 배치한다.
       // (예전엔 "🔄 자동 갱신 시각" 배지를 우측에 표시했지만, 상단 행사 정보 카드의 출처 줄에
       //  자동 갱신 안내가 이미 있어 중복이라 제거 — 수동 갱신 때만 "실시간 조회" 배지가 잠깐 뜬다)
@@ -15497,6 +15522,7 @@
         </div>
         <div class="tk-total-num">총 ${sumTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%) · 잔여 ${sumRemainForTotal.toLocaleString()}석</div>
         <div class="tk-bar tk-total-bar"><i style="width:${Math.min(100, Math.max(0, pct))}%"></i></div>
+        ${roundBreakdownHTML}
         ${estimateNoteHTML}
         ${bulkTopHTML}
         ${totalInfoBoxHTML}
