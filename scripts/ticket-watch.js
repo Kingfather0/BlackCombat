@@ -93,6 +93,57 @@ function formatRoundLabel(dateStr, timeStr) {
   return `${y}.${mo}.${d}(${dow}) ${h12}:${mi} ${ampm}`;
 }
 
+// 2026-09-18 추가 — round_label이 "화면에 보이는 시간 문자열"이다 보니, 관리자가 나중에 NOL
+// 상품의 회차 표시 시간을 고치면(예: 복마전 002 — 오후 6시→3시) round_label 문자열이 통째로
+// 바뀌어서 완전히 다른(새) 회차로 인식돼버렸다. 그 결과 이전 판매 기록과 끊기고, "전체 좌석"이
+// 옛 이름표+새 이름표 두 개로 갈라져 이중으로 합산되는 사고가 실제로 있었다(2026-09-18 확인).
+//
+// playSeq(NOL이 회차마다 매기는 내부 고유 번호)는 화면 표시 시간이 바뀌어도 그대로이므로,
+// 이 번호로 "예전에 이미 기록을 남긴 적이 있는 회차인지" 먼저 확인해서, 있으면 그때 쓰던
+// round_label을 계속 쓴다(화면 시간이 바뀌었어도 같은 회차로 계속 이어붙임). goodsCode까지
+// 같이 보는 이유는, 지정석/비지정처럼 상품이 2개면 playSeq 번호가 상품마다 독립적으로 매겨질
+// 수 있어 상품까지 같아야 진짜 같은 회차이기 때문.
+//
+// API에서 goodsCode/playSeq를 못 받은 경우(안전망)는 기존처럼 화면 표시 시간 문자열을 그대로
+// round_label로 쓴다 — 동작이 예전과 똑같아 회귀 없음.
+const stableRoundLabelCache = new Map(); // "goodsCode:playSeq" -> round_label (이번 실행 동안 재사용해 조회 횟수를 줄임)
+async function resolveStableRoundLabel(goodsCode, playSeq, freshLabel) {
+  if (!goodsCode || !playSeq) return freshLabel;
+  const cacheKey = `${goodsCode}:${playSeq}`;
+  if (stableRoundLabelCache.has(cacheKey)) return stableRoundLabelCache.get(cacheKey);
+  try {
+    const params = new URLSearchParams({
+      event_key: `eq.${EVENT_KEY}`,
+      select: 'round_label,captured_at',
+      // 2026-09-18: 처음엔 "맨 처음 붙었던 이름"(asc)을 쓰려고 했으나, 그러면 오늘 같은 사고
+      // (6시→3시로 바뀐 뒤 방금 3시로 정상화된 상황)에서 다시 옛날 "6시" 이름으로 되돌아가버린다.
+      // 대신 "가장 최근까지 실제로 쓰이고 있던 이름"(desc)을 기준으로 삼는다 — 한 번 정착되면
+      // (같은 이름으로 몇 번 더 기록되면) 그 뒤로는 계속 그 이름을 재확인하며 고정되고, 표시
+      // 시간이 또 바뀌어도 이 안정적인 이름을 계속 이어 쓰게 된다.
+      order: 'captured_at.desc',
+      limit: '1',
+    });
+    params.set('meta->>goodsCode', `eq.${goodsCode}`);
+    params.set('meta->>playSeq', `eq.${playSeq}`);
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/ticket_snapshots?${params.toString()}`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    });
+    if (res.ok) {
+      const rows = await res.json().catch(() => null);
+      if (Array.isArray(rows) && rows.length && rows[0].round_label) {
+        const stable = rows[0].round_label;
+        if (stable !== freshLabel) {
+          console.log(`🔗 playSeq ${playSeq}(상품 ${goodsCode})는 예전에 "${stable}"로 기록된 적이 있어 그 이름을 계속 씁니다(방금 읽은 표시 시간은 "${freshLabel}"이지만 무시).`);
+        }
+        stableRoundLabelCache.set(cacheKey, stable);
+        return stable;
+      }
+    }
+  } catch (_) { /* 조회 실패 시 안전하게 새로 읽은 이름을 그대로 쓴다 */ }
+  stableRoundLabelCache.set(cacheKey, freshLabel);
+  return freshLabel;
+}
+
 async function tryFindDateButton(page) {
   const candidates = await page.$$(
     '[class*="calendar"] button, [class*="Calendar"] button, [class*="date"] button, [role="gridcell"] button, td button, [role="gridcell"], td[class*="day"]'
@@ -510,6 +561,7 @@ async function scrapeTicketPage(context, url, label) {
     await page.waitForTimeout(2000); // API 응답이 도착할 시간을 조금 더 준다
 
     const gradesByRound = new Map(); // roundLabel -> {grade:{remain}}
+    const roundApiInfo = new Map(); // roundLabel -> {goodsCode, playSeq} (이 회차의 진짜 좌표 — 안정적 이름 유지에 씀)
     let apiInfo = null;
 
     if (capturedRemainByPlaySeq.size > 0) {
@@ -519,8 +571,12 @@ async function scrapeTicketPage(context, url, label) {
       for (const [playSeq, grades] of capturedRemainByPlaySeq) {
         if (Object.keys(grades).length === 0) continue;
         const sched = capturedScheduleByPlaySeq.get(playSeq);
-        const roundLabel = sched ? formatRoundLabel(sched.playDate, sched.playTime) : `${TARGET_DATE} (playSeq ${playSeq})`;
+        const freshLabel = sched ? formatRoundLabel(sched.playDate, sched.playTime) : `${TARGET_DATE} (playSeq ${playSeq})`;
+        // 화면 표시 시간이 나중에 바뀌어도(관리자가 회차 시간을 수정) 같은 회차로 계속
+        // 이어붙이도록, playSeq 기준으로 예전에 쓰던 이름이 있으면 그걸 그대로 쓴다.
+        const roundLabel = await resolveStableRoundLabel(capturedGoodsCode, playSeq, freshLabel);
         gradesByRound.set(roundLabel, grades);
+        roundApiInfo.set(roundLabel, { goodsCode: capturedGoodsCode, playSeq });
         // 이 회차의 API 좌표(goodsCode/playSeq) — 사이트의 "수동 갱신" 버튼이 쓴다.
         // 두 상품을 합치는 경우, 첫 번째(지정석) 상품 것만 대표로 쓴다(수동 갱신은 그쪽만 지원).
         if (!apiInfo && capturedGoodsCode) apiInfo = { goodsCode: capturedGoodsCode, playSeq };
@@ -554,7 +610,7 @@ async function scrapeTicketPage(context, url, label) {
     if (gradesByRound.size === 0) {
       throw new Error(`${tag}날짜는 클릭했지만 등급별 잔여석 정보를 화면에서 찾지 못했습니다.`);
     }
-    return { status: 'ok', gradesByRound, meta, apiInfo };
+    return { status: 'ok', gradesByRound, roundApiInfo, meta, apiInfo };
   } catch (err) {
     await page.screenshot({ path: 'ticket-debug.png', fullPage: true }).catch(() => {});
     await page.close().catch(() => {});
@@ -594,6 +650,7 @@ async function scrapeTicketPage(context, url, label) {
     }
 
     const gradesByRound = primary.gradesByRound; // roundLabel -> grades (병합 대상)
+    const roundApiInfo = primary.roundApiInfo || new Map(); // roundLabel -> {goodsCode, playSeq} (회차별 실제 좌표 — 안정적 이름 유지에 씀)
     const meta = primary.meta;
     let apiInfo = primary.apiInfo;
 
@@ -604,6 +661,11 @@ async function scrapeTicketPage(context, url, label) {
           for (const [roundLabel, grades] of alt.gradesByRound) {
             const existing = gradesByRound.get(roundLabel);
             gradesByRound.set(roundLabel, existing ? Object.assign({}, existing, grades) : grades);
+          }
+          if (alt.roundApiInfo) {
+            for (const [roundLabel, info] of alt.roundApiInfo) {
+              if (!roundApiInfo.has(roundLabel)) roundApiInfo.set(roundLabel, info);
+            }
           }
           meta.buyUrl2 = TICKET_URL_ALT;
           console.log(`✅ 두 번째 상품(${TICKET_URL_ALT_LABEL}) 병합 완료.`);
@@ -626,7 +688,16 @@ async function scrapeTicketPage(context, url, label) {
     for (const [roundLabel, grades] of gradesByRound) {
       if (!grades || Object.keys(grades).length === 0) continue;
       const totals = await computeTotalsToRecord(grades, roundLabel);
-      const metaForRound = apiInfo ? Object.assign({}, meta, { api: apiInfo }) : meta;
+      // 이 회차 고유의 goodsCode/playSeq를 meta에 같이 남겨둔다 — 나중에 NOL에서 이 회차의
+      // 표시 시간이 또 바뀌어도(resolveStableRoundLabel이 이 값들로 조회) round_label을
+      // 계속 이어서 쓸 수 있게 하기 위함(2026-09-18 추가, 자세한 배경은 formatRoundLabel
+      // 아래 resolveStableRoundLabel 주석 참고).
+      const thisRoundInfo = roundApiInfo.get(roundLabel);
+      const metaExtra = {};
+      if (apiInfo) metaExtra.api = apiInfo;
+      if (thisRoundInfo && thisRoundInfo.goodsCode) metaExtra.goodsCode = thisRoundInfo.goodsCode;
+      if (thisRoundInfo && thisRoundInfo.playSeq != null) metaExtra.playSeq = thisRoundInfo.playSeq;
+      const metaForRound = Object.keys(metaExtra).length ? Object.assign({}, meta, metaExtra) : meta;
       const note = TICKET_URL_ALT ? `NOL API 응답에서 직접 추출 (${TICKET_URL_LABEL || '상품1'}+${TICKET_URL_ALT_LABEL} 병합)` : 'NOL API 응답에서 직접 추출';
       await postSnapshot(grades, roundLabel, note, totals, metaForRound);
       recorded++;
