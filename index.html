@@ -12550,7 +12550,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-09-18T13:39:18+09:00';
+    const BUILD_ID = '2026-09-18T16:51:19+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -13938,7 +13938,11 @@
       const plot = dotEl.parentElement;
       const text = __tkTipStore[+dotEl.dataset.tip];
       if (!plot || text == null) return;
-      plot.querySelectorAll('.tk-dot-tip').forEach(t => t.remove());
+      // 2026-09-18: 차트가 여러 개(일별/시간별/10분 간격)인 화면에서, 한 차트의 말풍선을 띄운
+      // 채로 다른 차트의 점을 눌러도 기존 말풍선이 안 사라지고 여러 개가 동시에 떠 있다는
+      // 지적 — 원인은 이 제거가 같은 차트(plot) 안만 봐서였다. 새 말풍선을 띄울 땐 화면
+      // 전체에서 하나만 남도록 문서 전체를 기준으로 지운다.
+      document.querySelectorAll('.tk-dot-tip').forEach(t => t.remove());
       const tip = document.createElement('div');
       tip.className = 'tk-dot-tip' + (text.includes('\n') ? ' multi' : '');
       if (hover) tip.dataset.hover = '1';
