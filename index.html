@@ -11167,6 +11167,17 @@
     .tk-hist-tbl td.dim { color: var(--dim); }
     .tk-hist-tbl td.neg { color: var(--red); }
     .tk-hist-wrap { max-height: 480px; overflow-y: auto; scrollbar-gutter: stable; padding-right: 16px; }
+    /* 2026-09-19: "판매 히스토리" 표의 "변화" 값 — 눌러서 등급별 상세를 볼 수 있음을
+       버튼처럼 보이게 표시(점선 밑줄 + 커서). 실제 값/색(양수·음수·0)은 기존 td 클래스가 그대로 담당. */
+    .tk-hist-tbl td.tk-hist-delta-cell { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+    .tk-hist-tbl td.tk-hist-delta-cell:active { opacity: .6; }
+    .tk-hd-row { display: flex; align-items: baseline; gap: 8px; padding: 9px 0; border-bottom: 1px solid var(--hair); font-size: 13.5px; }
+    .tk-hd-row:last-child { border-bottom: none; }
+    .tk-hd-name { flex: 1 1 auto; font-weight: 700; }
+    .tk-hd-vals { color: var(--dim); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+    .tk-hd-delta { min-width: 80px; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .tk-hd-delta.neg { color: var(--red); }
+    .tk-hd-delta.dim { color: var(--dim); font-weight: 400; }
     .tk-dash-past { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 32px; margin-top: 22px; }
     .tk-dash-past > .sec-title { grid-column: 1 / -1; }
     .tk-dash-past > .tk-past { padding: 12px 0 !important; border-bottom: 1px solid var(--hair) !important; }
@@ -12550,7 +12561,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-09-18T16:51:19+09:00';
+    const BUILD_ID = '2026-09-19T16:09:35+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -15742,7 +15753,13 @@
         const summaryText = (hHasTotal && hTotal > 0)
           ? `총 좌석 판매 수 : ${(hTotal - hRemainForTotal).toLocaleString()}/${hTotal.toLocaleString()} (${((hTotal - hRemainForTotal) / hTotal * 100).toFixed(1)}%)`
           : `잔여 합계 ${hRemainAll.toLocaleString()}석`;
-        return `<div class="tk-hist-row">
+        // 2026-09-19: "변화" 값을 눌렀을 때 등급별로 얼마나 움직였는지 보여주려면, 이 기록의
+        // 등급별 잔여석이 (다른 곳에서 다시 조회할 필요 없이) 화면에 이미 있어야 한다 — 아래
+        // v2 레이아웃의 표 조립부(약 29360행)가 이 카드 목록을 다시 읽어 표로 바꾸는데, 그때도
+        // grades 원본이 필요하기 때문. attribute 하나에 등급명→잔여석만 압축해서 심어둔다.
+        const compactGrades = {};
+        Object.keys(grades).forEach(k => { const v = grades[k] && grades[k].remain; if (v != null) compactGrades[k] = v; });
+        return `<div class="tk-hist-row" data-g="${esc(JSON.stringify(compactGrades))}">
         <span class="tk-hist-time">${fmtSnapTime(r.captured_at)}</span>
         <span class="tk-hist-round">${(showRoundLabel && r.round_label) ? esc(r.round_label) + ' · ' : ''}${esc(summaryText)}</span>
       </div>`;
@@ -17770,6 +17787,31 @@
     function overlayHost() {
       return document.fullscreenElement || document.webkitFullscreenElement || document.querySelector('.gm-pseudo-full') || document.body;
     }
+    // 2026-09-19: 티켓 "판매 히스토리(10분 간격)" 표에서 "변화" 값을 누르면, 그 기록과 바로
+    // 직전 기록 사이에 등급(구역)별로 잔여석이 얼마나 움직였는지 상세 팝업으로 보여준다.
+    // 표를 그릴 때(v2 레이아웃 조립부)마다 window.__tkHistDelta에 행 index → 상세 데이터를
+    // 채워두고, 이 함수는 그 index 하나를 받아 모달을 띄우기만 한다.
+    function tkHistDeltaShow(i) {
+      const d = (window.__tkHistDelta || [])[i];
+      if (!d) return;
+      const rowsHTML = (d.items && d.items.length)
+        ? d.items.map(it => {
+          const cls = it.delta > 0 ? '' : it.delta < 0 ? ' neg' : ' dim';
+          const sign = it.delta > 0 ? '+' : '';
+          const label = it.from == null ? '신규 등장' : it.to == null ? '이번엔 없음' : it.delta > 0 ? '판매' : it.delta < 0 ? '취소/증가' : '변화없음';
+          const valsText = `${it.from == null ? '-' : it.from.toLocaleString()} → ${it.to == null ? '-' : it.to.toLocaleString()}`;
+          return `<div class="tk-hd-row"><span class="tk-hd-name">${esc(it.name)}</span><span class="tk-hd-vals">${valsText}</span><span class="tk-hd-delta${cls}">${sign}${it.delta.toLocaleString()}석 ${label}</span></div>`;
+        }).join('')
+        : `<div class="empty">두 기록 사이에 등급별 변화가 없습니다.</div>`;
+      const ov = document.createElement('div');
+      ov.className = 'modal-ov';
+      ov.innerHTML = `<div class="modal" style="max-width:380px">
+      <div class="modal-h"><span><b>등급별 변화</b> <span style="color:var(--dim);font-size:12.5px;font-weight:600">${esc(d.prevTime || '')} → ${esc(d.time || '')}</span></span><button class="modal-x" onclick="history.back()">✕</button></div>
+      <div class="modal-b">${rowsHTML}</div></div>`;
+      ov.onclick = e => { if (e.target === ov) history.back(); };
+      pushModal(ov);
+    }
+    window.tkHistDeltaShow = tkHistDeltaShow;
     function pushModal(ov) {
       overlayHost().append(ov);
       history.pushState({ fpModal: 1 }, '');
@@ -29362,14 +29404,35 @@
         H.body.forEach(function (c) { c.querySelectorAll('.tk-hist-row').forEach(function (r) {
           var t = (r.querySelector('.tk-hist-time') || {}).textContent || '', txt = (r.querySelector('.tk-hist-round') || {}).textContent || '';
           var m = txt.match(/([\d,]+)\s*\/\s*([\d,]+)\s*\(([\d.]+)%\)/);
-          rows.push({ t: t.trim(), sold: m ? +m[1].replace(/,/g, '') : null, tot: m ? m[2] : '', pct: m ? m[3] : '', raw: txt.replace(/^총 좌석 판매 수\s*:\s*/, '').trim() });
+          var g = null; try { g = JSON.parse(r.getAttribute('data-g') || 'null'); } catch (e) { g = null; }
+          rows.push({ t: t.trim(), sold: m ? +m[1].replace(/,/g, '') : null, tot: m ? m[2] : '', pct: m ? m[3] : '', raw: txt.replace(/^총 좌석 판매 수\s*:\s*/, '').trim(), g: g });
         }); });
         if (rows.length) {
+          // 2026-09-19: "변화" 값을 누르면 등급(구역)별 상세를 볼 수 있게 — 이 기록(r)과 바로
+          // 직전 기록(nx, 시간상 더 과거) 사이 등급별 잔여석 차이를 미리 계산해 둔다.
+          // 잔여석이 줄면 그만큼 판매된 것(+), 늘면 취소·추가오픈으로 본다(-).
+          var histDelta = [];
           var tb = rows.map(function (r, i) {
             var nx = rows[i + 1]; var d = (r.sold != null && nx && nx.sold != null) ? r.sold - nx.sold : null;
             var dTxt = d == null ? '' : (d > 0 ? '+' + d.toLocaleString() : d.toLocaleString());
-            return '<tr><td class="dim">' + r.t + '</td><td class="r">' + (r.sold != null ? r.sold.toLocaleString() + ' / ' + r.tot : r.raw) + '</td><td class="r dim">' + (r.pct ? r.pct + '%' : '') + '</td><td class="r' + (d < 0 ? ' neg' : d > 0 ? '' : ' dim') + '">' + dTxt + '</td></tr>';
+            var hasDetail = !!(r.g && nx && nx.g);
+            if (hasDetail) {
+              var keys = {};
+              Object.keys(r.g).forEach(function (k) { keys[k] = 1; });
+              Object.keys(nx.g).forEach(function (k) { keys[k] = 1; });
+              var items = Object.keys(keys).map(function (k) {
+                var from = nx.g[k] != null ? nx.g[k] : null, to = r.g[k] != null ? r.g[k] : null;
+                var delta = (from != null && to != null) ? (from - to) : 0;
+                return { name: k, from: from, to: to, delta: delta };
+              }).filter(function (it) { return it.delta !== 0 || it.from == null || it.to == null; })
+                .sort(function (a, b) { return Math.abs(b.delta) - Math.abs(a.delta); });
+              histDelta[i] = { time: r.t, prevTime: nx.t, items: items };
+            }
+            var dCellCls = 'r' + (d < 0 ? ' neg' : d > 0 ? '' : ' dim') + (hasDetail ? ' tk-hist-delta-cell' : '');
+            var dCellAttr = hasDetail ? ' onclick="tkHistDeltaShow(' + i + ')"' : '';
+            return '<tr><td class="dim">' + r.t + '</td><td class="r">' + (r.sold != null ? r.sold.toLocaleString() + ' / ' + r.tot : r.raw) + '</td><td class="r dim">' + (r.pct ? r.pct + '%' : '') + '</td><td class="' + dCellCls + '"' + dCellAttr + '>' + dTxt + '</td></tr>';
           }).join('');
+          window.__tkHistDelta = histDelta;
           hist.insertAdjacentHTML('beforeend', '<div class="tk-hist-wrap"><table class="tk-hist-tbl"><thead><tr><th>시각</th><th class="r">판매 / 총 좌석</th><th class="r">판매율</th><th class="r">변화</th></tr></thead><tbody>' + tb + '</tbody></table></div>');
           H.body.forEach(function (c) { c.style.display = 'none'; hist.appendChild(c); });
         } else { H.body.forEach(function (c) { hist.appendChild(c); }); }
