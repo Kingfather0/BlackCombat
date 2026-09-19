@@ -12561,7 +12561,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-09-19T17:20:32+09:00';
+    const BUILD_ID = '2026-09-19T17:29:37+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -29464,18 +29464,33 @@
         var rev = app.querySelector('.tk-card .tk-rev');
         var fcCard = kpi.querySelector('.card:has(#tk-fc-info)') || totCard;
         if (rev && fcCard && !fcCard.querySelector('.tk-rev')) fcCard.appendChild(rev);
-        // 판매 기록 표: 변화 열 정렬(내림차순 → 오름차순 → 해제)
+        // 판매 기록 표: 시각/변화 열 정렬(내림차순 → 오름차순 → 해제) — 2026-09-19: "변화"만
+        // 되던 걸 "시각" 열도 같은 방식으로 정렬되게 확장. 두 열이 동시에 화살표를 보이면
+        // 마치 두 기준으로 같이 정렬되는 것처럼 헷갈리므로, 한쪽을 누르면 다른 쪽 정렬 상태는
+        // 초기화한다(항상 한 번에 한 기준으로만 정렬).
         var tbl = hist.querySelector('.tk-hist-tbl');
         if (tbl) {
-          var th = tbl.querySelectorAll('th')[3], tbody = tbl.querySelector('tbody');
-          var base = [].slice.call(tbody.children), mode = 0;
-          th.classList.add('sort');
-          th.addEventListener('click', function () {
-            mode = (mode + 1) % 3; th.classList.toggle('desc', mode === 1); th.classList.toggle('asc', mode === 2);
-            var arr = base.slice();
-            if (mode) arr.sort(function (x, y) { var vx = parseInt((x.lastElementChild.textContent || '0').replace(/[+,]/g, '')) || 0, vy = parseInt((y.lastElementChild.textContent || '0').replace(/[+,]/g, '')) || 0; return mode === 1 ? vy - vx : vx - vy; });
-            tbody.replaceChildren.apply(tbody, arr);
-          });
+          var ths = tbl.querySelectorAll('th'), tbody = tbl.querySelector('tbody');
+          var base = [].slice.call(tbody.children);
+          // 시각 열은 원래 표시 순서 자체가 이미 최신순이므로, 문자열을 따로 파싱하지 않고
+          // "원래 순서에서 몇 번째였는지"로 정렬한다(0번=가장 최신).
+          var idxOf = new Map(); base.forEach(function (tr, idx) { idxOf.set(tr, idx); });
+          var resetters = [];
+          function wireSort(th, getVal) {
+            var mode = 0;
+            th.classList.add('sort');
+            var reset = function () { mode = 0; th.classList.remove('desc', 'asc'); };
+            resetters.push(reset);
+            th.addEventListener('click', function () {
+              resetters.forEach(function (r) { if (r !== reset) r(); });
+              mode = (mode + 1) % 3; th.classList.toggle('desc', mode === 1); th.classList.toggle('asc', mode === 2);
+              var arr = base.slice();
+              if (mode) arr.sort(function (x, y) { var vx = getVal(x), vy = getVal(y); return mode === 1 ? vy - vx : vx - vy; });
+              tbody.replaceChildren.apply(tbody, arr);
+            });
+          }
+          wireSort(ths[0], function (tr) { return -idxOf.get(tr); }); // 내림차순=최신순(기본과 동일), 오름차순=오래된순
+          wireSort(ths[3], function (tr) { return parseInt((tr.lastElementChild.textContent || '0').replace(/[+,]/g, '')) || 0; });
         }
         // 등급별 판매율 옆에 "판매 석수 / 총 석수"를 짧게 표시 — "(총 120석 중 118석 판매)" → "· 118 / 120석"
         app.querySelectorAll('.tk-pct-sub:not(.v2-compact)').forEach(function (sub) { var m = sub.textContent.match(/총\s*([\d,]+)석\s*중\s*([\d,]+)석/); if (m) { sub.textContent = '\u00B7 ' + m[1] + '\uC11D \uC911 ' + m[2] + '\uC11D \uD310\uB9E4'; sub.classList.add('v2-compact'); } });
