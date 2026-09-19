@@ -12561,7 +12561,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-09-19T17:29:37+09:00';
+    const BUILD_ID = '2026-09-20T00:43:12+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -13893,6 +13893,12 @@
       // 구역 높이는 실제 최대값 비율대로 배분하되, 아래 구역이 너무 납작해지지 않게 최소 22%는 확보한다.
       const negFrac = maxNeg > 0 ? Math.max(0.22, maxNeg / (maxPos + maxNeg)) : 0;
       const posFrac = 1 - negFrac;
+      // 2026-09-20: 마이너스 막대를 자기들끼리의 최댓값(maxNeg)만 기준으로 채우면, 마이너스가
+      // 딱 하루뿐이고 그게 -1처럼 아주 작은 값이어도 "그중엔 자기가 제일 크다"는 이유로 항상
+      // 자기 구역을 100% 채워버려서, 실제로는 미미한데 판매 막대만큼 커 보였다(신고 확인).
+      // 양/음 막대를 하나의 공통 기준(scaleMax = 둘 중 큰 쪽)으로 놓고 계산해서, 마이너스가
+      // 정말 클 때만 크게 보이고 -1 같은 값은 최소 보임 처리만 될 만큼만 보이게 한다.
+      const scaleMax = Math.max(maxPos, maxNeg, 1);
       const tipOf = b => {
         const hasGap = !b.isStart && b.spanDays > 1;
         const deltaText = `${b.delta >= 0 ? '+' : ''}${b.delta.toLocaleString()}석`;
@@ -13915,7 +13921,7 @@
         </div>`;
         }
         const hPos = b.delta > 0 ? Math.max(b.delta / maxPos * 100, 3) : 0;
-        const hNeg = b.delta < 0 ? Math.max(-b.delta / maxNeg * 100, 3) : 0;
+        const hNeg = b.delta < 0 ? Math.max(Math.min((-b.delta / scaleMax) / negFrac * 100, 100), 3) : 0;
         return `<div class="tk-day-col tk-day-col2${cls}"${tkTipAttrs(tip)}>
           <span class="tk-day-pos" style="height:${(posFrac * 100).toFixed(1)}%"><i class="tk-day-fill" style="height:${hPos.toFixed(1)}%${b.delta > 0 ? ';min-height:4px' : ''}"></i></span>
           <span class="tk-day-neg" style="height:${(negFrac * 100).toFixed(1)}%"><i class="tk-day-fill tk-day-fill-neg" style="height:${hNeg.toFixed(1)}%${b.delta < 0 ? ';min-height:4px' : ''}"></i></span>
@@ -29604,6 +29610,9 @@
               var maxPos = Math.max.apply(null, [1].concat(vals.map(function (x) { return Math.max(0, x); })));
               var maxNeg = Math.max.apply(null, [0].concat(vals.map(function (x) { return Math.max(0, -x); })));
               var negFrac = maxNeg > 0 ? Math.max(0.22, maxNeg / (maxPos + maxNeg)) : 0, posFrac = 1 - negFrac;
+              // 2026-09-20: 일별 차트와 같은 이유로 — 마이너스가 시간대 중 단 한 곳뿐이고 그게
+              // -1처럼 작은 값이어도 자기 구역을 100% 채워 판매 막대만큼 커 보이는 문제를 고침.
+              var scaleMax = Math.max(maxPos, maxNeg, 1);
               var bars = ''; for (var h = 0; h < 24; h++) {
                 var v = per[h] || 0, c = cum[h];
                 var tip = h + '시 ' + (v > 0 ? '+' : '') + v.toLocaleString() + '석 ' + (v < 0 ? '(취소가 더 많음)' : '판매') + (c != null ? ' · 누적 ' + c.toLocaleString() + '석' + (totalSeats ? ' (' + (c / totalSeats * 100).toFixed(1) + '%)' : '') : '');
@@ -29611,7 +29620,7 @@
                 if (!negFrac) {
                   bars += '<div class="tk-day-col"' + attrs + '><i class="tk-day-fill" style="height:' + (Math.max(0, v) / maxPos * 100).toFixed(1) + '%' + (v > 0 ? ';min-height:4px' : '') + '"></i></div>';
                 } else {
-                  var hPos = v > 0 ? Math.max(v / maxPos * 100, 3) : 0, hNeg = v < 0 ? Math.max(-v / maxNeg * 100, 3) : 0;
+                  var hPos = v > 0 ? Math.max(v / maxPos * 100, 3) : 0, hNeg = v < 0 ? Math.max(Math.min((-v / scaleMax) / negFrac * 100, 100), 3) : 0;
                   bars += '<div class="tk-day-col tk-day-col2"' + attrs + '><span class="tk-day-pos" style="height:' + (posFrac * 100).toFixed(1) + '%"><i class="tk-day-fill" style="height:' + hPos.toFixed(1) + '%' + (v > 0 ? ';min-height:4px' : '') + '"></i></span><span class="tk-day-neg" style="height:' + (negFrac * 100).toFixed(1) + '%"><i class="tk-day-fill tk-day-fill-neg" style="height:' + hNeg.toFixed(1) + '%' + (v < 0 ? ';min-height:4px' : '') + '"></i></span></div>';
                 }
               }
