@@ -12561,7 +12561,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-09-20T00:51:00+09:00';
+    const BUILD_ID = '2026-09-21T07:46:04+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -15427,6 +15427,28 @@
         if (!pricesByRound.has(key) && r.meta && r.meta.gradePrices && Object.keys(r.meta.gradePrices).length) pricesByRound.set(key, r.meta.gradePrices);
         if (!colorsByRound.has(key) && r.meta && r.meta.gradeColors && Object.keys(r.meta.gradeColors).length) colorsByRound.set(key, r.meta.gradeColors);
       });
+      // 2026-09-20: 등급별 정가 조회를 함수로 빼서, 아래 "예상 매출" 계산뿐 아니라 판매
+      // 히스토리의 등급별 변화 팝업(histHTML/tkHistDeltaShow)에서도 같은 라운드별 가격
+      // (+ 하드코딩 보정표)을 그대로 재사용할 수 있게 한다.
+      const resolveTkGradePrices = (rKey) => {
+        const p = pricesByRound.get(rKey) || null;
+        // 로드FC: 가격 정보가 담긴 유일한 캡처(8/11)는 잘못된 총원(3,070)을 담고 있어 DB에서
+        // 삭제 대상이라, 전 등급 정가를 NOL 상품 페이지 가격표(2026-08-20 실측 확인)로 여기
+        // 고정해둔다. 기록에 가격이 있으면 그 값이 우선하고, 없는 등급만 이 표로 보충한다.
+        // 복마전 002: NOL 예매 페이지에 등급별 가격이 캡처되지 않는 행사라(휠체어석 등
+        // GA/스탠딩 등급은 애초에 개별 가격 API가 없음), 유저가 직접 캡처해 전달해준
+        // 가격표(2026-09-17)를 고정값으로 둔다. 내부 등급 키는 "석" 접미사 없이 grades/
+        // gradeTotals와 동일하게 맞춘다(gradeRowsHTML이 표시할 때 "석"을 붙여준다).
+        const fb = (eventKey === 'road_2026_0811') ? {
+          'VIP 플로어(1열)': 500000, 'VIP 플로어(2열)': 350000, 'VIP 플로어(3열)': 220000,
+          'VIP 플로어(4열)': 198000, 'VIP 플로어(5열)': 176000, 'VIP 플로어(6열)': 176000,
+          'S석(지정석)': 150000, '일반석(지정석)': 88000,
+        } : (eventKey === 'yachaclub_bokmajeon002_2026_1011') ? {
+          VVIP: 1800000, VIP: 1200000, R1: 450000, S1: 400000, A1: 350000, R2: 350000,
+          S2: 300000, A2: 250000, '단차': 120000, '야차스탠딩': 70000, '피버존': 50000, '휠체어': 50000,
+        } : null;
+        return fb ? Object.assign({}, fb, p || {}) : p;
+      };
       // 2026-08-20: 북마클릿이 "실제 좌석 데이터"에서 좌석을 하나하나 세어 얻은 등급별 총원
       // (meta.gradeTotals — 팔린 좌석까지 포함한 실측값, 전 등급 합계가 판매 대상 총계와 정확히
       // 일치)이 있으면, 잔여석 기반 추정치(totals)를 등급별로 덮어써서 정확한 값으로 교정한다.
@@ -15660,25 +15682,7 @@
         // 미분류(미배정) 좌석이 실측 분해된 행사(TK_HOLDS_BY_EVENT 참고)는 매출을 두 갈래로
         // 보여준다: ① 미분류 제외(일반 예매 집계 기준), ② 미분류 포함(전량 정가 판매 시 상한).
         const TK_UNCLASSIFIED_HOLDS = tkHoldsCfg ? tkHoldsCfg.holds : null;
-        const gradePrices = (() => {
-          const p = pricesByRound.get(roundKey) || null;
-          // 로드FC: 가격 정보가 담긴 유일한 캡처(8/11)는 잘못된 총원(3,070)을 담고 있어 DB에서
-          // 삭제 대상이라, 전 등급 정가를 NOL 상품 페이지 가격표(2026-08-20 실측 확인)로 여기
-          // 고정해둔다. 기록에 가격이 있으면 그 값이 우선하고, 없는 등급만 이 표로 보충한다.
-          // 복마전 002: NOL 예매 페이지에 등급별 가격이 캡처되지 않는 행사라(휠체어석 등
-          // GA/스탠딩 등급은 애초에 개별 가격 API가 없음), 유저가 직접 캡처해 전달해준
-          // 가격표(2026-09-17)를 고정값으로 둔다. 내부 등급 키는 "석" 접미사 없이 grades/
-          // gradeTotals와 동일하게 맞춘다(gradeRowsHTML이 표시할 때 "석"을 붙여준다).
-          const fb = (eventKey === 'road_2026_0811') ? {
-            'VIP 플로어(1열)': 500000, 'VIP 플로어(2열)': 350000, 'VIP 플로어(3열)': 220000,
-            'VIP 플로어(4열)': 198000, 'VIP 플로어(5열)': 176000, 'VIP 플로어(6열)': 176000,
-            'S석(지정석)': 150000, '일반석(지정석)': 88000,
-          } : (eventKey === 'yachaclub_bokmajeon002_2026_1011') ? {
-            VVIP: 1800000, VIP: 1200000, R1: 450000, S1: 400000, A1: 350000, R2: 350000,
-            S2: 300000, A2: 250000, '단차': 120000, '야차스탠딩': 70000, '피버존': 50000, '휠체어': 50000,
-          } : null;
-          return fb ? Object.assign({}, fb, p || {}) : p;
-        })();
+        const gradePrices = resolveTkGradePrices(roundKey);
         const gradeColors = colorsByRound.get(roundKey) || null;
         let revenueHTML = '';
         if (gradeTotals && gradePrices) {
@@ -15762,9 +15766,16 @@
         // 2026-09-19: "변화" 값을 눌렀을 때 등급별로 얼마나 움직였는지 보여주려면, 이 기록의
         // 등급별 잔여석이 (다른 곳에서 다시 조회할 필요 없이) 화면에 이미 있어야 한다 — 아래
         // v2 레이아웃의 표 조립부(약 29360행)가 이 카드 목록을 다시 읽어 표로 바꾸는데, 그때도
-        // grades 원본이 필요하기 때문. attribute 하나에 등급명→잔여석만 압축해서 심어둔다.
+        // grades 원본이 필요하기 때문. attribute 하나에 등급명→잔여석(+가격, 있으면)을 압축해서 심어둔다.
+        // 2026-09-20: 등급별 변화 팝업에 1석 가격도 같이 보여달라는 요청으로 price(p)를 추가.
+        const gradePricesH = resolveTkGradePrices(roundKeyH);
         const compactGrades = {};
-        Object.keys(grades).forEach(k => { const v = grades[k] && grades[k].remain; if (v != null) compactGrades[k] = v; });
+        Object.keys(grades).forEach(k => {
+          const v = grades[k] && grades[k].remain;
+          if (v == null) return;
+          const price = gradePricesH && gradePricesH[k];
+          compactGrades[k] = price != null ? { r: v, p: price } : { r: v };
+        });
         return `<div class="tk-hist-row" data-g="${esc(JSON.stringify(compactGrades))}">
         <span class="tk-hist-time">${fmtSnapTime(r.captured_at)}</span>
         <span class="tk-hist-round">${(showRoundLabel && r.round_label) ? esc(r.round_label) + ' · ' : ''}${esc(summaryText)}</span>
@@ -17813,7 +17824,9 @@
           else if (it.delta < 0) { cls = ' neg'; text = `${it.delta.toLocaleString()}석 취소`; }
           else { cls = ' dim'; text = '변화없음'; }
           const valsText = `잔여석 ${it.from == null ? '-' : it.from.toLocaleString()} → ${it.to == null ? '-' : it.to.toLocaleString()}`;
-          return `<div class="tk-hd-row"><span class="tk-hd-name">${esc(it.name)}</span><span class="tk-hd-vals">${valsText}</span><span class="tk-hd-delta${cls}">${text}</span></div>`;
+          // 2026-09-20: 좌석등급 옆에 1석 가격도 같이 보여달라는 요청 — 알고 있는 등급만 표시.
+          const priceText = it.price != null ? `<span style="font-size:11.5px;color:var(--dim);font-weight:600;margin-left:6px">${it.price.toLocaleString()}원</span>` : '';
+          return `<div class="tk-hd-row"><span class="tk-hd-name">${esc(it.name)}${priceText}</span><span class="tk-hd-vals">${valsText}</span><span class="tk-hd-delta${cls}">${text}</span></div>`;
         }).join('')
         : `<div class="empty">두 기록 사이에 등급별 변화가 없습니다.</div>`;
       const ov = document.createElement('div');
@@ -29434,9 +29447,12 @@
               Object.keys(r.g).forEach(function (k) { keys[k] = 1; });
               Object.keys(nx.g).forEach(function (k) { keys[k] = 1; });
               var items = Object.keys(keys).map(function (k) {
-                var from = nx.g[k] != null ? nx.g[k] : null, to = r.g[k] != null ? r.g[k] : null;
+                var rG = r.g[k], nxG = nx.g[k];
+                var from = nxG != null ? nxG.r : null, to = rG != null ? rG.r : null;
                 var delta = (from != null && to != null) ? (from - to) : 0;
-                return { name: k, from: from, to: to, delta: delta };
+                // 가격(p)은 두 기록 중 어느 쪽에 있든(등급별 가격이 나중에 채워진 경우 대비) 있는 값을 쓴다.
+                var price = (rG && rG.p != null) ? rG.p : ((nxG && nxG.p != null) ? nxG.p : null);
+                return { name: k, from: from, to: to, delta: delta, price: price };
               }).filter(function (it) { return it.delta !== 0 || it.from == null || it.to == null; })
                 .sort(function (a, b) { return Math.abs(b.delta) - Math.abs(a.delta); });
               histDelta[i] = { time: r.t, prevTime: nx.t, items: items };
