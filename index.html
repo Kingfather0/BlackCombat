@@ -12561,7 +12561,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-09-21T07:46:04+09:00';
+    const BUILD_ID = '2026-09-21T08:43:48+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -15002,6 +15002,47 @@
     function fmtSnapDate(d) {
       return new Date(d).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
     }
+    // 2026-09-21: "지난 티켓" 목록의 "기록 N건"은 사용자에게 아무 의미 없는 숫자라, 실제 판매
+    // 결과(판매 좌석 수 · 매진여부/판매율)로 바꿔 보여준다. tkPickTotal은 "현재 보고 있는 행사"의
+    // 전역 tkHoldsCfg에 의존하므로, 목록에 있는 여러 다른 행사에 그대로 쓰면 안 되고 행사별로
+    // TK_HOLDS_BY_EVENT를 직접 찾아 같은 판단을 내리는 버전을 따로 둔다.
+    function tkPickTotalForEvent(eventKey, sellableTotal, overallTotal) {
+      const cfg = TK_HOLDS_BY_EVENT[eventKey] || null;
+      if (cfg && !cfg.includedInTotals) return overallTotal != null ? overallTotal : sellableTotal;
+      return sellableTotal != null ? sellableTotal : overallTotal;
+    }
+    // 행사 하나의 전체 기록(rows, fetchTicketSnapshots 결과)으로 "총 좌석 대비 판매 수"를 계산한다.
+    // 로직은 현재 행사 화면의 "전체 좌석" 합산(round_label별 최신 기록 + meta.overallTotal/sellableTotal
+    // 역추적)과 같은 방식 — 다만 지난 행사는 이미 추적이 끝났으므로 STALE_ROUND_MS 같은 "사라진
+    // 회차 걸러내기"는 필요 없다. 총원을 하나도 모르면(둘 다 null) 화면에서 기존 "기록 N건"으로
+    // 대체할 수 있게 null을 반환한다.
+    function tkSummarizePastEvent(eventKey, rows) {
+      if (!rows || !rows.length) return null;
+      const latestByRound = new Map();
+      rows.forEach(r => { const key = r.round_label || '__default__'; if (!latestByRound.has(key)) latestByRound.set(key, r); });
+      const overallByRound = new Map(), sellableByRound = new Map();
+      rows.forEach(r => {
+        const key = r.round_label || '__default__';
+        if (!overallByRound.has(key) && r.meta && r.meta.overallTotal != null) overallByRound.set(key, r.meta.overallTotal);
+        if (!sellableByRound.has(key) && r.meta && r.meta.sellableTotal != null) sellableByRound.set(key, r.meta.sellableTotal);
+      });
+      let sumTotal = 0, sumRemain = 0, hasTotal = false;
+      latestByRound.forEach(r => {
+        const grades = r.grades || {}, totals = r.totals || {};
+        const key = r.round_label || '__default__';
+        const effectiveTotal = tkPickTotalForEvent(eventKey, sellableByRound.get(key), overallByRound.get(key));
+        const remainSum = Object.keys(grades).reduce((s, k) => s + ((grades[k] && grades[k].remain) || 0), 0);
+        if (effectiveTotal != null) { sumTotal += effectiveTotal; sumRemain += remainSum; hasTotal = true; return; }
+        Object.keys(grades).forEach(k => {
+          const remain = grades[k] && grades[k].remain;
+          const total = totals[k];
+          if (total != null && remain != null) { sumTotal += total; sumRemain += remain; hasTotal = true; }
+        });
+      });
+      if (!hasTotal || sumTotal <= 0) return null;
+      const sold = Math.max(0, sumTotal - sumRemain);
+      return { sold, total: sumTotal, pct: sold / sumTotal * 100, soldOut: sumRemain <= 0 };
+    }
     /* ── 매진 예측 ──
        시간별 스냅샷의 "실구매 속도"로 남은 좌석이 언제 0이 될지 단순 추세로 추정한다.
        퀄리티를 위해 신경 쓴 것들:
@@ -15257,13 +15298,27 @@
         const past = events.filter(e => (trackingEnded || e.event_key !== eventKey) && !TK_PAST_EXCLUDE_EVENT_KEYS.includes(e.event_key))
           .sort((a, b) => new Date(b.first_at) - new Date(a.first_at));
         if (past.length) {
+          // 2026-09-21: "기록 N건"은 스냅샷 저장 횟수일 뿐이라 사용자에게 의미가 없어서, 실제
+          // 판매 결과(판매 좌석 수 · 매진여부/판매율)로 바꿔 보여준다. 개별 지난 티켓 페이지와
+          // 같은 계산을 하려면 그 행사의 전체 기록이 필요해서, 목록에 있는 행사마다 다시 불러와
+          // 계산한다(fetchTicketSnapshots는 이미 개별 페이지에서 쓰던 함수 그대로 재사용).
+          // 총원을 하나도 못 찾은 행사만 예전처럼 "기록 N건"으로 대체한다(회귀 없는 안전망).
+          const pastSummaries = await Promise.all(past.map(e =>
+            fetchTicketSnapshots(e.event_key).then(r => tkSummarizePastEvent(e.event_key, r)).catch(() => null)
+          ));
           pastHTML = `
       <div class="sec-title" style="margin-top:24px">🎟️ 지난 티켓 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최신순 · 총 ${past.length}개</span></div>
-      ${past.map(e => `
+      ${past.map((e, i) => {
+            const s = pastSummaries[i];
+            const saleText = s
+              ? `${s.sold.toLocaleString()}석 판매(${s.soldOut ? '매진' : s.pct.toFixed(1) + '%'})`
+              : `기록 ${Number(e.snap_count).toLocaleString()}건`;
+            return `
       <a class="card tk-past" href="#/tickets/${encodeURIComponent(e.event_key)}" style="display:block;padding:13px 16px;text-decoration:none;color:inherit">
         <div style="font-weight:800;font-size:14.5px">${esc(e.title || e.event_key)}</div>
-        <div class="sub" style="margin-top:3px">📅 ${fmtSnapDate(e.first_at)} ~ ${fmtSnapDate(e.last_at)} · 기록 ${Number(e.snap_count).toLocaleString()}건</div>
-      </a>`).join('')}`;
+        <div class="sub" style="margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📅 ${fmtSnapDate(e.first_at)} ~ ${fmtSnapDate(e.last_at)} · ${saleText}</div>
+      </a>`;
+          }).join('')}`;
         }
       }
 
