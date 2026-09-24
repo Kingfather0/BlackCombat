@@ -9059,13 +9059,15 @@
     }
 
     .bq-rk-tier {
-      /* 2026-09-24: 노란 계열 배경 + 갈색 텍스트가 화면 전체에서 붕 떠 보인다는 피드백 —
-         .badge.live와 같은 회색 배경 + 검정 텍스트 톤으로 바꿔 더 깔끔하게. */
+      /* 2026-09-24: 노란 계열 배경 + 갈색 텍스트가 화면 전체에서 붕 떠 보인다는 피드백으로
+         회색 배경(--key-soft)+검정 텍스트로 바꿨는데, --key-soft(#f5f5f7)가 카드 흰 배경·
+         페이지 배경(#f3f3f6)과 거의 같은 밝기라 배지가 잘 구분되지 않았다 — 한 단계 더
+         진한 회색(--gray-tint-2)으로 바꿔 배경과 확실히 구분되게 한다. */
       font-style: normal;
       font-size: 10.5px;
       font-weight: 800;
       color: var(--key-deep);
-      background: var(--key-soft);
+      background: var(--gray-tint-2);
       border-radius: 99px;
       padding: 2px 7px;
       margin-left: 5px;
@@ -12567,7 +12569,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-09-24T15:34:11+09:00';
+    const BUILD_ID = '2026-09-24T15:40:23+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
