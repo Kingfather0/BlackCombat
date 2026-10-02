@@ -11387,6 +11387,10 @@
     body[data-route="ranking"] #app > .card:has(.rules-b) > button { padding: 12px 0 !important; font-weight: 700 !important; font-size: 14px !important; border-bottom: 1px solid var(--hair); }
     body[data-route="ranking"] .rules-b { border-top: none !important; padding: 12px 0 !important; }
     body[data-route="ranking"] .tbl-scroll { background: transparent; border: none; border-radius: 0; box-shadow: none; padding: 0; overflow: visible; }
+    /* 2026-10-02: 격잘알 누적 랭킹·경기 결과 최종 순위 표에서 "나"의 행을 미니게임 랭킹과 같은 디자인으로 강조 */
+    tr.me > td { background: linear-gradient(100deg, #fffaf0, #fff5e0) !important; border-top: 1.5px solid #f2dfae !important; border-bottom: 1.5px solid #f2dfae !important; }
+    tr.me > td:first-child { border-left: 1.5px solid #f2dfae !important; border-top-left-radius: 13px; border-bottom-left-radius: 13px; }
+    tr.me > td:last-child { border-right: 1.5px solid #f2dfae !important; border-top-right-radius: 13px; border-bottom-right-radius: 13px; }
     body[data-route="ranking"] #rkTable { border: none; }
     body[data-route="ranking"] #rkTable td, body[data-route="ranking"] #rkTable th { border-left: none; border-right: none; }
     body[data-route="ranking"] #rkTable { width: 100%; border-collapse: collapse; }
@@ -12617,7 +12621,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-10-02T20:28:37+09:00';
+    const BUILD_ID = '2026-10-02T20:35:33+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -27480,7 +27484,7 @@
       // 최종 순위 표: 1~3위가 자연스럽게 맨 위에서 먼저 보이도록 표 하나를 통째로 스크롤 영역에
       // 넣는다 (1~3위만 따로 떼어 고정하지 않음 — 스크롤하면 순위 상관없이 전부 같이 움직인다).
       // 닉네임 검색도 순위 구분 없이 전체 행을 대상으로 필터링한다.
-      const rankRowHTML = r => `<tr data-nick="${esc(r.nickname.trim().toLowerCase())}" data-rank="${r.rank}">
+      const rankRowHTML = r => `<tr data-nick="${esc(r.nickname.trim().toLowerCase())}" data-rank="${r.rank}"${(gmMyNick && r.nickname.trim().toLowerCase() === gmMyNick.trim().toLowerCase()) ? ' class="me"' : ''}>
         <td>${chip(r)}</td>
         <td class="rank-nick"><a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a></td>
         <td><button class="stat-chip b stat-chip-btn" data-nick-raw="${esc(r.nickname)}" onclick="openPartsModal(this.dataset.nickRaw)">적중 ${r.hit}</button></td>
@@ -27882,7 +27886,7 @@
     <div class="sec-title">누적 랭킹</div>
     <div class="tbl-scroll"><table id="rkTable">
       <tr><th style="width:64px">순위</th><th class="nick">닉네임 · 칭호</th></tr>
-      ${season.map(r => `<tr data-nick="${esc(r.nickname.toLowerCase())}">
+      ${season.map(r => `<tr data-nick="${esc(r.nickname.toLowerCase())}"${(gmMyNick && r.nickname.trim().toLowerCase() === gmMyNick.trim().toLowerCase()) ? ' class="me"' : ''}>
         <td>${chip(r)}</td>
         <td class="nick" style="max-width:none;white-space:normal;line-height:1.9"><a class="plink" href="#/player/${encodeURIComponent(r.nickname)}">${esc(r.nickname)}</a>${badgesFor(r, streaks).map(b => ' ' + badgeChip(b)).join('')}</td></tr>`).join('')}
     </table></div>
