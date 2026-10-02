@@ -12617,7 +12617,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-10-02T18:49:41+09:00';
+    const BUILD_ID = '2026-10-02T19:36:14+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -20187,14 +20187,18 @@
     // 늘면 잘릴 위험)만 콜론 표기(옛 fmtGapPrecise)로 남겨뒀었는데, "카톡 썸네일에
     // 경과 시간도 00시간 00분 00초로 바꿔달라"는 후속 요청으로 카드 쪽도 이 포맷 +
     // gmFitFont() 자동 축소로 전환하면서 콜론 표기 함수 자체가 더는 안 쓰여 삭제했다.
+    // 2026-10-02: "24시간이 넘어가면 일 단위로 끊어 달라"는 요청 반영 — 25시간 31분 42초 → 1일 01시간 31분 42초.
+    // 이 함수를 쓰는 모든 곳(경과 시간 카드의 직전 대비/평소 주기, 영상 히스토리의 "직전 영상 대비",
+    // 카톡 공유 카드)에 한 번에 적용된다. 24시간 미만은 예전 그대로.
     function fmtGapKorean(v) {
       if (v == null) return '-';
       const totalSec = Math.max(0, Math.round(v * 86400));
-      const h = Math.floor(totalSec / 3600);
+      const d = Math.floor(totalSec / 86400);
+      const h = Math.floor((totalSec % 86400) / 3600);
       const m = Math.floor((totalSec % 3600) / 60);
       const s = totalSec % 60;
       const pad = n => String(n).padStart(2, '0');
-      return `${pad(h)}시간 ${pad(m)}분 ${pad(s)}초`;
+      return `${d > 0 ? d + '일 ' : ''}${pad(h)}시간 ${pad(m)}분 ${pad(s)}초`;
     }
     // "방금추가한 (1일)이 반올림된것같다, 소수점 한자리까지 해달라"는 지적 반영(2026-08-27) —
     // Math.round(v*10)/10만 쓰면 결과가 정확히 1.0처럼 딱 떨어질 때 JS가 뒤의 .0을 잘라내서
@@ -20231,16 +20235,28 @@
       if (!lastPubMs) return;
       // "일/시/분/초 빼고 00:00:00처럼 깔끔하게"라는 지적 반영 — 라벨 글자 없이 시계
       // 형태로만 보여준다. 하루가 넘어가면 시(H) 자리가 24 이상으로 그냥 늘어난다.
+      // 2026-10-02: 24시간이 넘으면 "1일 01시간 31분 42초"처럼 일 단위를 앞에 붙인다(fmtGapKorean과 동일 규칙).
+      // 일 부분이 생기거나 자릿수가 바뀌어 글자가 길어지는 순간에는 fitTextOneLine을 다시 돌려 어떤 기기에서도
+      // 줄바꿈 없이 한 줄을 유지한다(글자 길이가 같을 땐 매초 다시 재지 않음).
+      let lastDayLabel = null;
       const tick = () => {
         const wrap = document.getElementById('ytElapsedLiveWrap');
         if (!wrap) { clearInterval(__ytElapsedTimerId); __ytElapsedTimerId = null; return; }
         const nowMs = Date.now() + (typeof timeOffset === 'number' ? timeOffset : 0);
         const totalSec = Math.floor(Math.max(0, nowMs - lastPubMs) / 1000);
-        const h = Math.floor(totalSec / 3600);
+        const d = Math.floor(totalSec / 86400);
+        const h = Math.floor((totalSec % 86400) / 3600);
         const m = Math.floor((totalSec % 3600) / 60);
         const s = totalSec % 60;
         const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = String(v).padStart(2, '0'); };
         set('ytElapsedH', h); set('ytElapsedM', m); set('ytElapsedS', s);
+        const dayLabel = d > 0 ? d + '일 ' : '';
+        if (dayLabel !== lastDayLabel) {
+          const dEl = document.getElementById('ytElapsedD');
+          if (dEl) dEl.textContent = dayLabel;
+          lastDayLabel = dayLabel;
+          try { fitTextOneLine(wrap); } catch (e) { }
+        }
       };
       tick();
       __ytElapsedTimerId = setInterval(tick, 1000);
@@ -21064,7 +21080,7 @@
                  아이폰 SE 등)에서 두 줄로 밀리는 걸 막기 위해 fit-text를 같이 붙였다.
                  초 단위로 갱신되는 값이지만 자릿수(00~99)가 고정이라 폭이 거의 안
                  바뀌므로, 초기 1회만 맞춰지는 fit-text 특성과도 잘 맞는다. -->
-            <div class="yt-core-stat-value accent fit-text" id="ytElapsedLiveWrap"><span id="ytElapsedH">00</span>시간 <span id="ytElapsedM">00</span>분 <span id="ytElapsedS">00</span>초</div>
+            <div class="yt-core-stat-value accent fit-text" id="ytElapsedLiveWrap" style="white-space:nowrap"><span id="ytElapsedD"></span><span id="ytElapsedH">00</span>시간 <span id="ytElapsedM">00</span>분 <span id="ytElapsedS">00</span>초</div>
             <!-- "경과 시간 항목 아래에 최근 n회 영상 기준 평균 경과 시간을 추가해달라"는
                  지적 반영(2026-08-27). 처음엔 최근 20회 단순평균(gap20)을 썼는데, 그러면
                  바로 아래 간격 통계 카드의 "평소 업로드 주기"(blendedGapDays — 최근
