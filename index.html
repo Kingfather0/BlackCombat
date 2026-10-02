@@ -12617,7 +12617,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-10-02T19:36:14+09:00';
+    const BUILD_ID = '2026-10-02T20:00:02+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -21447,10 +21447,17 @@
     // 영상들을 시간순으로 합친 registry에서, 그 영상 바로 이전(더 예전) 영상을 찾아
     // 간격을 계산한다. 이번 로드에서 확보한 범위 밖(더 과거)이면 억지로 표시하지 않는다.
     function ytPrevGapNote(v) {
+      // 2026-10-02: "직전 영상 대비"는 항상 '동영상' 기준으로 — 쇼츠는 이 표시 자체를 하지 않고,
+      // 동영상의 직전 영상을 찾을 때도 사이에 끼어 있는 쇼츠는 건너뛴다(마지막 업로드/경과 시간/
+      // 평소 주기가 전부 쇼츠 제외 기준인 것과 맞춤). 예전엔 쇼츠까지 포함한 바로 앞 영상과
+      // 비교해서, 동영상 간격이 7일인데 "3시간"처럼 엉뚱하게 보이는 경우가 있었다.
+      if (!v || v.is_short) return null;
       const arr = window.__ytAllVideosDesc || [];
       const idx = arr.findIndex(x => x.video_id === v.video_id);
-      if (idx === -1 || idx >= arr.length - 1) return null;
-      const prev = arr[idx + 1];
+      if (idx === -1) return null;
+      let prev = null;
+      for (let j = idx + 1; j < arr.length; j++) { if (!arr[j].is_short) { prev = arr[j]; break; } }
+      if (!prev) return null;
       const days = (new Date(v.published_at) - new Date(prev.published_at)) / 86400000;
       if (!(days > 0)) return null;
       // "직전 대비 00:00:00 만에 — 뒤에 동사 없이 '만에'로 끝나니 어색하다"는 지적
@@ -21481,7 +21488,7 @@
       // 다시 계산하는 ytPrevGapNote(v) 대신 그 값을 그대로 써서, 행과 팝업이 항상 같은
       // 숫자를 보여주게 한다. 넘어오지 않으면(최근 업로드/캘린더 등 기존 호출부) 그대로
       // ytPrevGapNote(v)를 쓴다.
-      const gapNote = gapDaysOverride != null ? `직전 영상 대비 ${fmtGapKorean(gapDaysOverride)}` : ytPrevGapNote(v);
+      const gapNote = (v && v.is_short) ? null : (gapDaysOverride != null ? `직전 영상 대비 ${fmtGapKorean(gapDaysOverride)}` : ytPrevGapNote(v));
       // "모든 영상 리스트에 조회수도 표시해달라, 팬들은 조회수를 중요하게 본다"는
       // 지적 반영 — 날짜 옆에 " · "로 이어붙여서 한 줄에 같이 보여준다. 아직 조회수를
       // 못 받아온 옛 영상(view_count가 null)은 조용히 생략한다(0회처럼 잘못 보이지
