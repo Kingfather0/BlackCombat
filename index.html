@@ -3504,9 +3504,10 @@
     }
 
     .grank-row.me {
-      /* 2026-08-21: 블랙 퀴즈(.bq-rk.me)와 같은 강조 디자인으로 통일 — 파란 테두리 박스 */
-      background: #f0f6ff;
-      border: 2px solid var(--key);
+      /* 2026-10-02: 모든 미니게임 랭킹의 "나" 강조를 블랙 퀴즈 "오늘의 기록"의 ★최고 행(.bq-run.best)과
+         같은 디자인으로 통일 — 검정 테두리 제거, 옅은 노랑 그라데이션 배경 + 연한 노랑 테두리 */
+      background: linear-gradient(100deg, #fffaf0, #fff5e0);
+      border: 1.5px solid #f2dfae;
       border-radius: 13px;
       margin-top: 6px
     }
@@ -6537,9 +6538,10 @@
     }
 
     .bb-lb-row.me {
-      /* 2026-08-21: 블랙 퀴즈(.bq-rk.me)와 같은 강조 디자인으로 통일 — 파란 테두리 박스 */
-      background: #f0f6ff;
-      border: 2px solid var(--key);
+      /* 2026-10-02: 모든 미니게임 랭킹의 "나" 강조를 블랙 퀴즈 "오늘의 기록"의 ★최고 행(.bq-run.best)과
+         같은 디자인으로 통일 — 검정 테두리 제거, 옅은 노랑 그라데이션 배경 + 연한 노랑 테두리 */
+      background: linear-gradient(100deg, #fffaf0, #fff5e0);
+      border: 1.5px solid #f2dfae;
       border-radius: 13px;
       margin-top: 6px
     }
@@ -9068,12 +9070,10 @@
     }
 
     .bq-rk.me {
-      /* 2026-09-24: 다른 미니게임(블랙 펀칭 등)의 "나" 강조 행(.grank-row.me)과 다르게
-         블랙 퀴즈 테마색(--bq-p, 이 페이지에서는 주황)을 테두리에 써서 서로 달라 보였다 —
-         .grank-row.me와 똑같이 var(--key)(검정)로 통일해서 미니게임 전체가 같은 강조
-         디자인을 쓰도록 맞춘다. */
-      background: #f0f6ff;
-      border: 2px solid var(--key);
+      /* 2026-10-02: 모든 미니게임 랭킹의 "나" 강조를 블랙 퀴즈 "오늘의 기록"의 ★최고 행(.bq-run.best)과
+         같은 디자인으로 통일 — 검정 테두리 제거, 옅은 노랑 그라데이션 배경 + 연한 노랑 테두리 */
+      background: linear-gradient(100deg, #fffaf0, #fff5e0);
+      border: 1.5px solid #f2dfae;
       border-radius: 13px;
       margin-top: 6px
     }
@@ -12616,7 +12616,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-10-02T18:11:47+09:00';
+    const BUILD_ID = '2026-10-02T18:28:41+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -28116,6 +28116,8 @@
       const d = new Date(iso);
       return d.toLocaleString('ko-KR', { year: '2-digit', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
     }
+    // 2026-10-02: 예전엔 "닉네임(왼쪽) ↔ 버튼(오른쪽)" 가로 배치에 flex-wrap 이라, 닉네임/가입 정보가 길면
+    // 버튼이 다음 줄로 밀리고 짧으면 오른쪽에 붙어서 줄마다 버튼 위치가 달랐다. 항상 "닉네임 → 그 아래 버튼 줄"로 고정.
     function renderWhitelist() {
       const list = document.getElementById('wl-list');
       const countEl = document.getElementById('wl-count');
@@ -28124,8 +28126,8 @@
       const filtered = q ? __whitelistCache.filter(n => n.toLowerCase().includes(q)) : __whitelistCache;
       countEl.textContent = `총 ${__whitelistCache.length}명${q ? ` · 검색결과 ${filtered.length}명` : ''}`;
       list.innerHTML = filtered.map((n, i) => `
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #eef1f6;flex-wrap:wrap" id="wlrow-${i}">
-      <span style="display:inline-flex;flex-direction:column;min-width:0">
+    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:8px 2px;border-bottom:1px solid #eef1f6" id="wlrow-${i}">
+      <span style="display:inline-flex;flex-direction:column;min-width:0;max-width:100%">
         <span id="wlname-${i}">${esc(n)}</span>
         ${__whitelistDates[n] || __whitelistKakao[n] ? `<span style="font-size:10.5px;color:var(--dim);font-weight:600">${__whitelistDates[n] ? `가입 ${fmtWlDate(__whitelistDates[n])}` : ''}${__whitelistKakao[n] && __whitelistKakao[n] !== n ? ` · 카카오 ${esc(__whitelistKakao[n])}` : ''}</span>` : ''}
       </span>
