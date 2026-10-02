@@ -211,6 +211,33 @@
       color: var(--key-deep)
     }
 
+    /* 카카오 로그인 버튼(헤더/모달 공용) — 카카오 공식 버튼 색(#FEE500 바탕, 진한 회색 글자) */
+    .nick-badge-kakao {
+      background: #FEE500 !important;
+      color: #191919 !important;
+      border: none !important;
+    }
+
+    .btn-kakao {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 12px 14px;
+      border: none;
+      border-radius: 10px;
+      background: #FEE500;
+      color: #191919;
+      font-size: 14.5px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn-kakao:active {
+      filter: brightness(.95);
+    }
+
     .header-nick-plain {
       background: none;
       border: none;
@@ -9060,14 +9087,14 @@
 
     .bq-rk-tier {
       /* 2026-09-24: 노란 계열 배경 + 갈색 텍스트가 화면 전체에서 붕 떠 보인다는 피드백으로
-         회색 배경(--key-soft)+검정 텍스트로 바꿨는데, --key-soft(#f5f5f7)가 카드 흰 배경·
-         페이지 배경(#f3f3f6)과 거의 같은 밝기라 배지가 잘 구분되지 않았다 — 한 단계 더
-         진한 회색(--gray-tint-2)으로 바꿔 배경과 확실히 구분되게 한다. */
+         회색 배경+검정 텍스트로 바꿨다. --key-soft(#f5f5f7)는 배경과 거의 구분이 안 됐고,
+         그다음 썼던 --gray-tint-2(#dededf)는 반대로 너무 어두워 보인다는 피드백 — 그 사이
+         톤인 --gray-tint(#e9e9ee)로 맞춘다(다른 곳의 회색 pill과 같은 톤, --bg2와 동일 값). */
       font-style: normal;
       font-size: 10.5px;
       font-weight: 800;
       color: var(--key-deep);
-      background: var(--gray-tint-2);
+      background: var(--gray-tint);
       border-radius: 99px;
       padding: 2px 7px;
       margin-left: 5px;
@@ -12477,19 +12504,20 @@
     function renderHeaderIdentity() {
       const slot = document.getElementById('headerNickSlot');
       if (!slot) return;
+      // 2026-10-02 카카오 로그인 전환: 비로그인 → "카카오 로그인" 버튼 하나, 로그인 → 닉네임(누르면 계정 메뉴).
+      // 카카오 로그인은 됐는데 아직 블붕이 닉네임을 안 정한 상태는 "닉네임 설정" 버튼으로 안내.
       if (gmMyNick) {
-        slot.innerHTML = `<button type="button" class="header-nick-plain" id="headerNickEdit" title="다른 닉네임으로 변경">👤 <b>${esc(gmMyNick)}</b></button>`;
+        slot.innerHTML = `<button type="button" class="header-nick-plain" id="headerNickEdit" title="내 계정">👤 <b>${esc(gmMyNick)}</b></button>`;
         const btn = document.getElementById('headerNickEdit');
         if (btn) { btn.onpointerdown = e => e.stopPropagation(); btn.onclick = e => { e.stopPropagation(); gmShowNickChangeModal(); }; }
+      } else if (gmAuthUser && gmNeedsNick) {
+        slot.innerHTML = `<button type="button" class="nick-badge" id="headerNickSetup">닉네임 설정</button>`;
+        const setupBtn = document.getElementById('headerNickSetup');
+        if (setupBtn) { setupBtn.onpointerdown = e => e.stopPropagation(); setupBtn.onclick = e => { e.stopPropagation(); gmShowNickSetupModal(); }; }
       } else {
-        slot.innerHTML = `<span style="display:inline-flex;gap:6px">
-      <button type="button" class="nick-badge" id="headerNickRegister">닉네임 등록</button>
-      <button type="button" class="nick-badge nick-badge-login" id="headerNickLogin">로그인</button>
-    </span>`;
-        const regBtn = document.getElementById('headerNickRegister');
-        if (regBtn) { regBtn.onpointerdown = e => e.stopPropagation(); regBtn.onclick = e => { e.stopPropagation(); gmShowNickChangeModal('register'); }; }
+        slot.innerHTML = `<button type="button" class="nick-badge nick-badge-kakao" id="headerNickLogin">${GM_KAKAO_ICON} 카카오 로그인</button>`;
         const loginBtn = document.getElementById('headerNickLogin');
-        if (loginBtn) { loginBtn.onpointerdown = e => e.stopPropagation(); loginBtn.onclick = e => { e.stopPropagation(); gmShowNickChangeModal('login'); }; }
+        if (loginBtn) { loginBtn.onpointerdown = e => e.stopPropagation(); loginBtn.onclick = e => { e.stopPropagation(); gmKakaoLogin(); }; }
       }
     }
 
@@ -12501,13 +12529,16 @@
           $app.innerHTML = '<div class="empty">네트워크 문제로 페이지를 불러오지 못했습니다.<br>잠시 후 새로고침(F5) 해주세요.</div>';
           return;
         }
-        sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // 카카오 로그인(OAuth)은 PKCE 방식을 쓴다 — 기본값(implicit)은 로그인 후 토큰이 URL 해시(#access_token=…)로
+        // 돌아와 이 사이트의 해시 라우터(#/…)와 충돌한다. PKCE는 ?code=… 쿼리로 돌아오므로 라우터와 무관하고,
+        // supabase-js가 createClient 시점에 자동으로 code를 세션으로 교환한다(detectSessionInUrl 기본 ON).
+        sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { flowType: 'pkce' } });
       }
       applyHomeImageOverrides(); // 홈 배너/챗봇 안내 이미지 오버라이드 — 기다리지 않고 완료되는 대로 반영
       initPresence();
       initFitRowObserver();
       renderHeaderIdentity();
-      await gmVerifyWhitelistOnBoot();
+      await gmAuthBoot();
       try {
         const { data } = await sb.rpc('server_now');
         // svrSafeDate로 시간대 표기 누락을 방어한다 — 이 offset이 잘못되면 블랙 퀴즈뿐 아니라
@@ -12569,7 +12600,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-09-24T15:40:23+09:00';
+    const BUILD_ID = '2026-10-02T17:06:05+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -13852,6 +13883,18 @@
     // 새로 판매된 좌석 수"를 막대그래프로 그린다. 시간별 차트는 누적 판매율(%)의 흐름을 선으로
     // 보여주고, 이 차트는 하루하루의 판매 "속도"(그날 몇 석이 팔렸는지)를 보여줘서 서로 보완된다.
     // 기록된 날짜가 하나도 없으면 아무것도 표시하지 않는다.
+    // 2026-10-02: 일별/시간별 "판매 추이" 막대의 높이를 값에 정비례(선형)로 그리면, 하루
+    // 큰 폭으로 몰린 날(예: 추적 시작 전 누적치, 혹은 유난히 많이 팔린 특정 날/시간대)이
+    // 기준(maxPos)이 돼버려서 — 그보다 훨씬 작은 값들(예: +5석, +12석, +49석)은 전부 그
+    // 기준 대비 1~4%밖에 안 돼 "최소 보임" 바닥(3%)에 몰려 서로 다른 값인데도 막대 크기가
+    // 거의 똑같아 보이는 문제가 있었다(신고 확인 — 숫자는 다른데 막대는 같아 보임).
+    // 제곱근 스케일(막대 높이 ∝ √값)을 쓰면 큰 값의 지배력은 줄이고 작은 값들 사이의
+    // 상대적인 차이는 오히려 더 잘 드러나서(예: maxPos=1357일 때 5·12·49의 선형 비율은
+    // 0.4%/0.9%/3.6%로 거의 다 바닥에 몰리지만, √ 비율은 6.1%/9.4%/19.0%로 뚜렷이 갈린다),
+    // 막대 그래프에서 값의 분포가 한쪽으로 몰릴 때 흔히 쓰는 보정 방법이다.
+    function tkSqrtFrac(v, max) {
+      return Math.sqrt(Math.max(0, v)) / Math.sqrt(Math.max(max, 1));
+    }
     function dailyTrendChartHTML(roundRows) {
       const ovRow = roundRows.find(x => x.meta && x.meta.overallTotal != null);
       const roundOverall = ovRow ? ovRow.meta.overallTotal : null;
@@ -13922,14 +13965,14 @@
         // 값이 있는 막대는 비율상 1픽셀 미만이 되어도 최소 4px는 보이게 한다
         // (예: 최대 감소일이 -15일 때 -1석인 날은 비율로만 그리면 1px도 안 돼 안 보였음)
         if (negFrac === 0) {
-          // 마이너스 날이 없으면 기존과 동일한 단순 막대
-          const h = Math.max(0, b.delta) / maxPos * 100;
+          // 마이너스 날이 없으면 기존과 동일한 단순 막대 (제곱근 스케일 — 위 tkSqrtFrac 설명 참고)
+          const h = tkSqrtFrac(b.delta, maxPos) * 100;
           return `<div class="tk-day-col${cls}"${tkTipAttrs(tip)}>
           <i class="tk-day-fill" style="height:${Math.max(h, b.delta > 0 ? 3 : 0).toFixed(1)}%${b.delta > 0 ? ';min-height:4px' : ''}"></i>
         </div>`;
         }
-        const hPos = b.delta > 0 ? Math.max(b.delta / maxPos * 100, 3) : 0;
-        const hNeg = b.delta < 0 ? Math.max(Math.min((-b.delta / scaleMax) / negFrac * 100, 100), 3) : 0;
+        const hPos = b.delta > 0 ? Math.max(tkSqrtFrac(b.delta, maxPos) * 100, 3) : 0;
+        const hNeg = b.delta < 0 ? Math.max(Math.min(tkSqrtFrac(-b.delta, scaleMax) / negFrac * 100, 100), 3) : 0;
         return `<div class="tk-day-col tk-day-col2${cls}"${tkTipAttrs(tip)}>
           <span class="tk-day-pos" style="height:${(posFrac * 100).toFixed(1)}%"><i class="tk-day-fill" style="height:${hPos.toFixed(1)}%${b.delta > 0 ? ';min-height:4px' : ''}"></i></span>
           <span class="tk-day-neg" style="height:${(negFrac * 100).toFixed(1)}%"><i class="tk-day-fill tk-day-fill-neg" style="height:${hNeg.toFixed(1)}%${b.delta < 0 ? ';min-height:4px' : ''}"></i></span>
@@ -18063,38 +18106,155 @@
     let gmToken = 0, gmTimers = [], gmCurGame = '', gmCurRule = '';
     let gmAC = null, gmMuted = false, gmMyNick = '';
     try { gmMuted = localStorage.getItem('gm_mute') === '1'; } catch (e) { }
-    let gmMyPin = '';
-    try { gmMyNick = localStorage.getItem('gm_nick') || ''; } catch (e) { }
-    try { gmMyPin = localStorage.getItem('gm_pin') || ''; } catch (e) { }
-    /* 잡담방 닉네임 화이트리스트(오픈톡방에 있는 유저만 신규 등록 가능) — 자동완성용으로
-       한 번 불러와서 캐시해 둔다. 실패해도(패치 미적용 등) 조용히 빈 목록으로 처리해서
-       자동완성만 안 뜰 뿐 로그인/등록 자체는 막지 않는다. */
-    let __allowedNicknamesCache = null;
-    async function fetchAllowedNicknames() {
-      if (__allowedNicknamesCache) return __allowedNicknamesCache;
-      try {
-        const { data, error } = await sb.from('allowed_nicknames').select('nickname').order('nickname');
-        if (error) throw error;
-        __allowedNicknamesCache = (data || []).map(r => r.nickname);
-      } catch (e) { __allowedNicknamesCache = []; }
-      return __allowedNicknamesCache;
+    /* ================================================================
+       로그인 (2026-10-02 카카오 로그인으로 전환)
+       ----------------------------------------------------------------
+       예전: 킹빠더가 허용 닉네임을 미리 등록 → 유저가 닉네임+4자리 PIN으로 등록/로그인.
+       지금: 카카오 로그인(Supabase Auth, PKCE) → 첫 로그인 때 본인이 블붕이 닉네임을 1회 정함.
+       - gmMyNick     : 블붕이 닉네임('' = 비로그인 또는 닉네임 미설정). 사이트 전역에서 "로그인 여부"로 쓰임.
+       - gmAuthUser   : Supabase auth 유저(null = 카카오 로그인 안 됨).
+       - gmNeedsNick  : 카카오 로그인은 됐지만 아직 블붕이 닉네임을 안 정한 상태.
+       - gmMyPin      : 예전 PIN 자리. 서버 함수들이 시그니처 호환을 위해 p_pin 인자를 아직 받지만 값은 무시한다.
+                        (서버는 요청에 실린 Supabase 세션 토큰(auth.uid())으로 본인 확인)
+       ================================================================ */
+    let gmAuthUser = null, gmNeedsNick = false, gmSuggestedNick = '';
+    let gmMyPin = ''; // 호환용 — 항상 빈 문자열(위 설명 참고)
+    try { gmMyNick = localStorage.getItem('gm_nick') || ''; } catch (e) { } // 네트워크 전 헤더 표시용 캐시(서버 확인 후 덮어씀)
+    const GM_LOGIN_RETURN_KEY = 'gm_login_return';
+    const GM_KAKAO_ICON = `<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" style="flex:none"><path fill="currentColor" d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.8 5.2 4.6 6.6l-1 3.8c-.1.3.3.6.6.4l4.4-2.9c.5.1.9.1 1.4.1 5.5 0 10-3.6 10-8S17.5 3 12 3z"/></svg>`;
+
+    function gmPersistNick() {
+      try { if (gmMyNick) localStorage.setItem('gm_nick', gmMyNick); else localStorage.removeItem('gm_nick'); } catch (e) { }
     }
-    /* --- 관리자가 "유저 관리"에서 제거하면 계정+화이트리스트 등록이 모두 삭제되지만,
-       이미 그 닉네임으로 로그인해 둔 기기의 localStorage에는 예전 nickname/pin이 그대로
-       남아있어 앱이 계속 "로그인된 것처럼" 보인다. 재접속(새로고침/앱 재실행) 시마다
-       현재 로그인된 닉네임이 화이트리스트에 여전히 있는지 확인해서, 없다면 강제로
-       로그아웃(localStorage 초기화)시켜 처음부터 다시 닉네임을 등록해야 이용할 수
-       있게 한다. 화이트리스트 조회 자체가 실패하면(패치 미적용 등) 아무도 막지 않는다. */
-    async function gmVerifyWhitelistOnBoot() {
-      if (!gmMyNick) return;
-      const list = await fetchAllowedNicknames();
-      if (!list.length) return;
-      if (list.some(n => n.toLowerCase() === gmMyNick.toLowerCase())) return;
-      const removedNick = gmMyNick;
-      gmMyNick = ''; gmMyPin = '';
-      try { localStorage.removeItem('gm_nick'); localStorage.removeItem('gm_pin'); } catch (e) { }
+    /* 카카오 로그인 시작. 로그인 후 돌아올 주소는 "해시 없는" 사이트 루트로 두고(?code=… 가 해시 앞에 붙어야
+       supabase-js가 인식), 돌아왔을 때 다시 갈 화면(현재 해시)은 localStorage에 적어둔다. */
+    async function gmKakaoLogin() {
+      if (!sb || !sb.auth) { toastMsg('잠시 후 다시 시도해 주세요.'); return; }
+      try { localStorage.setItem(GM_LOGIN_RETURN_KEY, location.hash || '#/'); } catch (e) { }
+      const redirectTo = location.origin + location.pathname;
+      try {
+        const { error } = await sb.auth.signInWithOAuth({ provider: 'kakao', options: { redirectTo } });
+        if (error) throw error;
+      } catch (e) {
+        toastMsg('⚠️ 카카오 로그인을 시작하지 못했습니다: ' + cleanErr((e && e.message) || String(e)));
+      }
+    }
+    async function gmLogout() {
+      const nick = gmMyNick;
+      try { await sb.auth.signOut(); } catch (e) { }
+      gmMyNick = ''; gmAuthUser = null; gmNeedsNick = false; gmSuggestedNick = '';
+      gmPersistNick();
       renderHeaderIdentity();
-      toastMsg(`'${removedNick}' 님은 더 이상 이용할 수 없는 닉네임입니다. 닉네임을 다시 등록해 주세요.`);
+      try { presenceRetrack(); } catch (e) { }
+      if (nick) toastMsg(`👋 ${nick} 님, 로그아웃되었습니다.`);
+    }
+    /* 서버(gm_me)에 내 상태를 물어 전역 변수에 반영. 로그인/로그아웃/토큰 갱신 때마다 호출. */
+    let __gmRefreshing = null;
+    function gmRefreshMe() {
+      if (__gmRefreshing) return __gmRefreshing;
+      __gmRefreshing = (async () => {
+        const prevNick = gmMyNick;
+        let session = null;
+        try { session = (await sb.auth.getSession()).data.session; } catch (e) { }
+        gmAuthUser = session ? session.user : null;
+        if (!gmAuthUser) {
+          gmMyNick = ''; gmNeedsNick = false; gmSuggestedNick = '';
+        } else {
+          try {
+            const { data, error } = await sb.rpc('gm_me');
+            if (error) throw error;
+            if (data && data.ok && data.logged_in) {
+              if (data.nickname) { gmMyNick = data.nickname; gmNeedsNick = false; }
+              else { gmMyNick = ''; gmNeedsNick = true; gmSuggestedNick = data.suggested || ''; }
+            }
+          } catch (e) {
+            // 서버 확인 실패(일시적 네트워크 문제 등)면 캐시된 닉네임을 유지해 화면이 깜빡이지 않게 한다
+            if (/function|not find/i.test((e && e.message) || '')) toastMsg('⚠️ kakao-login-migration.sql을 먼저 실행해 주세요. (관리자에게 문의)');
+          }
+        }
+        gmPersistNick();
+        renderHeaderIdentity();
+        if (prevNick !== gmMyNick) { try { presenceRetrack(); } catch (e) { } }
+      })().finally(() => { __gmRefreshing = null; });
+      return __gmRefreshing;
+    }
+    /* 부팅 시 1회: OAuth 복귀(?code=…) 처리 → 상태 반영 → 로그인 전 보던 화면으로 복귀 → 닉네임 미설정이면 설정 창. */
+    async function gmAuthBoot() {
+      if (!sb || !sb.auth) return;
+      const cameBackFromOAuth = /[?&]code=/.test(location.search);
+      try {
+        sb.auth.onAuthStateChange((event) => {
+          if (event === 'SIGNED_OUT') { gmMyNick = ''; gmAuthUser = null; gmNeedsNick = false; gmPersistNick(); renderHeaderIdentity(); return; }
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') gmRefreshMe();
+        });
+      } catch (e) { }
+      await gmRefreshMe();
+      if (cameBackFromOAuth) {
+        // 주소창의 ?code=… 를 지우고, 로그인 누르기 전에 보던 화면으로 돌아간다
+        let back = '';
+        try { back = localStorage.getItem(GM_LOGIN_RETURN_KEY) || ''; localStorage.removeItem(GM_LOGIN_RETURN_KEY); } catch (e) { }
+        try { history.replaceState(null, '', location.pathname + (back || location.hash || '')); } catch (e) { }
+        if (gmMyNick) toastMsg(`👤 ${gmMyNick} 님, 카카오 로그인되었습니다!`);
+      }
+      if (gmAuthUser && gmNeedsNick) setTimeout(gmShowNickSetupModal, 300);
+    }
+    /* 첫 로그인: 블붕이 닉네임 설정(1회). 카카오 닉네임이 기본값으로 채워진다. */
+    function gmShowNickSetupModal() {
+      if (document.getElementById('gmSetupOv')) return;
+      const ov = document.createElement('div');
+      ov.className = 'modal-ov';
+      ov.id = 'gmSetupOv';
+      ov.innerHTML = `<div class="modal" style="max-width:360px">
+    <div class="modal-h"><b>🦁 블붕이 닉네임 설정</b><button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-b">
+      <div class="glogin" style="padding:0">
+        <input id="gms-nick" maxlength="20" placeholder="블붕이 닉네임 (1~20자)" value="${esc(gmSuggestedNick || '')}" autocomplete="off">
+        <div class="msg" id="gms-msg"></div>
+        <button class="btn primary wide" style="margin-top:14px" id="gmsGo">이 닉네임으로 시작</button>
+        <div class="gl-d" style="color:#8a94a6;text-shadow:none;font-weight:600;margin-top:12px">랭킹·배틀·승부예측에 표시될 이름입니다.<br>오픈톡방에서 쓰는 닉네임과 같게 하면 알아보기 쉬워요.<br>한 번 정하면 직접 바꿀 수 없고, 변경은 ${GM_KKO_LINK}에게 문의해 주세요.</div>
+        <button type="button" class="gmn-pinlink" style="color:#b42318" id="gmsLogout">다른 카카오 계정으로 로그인</button>
+      </div>
+    </div></div>`;
+      ov.onclick = e => { if (e.target === ov) history.back(); };
+      pushModal(ov);
+      const box = ov.querySelector('.glogin');
+      box.onpointerdown = e => e.stopPropagation();
+      const input = ov.querySelector('#gms-nick');
+      const msg = ov.querySelector('#gms-msg');
+      const put = s => { msg.className = 'msg err'; msg.textContent = s; };
+      input.onpointerdown = e => e.stopPropagation();
+      input.onkeydown = e => { if (e.key === 'Enter') go.click(); };
+      const go = ov.querySelector('#gmsGo');
+      go.onpointerdown = e => e.stopPropagation();
+      go.onclick = async e => {
+        e.stopPropagation();
+        const nick = (input.value || '').trim().replace(/\s+/g, ' ');
+        if (!nick) return put('닉네임을 입력해 주세요.');
+        if (nick.length > 20) return put('닉네임은 20자 이내로 입력해 주세요.');
+        go.disabled = true;
+        try {
+          const { data, error } = await sb.rpc('gm_set_nickname', { p_nickname: nick });
+          if (error) {
+            if (/function|not find/i.test(error.message || '')) return put('kakao-login-migration.sql을 먼저 실행해 주세요. (관리자에게 문의)');
+            return put(cleanErr(error.message));
+          }
+          if (!data || data.ok === false) {
+            if (data && data.nickname) { gmMyNick = data.nickname; gmNeedsNick = false; gmPersistNick(); renderHeaderIdentity(); history.back(); route(); return; }
+            return put((data && data.msg) || '설정에 실패했습니다.');
+          }
+          gmMyNick = data.nickname || nick; gmNeedsNick = false; gmSuggestedNick = '';
+          gmPersistNick();
+          try { presenceRetrack(); } catch (err) { }
+          history.back();
+          toastMsg(`🦁 ${gmMyNick} 님, 환영합니다!`);
+          renderHeaderIdentity();
+          route();
+        } finally { go.disabled = false; }
+      };
+      const lo = ov.querySelector('#gmsLogout');
+      lo.onpointerdown = e => e.stopPropagation();
+      lo.onclick = async e => { e.stopPropagation(); history.back(); await gmLogout(); gmKakaoLogin(); };
+      setTimeout(() => { try { input.focus(); input.select(); } catch (e) { } }, 50);
     }
     function gmClear() { gmTimers.forEach(clearTimeout); gmTimers = []; if (G.raf) { cancelAnimationFrame(G.raf); G.raf = 0; } if (gmCurGame === 'battle' && typeof gmBattleLeave === 'function') gmBattleLeave(); }
     function gmDelay(fn, ms) { gmTimers.push(setTimeout(fn, ms)); }
@@ -18398,219 +18558,41 @@
       btn.onpointerdown = e => e.stopPropagation();
       btn.onclick = e => { e.stopPropagation(); gmOpenRulesModal(); };
     }
-    /* --- 선수 등록 확인 (게임 시작 전 필수) — 등록은 이제 홈 화면에서만 하므로, 여기서는
-       이미 로그인돼 있는지만 확인하고, 아니면 홈으로 안내한다. */
+    /* --- 게임 시작 전 로그인 확인. 비로그인이면 바로 카카오 로그인, 닉네임 미설정이면 설정 창. */
     function gmStartGate(startFn) {
-      if (gmMyNick && gmMyPin) return startFn();
-      toastMsgTop('먼저 닉네임을 등록해 주세요.');
-      location.hash = '#/';
+      if (gmMyNick) return startFn();
+      gmRequireLogin();
     }
-    function gmLogout() {
-      gmMyPin = '';
-      try { localStorage.removeItem('gm_pin'); } catch (e) { }
+    /* 로그인이 필요한 동작에서 공통으로 호출: 상태에 맞는 다음 단계(카카오 로그인 / 닉네임 설정)로 안내 */
+    function gmRequireLogin() {
+      if (gmMyNick) return true;
+      if (gmAuthUser && gmNeedsNick) { gmShowNickSetupModal(); return false; }
+      gmKakaoLogin();
+      return false;
     }
 
-    /* --- 다른 닉네임으로 변경 (게임 메뉴 하단 ⚙️에서 진입, 게임 3종 + 블랙 배틀 공용).
-       같은 오버레이 안에서 "로그인 변경" 뷰 ↔ "비밀번호 변경"(본인 계정 비번만 변경) 뷰를
-       내용만 바꿔치기하며 오간다 — 모달을 닫았다 다시 여는 대신 innerHTML만 교체해서
-       history 스택이 꼬이지 않게 한다. */
+    /* --- 내 계정 메뉴 (헤더 닉네임 클릭). 예전의 "로그인 변경/비밀번호 변경" 모달 자리.
+       mode 인자는 예전 호출부('register'|'login')와의 호환용 — 비로그인 상태면 곧바로 카카오 로그인으로 보낸다. */
     function gmShowNickChangeModal(mode) {
+      if (!gmMyNick) { gmRequireLogin(); return; }
       const ov = document.createElement('div');
       ov.className = 'modal-ov';
       ov.innerHTML = `<div class="modal" style="max-width:360px">
-    <div class="modal-h"><b id="gmnTitle"></b><button class="modal-x" onclick="history.back()">✕</button></div>
-    <div class="modal-b" id="gmnBody"></div>
-  </div>`;
+    <div class="modal-h"><b>👤 내 계정</b><button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-b">
+      <div class="glogin" style="padding:0">
+        <div style="font-size:15px;font-weight:800;color:var(--text);text-align:center;margin:4px 0 2px">🦁 ${esc(gmMyNick)}</div>
+        <div class="gl-d" style="color:#8a94a6;text-shadow:none;font-weight:600;margin-top:10px;text-align:center">카카오 계정으로 로그인되어 있습니다.<br>닉네임 변경은 ${GM_KKO_LINK}에게 문의해 주세요.</div>
+        <button type="button" class="btn wide" style="margin-top:16px" id="gmnLogoutBtn">로그아웃</button>
+      </div>
+    </div></div>`;
       ov.onclick = e => { if (e.target === ov) history.back(); };
       pushModal(ov);
-      gmRenderLoginChangeView(ov, mode);
-    }
-    /* 6.95: 로그아웃 상태에서는 "닉네임 등록"(신규 계정 생성 전용)과 "로그인"(기존 계정 전용)
-       버튼이 따로 있다. mode는 로그아웃 상태에서 호출자가 넘겨주는 'register' | 'login' 이고,
-       이미 로그인된 상태(gmMyNick 있음)에서는 항상 "로그인 변경"(=계정 전환, login과 동일한
-       서버 동작)으로 취급한다.
-       prefill({nick, pin})은 "잘못된 버튼으로 시도" 실패 후 반대 모드로 넘어갈 때, 이미
-       입력했던 닉네임/비밀번호를 다시 타이핑하지 않도록 이어서 채워주기 위한 값이다(6.99). */
-    async function gmRenderLoginChangeView(ov, mode, prefill) {
-      const wasLoggedIn = !!gmMyNick;
-      const isRegister = !wasLoggedIn && mode === 'register';
-      ov.querySelector('#gmnTitle').textContent = isRegister ? '닉네임 등록' : (wasLoggedIn ? '👤 로그인 변경' : '로그인');
-      const body = ov.querySelector('#gmnBody');
-      body.innerHTML = `
-    <div class="glogin" style="padding:0">
-      <div class="gmn-suggest" style="width:100%">
-        <input id="gmn-nick" maxlength="20" placeholder="블붕이 닉네임 검색" value="${prefill && prefill.nick ? esc(prefill.nick) : ''}" autocomplete="off">
-        <div id="gmn-suggest-list" class="gmn-suggest-list" style="display:none"></div>
-      </div>
-      <input id="gmn-pin" inputmode="numeric" maxlength="4" placeholder="비밀번호 (숫자 4자리)" type="password" value="${prefill && prefill.pin ? esc(prefill.pin) : ''}">
-      ${isRegister ? `<input id="gmn-pin2" inputmode="numeric" maxlength="4" placeholder="비밀번호 확인" type="password">` : ''}
-      <div class="msg" id="gmn-msg"></div>
-      <button class="btn primary wide" style="margin-top:14px" id="gmnGo">${isRegister ? '등록' : '로그인'}</button>
-      <div class="gl-d" style="color:${isRegister ? 'var(--red)' : '#8a94a6'};text-shadow:none;font-weight:600;margin-top:12px">${isRegister ? `블붕이 닉네임을 입력하면 목록이 나옵니다.<br>본인 닉네임을 선택한 후 비밀번호를 입력해 주세요.<br>닉네임이 없거나 이미 사용 중이라면<br><a href="${GM_ROOM_URL}" target="_blank" rel="noopener" style="color:var(--red);text-decoration:underline;font-weight:800">오픈톡방</a>에 입장해 킹빠더에게 문의해 주세요.` : `오픈톡방 닉네임을 입력하면 목록이 나옵니다.<br>본인 닉네임을 선택한 후 비밀번호를 입력해 주세요.<br>아직 등록 전인 경우 <a href="#" id="gmn-go-register" style="color:var(--red);text-decoration:underline;font-weight:800">닉네임 등록</a>을 먼저 진행해 주세요.`}</div>
-      ${wasLoggedIn ? `<div style="display:flex;justify-content:center;align-items:center;gap:14px;margin-top:10px">
-        <button type="button" class="gmn-pinlink" style="margin-top:0" id="gmnPinLink">비밀번호 변경하기</button>
-        <button type="button" class="gmn-pinlink" style="margin-top:0;color:#b42318" id="gmnLogoutLink">로그아웃</button>
-      </div>` : ''}
-    </div>`;
-      const msg = body.querySelector('#gmn-msg');
-      // 로그인 안내문의 "닉네임 등록" 링크(빨간 밑줄) — 누르면 같은 팝업이 등록 화면으로 바뀐다.
-      const goReg = body.querySelector('#gmn-go-register');
-      if (goReg) goReg.onclick = e => { e.preventDefault(); e.stopPropagation(); gmRenderLoginChangeView(ov, 'register'); };
-      const put = s => {
-        msg.className = 'msg err';
-        if (/잠겼습니다/.test(s)) {
-          msg.innerHTML = `비밀번호 오류가 반복되어 잠겼습니다.<br>약 10분 후 다시 시도 하거나<br>${GM_KKO_LINK}에게 문의하세요.`;
-        } else {
-          msg.textContent = s;
-        }
-      };
-      // 6.99: "로그인" 화면에 미등록 닉네임을 넣었거나, "닉네임 등록" 화면에 이미 있는 닉네임을
-      // 넣은 경우 — 즉 버튼을 잘못 눌러서 실패한 경우 — 에러 문구만 보여주고 끝내면 사용자가
-      // 직접 모달을 닫고 반대 버튼을 다시 찾아 눌러야 한다. 그 대신 지금까지 입력한 닉네임/
-      // 비밀번호를 그대로 이어서 반대 화면으로 바로 전환해버리고(추가 클릭 없음), 화면 맨
-      // 위에 무슨 일이 있었는지 붉은 토스트로 짧게 안내한다 — 모달 제목이 "로그인"↔"닉네임
-      // 등록"으로 바뀌고 비밀번호 확인 칸이 나타나는(사라지는) 것도 전환됐다는 눈에 띄는 신호다.
-      const autoSwitch = (s, targetMode) => {
-        toastMsgTop(s);
-        const nick = nickInput.value.trim();
-        const pin = (body.querySelector('#gmn-pin').value || '').trim();
-        gmRenderLoginChangeView(ov, targetMode, { nick, pin });
-      };
-      const box = body.querySelector('.glogin');
+      const box = ov.querySelector('.glogin');
       box.onpointerdown = e => e.stopPropagation();
-      const nickInput = body.querySelector('#gmn-nick');
-      const suggestList = body.querySelector('#gmn-suggest-list');
-      const closeSuggest = () => { suggestList.style.display = 'none'; suggestList.innerHTML = ''; };
-      const allowed = await fetchAllowedNicknames();
-      nickInput.oninput = () => {
-        const q = nickInput.value.trim().toLowerCase();
-        if (!q) return closeSuggest();
-        const hits = allowed.filter(n => n.toLowerCase().includes(q)).slice(0, 8);
-        if (!hits.length) {
-          suggestList.innerHTML = '<div class="gmn-suggest-empty">일치하는 닉네임이 없습니다</div>';
-          suggestList.style.display = '';
-          return;
-        }
-        suggestList.innerHTML = hits.map(n => `<div class="gmn-suggest-row" data-n="${esc(n)}">${esc(n)}</div>`).join('');
-        suggestList.style.display = '';
-      };
-      suggestList.onpointerdown = e => e.stopPropagation();
-      suggestList.onclick = e => {
-        const row = e.target.closest('.gmn-suggest-row');
-        if (!row || !row.dataset.n) return;
-        nickInput.value = row.dataset.n;
-        closeSuggest();
-        body.querySelector('#gmn-pin').focus();
-      };
-      nickInput.onpointerdown = e => e.stopPropagation();
-      nickInput.onblur = () => setTimeout(closeSuggest, 150);
-      const goBtn = body.querySelector('#gmnGo');
-      goBtn.onpointerdown = e => e.stopPropagation();
-      goBtn.onclick = async e => {
-        e.stopPropagation();
-        const nick = (body.querySelector('#gmn-nick').value || '').trim();
-        const pin = (body.querySelector('#gmn-pin').value || '').trim();
-        if (!nick) return put('닉네임을 입력해 주세요.');
-        if (!/^[0-9]{4}$/.test(pin)) return put('비밀번호는 숫자 4자리입니다.');
-        if (isRegister) {
-          const pin2 = (body.querySelector('#gmn-pin2').value || '').trim();
-          if (pin !== pin2) return put('비밀번호가 서로 일치하지 않습니다.');
-        }
-        // "닉네임 등록" 화면은 신규 계정 생성 전용이고, "로그인"/"로그인 변경" 화면은 기존
-        // 계정 인증 전용이다. p_mode:'register'이면 서버가 이미 등록된 계정을 찾았을 때
-        // 비밀번호를 검사하지 않고 바로 "로그인 버튼을 이용해 주세요."로 막고, p_mode:'login'
-        // 이면 아직 등록되지 않은 닉네임을 찾았을 때 계정을 만들지 않고 "닉네임을 등록해
-        // 주세요."로 막는다 — 두 화면이 서로의 영역을 침범하지 못하게 서버에서 강제한다.
-        const { data, error } = await sb.rpc('game_login', { p_nickname: nick, p_pin: pin, p_mode: isRegister ? 'register' : 'login' });
-        if (error) {
-          if (/function|not find/i.test(error.message || '')) return put('미니게임_패치4.sql / 로그인변경_등록방지_패치.sql을 먼저 실행해 주세요. (관리자에게 문의)');
-          return put(cleanErr(error.message));
-        }
-        if (!data || data.ok === false) {
-          const m = (data && data.msg) || '변경에 실패했습니다.';
-          // 6.99: 서버가 "잘못된 버튼으로 시도했다"고 판단한 경우(위 주석 참고)만 반대 화면으로
-          // 넘어가는 버튼을 얹는다 — 비밀번호 오류 등 다른 실패 사유엔 그냥 문구만 보여준다.
-          if (!isRegister && /등록/.test(m)) return autoSwitch(gmnToastLines(['등록되지 않은 닉네임입니다.', '해당 화면에서 닉네임과 비밀번호를 설정해 주세요.']), 'register');
-          if (isRegister && /로그인/.test(m)) return autoSwitch(gmnToastLines(['이미 등록된 닉네임입니다.', '해당 화면에서 로그인해 주세요.'], [0, 1]), 'login');
-          return put(m);
-        }
-        gmMyNick = data.nickname || nick;
-        gmMyPin = pin;
-        try { localStorage.setItem('gm_nick', gmMyNick); localStorage.setItem('gm_pin', gmMyPin); } catch (err) { }
-        presenceRetrack();
-        history.back();
-        toastMsg(isRegister ? `🦁 ${gmMyNick} 님으로 등록되었습니다!` : (wasLoggedIn ? `👤 ${gmMyNick} 님으로 변경되었습니다!` : `👤 ${gmMyNick} 님으로 로그인되었습니다!`));
-        renderHeaderIdentity();
-        route();
-      };
-      const pinLink = body.querySelector('#gmnPinLink');
-      if (pinLink) {
-        pinLink.onpointerdown = e => e.stopPropagation();
-        pinLink.onclick = e => { e.stopPropagation(); gmRenderPinChangeView(ov); };
-      }
-      const logoutLink = body.querySelector('#gmnLogoutLink');
-      if (logoutLink) {
-        logoutLink.onpointerdown = e => e.stopPropagation();
-        logoutLink.onclick = e => {
-          e.stopPropagation();
-          const nick = gmMyNick;
-          gmMyNick = ''; gmMyPin = '';
-          try { localStorage.removeItem('gm_nick'); localStorage.removeItem('gm_pin'); } catch (err) { }
-          history.back();
-          toastMsg(`👋 ${nick} 님, 로그아웃되었습니다.`);
-          renderHeaderIdentity();
-          route();
-        };
-      }
-    }
-    function gmRenderPinChangeView(ov) {
-      ov.querySelector('#gmnTitle').textContent = '🔒 비밀번호 변경';
-      const body = ov.querySelector('#gmnBody');
-      body.innerHTML = `
-    <div class="glogin" style="padding:0">
-      <input id="gpc-old" inputmode="numeric" maxlength="4" placeholder="현재 비밀번호 (숫자 4자리)" type="password">
-      <input id="gpc-new" inputmode="numeric" maxlength="4" placeholder="새 비밀번호 (숫자 4자리)" type="password">
-      <input id="gpc-new2" inputmode="numeric" maxlength="4" placeholder="새 비밀번호 확인" type="password">
-      <div class="msg" id="gpc-msg"></div>
-      <button class="btn primary wide" style="margin-top:14px" id="gpcGo">비밀번호 변경</button>
-      <div class="gl-d" style="color:#8a94a6;text-shadow:none;font-weight:600;margin-top:12px">닉네임 <b style="color:var(--key-deep)">${esc(gmMyNick)}</b> 계정의 비밀번호를 변경합니다.</div>
-      <button type="button" class="gmn-pinlink" id="gmnBackLink">로그인 변경으로 돌아가기</button>
-    </div>`;
-      const msg = body.querySelector('#gpc-msg');
-      const put = s => {
-        msg.className = 'msg err';
-        if (/잠겼습니다/.test(s)) {
-          msg.innerHTML = `비밀번호 오류가 반복되어 잠겼습니다.<br>약 10분 후 다시 시도 하거나<br>${GM_KKO_LINK}에게 문의하세요.`;
-        } else {
-          msg.textContent = s;
-        }
-      };
-      const box = body.querySelector('.glogin');
-      box.onpointerdown = e => e.stopPropagation();
-      const goBtn = body.querySelector('#gpcGo');
-      goBtn.onpointerdown = e => e.stopPropagation();
-      goBtn.onclick = async e => {
-        e.stopPropagation();
-        const oldPin = (body.querySelector('#gpc-old').value || '').trim();
-        const newPin = (body.querySelector('#gpc-new').value || '').trim();
-        const newPin2 = (body.querySelector('#gpc-new2').value || '').trim();
-        if (!/^[0-9]{4}$/.test(oldPin)) return put('현재 비밀번호를 숫자 4자리로 입력해 주세요.');
-        if (!/^[0-9]{4}$/.test(newPin)) return put('새 비밀번호는 숫자 4자리입니다.');
-        if (newPin !== newPin2) return put('새 비밀번호가 서로 일치하지 않습니다.');
-        const { data, error } = await sb.rpc('game_change_pin', { p_nickname: gmMyNick, p_old_pin: oldPin, p_new_pin: newPin });
-        if (error) {
-          if (/function|not find/i.test(error.message || '')) return put('미니게임_계정관리_패치.sql을 먼저 실행해 주세요. (관리자에게 문의)');
-          return put(cleanErr(error.message));
-        }
-        if (!data || data.ok === false) return put((data && data.msg) || '변경에 실패했습니다.');
-        gmMyPin = newPin;
-        try { localStorage.setItem('gm_pin', gmMyPin); } catch (err) { }
-        history.back();
-        toastMsg('비밀번호가 변경되었습니다!');
-      };
-      const backLink = body.querySelector('#gmnBackLink');
-      backLink.onpointerdown = e => e.stopPropagation();
-      backLink.onclick = e => { e.stopPropagation(); gmRenderLoginChangeView(ov); };
+      const lo = ov.querySelector('#gmnLogoutBtn');
+      lo.onpointerdown = e => e.stopPropagation();
+      lo.onclick = async e => { e.stopPropagation(); history.back(); await gmLogout(); route(); };
     }
 
     /* --- 게임 선택 메뉴 --- */
@@ -18837,7 +18819,7 @@
       let d = null, err = '';
       try {
         const res = await sb.rpc('quiz_get_home', {
-          p_nickname: gmMyNick || '', p_pin: gmMyPin || '', p_pass: adminPass() || null,
+          p_nickname: gmMyNick || '', p_pin: '', p_pass: adminPass() || null,
         });
         if (res.error) throw res.error;
         d = res.data;
@@ -18896,9 +18878,9 @@
     </div>`;
       }).join('');
 
-      const ctaLabel = !loggedIn ? '로그인 필요'
+      const ctaLabel = !loggedIn ? '카카오 로그인'
         : (left > 0 ? 'START' : '내일 다시!');
-      const hint = !loggedIn ? '먼저 닉네임을 등록해 주세요'
+      const hint = !loggedIn ? '카카오 로그인 후 도전할 수 있어요'
         : (left > 0 ? `오늘 남은 기회 ${left}회 · 시작하면 1회가 소진됩니다`
           : '오늘의 도전을 모두 사용했어요 · 매일 00:00 초기화');
 
@@ -18907,7 +18889,10 @@
       root.innerHTML = `
     ${bqStageHTML({
         ctaLabel, hint, locked: d.testing,
-        disabled: !loggedIn || left <= 0,
+        // 2026-10-02: 로그인 전엔 이 버튼을 아예 disabled로 꺼버려서, 눌러도 아무 반응이 없어
+        // "고장났다"는 오해를 샀다(신고 확인). 오늘 도전 횟수를 다 쓴 경우만 진짜로 막고,
+        // 로그인 전에는 버튼을 살려서 누르면 바로 로그인/등록 창이 뜨게 한다(아래 bqBindStage).
+        disabled: loggedIn && left <= 0,
         desc: `오늘의 <b>블붕이 시험</b>! ${qTotal}문제 · 문제당 ${secs}초<br><b>찐블붕이</b>만 살아남는다! 블붕력을 시험하라`,
       })}
     ${loggedIn ? `<div class="bq-cta-sub">오늘의 도전 <b style="color:${usedAll ? '#dc2626' : 'var(--bq-p2)'}">${d.attempts_used || 0} / ${daily}</b></div>` : ''}
@@ -18941,14 +18926,18 @@
       const mb = document.getElementById('bqMakeBtn');
       if (mb) mb.onclick = bqShowSubmitModal;
       const btn = document.getElementById('bqStart');
-      if (btn && !btn.disabled && onStart) btn.onclick = onStart;
+      // 2026-10-02: 로그인 전에는 버튼이 꺼져있지 않고 눌리므로, 로그인 안 된 상태에서 누르면
+      // 바로 로그인/등록 모달을 띄워준다(진짜 "오늘 횟수 소진"일 때만 disabled로 막힘).
+      if (btn && !btn.disabled) {
+        btn.onclick = gmMyNick ? onStart : () => gmRequireLogin();
+      }
     }
 
     /* "퀴즈 만들기" — 유저가 직접 문제를 제출하는 모달. 제출한다고 바로 게임에 나오는 게
        아니라 quiz_user_submission 에 검토 대기(PENDING)로만 쌓이고, 관리자가 골라 승인한
        것만 실제 문제로 등록된다. */
     function bqShowSubmitModal() {
-      if (!gmMyNick || !gmMyPin) { toastMsgTop('먼저 닉네임을 등록해 주세요.'); return; }
+      if (!gmMyNick) { gmRequireLogin(); return; }
       const ov = document.createElement('div');
       ov.className = 'modal-ov';
       ov.innerHTML = `<div class="modal" style="max-width:400px">
@@ -18981,7 +18970,7 @@
         goBtn.disabled = true;
         try {
           const { data, error } = await sb.rpc('quiz_submit_question', {
-            p_nickname: gmMyNick, p_pin: gmMyPin,
+            p_nickname: gmMyNick, p_pin: '',
             p_question: q, p_answer: a, p_wrong1: w1, p_wrong2: w2, p_wrong3: w3,
             p_pass: adminPass() || null,
           });
@@ -19085,7 +19074,7 @@
        시작 확인 — "시작하면 기회가 소진된다"를 반드시 먼저 알린다
        ────────────────────────────────────────────────────────────── */
     function bqConfirmStart() {
-      if (!gmMyNick || !gmMyPin) { toastMsgTop('먼저 닉네임을 등록해 주세요.'); return; }
+      if (!gmMyNick) { gmRequireLogin(); return; }
       const left = (BQ.home && BQ.home.attempts_left) || 0;
       const q = (BQ.cfg && BQ.cfg.q_total) || 10;
       const s = Math.round(((BQ.cfg && BQ.cfg.limit_ms) || 8000) / 1000);
@@ -19116,7 +19105,7 @@
     async function bqPingBurst() {
       try {
         for (let i = 0; i <= 2; i++) {
-          await sb.rpc('quiz_ping', { p_nickname: gmMyNick, p_pin: gmMyPin, p_seq: i });
+          await sb.rpc('quiz_ping', { p_nickname: gmMyNick, p_pin: '', p_seq: i });
         }
       } catch (e) { /* 실패해도 게임은 진행 — 보정이 0이 될 뿐 */ }
     }
@@ -19142,7 +19131,7 @@
         let d = null, err = '';
         try {
           const res = await sb.rpc('quiz_start_attempt', {
-            p_nickname: gmMyNick, p_pin: gmMyPin, p_ua: navigator.userAgent || '',
+            p_nickname: gmMyNick, p_pin: '', p_ua: navigator.userAgent || '',
             p_pass: adminPass() || null,
           });
           if (res.error) throw res.error;
@@ -19167,7 +19156,7 @@
       let d = null, err = '';
       try {
         const res = await sb.rpc('quiz_resume', {
-          p_nickname: gmMyNick, p_pin: gmMyPin, p_pass: adminPass() || null,
+          p_nickname: gmMyNick, p_pin: '', p_pass: adminPass() || null,
         });
         if (res.error) throw res.error;
         d = res.data;
@@ -19493,7 +19482,7 @@
       let d = null, err = '';
       try {
         const res = await sb.rpc('quiz_submit_answer', {
-          p_nickname: gmMyNick, p_pin: gmMyPin,
+          p_nickname: gmMyNick, p_pin: '',
           p_attempt: BQ.attempt.attempt_id, p_no: q.no,
           p_slot: slot, p_client_ms: clientMs,
         });
@@ -19601,7 +19590,7 @@
         bqDisarmLeaveGuard();
         BQ.state = 'idle';
         if (attemptId) {
-          sb.rpc('quiz_forfeit_attempt', { p_nickname: gmMyNick, p_pin: gmMyPin, p_attempt: attemptId })
+          sb.rpc('quiz_forfeit_attempt', { p_nickname: gmMyNick, p_pin: '', p_attempt: attemptId })
             .catch(() => { /* 실패해도 다음 홈 진입 시 서버가 즉시 정리한다 */ });
         }
       } catch (e) { /* 정리 실패해도 아래에서 반드시 화면은 빠져나간다 */ }
@@ -19624,7 +19613,7 @@
       let d = null, err = '';
       try {
         const res = await sb.rpc('quiz_get_result', {
-          p_nickname: gmMyNick, p_pin: gmMyPin, p_attempt: attemptId,
+          p_nickname: gmMyNick, p_pin: '', p_attempt: attemptId,
         });
         if (res.error) throw res.error;
         d = res.data;
@@ -22382,7 +22371,7 @@
       if (!box) return;
       let d = null;
       try {
-        const res = await sb.rpc('quiz_get_my_stats', { p_nickname: gmMyNick, p_pin: gmMyPin });
+        const res = await sb.rpc('quiz_get_my_stats', { p_nickname: gmMyNick, p_pin: '' });
         if (res.error) throw res.error;
         d = res.data;
       } catch (e) { return; }
@@ -22756,13 +22745,13 @@
       gmToken++; gmClear(); gmCurGame = 'punch';
       G.mode = 'idle'; G.parts = [];
       const wk = gameWeekKey(svrNow());
-      const loggedIn = !!(gmMyNick && gmMyPin);
+      const loggedIn = !!gmMyNick;
       if (navStale(__g)) return; $app.innerHTML = gmShellHTML(wk, '🥊 블랙 펀칭', ['블랙 펀칭', 'BLACK PUNCHING'],
         `불빛이 <b>꼭대기 👑 왕관</b>에 닿는 순간 탭!<br><b>10번의 펀치</b>로 최고 파워를 찍어라`,
-        loggedIn ? 'START' : '로그인 필요',
-        loggedIn ? '높이 칠수록 강펀치 · PERFECT 연속 = 배율 UP · 3연속 = FEVER ×2' : '먼저 닉네임을 등록해 주세요',
+        loggedIn ? 'START' : '카카오 로그인',
+        loggedIn ? '높이 칠수록 강펀치 · PERFECT 연속 = 배율 UP · 3연속 = FEVER ×2' : '카카오 로그인 후 플레이할 수 있어요',
         `<b style="color:var(--text)">파워</b> 불빛을 높이 멈출수록 강펀치 · PERFECT(👑) 연속마다 배율 +0.25(최대 ×3) · 3연속 PERFECT = 다음 펀치 <b>FEVER ×2</b> · 10펀치 합계(kg)로 경쟁`,
-        !loggedIn);
+        false); // 2026-10-02: 비로그인이어도 버튼을 살려두고, 누르면 gmStartGate → 카카오 로그인으로 보낸다
       const area = document.getElementById('gArea');
       area.addEventListener('pointerdown', gmTap);
       document.getElementById('gStart').onclick = e => { e.stopPropagation(); gmStartGate(gmNewGame); };
@@ -23868,13 +23857,13 @@
       G.mode = 'runpage'; G.parts = [];
       R.mode = 'idle'; R.obs = []; R.cns = []; R.dead = false;
       const wk = gameWeekKey(svrNow());
-      const loggedIn = !!(gmMyNick && gmMyPin);
+      const loggedIn = !!gmMyNick;
       if (navStale(__g)) return; $app.innerHTML = gmShellHTML(wk, '🏃 블랙 러닝', ['블랙 러닝', 'BLACK RUNNING'],
         `탭 = 점프 · 공중에서 한 번 더 탭 = <b>더블 점프</b>!<br>장애물을 피해 <b>챔피언의 길</b>을 달려라`,
-        loggedIn ? 'START' : '로그인 필요',
-        loggedIn ? '멀리 갈수록 빨라진다 · 🪙 코인 +50점 · 아슬아슬하게 넘으면 보너스!' : '먼저 닉네임을 등록해 주세요',
+        loggedIn ? 'START' : '카카오 로그인',
+        loggedIn ? '멀리 갈수록 빨라진다 · 🪙 코인 +50점 · 아슬아슬하게 넘으면 보너스!' : '카카오 로그인 후 플레이할 수 있어요',
         `<b style="color:var(--text)">점수</b> 1m = 5점 · 🪙 코인 = +50점 · 장애물을 <b>아슬아슬</b>하게 넘으면 +25점 · 부딪히면 그대로 KO`,
-        !loggedIn);
+        false); // 2026-10-02: 비로그인이어도 버튼을 살려두고, 누르면 gmStartGate → 카카오 로그인으로 보낸다
       const area = document.getElementById('gArea');
       area.addEventListener('pointerdown', gmTap);
       document.getElementById('gStart').onclick = e => { e.stopPropagation(); gmStartGate(runStart); };
@@ -24270,13 +24259,13 @@
       G.mode = 'jumppage'; G.parts = [];
       J.mode = 'idle'; J.plats = []; J.coins = [];
       const wk = gameWeekKey(svrNow());
-      const loggedIn = !!(gmMyNick && gmMyPin);
+      const loggedIn = !!gmMyNick;
       if (navStale(__g)) return; $app.innerHTML = gmShellHTML(wk, '☁️ 블랙 점핑', ['블랙 점핑', 'BLACK JUMPING'],
         `발판을 밟으면 자동으로 통! 통! 튀어오른다.<br><b>왼쪽/오른쪽을 누르고 있으면</b> 그쪽으로 이동!<br>발판을 밟고 하늘 끝 <b>챔피언 벨트</b>까지!`,
-        loggedIn ? 'START' : '로그인 필요',
-        loggedIn ? '🌟 금색 스프링 = 슈퍼점프 · 갈라진 발판은 한 번만 · 떨어지면 끝!' : '먼저 닉네임을 등록해 주세요',
+        loggedIn ? 'START' : '카카오 로그인',
+        loggedIn ? '🌟 금색 스프링 = 슈퍼점프 · 갈라진 발판은 한 번만 · 떨어지면 끝!' : '카카오 로그인 후 플레이할 수 있어요',
         `<b style="color:var(--text)">점수</b> 높이 1m = 5점 · 🪙 코인 = +50점 · 높이 올라갈수록 발판이 험해진다 · 아래로 떨어지면 KO`,
-        !loggedIn);
+        false); // 2026-10-02: 비로그인이어도 버튼을 살려두고, 누르면 gmStartGate → 카카오 로그인으로 보낸다
       const area = document.getElementById('gArea');
       area.addEventListener('pointerdown', gmTap);
       area.addEventListener('pointerup', jumpRelease);
@@ -24757,13 +24746,13 @@
       const sub = document.getElementById('gSubmit');
       if (!sub) return;
       sub.style.display = '';
-      if (!gmMyNick || !gmMyPin) {
+      if (!gmMyNick) {
         sub.innerHTML = '<div class="empty">선수 등록 정보가 없어 기록이 저장되지 않았습니다.</div>';
         return;
       }
       sub.innerHTML = `<div style="font-weight:800">👤 ${esc(gmMyNick)} — 기록 자동 등록 중… ⏳</div>`;
       const { data, error } = await sb.rpc('submit_game_score',
-        { p_nickname: gmMyNick, p_pin: gmMyPin, p_score: G.res.score, p_combo: G.res.combo, p_kos: G.res.kos, p_game: G.res.game });
+        { p_nickname: gmMyNick, p_pin: '', p_score: G.res.score, p_combo: G.res.combo, p_kos: G.res.kos, p_game: G.res.game });
       const unit = G.res.game === 'punch' ? 'kg' : '점';
       if (error) {
         const hint = /function|not find/i.test(error.message || '') ? '미니게임_패치4.sql을 먼저 실행해 주세요. (관리자에게 문의)' : cleanErr(error.message);
@@ -25028,51 +25017,16 @@
       if (failMsgs.length) return toastMsg('⚠️ ' + Array.from(new Set(failMsgs)).join(' / '));
       toastMsg(`${nick} 님의 기록이 저장되었습니다.`);
     }
-    async function resetWhitelistUserPin(btn) {
-      const nick = btn.dataset.nick;
-      if (!confirm(`'${nick}' 님의 비밀번호를 0000으로 초기화할까요?\n(유저에게 0000으로 로그인 후 수정하라고 안내하세요)`)) return;
-      const { data, error } = await sb.rpc('admin_reset_game_pin', { p_pass: adminPass(), p_nickname: nick, p_new_pin: '0000' });
-      if (error) {
-        if (/function|not find/i.test(error.message || '')) return toastMsg('⚠️ 미니게임_계정관리_패치.sql을 먼저 실행해 주세요.');
-        return toastMsg('⚠️ ' + cleanErr(error.message));
-      }
-      if (!data || data.ok === false) return toastMsg('⚠️ ' + ((data && data.msg) || '초기화에 실패했습니다.'));
-      toastMsg('비밀번호가 0000으로 초기화되었습니다.');
-    }
     async function removeWhitelistUser(btn) {
       const nick = btn.dataset.nick;
-      if (!confirm(`'${nick}' 님을 사이트에서 완전히 제거할까요?\n게임 계정+미니게임/블랙 배틀/블랙 퀴즈 기록+투표 기록과 화이트리스트 등록이 모두 삭제되며 되돌릴 수 없습니다.\n(제거 후에는 같은 닉네임을 다시 만들 수 없고, 추후 필요하면 화이트리스트에 다시 등록해야 합니다)`)) return;
+      if (!confirm(`'${nick}' 님의 계정을 제거할까요?\n블붕이 닉네임 연결과 미니게임/블랙 배틀/블랙 퀴즈 기록+투표 기록이 모두 삭제되며 되돌릴 수 없습니다.\n(카카오 계정 자체는 남아 있어, 다음 로그인 때 닉네임을 새로 정하게 됩니다)`)) return;
       const { data, error } = await sb.rpc('admin_force_delete_game_user', { p_pass: adminPass(), p_nickname: nick });
       if (error) {
-        if (/function|not find/i.test(error.message || '')) return toastMsg('⚠️ 미니게임_계정관리_패치.sql을 먼저 실행해 주세요.');
+        if (/function|not find/i.test(error.message || '')) return toastMsg('⚠️ kakao-login-migration.sql을 먼저 실행해 주세요.');
         return toastMsg('⚠️ ' + cleanErr(error.message));
       }
-      // 계정/투표 기록이 애초에 없었던 닉네임(화이트리스트에만 등록되고 아직 미사용)도 있을 수 있다 —
-      // 그 경우 위 RPC는 ok:false(찾을 수 없음)를 돌려주지만, 그래도 화이트리스트 제거는 계속 진행해야 한다.
-      if (data && data.ok === false && !/찾을 수 없습니다/.test(data.msg || '')) {
-        return toastMsg('⚠️ ' + (data.msg || '제거에 실패했습니다.'));
-      }
-      // admin_force_delete_game_user(미니게임_계정관리_패치.sql)는 블랙 퀴즈가 나오기 전에 만들어진
-      // 함수라 game_scores/bb_pvp/투표 기록만 지우고 블랙 퀴즈 기록(quiz_attempt/quiz_daily_best/
-      // quiz_weekly_best/quiz_user_stat)은 건드리지 않는다 — 그래서 "유저 관리"에서 완전히 제거해도
-      // 블랙 퀴즈 랭킹에는 그 닉네임이 계속 남아있던 버그(2026-08-19 발견)의 원인이었다.
-      // 같은 정리 로직(quiz_admin_reset_attempts)을 여기서도 그대로 호출해 빠짐없이 지운다.
-      // 블랙퀴즈_패치.sql이 아직 적용 안 된 사이트도 있을 수 있어, 함수가 없을 때만 조용히 건너뛰고
-      // 그 외 실제 오류는 나머지 삭제를 막지 않되 안내 메시지에 남긴다.
-      let quizWarn = '';
-      const qz = await sb.rpc('quiz_admin_reset_attempts', { p_pass: adminPass(), p_nickname: nick });
-      if (qz.error) {
-        if (!/function|not find/i.test(qz.error.message || '')) quizWarn = ' (블랙 퀴즈 기록 삭제 실패: ' + cleanErr(qz.error.message) + ')';
-      } else if (!qz.data || qz.data.ok === false) {
-        quizWarn = ' (블랙 퀴즈 기록 삭제 실패: ' + ((qz.data && qz.data.msg) || '알 수 없는 오류') + ')';
-      }
-      const wl = await sb.rpc('admin_delete_allowed_nickname', { p_pass: adminPass(), p_nickname: nick });
-      if (wl.error) {
-        if (/function|not find/i.test(wl.error.message || '')) return toastMsg('⚠️ 잡담방_닉네임_화이트리스트_패치.sql을 먼저 실행해 주세요. (게임 계정/기록은 이미 삭제됨)' + quizWarn);
-        return toastMsg('⚠️ ' + cleanErr(wl.error.message) + ' (게임 계정/기록은 이미 삭제됨)' + quizWarn);
-      }
-      if (!wl.data || wl.data.ok === false) return toastMsg('⚠️ ' + ((wl.data && wl.data.msg) || '화이트리스트 삭제에 실패했습니다.') + ' (게임 계정/기록은 이미 삭제됨)' + quizWarn);
-      toastMsg(`'${nick}' 님이 사이트와 화이트리스트에서 완전히 제거되었습니다.` + quizWarn);
+      if (!data || data.ok === false) return toastMsg('⚠️ ' + ((data && data.msg) || '제거에 실패했습니다.'));
+      toastMsg(`'${nick}' 님의 계정과 기록이 제거되었습니다.`);
       loadWhitelist();
     }
 
@@ -25336,14 +25290,14 @@
       document.querySelectorAll('.bb-finisher-cinema').forEach(el => el.remove());
       // 대기열에 남아있는 상태로 화면을 벗어나면(뒤로가기 등) 다른 사람이 계속 대기하지 않도록 대기열을 정리한다.
       if (typeof bbPvpStopTimers === 'function') bbPvpStopTimers();
-      if (BBP.queueId && sb && gmMyNick && gmMyPin) {
-        try { sb.rpc('bb_pvp_cancel_queue', { p_nickname: gmMyNick, p_pin: gmMyPin, p_queue_id: BBP.queueId }); } catch (e) { }
+      if (BBP.queueId && sb && gmMyNick) {
+        try { sb.rpc('bb_pvp_cancel_queue', { p_nickname: gmMyNick, p_pin: '', p_queue_id: BBP.queueId }); } catch (e) { }
       }
       // 이미 시작된 PvP 대결 도중 "게임 선택"/뒤로가기 등으로 화면을 벗어나면, 상대만 남겨두고
       // 사라져버리는 악용을 막기 위해 즉시 기권 처리(패배 기록)하고 그 사실을 토스트로 알린다.
       // (시간 초과 자동 기권과 동일하게 서버의 bb_pvp_forfeit이 패배를 기록한다)
-      if (wasActivePvpFight && activeMatchId && sb && gmMyNick && gmMyPin) {
-        try { sb.rpc('bb_pvp_forfeit', { p_nickname: gmMyNick, p_pin: gmMyPin, p_match_id: activeMatchId }); } catch (e) { }
+      if (wasActivePvpFight && activeMatchId && sb && gmMyNick) {
+        try { sb.rpc('bb_pvp_forfeit', { p_nickname: gmMyNick, p_pin: '', p_match_id: activeMatchId }); } catch (e) { }
         toastMsg('진행 중인 대결에서 나가서 패배(기권)로 처리되었습니다');
       }
       BBP.queueId = null;
@@ -25368,11 +25322,11 @@
       // 상태에서 실행되는 게 보통이므로, 페이지가 지금 당장 사라질 수도 있는 pagehide 시점과 달리
       // keepalive fetch 같은 특별한 안전장치 없이 평범한 sb.rpc 호출로 충분하다.
       try {
-        if (BBP.queueId && sb && gmMyNick && gmMyPin) {
-          sb.rpc('bb_pvp_cancel_queue', { p_nickname: gmMyNick, p_pin: gmMyPin, p_queue_id: BBP.queueId }).catch(() => { });
+        if (BBP.queueId && sb && gmMyNick) {
+          sb.rpc('bb_pvp_cancel_queue', { p_nickname: gmMyNick, p_pin: '', p_queue_id: BBP.queueId }).catch(() => { });
         }
-        if (BB.phase === 'pvp_fight' && BBP.matchId && sb && gmMyNick && gmMyPin) {
-          sb.rpc('bb_pvp_forfeit', { p_nickname: gmMyNick, p_pin: gmMyPin, p_match_id: BBP.matchId }).catch(() => { });
+        if (BB.phase === 'pvp_fight' && BBP.matchId && sb && gmMyNick) {
+          sb.rpc('bb_pvp_forfeit', { p_nickname: gmMyNick, p_pin: '', p_match_id: BBP.matchId }).catch(() => { });
           bbAbsenceForfeited = true; // 화면이 숨겨진 채로 토스트를 띄워봐야 못 보므로, 돌아왔을 때 알려준다
         }
       } catch (e) { }
@@ -25503,15 +25457,15 @@
       <div class="gt-sub">BLACK BATTLE</div>
       <div class="gt-desc"><b>기술 선택 심리전</b>으로 승부하는 1:1 MMA 전략 배틀!<br>가위바위보 상성(<b>타격·방어·태클</b>)으로 상대를 제압하세요.</div>
       ${step === 'me' ? `
-      <div class="bb-mystatus" id="bbMyStatusLine">${gmMyNick ? `👤 <b>${esc(gmMyNick)}</b> · <span id="bbMyRecordTag">불러오는 중…</span>` : '매칭을 시작하려면 선수 등록(로그인)이 필요해요'}</div>
-      <button class="g-start g-en" id="bbMatchBtn" ${(gmMyNick && gmMyPin) ? '' : 'disabled'}>${(gmMyNick && gmMyPin) ? '매칭' : '로그인 필요'}</button>` : ''}
+      <div class="bb-mystatus" id="bbMyStatusLine">${gmMyNick ? `👤 <b>${esc(gmMyNick)}</b> · <span id="bbMyRecordTag">불러오는 중…</span>` : '매칭을 시작하려면 카카오 로그인이 필요해요'}</div>
+      <button class="g-start g-en" id="bbMatchBtn">${gmMyNick ? '매칭' : '카카오 로그인'}</button>` : ''}
     </div>
   </div>
   <div class="card bg-pick" id="bbPickCard">
     <div class="bg-pick-t">${title} <span class="bg-pick-cur">${cur ? esc(cur.nick) : '미선택'}</span></div>
     ${bbFighterGridHtml(cur ? cur.nick : null)}
-    ${step === 'opp' ? `<button class="g-start g-en" id="bbPickNext" ${(cur && gmMyNick && gmMyPin) ? '' : 'disabled'}>${(gmMyNick && gmMyPin) ? '⚔️ 전투 시작' : '로그인 필요'}</button>` : ''}
-    ${step === 'opp' && !(gmMyNick && gmMyPin) ? `<div class="bb-mystatus" style="margin-top:8px">먼저 닉네임을 등록해 주세요</div>` : ''}
+    ${step === 'opp' ? `<button class="g-start g-en" id="bbPickNext" ${cur ? '' : 'disabled'}>${gmMyNick ? '⚔️ 전투 시작' : '카카오 로그인'}</button>` : ''}
+    ${step === 'opp' && !gmMyNick ? `<div class="bb-mystatus" style="margin-top:8px">카카오 로그인 후 전투할 수 있어요</div>` : ''}
     ${step === 'opp' ? `<button class="bg-forfeit" id="bbPickBack" style="display:block;margin:8px auto 0">← 내 선수 다시 선택</button>` : ''}
   </div>
   ${step === 'me' ? `
@@ -25609,7 +25563,7 @@
     <div class="bg-pick-t">🌐 실시간 매칭 <span class="bg-pick-cur">${esc(BB.me.nick)}</span></div>
     <div class="bb-queue-wrap"><div class="bb-queue-spin"></div><div class="bb-queue-t">대기열에 등록하는 중…</div></div>
   </div>`;
-      const { data, error } = await sb.rpc('bb_pvp_enqueue', { p_nickname: gmMyNick, p_pin: gmMyPin, p_fighter: BB.me.art });
+      const { data, error } = await sb.rpc('bb_pvp_enqueue', { p_nickname: gmMyNick, p_pin: '', p_fighter: BB.me.art });
       if (BB.phase !== 'pvp_queue') return; // 응답 오는 사이 사용자가 이미 다른 화면으로 이동함
       if (error) {
         const msg = /function|not find/i.test(error.message || '') ? '블랙배틀_PvP_매칭.sql을 먼저 실행해 주세요. (관리자에게 문의)' : cleanErr(error.message);
@@ -25685,7 +25639,7 @@
       const qid = BBP.queueId;
       bbPvpStopTimers();
       BBP.queueId = null;
-      if (qid && sb) { try { await sb.rpc('bb_pvp_cancel_queue', { p_nickname: gmMyNick, p_pin: gmMyPin, p_queue_id: qid }); } catch (e) { } }
+      if (qid && sb) { try { await sb.rpc('bb_pvp_cancel_queue', { p_nickname: gmMyNick, p_pin: '', p_queue_id: qid }); } catch (e) { } }
       if (BB.phase !== 'pvp_queue') return; // 취소 처리 중 사용자가 이미 다른 화면으로 이동함
       // 매칭 상대는 필요 없다 — 내가 고른 선수를 제외한 나머지 중에서 Bot의 선수를 무작위로 정한다
       const pool = BB_FIGHTERS.filter(f => f.nick !== BB.me.nick);
@@ -25703,7 +25657,7 @@
     async function bbPvpPollQueue() {
       if (!BBP.queueId) return;
       const qid = BBP.queueId;
-      const { data, error } = await sb.rpc('bb_pvp_poll_queue', { p_nickname: gmMyNick, p_pin: gmMyPin, p_queue_id: qid });
+      const { data, error } = await sb.rpc('bb_pvp_poll_queue', { p_nickname: gmMyNick, p_pin: '', p_queue_id: qid });
       if (BBP.queueId !== qid) return; // 응답 오는 사이 취소되었거나 이미 다른 매치로 넘어감
       if (error) return; // 일시적 네트워크 오류는 다음 폴링에서 재시도
       if (!data || data.ok === false) { bbPvpShowQueueError((data && data.msg) || '대기열 정보를 불러오지 못했습니다.'); return; }
@@ -25715,7 +25669,7 @@
       BBP.queueId = null;
       const msgEl = document.getElementById('bbQueueMsg');
       if (msgEl) msgEl.textContent = '취소하는 중…';
-      if (qid && sb) { try { await sb.rpc('bb_pvp_cancel_queue', { p_nickname: gmMyNick, p_pin: gmMyPin, p_queue_id: qid }); } catch (e) { } }
+      if (qid && sb) { try { await sb.rpc('bb_pvp_cancel_queue', { p_nickname: gmMyNick, p_pin: '', p_queue_id: qid }); } catch (e) { } }
       if (BB.phase !== 'pvp_queue') return; // 취소 처리 중 사용자가 이미 다른 화면으로 이동함
       BB.phase = 'pick'; BB.pickStep = 'me';
       bbRenderPick();
@@ -25732,7 +25686,7 @@
       BB.phase = 'pvp_matched';
       const a0 = bbArea();
       if (a0) a0.innerHTML = `<div class="card bg-pick"><div class="bg-pick-t">🌐 매칭 완료! 상대 정보를 불러오는 중…</div></div>`;
-      const { data, error } = await sb.rpc('bb_pvp_get_match', { p_nickname: gmMyNick, p_pin: gmMyPin, p_match_id: matchId });
+      const { data, error } = await sb.rpc('bb_pvp_get_match', { p_nickname: gmMyNick, p_pin: '', p_match_id: matchId });
       if (BB.phase !== 'pvp_matched') return;
       if (error || !data || data.ok === false) {
         bbPvpShowQueueError((data && data.msg) || (error && cleanErr(error.message)) || '대결 정보를 불러오지 못했습니다.');
@@ -25826,7 +25780,7 @@
     async function bbPvpPollMatch() {
       if (BB.phase !== 'pvp_fight' || !BBP.matchId) { bbPvpStopTimers(); return; }
       const mid = BBP.matchId;
-      const { data, error } = await sb.rpc('bb_pvp_get_match', { p_nickname: gmMyNick, p_pin: gmMyPin, p_match_id: mid });
+      const { data, error } = await sb.rpc('bb_pvp_get_match', { p_nickname: gmMyNick, p_pin: '', p_match_id: mid });
       if (BB.phase !== 'pvp_fight' || BBP.matchId !== mid) return;
       if (error) return; // 일시적 네트워크 오류는 다음 폴링에서 재시도
       if (!data || data.ok === false) { bbPvpFatalError((data && data.msg) || '대결 정보를 불러오지 못했습니다.'); return; }
@@ -25983,7 +25937,7 @@
       const txt = document.getElementById('bbWaitText');
       if (txt) txt.innerHTML = usingFinisher ? `${bbMoveIcHtml('필살기')} 필살기 발동!` : '⚔️ 상대의 선택을 확인하는 중…';
       const myRound = BB.round, mid = BBP.matchId;
-      const { data, error } = await sb.rpc('bb_pvp_submit_move', { p_nickname: gmMyNick, p_pin: gmMyPin, p_match_id: mid, p_round: myRound, p_move: moveKey });
+      const { data, error } = await sb.rpc('bb_pvp_submit_move', { p_nickname: gmMyNick, p_pin: '', p_match_id: mid, p_round: myRound, p_move: moveKey });
       if (BB.phase !== 'pvp_fight' || BBP.matchId !== mid) return;
       if (error) { bbPvpFatalError(cleanErr(error.message)); return; }
       if (!data || (data.ok === false && !data.stale)) {
@@ -26006,7 +25960,7 @@
           BB.busy = true;
           bbPvpStopTimers();
           const txt = document.getElementById('bbWaitText'); if (txt) txt.textContent = '기권 처리 중…';
-          sb.rpc('bb_pvp_forfeit', { p_nickname: gmMyNick, p_pin: gmMyPin, p_match_id: BBP.matchId }).then(({ data, error }) => {
+          sb.rpc('bb_pvp_forfeit', { p_nickname: gmMyNick, p_pin: '', p_match_id: BBP.matchId }).then(({ data, error }) => {
             if (BB.phase !== 'pvp_fight') return;
             if (error || !data || data.ok === false) { bbPvpFatalError((data && data.msg) || (error && cleanErr(error.message)) || '기권 처리에 실패했습니다.'); return; }
             bbPvpShowResult(data);
@@ -27340,7 +27294,8 @@
       const identityBlock = gmMyNick
         ? `<div class="home-login-id" style="margin:0">👤 <b>${esc(gmMyNick)}</b> 님으로 투표합니다</div>
        <div class="note" style="margin-top:8px">💡 마감 전까지 수정 가능하고, 게이지를 누르면 <b>투표자 목록</b>이 보입니다.</div>`
-        : `<div class="empty" style="padding:10px 0;color:var(--red)"><b>투표하려면 먼저 닉네임을 등록해 주세요.</b></div>`;
+        : `<div class="empty" style="padding:10px 0 4px;color:var(--red)"><b>투표하려면 카카오 로그인이 필요해요.</b></div>
+       <button type="button" class="btn-kakao" style="max-width:320px;margin:0 auto 6px" onclick="gmKakaoLogin()">${GM_KAKAO_ICON} 카카오 로그인하고 투표하기</button>`;
       return `
     <div class="sec-title" style="justify-content:space-between">승부 예측 · 실시간 현황
       <button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button>
@@ -27408,11 +27363,11 @@
     async function submitVote(tid, matchCount) {
       const msg = document.getElementById('v-msg');
       const show = (cls, s) => { msg.className = 'msg ' + cls; msg.textContent = s; msg.scrollIntoView({ block: 'center', behavior: 'smooth' }); };
-      if (!gmMyNick || !gmMyPin) { toastMsg('먼저 홈 화면에서 닉네임을 등록해 주세요.'); location.hash = '#/'; return; }
+      if (!gmMyNick) { gmRequireLogin(); return; }
       if (Object.keys(voteSel).length < matchCount) return show('err', `모든 경기에 투표해야 제출할 수 있습니다. 현재 ${matchCount}경기 중 ${Object.keys(voteSel).length}경기만 선택하셨어요.`);
       const btn = document.getElementById('vb-submit'); btn.disabled = true;
       try {
-        const { data, error } = await sb.rpc('submit_picks', { p_tournament: tid, p_nickname: gmMyNick, p_pin: gmMyPin, p_picks: voteSel });
+        const { data, error } = await sb.rpc('submit_picks', { p_tournament: tid, p_nickname: gmMyNick, p_pin: '', p_picks: voteSel });
         if (error) return show('err', cleanErr(error.message));
         if (data && data.ok === false) return show('err', data.error);
         fpTrackAction('submit_vote', { tid, isNew: !!(data && data.is_new) });
@@ -28041,17 +27996,10 @@
     </div>
     ${rows.join('') || '<div class="empty">대회가 없습니다.</div>'}
     ${statsHTML}
-    <div class="sec-title">👥 유저 관리 <span style="color:var(--dim);font-size:12px;font-weight:700">오픈톡방 유저만 신규 등록 가능</span></div>
+    <div class="sec-title">👥 유저 관리 <span style="color:var(--dim);font-size:12px;font-weight:700">카카오 로그인 후 본인이 정한 닉네임</span></div>
     <div class="card" style="max-width:420px">
-      <div class="field" style="margin-top:0">
-        <label>새 닉네임 추가</label>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input id="wl-add" style="flex:1;min-width:0" maxlength="20" placeholder="추가할 닉네임" onkeydown="if(event.key==='Enter')addWhitelistNick()">
-          <button class="btn small primary" id="wl-add-btn" onclick="addWhitelistNick()">추가</button>
-        </div>
-      </div>
       <div class="msg" id="wl-msg"></div>
-      <div class="field"><label>닉네임 검색</label><input id="wl-search" placeholder="닉네임 입력" oninput="renderWhitelist()"></div>
+      <div class="field" style="margin-top:0"><label>닉네임 검색</label><input id="wl-search" placeholder="닉네임 입력" oninput="renderWhitelist()"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px">
         <div style="font-size:12px;color:var(--muted);font-weight:700" id="wl-count">불러오는 중…</div>
         <button class="btn xs" id="wl-csv-btn" onclick="downloadWhitelistCSV()">📥 CSV 다운로드</button>
@@ -28072,17 +28020,20 @@
       if (document.getElementById('site-stats-body')) fpLoadSiteStats(__fpStatPreset);
       if (document.getElementById('bqAdminSec')) bqRenderAdmin();
     }
-    /* --- 닉네임 화이트리스트 관리(관리자) --- */
+    /* --- 유저 관리(관리자). 2026-10-02 카카오 로그인 전환: 허용 닉네임 목록(allowed_nicknames) 대신
+       실제 게임 계정(game_players: 카카오 계정 ↔ 블붕이 닉네임)을 보여준다. 변수/함수 이름의
+       "whitelist"는 예전 이름을 그대로 둔 것. */
     let __whitelistCache = [];
-    let __whitelistDates = {}; // 닉네임 -> 등록 시각(created_at). 카톡방 입퇴장 대조용.
+    let __whitelistDates = {}; // 닉네임 -> 가입 시각(created_at)
+    let __whitelistKakao = {}; // 닉네임 -> 카카오 프로필 닉네임(참고용)
     async function loadWhitelist() {
-      const { data, error } = await sb.from('allowed_nicknames').select('nickname,created_at').order('nickname');
+      const { data, error } = await sb.rpc('admin_list_game_users', { p_pass: adminPass() });
       if (error) {
         const el = document.getElementById('wl-count');
-        if (el) el.textContent = /function|not find/i.test(error.message || '') ? '⚠️ 잡담방_닉네임_화이트리스트_패치.sql을 먼저 실행해 주세요.' : '⚠️ ' + cleanErr(error.message);
+        if (el) el.textContent = /function|not find/i.test(error.message || '') ? '⚠️ kakao-login-migration.sql을 먼저 실행해 주세요.' : '⚠️ ' + cleanErr(error.message);
         return;
       }
-      // 목록 순서: 최근에 추가한 닉네임이 맨 위 (추가 시각까지 같으면 — 최초 일괄 등록분 등 — 이름순)
+      // 목록 순서: 최근에 가입한 닉네임이 맨 위
       const sorted = (data || []).slice().sort((a, b) => {
         const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
         const tb = b.created_at ? new Date(b.created_at).getTime() : 0;
@@ -28090,9 +28041,8 @@
         return String(a.nickname).localeCompare(String(b.nickname), 'ko');
       });
       __whitelistCache = sorted.map(r => r.nickname);
-      __whitelistDates = {};
-      sorted.forEach(r => { if (r.created_at) __whitelistDates[r.nickname] = r.created_at; });
-      __allowedNicknamesCache = __whitelistCache; // 홈 자동완성 캐시도 최신 상태로 갱신
+      __whitelistDates = {}; __whitelistKakao = {};
+      sorted.forEach(r => { if (r.created_at) __whitelistDates[r.nickname] = r.created_at; if (r.kakao_nickname) __whitelistKakao[r.nickname] = r.kakao_nickname; });
       renderWhitelist();
     }
     function fmtWlDate(iso) {
@@ -28111,12 +28061,11 @@
     <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid #eef1f6;flex-wrap:wrap" id="wlrow-${i}">
       <span style="display:inline-flex;flex-direction:column;min-width:0">
         <span id="wlname-${i}">${esc(n)}</span>
-        ${__whitelistDates[n] ? `<span style="font-size:10.5px;color:var(--dim);font-weight:600">등록 ${fmtWlDate(__whitelistDates[n])}</span>` : ''}
+        ${__whitelistDates[n] || __whitelistKakao[n] ? `<span style="font-size:10.5px;color:var(--dim);font-weight:600">${__whitelistDates[n] ? `가입 ${fmtWlDate(__whitelistDates[n])}` : ''}${__whitelistKakao[n] && __whitelistKakao[n] !== n ? ` · 카카오 ${esc(__whitelistKakao[n])}` : ''}</span>` : ''}
       </span>
       <span style="display:inline-flex;gap:5px;flex-wrap:wrap">
         <button class="btn xs" data-idx="${i}" data-nick="${esc(n)}" onclick="editWhitelistNick(this)">이름 변경</button>
         <button class="btn xs" data-idx="${i}" data-nick="${esc(n)}" onclick="toggleWhitelistUserGames(this)">게임 관리</button>
-        <button class="btn xs" data-nick="${esc(n)}" onclick="resetWhitelistUserPin(this)">비번 초기화</button>
         <button class="btn xs" style="color:#c62828" data-nick="${esc(n)}" onclick="removeWhitelistUser(this)">제거</button>
       </span>
     </div><div id="wlgames-${i}" style="display:none;padding:0 2px"></div>`).join('') || '<div class="empty" style="padding:10px 0">일치하는 닉네임이 없습니다.</div>';
@@ -28127,7 +28076,7 @@
       if (!__whitelistCache.length) return toastMsg('⚠️ 아직 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
       const escCsv = v => /[",\n]/.test(v) ? '"' + String(v).replace(/"/g, '""') + '"' : v;
       // 맨 앞의 ﻿(BOM)는 엑셀이 한글을 깨지지 않게 읽도록 하는 표식
-      const csv = '\uFEFF' + '닉네임,등록일\n' + __whitelistCache.map(n => escCsv(n) + ',' + escCsv(fmtWlDate(__whitelistDates[n]) || '')).join('\n') + '\n';
+      const csv = '\uFEFF' + '닉네임,카카오 닉네임,가입일\n' + __whitelistCache.map(n => escCsv(n) + ',' + escCsv(__whitelistKakao[n] || '') + ',' + escCsv(fmtWlDate(__whitelistDates[n]) || '')).join('\n') + '\n';
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const d = new Date();
@@ -28140,23 +28089,6 @@
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       toastMsg(`📥 총 ${__whitelistCache.length}명의 닉네임을 CSV로 내려받았습니다.`);
-    }
-    async function addWhitelistNick() {
-      const inp = document.getElementById('wl-add');
-      const nick = (inp.value || '').trim();
-      const msg = document.getElementById('wl-msg');
-      const put = s => { msg.className = 'msg err'; msg.textContent = s; };
-      if (!nick) return put('추가할 닉네임을 입력해 주세요.');
-      const { data, error } = await sb.rpc('admin_add_allowed_nickname', { p_pass: adminPass(), p_nickname: nick });
-      if (error) {
-        if (/function|not find/i.test(error.message || '')) return put('잡담방_닉네임_화이트리스트_패치.sql을 먼저 실행해 주세요.');
-        return put(cleanErr(error.message));
-      }
-      if (!data || data.ok === false) return put((data && data.msg) || '추가에 실패했습니다.');
-      msg.className = ''; msg.textContent = '';
-      inp.value = '';
-      toastMsg(`'${data.nickname}' 닉네임이 추가되었습니다.`);
-      loadWhitelist();
     }
     function editWhitelistNick(btn) {
       const idx = btn.dataset.idx;
@@ -28174,20 +28106,14 @@
       const inp = document.getElementById('wlinput-' + idx);
       const newNick = (inp.value || '').trim();
       if (!newNick) return toastMsg('⚠️ 닉네임을 입력해 주세요.');
-      const { data, error } = await sb.rpc('admin_rename_allowed_nickname', { p_pass: adminPass(), p_old_nickname: oldNick, p_new_nickname: newNick });
+      // 게임 계정 닉네임 변경 — 퀴즈/배틀/점수/투표 기록의 닉네임까지 서버에서 함께 바꿔준다
+      const { data, error } = await sb.rpc('admin_rename_game_user', { p_pass: adminPass(), p_old_nickname: oldNick, p_new_nickname: newNick });
       if (error) {
-        if (/function|not find/i.test(error.message || '')) return toastMsg('⚠️ 잡담방_닉네임_화이트리스트_패치.sql을 먼저 실행해 주세요.');
+        if (/function|not find/i.test(error.message || '')) return toastMsg('⚠️ kakao-login-migration.sql을 먼저 실행해 주세요.');
         return toastMsg('⚠️ ' + cleanErr(error.message));
       }
       if (!data || data.ok === false) return toastMsg('⚠️ ' + ((data && data.msg) || '수정에 실패했습니다.'));
-      const finalNick = data.nickname;
-      // 같은 닉네임으로 등록된 게임 계정이 있으면 함께 이름을 바꾼다(계정이 없으면 조용히 무시)
-      const gu = await sb.rpc('admin_rename_game_user', { p_pass: adminPass(), p_old_nickname: oldNick, p_new_nickname: finalNick });
-      if (gu.error && !/function|not find/i.test(gu.error.message || '')) {
-        toastMsg('⚠️ 화이트리스트는 수정됐지만 게임 계정 이름 변경에 실패했습니다: ' + cleanErr(gu.error.message));
-      } else {
-        toastMsg(`'${oldNick}' → '${finalNick}'(으)로 수정되었습니다.`);
-      }
+      toastMsg(`'${oldNick}' → '${data.nickname}'(으)로 수정되었습니다.`);
       loadWhitelist();
     }
     // ── 대진 선수 이름 검증·보정·추천 ──
@@ -29175,7 +29101,7 @@
         // 클릭 가능한 블록 요소에 흰 타일 표식
         root.querySelectorAll('.t-card, .tk-past, .gcard, .frow[onclick], .tk-row1-btn, .pcard-h, .yt-prob-day').forEach(function (el) { el.classList.add('v2-tile'); });
         root.querySelectorAll('.yt-recent-row').forEach(function (el) { el.classList.add('v2-row'); });
-        root.querySelectorAll('.gt-hint').forEach(function (h) { h.classList.toggle('v2-need-login', /닉네임을 등록/.test(h.textContent)); });
+        root.querySelectorAll('.gt-hint').forEach(function (h) { h.classList.toggle('v2-need-login', /로그인/.test(h.textContent)); });
         if (document.body.dataset.route === 'ranking') root.querySelectorAll('.card > button:not(.btn)').forEach(function (el) { el.classList.add('v2-toggle'); });
         // 내용 블록 → 흰 패널 (클릭 타일·모달 내부·숨김 래퍼 제외)
         root.querySelectorAll('.card:not(.t-card):not(.tk-past):not(.pf-scope *):not(.modal *):not(.pcard):not(.match), .tbl-scroll, .yt-event-line, .yt-col1, .yt-pred-merged, .yt-gap-stats, .yt-week-prob-panel, .yt-views-panel, .tk-dash-col, .tk-trend, .tk-dash-hist, .v2-box-bot').forEach(function (el) { el.classList.add('v2-panel'); });
@@ -29722,9 +29648,12 @@
                 var tip = h + '시 ' + (v > 0 ? '+' : '') + v.toLocaleString() + '석 ' + (v < 0 ? '(취소가 더 많음)' : '판매') + (c != null ? ' · 누적 ' + c.toLocaleString() + '석' + (totalSeats ? ' (' + (c / totalSeats * 100).toFixed(1) + '%)' : '') : '');
                 var attrs = (typeof tkTipAttrs === 'function') ? tkTipAttrs(tip) : ' title="' + tip + '"';
                 if (!negFrac) {
-                  bars += '<div class="tk-day-col"' + attrs + '><i class="tk-day-fill" style="height:' + (Math.max(0, v) / maxPos * 100).toFixed(1) + '%' + (v > 0 ? ';min-height:4px' : '') + '"></i></div>';
+                  // 2026-10-02: 일별 차트와 같은 이유로 선형 대신 제곱근 스케일(tkSqrtFrac) 사용 —
+                  // 큰 값 하나(전체 날짜 기준 globalMaxPos)가 기준이 되다 보니 보통 수준의 시간대
+                  // 값들이 전부 바닥(3%)에 몰려 서로 달라 보이지 않던 문제를 고친다.
+                  bars += '<div class="tk-day-col"' + attrs + '><i class="tk-day-fill" style="height:' + (tkSqrtFrac(v, maxPos) * 100).toFixed(1) + '%' + (v > 0 ? ';min-height:4px' : '') + '"></i></div>';
                 } else {
-                  var hPos = v > 0 ? Math.max(v / maxPos * 100, 3) : 0, hNeg = v < 0 ? Math.max(Math.min((-v / scaleMax) / negFrac * 100, 100), 3) : 0;
+                  var hPos = v > 0 ? Math.max(tkSqrtFrac(v, maxPos) * 100, 3) : 0, hNeg = v < 0 ? Math.max(Math.min(tkSqrtFrac(-v, scaleMax) / negFrac * 100, 100), 3) : 0;
                   bars += '<div class="tk-day-col tk-day-col2"' + attrs + '><span class="tk-day-pos" style="height:' + (posFrac * 100).toFixed(1) + '%"><i class="tk-day-fill" style="height:' + hPos.toFixed(1) + '%' + (v > 0 ? ';min-height:4px' : '') + '"></i></span><span class="tk-day-neg" style="height:' + (negFrac * 100).toFixed(1) + '%"><i class="tk-day-fill tk-day-fill-neg" style="height:' + hNeg.toFixed(1) + '%' + (v < 0 ? ';min-height:4px' : '') + '"></i></span></div>';
                 }
               }
