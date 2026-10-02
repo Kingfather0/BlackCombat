@@ -12617,7 +12617,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-10-02T18:43:00+09:00';
+    const BUILD_ID = '2026-10-02T18:49:41+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -13955,18 +13955,18 @@
       // (시간별 차트처럼 중간을 솎아내면 "그날 판매량"이라는 막대의 의미가 왜곡되기 때문)
       const MAX_BARS = 30;
       if (bars.length > MAX_BARS) bars = bars.slice(bars.length - MAX_BARS);
-      const maxPos = Math.max(1, ...bars.map(b => Math.max(0, b.delta)));
-      const maxNeg = Math.max(0, ...bars.map(b => Math.max(0, -b.delta))); // 취소가 더 많았던 날의 최대 폭
-      // 마이너스인 날이 하나라도 있으면 차트를 기준선 위(판매·파랑)/아래(취소·빨강) 두 구역으로 나눈다.
-      // 구역 높이는 실제 최대값 비율대로 배분하되, 아래 구역이 너무 납작해지지 않게 최소 22%는 확보한다.
-      const negFrac = maxNeg > 0 ? Math.max(0.22, maxNeg / (maxPos + maxNeg)) : 0;
+      // 2026-10-02: 막대 높이 기준(maxPos)에서 첫 막대(isStart)를 뺀다. 첫 막대는 "추적 시작까지의 누적"
+      // (예: 1,357석)이라 하루 판매량(보통 3~200석)과는 자릿수가 다른데, 이걸 기준으로 삼으니
+      // 나머지 날들이 전부 바닥에 깔려 +3과 +6이 똑같아 보였다(신고 확인). 첫 막대는 항상 100%로 그리고,
+      // 나머지는 "하루 판매량 중 최대"를 100%로 제곱근 스케일링해서 작은 차이도 보이게 한다.
+      const nonStart = bars.filter(b => !b.isStart);
+      const maxPos = Math.max(1, ...nonStart.map(b => Math.max(0, b.delta)));
+      const maxNeg = Math.max(0, ...nonStart.map(b => Math.max(0, -b.delta))); // 취소가 더 많았던 날의 최대 폭
+      // 마이너스인 날이 하나라도 있으면 차트를 기준선 위(판매)/아래(취소·빨강) 두 구역으로 나눈다.
+      // 구역 높이는 양/음 최대값의 제곱근 비율로 배분(최소 10%, 최대 50%) — 그래서 -1 같은 값은
+      // 작은 구역에 작게, 취소가 정말 많았던 날만 크게 보인다.
+      const negFrac = maxNeg > 0 ? Math.min(0.5, Math.max(0.1, Math.sqrt(maxNeg) / (Math.sqrt(maxPos) + Math.sqrt(maxNeg)))) : 0;
       const posFrac = 1 - negFrac;
-      // 2026-09-20: 마이너스 막대를 자기들끼리의 최댓값(maxNeg)만 기준으로 채우면, 마이너스가
-      // 딱 하루뿐이고 그게 -1처럼 아주 작은 값이어도 "그중엔 자기가 제일 크다"는 이유로 항상
-      // 자기 구역을 100% 채워버려서, 실제로는 미미한데 판매 막대만큼 커 보였다(신고 확인).
-      // 양/음 막대를 하나의 공통 기준(scaleMax = 둘 중 큰 쪽)으로 놓고 계산해서, 마이너스가
-      // 정말 클 때만 크게 보이고 -1 같은 값은 최소 보임 처리만 될 만큼만 보이게 한다.
-      const scaleMax = Math.max(maxPos, maxNeg, 1);
       const tipOf = b => {
         const hasGap = !b.isStart && b.spanDays > 1;
         const deltaText = `${b.delta >= 0 ? '+' : ''}${b.delta.toLocaleString()}석`;
@@ -13983,13 +13983,13 @@
         // (예: 최대 감소일이 -15일 때 -1석인 날은 비율로만 그리면 1px도 안 돼 안 보였음)
         if (negFrac === 0) {
           // 마이너스 날이 없으면 기존과 동일한 단순 막대 (제곱근 스케일 — 위 tkSqrtFrac 설명 참고)
-          const h = tkSqrtFrac(b.delta, maxPos) * 100;
+          const h = b.isStart ? 100 : tkSqrtFrac(b.delta, maxPos) * 100;
           return `<div class="tk-day-col${cls}"${tkTipAttrs(tip)}>
           <i class="tk-day-fill" style="height:${Math.max(h, b.delta > 0 ? 3 : 0).toFixed(1)}%${b.delta > 0 ? ';min-height:4px' : ''}"></i>
         </div>`;
         }
-        const hPos = b.delta > 0 ? Math.max(tkSqrtFrac(b.delta, maxPos) * 100, 3) : 0;
-        const hNeg = b.delta < 0 ? Math.max(Math.min(tkSqrtFrac(-b.delta, scaleMax) / negFrac * 100, 100), 3) : 0;
+        const hPos = b.delta > 0 ? Math.max(b.isStart ? 100 : tkSqrtFrac(b.delta, maxPos) * 100, 3) : 0;
+        const hNeg = b.delta < 0 ? Math.max(tkSqrtFrac(-b.delta, maxNeg) * 100, 3) : 0;
         return `<div class="tk-day-col tk-day-col2${cls}"${tkTipAttrs(tip)}>
           <span class="tk-day-pos" style="height:${(posFrac * 100).toFixed(1)}%"><i class="tk-day-fill" style="height:${hPos.toFixed(1)}%${b.delta > 0 ? ';min-height:4px' : ''}"></i></span>
           <span class="tk-day-neg" style="height:${(negFrac * 100).toFixed(1)}%"><i class="tk-day-fill tk-day-fill-neg" style="height:${hNeg.toFixed(1)}%${b.delta < 0 ? ';min-height:4px' : ''}"></i></span>
@@ -29673,13 +29673,9 @@
             return (m && r.sold != null) ? { day: (m[1] ? m[1] + '.' : '') + m[2] + '.' + m[3], h: +m[4], sold: r.sold } : null;
           }).filter(Boolean).reverse();   // 오래된 → 최신
           var days = []; pts.forEach(function (p) { if (days.indexOf(p.day) < 0) days.push(p.day); });
-          // 2026-09-20b: 위 scaleMax 수정만으로는 부족했다 — 이 값들이 "선택된 하루"의
-          // 24시간치 데이터만 놓고 계산되다 보니, 그날 다른 시간대 판매량도 다 작으면
-          // -1 하나가 여전히 그날 기준으로는 "제일 큰 마이너스"라 크게 보였다(일별 차트는
-          // 여러 날 전체를 기준으로 스케일하니 작아 보였던 것과 대비됨). 그래서 하루가
-          // 아니라 전체 날짜의 시간대별 증감을 다 모아 공통 기준(전역 maxPos/maxNeg)을 먼저
-          // 구해두고, 날짜를 바꿔도 이 기준은 그대로 써서 -1처럼 작은 값은 항상 작게,
-          // 큰 변화가 있었던 시간대는 항상 크게 보이게 한다.
+          // (2026-09-20b에 "전역 기준" 스케일을 썼다가 2026-10-02에 "선택한 날짜 기준"으로 되돌림 —
+          //  -1 같은 작은 마이너스가 크게 보이던 문제는 이제 음수 구역 높이를 제곱근 비율(최소 10%)로
+          //  배분하는 방식으로 해결. 아래 draw() 참고)
           var perByDay = {}, cumByDay = {};
           (function () {
             var prevAll = null;
@@ -29693,17 +29689,11 @@
               prevAll = p.sold;
             });
           })();
-          var globalMaxPos = 1, globalMaxNeg = 0;
-          Object.keys(perByDay).forEach(function (d) {
-            Object.keys(perByDay[d]).forEach(function (h) {
-              var x = perByDay[d][h];
-              if (x > globalMaxPos) globalMaxPos = x;
-              if (-x > globalMaxNeg) globalMaxNeg = -x;
-            });
-          });
-          var globalNegFrac = globalMaxNeg > 0 ? Math.max(0.22, globalMaxNeg / (globalMaxPos + globalMaxNeg)) : 0;
-          var globalPosFrac = 1 - globalNegFrac;
-          var globalScaleMax = Math.max(globalMaxPos, globalMaxNeg, 1);
+          // 2026-10-02: 예전엔 전체 날짜의 최대값(티켓 오픈 첫 시간대, 수백~천 석)을 공통 기준으로 써서
+          // 평소 날짜의 +3/+6 같은 값이 전부 바닥에 깔려 구분이 안 됐다(신고 확인). 이제는 "선택한 날짜"
+          // 안에서의 최대값을 100%로 놓고 제곱근 스케일링한다(일별 차트와 같은 방식). 날짜를 바꾸면
+          // 기준도 그 날짜에 맞게 바뀌므로, 서로 다른 날짜의 막대 높이를 직접 비교하는 용도는 아니다
+          // (툴팁의 실제 수치로 비교).
           if (days.length) {
             var hw = document.createElement('div'); hw.className = 'tk-trend tk-hourly';
             var draw = function (day) {
@@ -29711,19 +29701,19 @@
               var cum = cumByDay[day] || {};
               var totalSeats = (rows[0] && rows[0].tot) ? +String(rows[0].tot).replace(/,/g, '') : 0;
               // 일별 차트와 같은 방식: 취소가 더 많았던 시간은 기준선 아래로 내려가는 빨간 막대
-              // (날짜를 바꿔도 막대 크기를 서로 비교할 수 있도록 전역 기준을 그대로 사용)
-              var maxPos = globalMaxPos, negFrac = globalNegFrac, posFrac = globalPosFrac, scaleMax = globalScaleMax;
+              var maxPos = 1, maxNeg = 0;
+              Object.keys(per).forEach(function (k) { var x = per[k]; if (x > maxPos) maxPos = x; if (-x > maxNeg) maxNeg = -x; });
+              var negFrac = maxNeg > 0 ? Math.min(0.5, Math.max(0.1, Math.sqrt(maxNeg) / (Math.sqrt(maxPos) + Math.sqrt(maxNeg)))) : 0;
+              var posFrac = 1 - negFrac;
               var bars = ''; for (var h = 0; h < 24; h++) {
                 var v = per[h] || 0, c = cum[h];
                 var tip = h + '시 ' + (v > 0 ? '+' : '') + v.toLocaleString() + '석 ' + (v < 0 ? '(취소가 더 많음)' : '판매') + (c != null ? ' · 누적 ' + c.toLocaleString() + '석' + (totalSeats ? ' (' + (c / totalSeats * 100).toFixed(1) + '%)' : '') : '');
                 var attrs = (typeof tkTipAttrs === 'function') ? tkTipAttrs(tip) : ' title="' + tip + '"';
                 if (!negFrac) {
-                  // 2026-10-02: 일별 차트와 같은 이유로 선형 대신 제곱근 스케일(tkSqrtFrac) 사용 —
-                  // 큰 값 하나(전체 날짜 기준 globalMaxPos)가 기준이 되다 보니 보통 수준의 시간대
-                  // 값들이 전부 바닥(3%)에 몰려 서로 달라 보이지 않던 문제를 고친다.
+                  // 선형 대신 제곱근 스케일(tkSqrtFrac) — 작은 값끼리의 차이도 보이게
                   bars += '<div class="tk-day-col"' + attrs + '><i class="tk-day-fill" style="height:' + (tkSqrtFrac(v, maxPos) * 100).toFixed(1) + '%' + (v > 0 ? ';min-height:4px' : '') + '"></i></div>';
                 } else {
-                  var hPos = v > 0 ? Math.max(tkSqrtFrac(v, maxPos) * 100, 3) : 0, hNeg = v < 0 ? Math.max(Math.min(tkSqrtFrac(-v, scaleMax) / negFrac * 100, 100), 3) : 0;
+                  var hPos = v > 0 ? Math.max(tkSqrtFrac(v, maxPos) * 100, 3) : 0, hNeg = v < 0 ? Math.max(tkSqrtFrac(-v, maxNeg) * 100, 3) : 0;
                   bars += '<div class="tk-day-col tk-day-col2"' + attrs + '><span class="tk-day-pos" style="height:' + (posFrac * 100).toFixed(1) + '%"><i class="tk-day-fill" style="height:' + hPos.toFixed(1) + '%' + (v > 0 ? ';min-height:4px' : '') + '"></i></span><span class="tk-day-neg" style="height:' + (negFrac * 100).toFixed(1) + '%"><i class="tk-day-fill tk-day-fill-neg" style="height:' + hNeg.toFixed(1) + '%' + (v < 0 ? ';min-height:4px' : '') + '"></i></span></div>';
                 }
               }
