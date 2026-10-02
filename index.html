@@ -11874,6 +11874,22 @@
     const SUPABASE_URL = "https://dbtzakbmyfmqudjiycoj.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_xtTqzRYwBZBUQyeqHhHVcA_CG2e-1fA";
     /* ================================================================ */
+    /* 카카오 로그인(OAuth) 복귀 직후(?code=… 로 돌아온 경우): "로그인 누르기 전에 보던 화면" 해시를
+       다른 스크립트보다 먼저 복원한다. 2026-10-02 버그: 예전엔 부팅 뒤쪽(gmAuthBoot)에서
+       history.replaceState 로 해시를 바꿨는데, replaceState 는 hashchange 이벤트를 안 내보내서
+       라우터는 게임 화면을 그렸지만 디자인 v6 블록(body[data-route], 페이지 파싱 시점에 1회 + hashchange 로 갱신)은
+       계속 "home" 으로 알고 있었다 → 홈 배너/소개 영역 밑에 게임 화면이 겹쳐 보이고, 게임용 스타일도 안 먹어
+       "과거 UI"처럼 보였다. 여기서 미리 바꿔두면 그 뒤에 실행되는 모든 초기화 코드가 같은 해시를 본다.
+       ?code= 쿼리는 supabase-js 가 세션 교환에 써야 하므로 여기서는 그대로 두고(gmAuthBoot 에서 지움) 해시만 붙인다. */
+    (function () {
+      try {
+        if (!/[?&]code=/.test(location.search)) return;
+        var back = localStorage.getItem('gm_login_return') || '';
+        if (back && back.charAt(0) === '#' && back !== location.hash) {
+          history.replaceState(null, '', location.pathname + location.search + back);
+        }
+      } catch (e) { }
+    })();
     // 6.99: 닉네임 등록 안내문구/비밀번호 잠김 안내에서 공통으로 쓰는 "킹빠더" 문의 링크(밑줄 + 카카오톡 오픈채팅 연결)
     const GM_KKO_URL = 'https://open.kakao.com/o/su9HLAuh';
     const GM_KKO_LINK = `<a href="${GM_KKO_URL}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">킹빠더</a>`;
@@ -12600,7 +12616,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-10-02T17:54:35+09:00';
+    const BUILD_ID = '2026-10-02T18:11:47+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -18195,10 +18211,10 @@
       } catch (e) { }
       await gmRefreshMe();
       if (cameBackFromOAuth) {
-        // 주소창의 ?code=… 를 지우고, 로그인 누르기 전에 보던 화면으로 돌아간다
-        let back = '';
-        try { back = localStorage.getItem(GM_LOGIN_RETURN_KEY) || ''; localStorage.removeItem(GM_LOGIN_RETURN_KEY); } catch (e) { }
-        try { history.replaceState(null, '', location.pathname + (back || location.hash || '')); } catch (e) { }
+        // 로그인 전 화면(해시)은 스크립트 맨 앞(SUPABASE 설정 직후의 즉시실행 블록)에서 이미 복원됐다.
+        // 여기서는 세션 교환이 끝난 ?code=… 쿼리만 주소창에서 지운다(해시는 그대로 → hashchange 불필요).
+        try { localStorage.removeItem(GM_LOGIN_RETURN_KEY); } catch (e) { }
+        try { history.replaceState(null, '', location.pathname + (location.hash || '')); } catch (e) { }
         if (gmMyNick) toastMsg(`👤 ${gmMyNick} 님, 로그인되었습니다!`);
       }
       if (gmAuthUser && gmNeedsNick) setTimeout(gmShowNickSetupModal, 300);
