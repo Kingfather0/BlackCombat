@@ -12617,7 +12617,7 @@
        관리자 페이지에서 뭔가 입력 중이거나 팝업이 열려 있을 때 강제로 새로고침하면 입력하던
        내용을 잃을 수 있으므로, 그럴 때는 강제로 넘기지 않고 작은 안내만 띄운다.
        ⚠️ 이 파일을 수정해서 새로 배포할 때마다 BUILD_ID를 현재 시각으로 갱신해야 감지가 된다. */
-    const BUILD_ID = '2026-10-02T20:00:02+09:00';
+    const BUILD_ID = '2026-10-02T20:20:12+09:00';
     async function checkForUpdate() {
       try {
         const res = await fetch('./index.html?_v=' + Date.now(), { cache: 'no-store' });
@@ -18227,13 +18227,13 @@
       ov.className = 'modal-ov';
       ov.id = 'gmSetupOv';
       ov.innerHTML = `<div class="modal" style="max-width:360px">
-    <div class="modal-h"><b>🦁 블붕이 닉네임 설정</b><button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-h"><b>블붕이 닉네임 설정</b><button class="modal-x" onclick="history.back()">✕</button></div>
     <div class="modal-b">
       <div class="glogin" style="padding:0">
         <input id="gms-nick" maxlength="20" placeholder="블붕이 닉네임 (1~20자)" value="${esc(gmSuggestedNick || '')}" autocomplete="off">
         <div class="msg" id="gms-msg"></div>
         <button class="btn primary wide" style="margin-top:14px" id="gmsGo">이 닉네임으로 시작</button>
-        <div class="gl-d" style="color:#8a94a6;text-shadow:none;font-weight:600;margin-top:12px">랭킹·배틀·승부예측에 표시될 이름입니다.<br>오픈톡방에서 쓰는 닉네임과 같게 하면 알아보기 쉬워요.<br>변경은 ${GM_KKO_LINK}에게 문의해 주세요.</div>
+        <div class="gl-d" style="color:#8a94a6;text-shadow:none;font-weight:600;margin-top:12px">오픈톡방에서 쓰는 닉네임과 같게 하면 알아보기 쉬워요.<br>닉네임 변경은 ${GM_KKO_LINK}에게 문의해 주세요.</div>
         <button type="button" class="gmn-pinlink" style="color:#b42318" id="gmsLogout">다른 계정으로 로그인</button>
       </div>
     </div></div>`;
@@ -18268,7 +18268,7 @@
           gmPersistNick();
           try { presenceRetrack(); } catch (err) { }
           history.back();
-          toastMsg(`🦁 ${gmMyNick} 님, 환영합니다!`);
+          toastMsg(`${gmMyNick} 님, 환영합니다!`);
           renderHeaderIdentity();
           route();
         } finally { go.disabled = false; }
