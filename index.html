@@ -11768,11 +11768,11 @@
     @media (min-width: 1024px) { body[data-route="tickets"] .tk-pie-item.v2-merged { flex: 1 0 auto; } }
     body[data-route="tickets"] .tk-pie-wrap.v2-pie-merged, body[data-route="tickets"] .tk-pie-wrap.v2-pie-merged .tk-pie-legend, body[data-route="tickets"] .v2-pie-block, body[data-route="tickets"] .v2-pie-card { overflow: visible !important; height: auto; }
     body[data-route="tickets"] .tk-pie-item.v2-merged:last-child { border-bottom: none; }
-    body[data-route="tickets"] .v2-pie-l1 { display: flex; flex-wrap: wrap; row-gap: 2px; align-items: center; gap: 8px; font-size: 14px; }
+    body[data-route="tickets"] .v2-pie-l1 { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; font-size: 14px; }
     body[data-route="tickets"] .v2-pie-l1 .tk-pie-chip { flex: none; }
-    body[data-route="tickets"] .v2-pie-name { font-weight: 700; color: var(--text); white-space: nowrap; }
-    body[data-route="tickets"] .v2-pie-price { font-size: 12px; color: var(--dim); font-weight: 500; white-space: nowrap; }
-    body[data-route="tickets"] .v2-pie-remain { margin-left: auto; font-weight: 700; color: var(--text); white-space: nowrap; font-size: 14px; }
+    body[data-route="tickets"] .v2-pie-name { font-weight: 700; color: var(--text); white-space: nowrap; min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; }
+    body[data-route="tickets"] .v2-pie-price { font-size: 12px; color: var(--dim); font-weight: 500; white-space: nowrap; flex: none; }
+    body[data-route="tickets"] .v2-pie-remain { margin-left: auto; font-weight: 700; color: var(--text); white-space: nowrap; font-size: 13px; letter-spacing: -.02em; flex: none; }
     body[data-route="tickets"] .v2-pie-remain.out { color: var(--red); }
     body[data-route="tickets"] .v2-pie-remain .v2-out-txt { color: var(--red); }
     body[data-route="tickets"] .v2-pie-l2 { margin-top: 7px; padding-left: 0; font-size: 12px; color: var(--muted); }
@@ -29606,6 +29606,22 @@
           var legend = app.querySelector('.tk-pie-legend');
           if (!legend) return; // 도넛 자체가 안 그려진 경우(판매된 등급이 1개뿐 등) — 기존 목록 그대로 둔다
           var unmerged = [].slice.call(legend.querySelectorAll('.tk-pie-item:not(.v2-merged)'));
+          // 표시용 등급명: 괄호 부분 제거 + "석석" 중복 정리 ("일반석(지정석)석" → "일반석").
+          // 단, 괄호를 지우면 이름이 같아지는 등급들(VIP 플로어(1열)~(5열) 등)은 구분이 안 되므로
+          // 그 등급만 괄호 안 내용을 이름 뒤에 붙인다("VIP 플로어 5열"). (매칭에는 원본 이름을 그대로 쓴다.)
+          var fixSeok = function (s) { return s.replace(/석{2,}/g, '석').trim(); };
+          var stripParen = function (s) { return fixSeok(s.replace(/\s*[(（][^)）]*[)）]\s*/g, '')); };
+          var rawNames = grades.map(function (g) {
+            var n = g.querySelector('.tk-grade-name'), p = n && n.querySelector('span');
+            return tx(n).replace(tx(p), '').trim();
+          });
+          var strippedNames = rawNames.map(stripParen);
+          var dispNames = rawNames.map(function (r, i) {
+            var dup = strippedNames.filter(function (s) { return s === strippedNames[i]; }).length > 1;
+            if (!dup) return strippedNames[i] || fixSeok(r);
+            // 겹치는 이름은 괄호 안 내용을 이름 뒤에 붙이고 끝의 "석"은 뗀다: "VIP 플로어(5열)석" → "VIP 플로어 5열"
+            return fixSeok(r.replace(/\s*[(（]([^)）]*)[)）]\s*/g, ' $1 ')).replace(/\s+/g, ' ').replace(/석$/, '').trim();
+          });
           grades.forEach(function (g, gi) {
             var nameEl = g.querySelector('.tk-grade-name');
             var priceEl = nameEl && nameEl.querySelector('span');
@@ -29651,7 +29667,7 @@
             // 판매량 0이면 pct가 "0.0"이라 bw가 '0%'가 되는데, .v2-pie-bar 자체에 트랙 배경이
             // 있어서(CSS) 0%짜리 항목도 빈 막대(트랙)로는 보인다 — "막대가 아예 없다"는 문제 해결.
             var bw = soldOut ? '100%' : (innerW || (pct ? Math.min(100, +pct) + '%' : '0%'));
-            it.innerHTML = '<div class="v2-pie-l1"><span class="tk-pie-chip" style="background:' + color + '"></span><b class="v2-pie-name">' + gName + '</b>' + (price ? '<span class="v2-pie-price">' + price + '</span>' : '') + '<span class="v2-pie-remain">' + right + '</span></div>' +
+            it.innerHTML = '<div class="v2-pie-l1"><span class="tk-pie-chip" style="background:' + color + '"></span><b class="v2-pie-name" title="' + gName.replace(/"/g, '&quot;') + '">' + dispNames[gi] + '</b>' + (price ? '<span class="v2-pie-price">' + price + '</span>' : '') + '<span class="v2-pie-remain">' + right + '</span></div>' +
               '<div class="v2-pie-bar"><i style="width:' + bw + ';background:' + (soldOut ? 'var(--red)' : color) + '"></i></div>' +
               '<div class="v2-pie-l2"><span class="v2-pie-txt">' + line2.join(' · ') + '</span></div>';
             legend.appendChild(it);
