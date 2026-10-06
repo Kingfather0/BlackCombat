@@ -10673,6 +10673,7 @@
     .visitor-badge { background: transparent; color: var(--muted); border: none; border-radius: 0; font-weight: 500; font-size: 12.5px; padding: 0; }
     .visitor-badge::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #34c759; margin-right: 6px; vertical-align: 1px; }
     .visitor-badge b { font-weight: 700; color: var(--text); }
+    .visitor-pop { left: auto; right: 0; top: calc(100% + 8px); max-width: calc(100vw - 32px); box-sizing: border-box; overscroll-behavior: contain; }
     .gback, #headerGameSelectLink { background: var(--bg2) !important; color: var(--text) !important; box-shadow: none !important; border: none !important; border-radius: 6px; font-weight: 600; order: -1; margin: 0 4px 0 0; padding: 6px 12px; transition: background .15s, color .15s; }
     .gback:hover, #headerGameSelectLink:hover, .gback:active, #headerGameSelectLink:active { background: var(--ink) !important; color: #fff !important; }
     .nick-badge { background: var(--bg2); color: var(--text); border: none; border-radius: 6px; font-weight: 600; }
@@ -29641,6 +29642,9 @@
             if (sub) { var sm = sub.match(/([\d,]+)석 중 ([\d,]+)석/); if (sm) { totN = sm[1]; soldN = sm[2]; } }
             if (remain) { var rm = remain.match(/([\d,]+)석/); if (rm) remN = rm[1]; }
             var right = soldOut ? ((soldN ? (totN ? totN + '석 중 ' : '') + soldN + '석 판매 · ' : '') + '<span class="v2-out-txt">매진</span>') : ((soldN ? (totN ? totN + '석 중 ' : '') + soldN + '석 판매' : '') + (soldN && remN ? ' · ' : '') + (remN ? remN + '석 남음' : (soldN ? '' : remain)));
+            // 등급 내 판매율 = 해당 등급 총 좌석 중 판매 좌석 비율 (예: 600석 중 530석 → 88.3%)
+            var totNum = +String(totN).replace(/,/g, ''), soldNum = +String(soldN).replace(/,/g, '');
+            if (totNum > 0 && soldN !== '') line2.push('등급 내 ' + (Math.min(100, soldNum / totNum * 100)).toFixed(1) + '%');
             if (share) line2.push('전체의 ' + share + '%');
             if (hold) line2.push(hold);
             it.classList.add('v2-merged');
