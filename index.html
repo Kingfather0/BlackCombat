@@ -19148,25 +19148,9 @@
        ────────────────────────────────────────────────────────────── */
     function bqConfirmStart() {
       if (!gmMyNick) { gmRequireLogin(); return; }
-      const left = (BQ.home && BQ.home.attempts_left) || 0;
-      const q = (BQ.cfg && BQ.cfg.q_total) || 10;
-      const s = Math.round(((BQ.cfg && BQ.cfg.limit_ms) || 8000) / 1000);
-      const ov = document.createElement('div');
-      ov.className = 'modal-ov bb-confirm-ov';
-      ov.innerHTML = `<div class="bb-confirm">
-    <div class="bb-confirm-t">오늘의 블랙 퀴즈를 시작할까요?</div>
-    <div class="bb-confirm-b">${q}문제 · 문제당 ${s}초 · 남은 기회 ${left}회<br>
-      <b style="color:var(--red)">시작하면 기회 1회가 바로 소진됩니다.</b><br>
-      중간에 나가면 기록되지 않습니다.</div>
-    <div class="bb-confirm-actions">
-      <button type="button" class="bb-confirm-btn cancel">취소</button>
-      <button type="button" class="bb-confirm-btn ok">시작하기</button>
-    </div></div>`;
-      const close = () => { try { ov.remove(); } catch (e) { } };
-      ov.onclick = e => { if (e.target === ov) close(); };
-      ov.querySelector('.cancel').onclick = close;
-      ov.querySelector('.bb-confirm-actions button:last-child').onclick = () => { close(); bqBegin(); };
-      overlayHost().append(ov);
+      // 확인 팝업 제거 — 동선 단축 요청으로 START 클릭 시 바로 시작.
+      // 기회 소진 안내는 START 버튼 아래 문구("시작하면 1회가 소진됩니다")로 대체.
+      bqBegin();
     }
 
     /* ──────────────────────────────────────────────────────────────
