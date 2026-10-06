@@ -14142,7 +14142,7 @@
       const l1 = `⚡ ${dateStr} ${hm(ev.tPrev)}~${hm(ev.tCur)} · 잔여석 ${durStr} 새 ${ev.drop.toLocaleString()}석 급감`;
       if (brief) return l1;
       const gLabel = k => /석/.test(k) ? k : k + '석';
-      const l2 = ev.gradeDrops.length ? `· ${ev.gradeDrops.map(g => `${gLabel(g.k)} -${g.n.toLocaleString()}석`).join(', ')}` : '';
+      const l2 = ev.gradeDrops.length ? `· ${ev.gradeDrops.map(g => `${gLabel(g.k)} ${g.n.toLocaleString()}석 감소`).join(', ')}` : '';
       const avg = ev.avgPerHour;
       const l3 = `· 평소 판매 속도(시간당 평균 ${avg >= 10 ? Math.round(avg).toLocaleString() : avg.toFixed(1)}석)의 약 ${Math.round(ev.multiple).toLocaleString()}배`;
       return [l1, l2, l3].filter(Boolean).join('\n');
