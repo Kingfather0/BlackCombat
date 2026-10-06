@@ -11767,12 +11767,13 @@
     @media (min-width: 1024px) { body[data-route="tickets"] .tk-pie-item.v2-merged { flex: 1 0 auto; } }
     body[data-route="tickets"] .tk-pie-wrap.v2-pie-merged, body[data-route="tickets"] .tk-pie-wrap.v2-pie-merged .tk-pie-legend, body[data-route="tickets"] .v2-pie-block, body[data-route="tickets"] .v2-pie-card { overflow: visible !important; height: auto; }
     body[data-route="tickets"] .tk-pie-item.v2-merged:last-child { border-bottom: none; }
-    body[data-route="tickets"] .v2-pie-l1 { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+    body[data-route="tickets"] .v2-pie-l1 { display: flex; flex-wrap: wrap; row-gap: 2px; align-items: center; gap: 8px; font-size: 14px; }
     body[data-route="tickets"] .v2-pie-l1 .tk-pie-chip { flex: none; }
     body[data-route="tickets"] .v2-pie-name { font-weight: 700; color: var(--text); white-space: nowrap; }
     body[data-route="tickets"] .v2-pie-price { font-size: 12px; color: var(--dim); font-weight: 500; white-space: nowrap; }
     body[data-route="tickets"] .v2-pie-remain { margin-left: auto; font-weight: 700; color: var(--text); white-space: nowrap; font-size: 14px; }
     body[data-route="tickets"] .v2-pie-remain.out { color: var(--red); }
+    body[data-route="tickets"] .v2-pie-remain .v2-out-txt { color: var(--red); }
     body[data-route="tickets"] .v2-pie-l2 { margin-top: 7px; padding-left: 0; font-size: 12px; color: var(--muted); }
     body[data-route="tickets"] .v2-pie-txt { white-space: normal; word-break: keep-all; font-variant-numeric: tabular-nums; }
     body[data-route="tickets"] .v2-pie-bar { margin-top: 9px; height: 3px; border-radius: 99px; background: var(--bg2); overflow: hidden; }
@@ -29655,15 +29656,14 @@
             var soldN = '', totN = '', remN = '';
             if (sub) { var sm = sub.match(/([\d,]+)석 중 ([\d,]+)석/); if (sm) { totN = sm[1]; soldN = sm[2]; } }
             if (remain) { var rm = remain.match(/([\d,]+)석/); if (rm) remN = rm[1]; }
-            var right = soldOut ? '매진' : ((soldN ? soldN + '석 판매' : '') + (soldN && remN ? ' · ' : '') + (remN ? remN + '석 남음' : (soldN ? '' : remain)));
-            if (sub) line2.push(sub);
+            var right = soldOut ? ((soldN ? (totN ? totN + '석 중 ' : '') + soldN + '석 판매 · ' : '') + '<span class="v2-out-txt">매진</span>') : ((soldN ? (totN ? totN + '석 중 ' : '') + soldN + '석 판매' : '') + (soldN && remN ? ' · ' : '') + (remN ? remN + '석 남음' : (soldN ? '' : remain)));
             if (share) line2.push('전체의 ' + share + '%');
             if (hold) line2.push(hold);
             it.classList.add('v2-merged');
             // 판매량 0이면 pct가 "0.0"이라 bw가 '0%'가 되는데, .v2-pie-bar 자체에 트랙 배경이
             // 있어서(CSS) 0%짜리 항목도 빈 막대(트랙)로는 보인다 — "막대가 아예 없다"는 문제 해결.
             var bw = soldOut ? '100%' : (innerW || (pct ? Math.min(100, +pct) + '%' : '0%'));
-            it.innerHTML = '<div class="v2-pie-l1"><span class="tk-pie-chip" style="background:' + color + '"></span><b class="v2-pie-name">' + gName + '</b>' + (price ? '<span class="v2-pie-price">' + price + '</span>' : '') + '<span class="v2-pie-remain' + (soldOut ? ' out' : '') + '">' + right + '</span></div>' +
+            it.innerHTML = '<div class="v2-pie-l1"><span class="tk-pie-chip" style="background:' + color + '"></span><b class="v2-pie-name">' + gName + '</b>' + (price ? '<span class="v2-pie-price">' + price + '</span>' : '') + '<span class="v2-pie-remain">' + right + '</span></div>' +
               '<div class="v2-pie-bar"><i style="width:' + bw + ';background:' + (soldOut ? 'var(--red)' : color) + '"></i></div>' +
               '<div class="v2-pie-l2"><span class="v2-pie-txt">' + line2.join(' · ') + '</span></div>';
             legend.appendChild(it);
