@@ -11843,9 +11843,16 @@
           <a class="v2-btn" href="https://open.kakao.com/o/guJ1LAuh" target="_blank" rel="noopener">오픈채팅 참여</a>
         </div>
       </div>
-      <!-- 카카오톡 챗봇 심사 승인 전(2026-09-28 승인 예정)이라 홈 화면 챗봇 안내 박스는 잠시 숨김.
-           승인 후 preview.html의 동일 위치(.v2-box-bot 블록, v2ImgPop('guide')/('cmd') 포함)를
-           그대로 복사해 다시 넣으면 됨 — 2026-09-17 사용자 요청으로 제거. -->
+      <!-- 카카오톡 챗봇 심사 승인(2026-10-07) → 홈 화면 챗봇 안내 박스 복구.
+           "블붕이 챗봇"/"@블붕이 키워드" 칩 클릭 시 v2ImgPop으로 안내 이미지(chatbot-guide.jpg / chatbot-commands.jpg) 팝업. -->
+      <div class="v2-box v2-box-bot">
+        <h3>블붕이 챗봇</h3>
+        <div class="v2-bot">
+          카톡방에 <code onclick="v2ImgPop('guide')">블붕이 챗봇</code>을 추가하고<br>
+          <code onclick="v2ImgPop('cmd')">@블붕이 키워드</code> 를 입력하면<br>
+          선수 전적·티켓·경기 결과를 바로 알려줘요.
+        </div>
+      </div>
       <div class="v2-box v2-box-links">
         <h3>바로가기</h3>
         <div class="v2-links">
