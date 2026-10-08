@@ -569,6 +569,13 @@
       flex-wrap: wrap
     }
 
+    /* 2026-10-08: 카운트다운 왼쪽 시계 아이콘 — 글자 이모지는 디자인 정리 스크립트가 지우므로 CSS로 붙이고,
+       텍스트형(FE0E)이라 글자색(빨강)을 그대로 따른다 */
+    .countdown::before {
+      content: "\23F1\FE0E";
+      margin-right: 4px
+    }
+
     .countdown {
       color: #c62828;
       font-weight: 800;
@@ -12882,7 +12889,7 @@
       const urgent = new Date(deadline).getTime() - svrNow().getTime() < 3600000; // 1시간 미만
       // 2026-10-08: "20시간 34분 남음" → "20:34:00" 형태로 바꾸고 1초마다 줄어들게 한다(아래 타이머가 data-dl을 보고 갱신)
       const ms0 = new Date(deadline).getTime() - svrNow().getTime();
-      return `<span class="countdown${urgent ? ' urgent' : ''}" data-dl="${new Date(deadline).getTime()}">⏰ ${cdFmt(ms0)}</span>`;
+      return `<span class="countdown${urgent ? ' urgent' : ''}" data-dl="${new Date(deadline).getTime()}">${cdFmt(ms0)}</span>`;
     }
     function cdFmt(ms) {
       const s = Math.max(0, Math.floor(ms / 1000)), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), ss = s % 60;
@@ -12893,8 +12900,8 @@
       const now = svrNow().getTime();
       document.querySelectorAll('.countdown[data-dl]').forEach(el => {
         const ms = Number(el.dataset.dl) - now;
-        if (ms <= 0) { el.textContent = '⏰ 마감'; el.removeAttribute('data-dl'); return; }
-        el.textContent = '⏰ ' + cdFmt(ms);
+        if (ms <= 0) { el.textContent = '마감'; el.removeAttribute('data-dl'); return; }
+        el.textContent = cdFmt(ms);
         el.classList.toggle('urgent', ms < 3600000);
       });
     }, 1000);
