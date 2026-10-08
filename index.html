@@ -18848,12 +18848,24 @@
       if (total < 10 || pct == null) return `${total}명 중`;
       return `상위 ${pct}%`;
     }
-    function bqTierIcon(meta) { return (meta && meta.icon) || '🎯'; }
+    /* 2026-10-08: 등급 아이콘/설명은 서버(퀴즈 설정)에서 내려오는 값이라, 화면에 쓰기 직전에 여기서 일괄 보정한다.
+       - 블붕쪼렙 아이콘 → 🐣, 설명 "갓 입문한 새싹 팬!" → "갓 입문한 새싹 블붕이!"
+       - 블붕잘알 아이콘 → 😎
+       (서버 설정을 바꾸면 이 보정은 자연스럽게 무해해진다) */
+    function bqFixTier(m) {
+      if (!m || typeof m !== 'object') return m;
+      const lb = String(m.label || '');
+      if (lb.includes('쪼렙')) m.icon = '🐣';
+      else if (lb.includes('잘알')) m.icon = '😎';
+      if (typeof m.desc === 'string') m.desc = m.desc.replace('갓 입문한 새싹 팬!', '갓 입문한 새싹 블붕이!');
+      return m;
+    }
+    function bqTierIcon(meta) { bqFixTier(meta); return (meta && meta.icon) || '🎯'; }
     function bqTierLabel(meta) { return (meta && meta.label) || '-'; }
     /* 랭킹 행의 tier 코드(S/A/B/C/D)로 현재 설정된 등급 메타(아이콘·이름)를 찾는다 */
     function bqTierByCode(code) {
       const tiers = (BQ.cfg && BQ.cfg.tiers) || [];
-      return tiers.find(t => t.code === code) || null;
+      return bqFixTier(tiers.find(t => t.code === code) || null);
     }
 
     /* 주간 랭킹 리셋까지 남은 시간 (KST 월요일 0시) — 기존 gmResetLeft보다 자세히 */
@@ -18916,6 +18928,7 @@
       }
       BQ.cfg = d;
       BQ.home = d;
+      (d.tiers || []).forEach(bqFixTier);
 
       // ── 비공개(관리자 전용) 상태이고 권한이 없으면 "점검 중" 안내만 보여주고 끝 ──
       // (론칭 전엔 "준비 중"이었지만, 공개 후 일시적으로 비공개 전환하는 경우가 생겨
@@ -19693,7 +19706,7 @@
       // 알려준 최신 값으로 맞춰둔다.
       if (BQ.home && d.attempts_left != null) BQ.home.attempts_left = d.attempts_left;
 
-      const tm = d.tier_meta || {};
+      const tm = bqFixTier(d.tier_meta || {});
       const rate = d.q_total ? Math.round(d.correct_count * 100 / d.q_total) : 0;
       const items = d.items || [];
 
@@ -22252,7 +22265,7 @@
     }
     // 블랙 퀴즈 성적표 카드 (800×400, 미니멀 v3)
     function bqDrawShareCard(d, opts) {
-      const tm = d.tier_meta || {};
+      const tm = bqFixTier(d.tier_meta || {});
       const nick = d.nickname || gmMyNick || '';
       const { c, x } = kkoCardBase(
         `블랙 퀴즈${nick ? ' — ' + nick : ''}`,
@@ -22430,7 +22443,7 @@
       if (!d || !d.total_attempts) {
         return `<div class="empty">아직 기록이 없습니다.<br>첫 도전을 마치면 등급·최단 기록·분야별 정답률이 쌓입니다!</div>`;
       }
-      const tm = d.best_tier_meta || {};
+      const tm = bqFixTier(d.best_tier_meta || {});
       const cats = d.categories || [];
       return `
     <div class="bq-run best" style="margin-bottom:10px">
@@ -22516,7 +22529,7 @@
             } catch (e) { }
             state.rank = rank;
             return bqDrawShareCard({
-              nickname: d.nickname, tier_meta: d.best_tier_meta,
+              nickname: d.nickname, tier_meta: bqFixTier(d.best_tier_meta),
               correct_count: d.best_correct, q_total: d.best_q_total || (BQ.cfg && BQ.cfg.q_total) || 5,
               total_time_ms: d.best_score_time_ms, rank,
             }, { cardTitle: '나의 최고 기록' });
@@ -27382,7 +27395,7 @@
         ? `<div class="home-login-id" style="margin:0">👤 <b>${esc(gmMyNick)}</b> 님으로 투표합니다</div>
        <div class="note" style="margin-top:8px">💡 마감 전까지 수정 가능하고, 게이지를 누르면 <b>투표자 목록</b>이 보입니다.</div>`
         : `<div class="empty" style="padding:10px 0 4px;color:var(--red)"><b>투표하려면 로그인이 필요해요.</b></div>
-       <button type="button" class="btn-kakao" style="max-width:320px;margin:0 auto 6px" onclick="gmKakaoLogin()">${GM_KAKAO_ICON} 로그인하고 투표하기</button>`;
+       <button type="button" class="btn-kakao" style="width:auto;padding:8px 16px;font-size:13px;border-radius:10px;margin:0 0 6px" onclick="gmKakaoLogin()">${GM_KAKAO_ICON} 로그인하고 투표하기</button>`;
       return `
     <div class="sec-title" style="justify-content:space-between">승부 예측 · 실시간 현황
       <button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button>
@@ -29261,9 +29274,12 @@
           if (anns.length) anns.forEach(function (c) { s1.appendChild(c); });
           else s1.insertAdjacentHTML('beforeend', '<div class="hm-empty">새 공지가 없어요.</div>');
           var s2 = document.createElement('section'); s2.className = 'hm-sec';
-          s2.innerHTML = '<h2 class="hm-h">진행 중인 승부예측 <a href="#/matches">전체 경기 보기</a></h2>';
+          s2.innerHTML = '<h2 class="hm-h">승부예측 <a href="#/matches">전체 경기 보기</a></h2>';
+          // 2026-10-08: 진행 중인 투표가 없어도 홈이 비지 않도록, 가장 최신 승부예측(결과 대기 → 결과 확정 순) 1개를 보여준다
+          var latest = app.querySelector(':scope > .t-card:not(.open)');
           if (opens.length) opens.forEach(function (c) { s2.appendChild(c); });
-          else s2.insertAdjacentHTML('beforeend', '<div class="hm-empty">지금 진행 중인 투표가 없어요. 지난 결과는<a href="#/matches" class="v2-chip" style="margin:0 1px 0 0">경기</a>에서 볼 수 있어요.</div>');
+          else if (latest) s2.appendChild(latest);
+          else s2.insertAdjacentHTML('beforeend', '<div class="hm-empty">아직 등록된 승부예측이 없어요. 지난 결과는<a href="#/matches" class="v2-chip" style="margin:0 1px 0 0">경기</a>에서 볼 수 있어요.</div>');
           app.replaceChildren(s1, s2);
         } else if (route === 'matches') {
           app.querySelectorAll(':scope > .sec-title:not([data-eyebrow])').forEach(function (t) {
