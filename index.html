@@ -9094,11 +9094,10 @@
       font-style: normal;
       font-size: 10.5px;
       font-weight: 800;
-      color: var(--key-deep);
-      background: var(--gray-tint);
-      border-radius: 99px;
-      padding: 2px 7px;
-      margin-left: 5px;
+      /* 2026-10-08: 등급 텍스트 제거 — 닉네임 좌측에 이모지만 표시(pill 배경 없음) */
+      font-size: 14px;
+      line-height: 1;
+      margin-right: 5px;
       white-space: nowrap
     }
 
@@ -22365,19 +22364,19 @@
       const inList = gmMyNick && rows.some(r => r.nickname === gmMyNick);
       const tierTag = code => {
         const tm = bqTierByCode(code);
-        return tm ? `<i class="bq-rk-tier">${tm.icon || ''} ${esc(tm.label || '')}</i>` : '';
+        return (tm && tm.icon) ? `<i class="bq-rk-tier" title="${esc(tm.label || '')}">${tm.icon}</i>` : '';
       };
       box.innerHTML = !rows.length
         ? '<div class="empty">아직 기록이 없습니다.<br>첫 번째 도전자가 되어보세요!</div>'
         : `
-    <div class="bq-rk-h"><span>순위</span><span>닉네임</span><span style="text-align:right">정답</span><span style="text-align:right">소요시간</span></div>
+    <div class="bq-rk-h"><span>순위</span><span>등급·닉네임</span><span style="text-align:right">정답</span><span style="text-align:right">소요시간</span></div>
     ${rows.map(r => `<div class="bq-rk${gmMyNick && r.nickname === gmMyNick ? ' me' : ''}" data-nick="${esc(r.nickname)}">
       <span class="r">${medal(r.rank)}</span>
-      <span class="n" style="cursor:pointer" onclick="bqShowUserStats('${esc(r.nickname)}')">${esc(r.nickname)}${tierTag(r.tier)}</span>
+      <span class="n" style="cursor:pointer" onclick="bqShowUserStats('${esc(r.nickname)}')">${tierTag(r.tier)}${esc(r.nickname)}</span>
       <span class="s">${bqIsForfeited(r) ? '포기' : `${r.correct_count}/${r.q_total}`}</span>
       <span class="t">${bqIsForfeited(r) ? '' : `${bqSec(r.total_time_ms)}초`}</span></div>`).join('')}
     ${(!inList && d.me) ? `<div class="bq-rk me" data-nick="${esc(d.me.nickname)}">
-      <span class="r">${d.me.rank}위</span><span class="n" style="cursor:pointer" onclick="bqShowUserStats('${esc(d.me.nickname)}')">${esc(d.me.nickname)} (나)${tierTag(d.me.tier)}</span>
+      <span class="r">${d.me.rank}위</span><span class="n" style="cursor:pointer" onclick="bqShowUserStats('${esc(d.me.nickname)}')">${tierTag(d.me.tier)}${esc(d.me.nickname)} (나)</span>
       <span class="s">${bqIsForfeited(d.me) ? '포기' : `${d.me.correct_count}/${d.me.q_total}`}</span>
       <span class="t">${bqIsForfeited(d.me) ? '' : `${bqSec(d.me.total_time_ms)}초`}</span></div>` : ''}
     <div class="bq-note">총 ${d.total}명 · 정답 수 → 총 소요시간 → 달성 시각 순으로 정렬됩니다.</div>`;
@@ -27315,7 +27314,6 @@
       <div class="rule"><b>당첨 기준</b> — <b>적중 수가 높은 순</b>으로 선정합니다. 공동 순위로 정원이 넘치면 <b>랜덤 추첨</b>하며, 밀린 분은 다음 등수 상품을 받습니다.</div>
       <div class="rule"><b>계체 실패 경기</b> — 계체 실패 선수가 승리하면 실제 결과는 무효(NC)라도, 승부 예측에서는 <b>그 선수의 승리로 처리</b>합니다.<br>
         <span style="color:var(--dim);font-size:12.5px">예) 붉은매(통과) vs 티알지(실패) → 티알지가 이기면 티알지 승</span></div>
-      <div class="rule"><b>닉네임 일치</b> — 투표 닉네임이 <b>블붕이 닉네임과 다르면</b> 선물 당첨에서 제외됩니다.</div>
     </div>
   </div>`;
     }
@@ -27544,8 +27542,8 @@
             ${winners.map(n => `<span class="gift-name gift-reel-live spinning" data-rank="${g.rank}" data-final="${esc(n)}">🎲</span>`).join('') || '-'}
             ${tied.length > winners.length ? `<span style="color:var(--muted)">← 공동 ${tied.length}명 중 ${winners.length}명 랜덤 추첨</span>` : ''}</div>`;
           }).join('')}`}
-          <div style="margin-top:6px">위 당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>블붕이 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.</div>`
-          : `<div>당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>블붕이 닉네임 인증 스크린샷</b>과 함께 연락해 주세요.</div>`}
+          <div style="margin-top:6px">위 당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>닉네임 인증 스크린샷</b>과 함께 연락해 주세요.</div>`
+          : `<div>당첨자는 <b>${nextStr}까지</b> 킹빠더 1:1 오픈톡으로 <b>닉네임 인증 스크린샷</b>과 함께 연락해 주세요.</div>`}
         <span style="color:#c62828;font-weight:800">기한 내 연락이 없으면 당첨 선물은 지급되지 않습니다.</span>
       </div>
       <a class="btn primary small" style="margin-top:10px" href="${GIFT}" target="_blank" rel="noopener">킹빠더 1:1 오픈톡 바로가기</a>
