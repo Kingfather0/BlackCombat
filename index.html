@@ -569,10 +569,9 @@
       flex-wrap: wrap
     }
 
-    /* 2026-10-08: 카운트다운 왼쪽 시계 아이콘 — 글자 이모지는 디자인 정리 스크립트가 지우므로 CSS로 붙이고,
-       텍스트형(FE0E)이라 글자색(빨강)을 그대로 따른다 */
+    /* 2026-10-08: 카운트다운 왼쪽 시계 아이콘(⏰) — 글자 이모지는 디자인 정리 스크립트가 지우므로 CSS로 붙인다 */
     .countdown::before {
-      content: "\23F1\FE0E";
+      content: "\23F0\FE0F";
       margin-right: 4px
     }
 
@@ -11264,8 +11263,9 @@
     body[data-route="videos"] .yt-event-line { background: transparent; border: none; border-top: 1px solid var(--text); border-bottom: 1px solid var(--hair); border-radius: 0; padding: 12px 0; }
     body[data-route="videos"] .yt-event-dday { background: var(--ink); color: #fff; border-radius: 4px; }
     body[data-route="videos"] .yt-core-stats { gap: 0; border-bottom: 1px solid var(--hair); }
-    body[data-route="videos"] .yt-core-stat { background: transparent; border: none; box-shadow: none; border-radius: 0; padding: 14px 16px 14px 0; border-right: 1px solid var(--hair); margin-right: 16px; }
+    body[data-route="videos"] .yt-core-stat { background: transparent; border: none; box-shadow: none; border-radius: 0; padding: 14px 12px 14px 0; border-right: 1px solid var(--hair); margin-right: 12px; } /* 2026-10-08: 왼쪽 카드만 구분선 쪽 여백(16+16)이 커서 값 글자가 더 작게 줄어들던 것 → 12+12로 줄여 좌우 폭을 비슷하게 */
     body[data-route="videos"] .yt-core-stat:last-child { border-right: none; margin-right: 0; }
+    body[data-route="videos"] .yt-core-stat-value, body[data-route="videos"] .yt-core-stat-sub { white-space: nowrap; } /* 한 줄 고정 */
     body[data-route="videos"] .yt-core-stat-label { font-weight: 600; color: var(--dim); font-size: 12px; }
     body[data-route="videos"] .yt-core-stat-value { font-weight: 800; font-size: 20px; letter-spacing: -.03em; }
     body[data-route="videos"] .yt-core-stat-value.accent { color: var(--red); }
@@ -12007,12 +12007,37 @@
         guard++;
       }
     }
+    // 2026-10-08: 영상 페이지 "마지막 업로드 / 경과 시간" 두 카드의 값(큰 글자)과 보조 줄이 각자 따로 줄어들어
+    // 크기·세로 위치가 서로 달라 보이던 문제 — 두 카드 안에서 가장 작게 맞춰진 크기로 모두 통일한다.
+    function syncCoreGroup(g) {
+      ['.yt-core-stat-value.fit-text', '.yt-core-stat-sub.fit-text'].forEach(sel => {
+        const els = [].slice.call(g.querySelectorAll(sel));
+        if (els.length < 2) return;
+        els.forEach(fitTextOneLine); // 원래 크기에서 다시 맞춘 뒤(줄어들기만 하는 누적 방지)
+        const min = Math.min.apply(null, els.map(e => parseFloat(getComputedStyle(e).fontSize)));
+        els.forEach(e => {
+          e.style.fontSize = min + 'px';
+          e.style.whiteSpace = 'nowrap'; // 어떤 경우에도 두 줄로 내려가지 않게 항상 한 줄 고정
+          // 하한(7.5px)까지 줄여도 넘치면 한 줄을 유지한 채로 더 줄인다
+          let guard = 0;
+          while (e.scrollWidth > e.clientWidth + 1 && guard < 20) {
+            const sz = parseFloat(getComputedStyle(e).fontSize);
+            if (sz <= 5) break;
+            e.style.fontSize = (sz - 0.5) + 'px'; guard++;
+          }
+        });
+      });
+    }
+    function syncCoreStats(root) {
+      (root || document).querySelectorAll('.yt-core-stats').forEach(syncCoreGroup);
+    }
     let __fitRowTimer = null;
     function initFitRowObserver() {
       if (!$app) return;
       const run = () => {
         $app.querySelectorAll('.fit-row').forEach(fitRowOneLine);
         $app.querySelectorAll('.fit-text').forEach(fitTextOneLine);
+        syncCoreStats($app);
       };
       new MutationObserver(() => {
         clearTimeout(__fitRowTimer);
@@ -18556,7 +18581,7 @@
     function gmShellHTML(wk, title, sub, desc, startLabel, hint, rule, disabled) {
       gmCurRule = rule;
       return `
-  <h1 class="page" style="gap:6px">${title} <button class="bb-rules-btn-top" id="gRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button><span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰ 주간 랭킹 리셋까지 <b style="color:#dc2626">${gmResetLeft()}</b></span></h1>
+  <h1 class="page" style="gap:6px">${title} <button class="bb-rules-btn-top" id="gRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button><span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰️ 주간 랭킹 리셋까지 <b style="color:#dc2626">${gmResetLeft()}</b></span></h1>
   <div id="gArea" class="ga-${gmCurGame}">
     <canvas id="gCanvas"></canvas>
     <div class="ghud">
@@ -18606,7 +18631,7 @@
       ov.innerHTML = `<div class="modal" style="max-width:420px">
     <div class="modal-h"><span><b>📖 설명서</b></span><button class="modal-x" onclick="history.back()">✕</button></div>
     <div class="modal-b"><div style="font-size:12.5px;line-height:1.75;color:var(--muted)">${gmCurRule}<br>
-      <b style="color:var(--text)">랭킹</b> 매주 월요일 0시 리셋 · ⏱ 리셋까지 <b style="color:#e0332a">${gmResetLeft()}</b> · 지난 주 기록도 아래에 남아요</div></div></div>`;
+      <b style="color:var(--text)">랭킹</b> 매주 월요일 0시 리셋 · ⏰️ 리셋까지 <b style="color:#e0332a">${gmResetLeft()}</b> · 지난 주 기록도 아래에 남아요</div></div></div>`;
       ov.onclick = e => { if (e.target === ov) history.back(); };
       pushModal(ov);
     }
@@ -19128,7 +19153,7 @@
       return `
   <h1 class="page" style="gap:6px">🦁 블랙 퀴즈
     <button class="bb-rules-btn-top" id="bqRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button>
-    <button class="bb-rules-btn-top" id="bqMakeBtn" type="button" style="padding:5px 10px">📝 퀴즈 만들기</button><span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;margin-left:auto;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰ 도전 횟수 <b style="color:#dc2626">매일 00:00 초기화</b></span></h1>
+    <button class="bb-rules-btn-top" id="bqMakeBtn" type="button" style="padding:5px 10px">📝 퀴즈 만들기</button><span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;margin-left:auto;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰️ 도전 횟수 <b style="color:#dc2626">매일 00:00 초기화</b></span></h1>
   <div class="bq-stage">
     <div class="bq-rays"></div>
     <div class="bq-dots l"></div><div class="bq-dots r"></div>
@@ -19467,7 +19492,7 @@
       </div>
       <div class="bq-stopwatch" id="bqStopwatch">소요 시간 : <b id="bqSwV">0.0</b>초</div>
     </div>
-    <div class="bq-timer"><span class="ic">⏰</span>
+    <div class="bq-timer"><span class="ic">⏰️</span>
       <span class="v" id="bqTimeV">${String(secs).padStart(2, '0')}</span><span class="u">초</span>
       <span style="margin-left:auto;font-size:12.5px;color:var(--muted);font-weight:800">
         맞힌 개수 <b style="color:var(--bq-p2)">${BQ.correctSoFar}</b></span>
@@ -19630,7 +19655,7 @@
       // 콤보(연속 정답) 갱신 — 오답/시간초과면 그 자리에서 끊긴다(2026-08-20 추가)
       BQ.combo = d.correct ? (BQ.combo || 0) + 1 : 0;
       if (fb) {
-        if (d.timeout) { fb.className = 'bq-fb no'; fb.textContent = '⏰ 시간 초과!'; }
+        if (d.timeout) { fb.className = 'bq-fb no'; fb.textContent = '⏰️ 시간 초과!'; }
         else if (d.correct) {
           fb.className = 'bq-fb ok';
           fb.textContent = BQ.combo >= 2 ? `정답! 🔥 ${BQ.combo}연속!` : '정답!';
@@ -20304,7 +20329,7 @@
           const dEl = document.getElementById('ytElapsedD');
           if (dEl) dEl.textContent = dayLabel;
           lastDayLabel = dayLabel;
-          try { fitTextOneLine(wrap); } catch (e) { }
+          try { const g = wrap.closest('.yt-core-stats'); if (g) syncCoreGroup(g); else fitTextOneLine(wrap); } catch (e) { }
         }
       };
       tick();
@@ -25898,7 +25923,7 @@
         if (BB.busy) return; // 이미 기술을 냈으면 카운트다운 문구를 더 이상 덮어쓰지 않는다
         const remain = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
         const oppTag = BBP.oppMoveSubmitted ? ' · 상대는 이미 선택함⚡' : '';
-        if (txt) txt.textContent = `⏱ 기술을 선택하세요! (${remain}초)${oppTag}`;
+        if (txt) txt.textContent = `⏰️ 기술을 선택하세요! (${remain}초)${oppTag}`;
         if (remain <= 0 && BBP.tickTimer) { clearInterval(BBP.tickTimer); BBP.tickTimer = null; }
       };
       tick();
@@ -25957,17 +25982,17 @@
       else if (res.meFinisherHit) { res.title = '필살기 작렬!'; res.tag = 'win'; }
       else if (res.oppFinisherHit) { res.title = '상대 필살기 작렬!'; res.tag = 'lose'; }
       else if (res.meTimeout && res.oppTimeout) {
-        res.title = '⏱️ 양쪽 다 시간 초과!';
+        res.title = '⏰️ 양쪽 다 시간 초과!';
         res.body = '두 선수 모두 제때 기술을 내지 못해 이번 라운드는 무효 처리되었습니다.';
         res.tag = 'neutral';
       }
       else if (res.meTimeout) {
-        res.title = '⏱️ 시간 초과!';
+        res.title = '⏰️ 시간 초과!';
         res.body = `${esc(BB.me.nick)}${bbJosa(BB.me.nick, '이', '가')} 제때 기술을 내지 못해 무방비 상태로 당했습니다!`;
         res.tag = 'lose';
       }
       else if (res.oppTimeout) {
-        res.title = '⏱️ 상대 시간 초과!';
+        res.title = '⏰️ 상대 시간 초과!';
         res.body = `${esc(BB.opp.nick)}${bbJosa(BB.opp.nick, '이', '가')} 제때 기술을 내지 못해 무방비 상태로 당했습니다!`;
         res.tag = 'win';
       }
@@ -26522,8 +26547,8 @@
       return BB.log.slice().reverse().map(e => `
     <div class="bg-log-row">
       <span class="bg-log-t">R${e.round}</span>
-      <span>${esc(BB.me.nick)}: ${(e.moveMe === '필살기' || (e.moveMe && BB_MOVE[e.moveMe])) ? bbMoveIcHtml(e.moveMe) : '⏱️'}${esc(e.moveMe)}${e.dmgOpp ? ` <b>-${e.dmgOpp}</b>` : ''}</span> ·
-      <span>${esc(BB.opp.nick)}: ${(e.moveOpp === '필살기' || (e.moveOpp && BB_MOVE[e.moveOpp])) ? bbMoveIcHtml(e.moveOpp) : '⏱️'}${esc(e.moveOpp)}${e.dmgMe ? ` <b>-${e.dmgMe}</b>` : ''}</span>
+      <span>${esc(BB.me.nick)}: ${(e.moveMe === '필살기' || (e.moveMe && BB_MOVE[e.moveMe])) ? bbMoveIcHtml(e.moveMe) : '⏰️'}${esc(e.moveMe)}${e.dmgOpp ? ` <b>-${e.dmgOpp}</b>` : ''}</span> ·
+      <span>${esc(BB.opp.nick)}: ${(e.moveOpp === '필살기' || (e.moveOpp && BB_MOVE[e.moveOpp])) ? bbMoveIcHtml(e.moveOpp) : '⏰️'}${esc(e.moveOpp)}${e.dmgMe ? ` <b>-${e.dmgMe}</b>` : ''}</span>
       <div class="bg-log-ev">${esc(e.title)}</div>
     </div>`).join('');
     }
@@ -26905,8 +26930,8 @@
       const bothFinisher = res.meFinisherHit && res.oppFinisherHit;
       const roundClsMe = bothFinisher ? 'round-tie' : (res.rel === 'tie' ? 'round-tie' : (res.rel === 'win' ? 'round-win' : 'round-lose'));
       const roundClsOpp = bothFinisher ? 'round-tie' : (res.rel === 'tie' ? 'round-tie' : (res.rel === 'win' ? 'round-lose' : 'round-win'));
-      icMe.innerHTML = res.meMove ? bbMoveIcHtml(res.meMove) : '⏱️'; icMe.classList.remove('show', 'round-win', 'round-lose', 'round-tie'); void icMe.offsetWidth; icMe.classList.add('show', roundClsMe);
-      icOpp.innerHTML = res.oppMove ? bbMoveIcHtml(res.oppMove) : '⏱️'; icOpp.classList.remove('show', 'round-win', 'round-lose', 'round-tie'); void icOpp.offsetWidth; icOpp.classList.add('show', roundClsOpp);
+      icMe.innerHTML = res.meMove ? bbMoveIcHtml(res.meMove) : '⏰️'; icMe.classList.remove('show', 'round-win', 'round-lose', 'round-tie'); void icMe.offsetWidth; icMe.classList.add('show', roundClsMe);
+      icOpp.innerHTML = res.oppMove ? bbMoveIcHtml(res.oppMove) : '⏰️'; icOpp.classList.remove('show', 'round-win', 'round-lose', 'round-tie'); void icOpp.offsetWidth; icOpp.classList.add('show', roundClsOpp);
       const cls = bothFinisher ? 'clash' : (res.rel === 'tie' ? 'tie' : (res.rel === 'win' ? 'win' : 'lose'));
       badge.className = 'bb-vs-badge ' + cls;
       // 화살표는 항상 내 캐릭터(왼쪽) 쪽을 가리키게 고정하고, 결과에 따라 문구만 승리/패배로 바꾼다
@@ -26920,22 +26945,22 @@
       }
       if (why) {
         if (res.timeout) {
-          why.innerHTML = `⏱️ <b>시간 초과</b>로 기술을 내지 못해 ${bbMoveIcHtml(res.oppMove)}<b>${esc(res.oppMove)}</b>에 무방비로 당했습니다 · <span class="hit">${esc(BB.me.nick)} HP -${res.dmgToMe}</span>`;
+          why.innerHTML = `⏰️ <b>시간 초과</b>로 기술을 내지 못해 ${bbMoveIcHtml(res.oppMove)}<b>${esc(res.oppMove)}</b>에 무방비로 당했습니다 · <span class="hit">${esc(BB.me.nick)} HP -${res.dmgToMe}</span>`;
         } else if (res.meTimeout && res.oppTimeout) {
           // PvP: 양쪽 다 시간 내에 기술을 못 내서 이번 라운드는 무효(대미지 없음, 매치는 계속 진행)
-          why.innerHTML = `⏱️ <b>양쪽 모두 시간 초과</b>로 이번 라운드는 무효 처리되었습니다.`;
+          why.innerHTML = `⏰️ <b>양쪽 모두 시간 초과</b>로 이번 라운드는 무효 처리되었습니다.`;
         } else if (res.meTimeout) {
           // PvP: 내가 시간 내에 기술을 못 내서 이번 라운드만 자동 패배(매치는 계속 진행)
           const outcomeLine = res.guardDrainMe
             ? `<span class="drain">내 게이지 -${res.guardDrainAmt}</span>`
             : `<span class="hit">${esc(BB.me.nick)} HP -${res.dmgToMe}</span>`;
-          why.innerHTML = `⏱️ <b>시간 초과</b>로 기술을 내지 못해 ${bbMoveIcHtml(res.oppMove)}<b>${esc(res.oppMove)}</b>에 무방비로 당했습니다 · ${outcomeLine}`;
+          why.innerHTML = `⏰️ <b>시간 초과</b>로 기술을 내지 못해 ${bbMoveIcHtml(res.oppMove)}<b>${esc(res.oppMove)}</b>에 무방비로 당했습니다 · ${outcomeLine}`;
         } else if (res.oppTimeout) {
           // PvP: 상대가 시간 내에 기술을 못 내서 이번 라운드는 자동으로 승리
           const outcomeLine = res.guardDrainOpp
             ? `<span class="drain">${esc(BB.opp.nick)} 게이지 -${res.guardDrainAmt}</span>`
             : `<span class="hit">${esc(BB.opp.nick)} HP -${res.dmgToOpp}</span>`;
-          why.innerHTML = `⏱️ 상대가 <b>시간 초과</b>로 기술을 내지 못해 ${bbMoveIcHtml(res.meMove)}<b>${esc(res.meMove)}</b>이 무방비로 적중했습니다 · ${outcomeLine}`;
+          why.innerHTML = `⏰️ 상대가 <b>시간 초과</b>로 기술을 내지 못해 ${bbMoveIcHtml(res.meMove)}<b>${esc(res.meMove)}</b>이 무방비로 적중했습니다 · ${outcomeLine}`;
         } else if (bothFinisher) {
           // 세부 보너스 수치 등은 바로 아래 결과 카드(#bbMsgBox)에서 보여주므로, 여기서는
           // 무슨 일이 있었는지 핵심 한 줄만 짧게 전달한다(중복 설명을 줄여 가독성을 높인다)
@@ -27130,7 +27155,7 @@
       }
       let remain = Math.round(BB_PICK_TIME / 1000);
       const txt = document.getElementById('bbWaitText');
-      const tick = () => { if (txt) txt.textContent = `⏱ 기술을 선택하세요! (${remain}초)`; };
+      const tick = () => { if (txt) txt.textContent = `⏰️ 기술을 선택하세요! (${remain}초)`; };
       tick();
       bbPickTickId = setInterval(() => {
         remain--;
@@ -27156,7 +27181,7 @@
       bbRefreshActs();
       gmSnd('count');
       const txt = document.getElementById('bbWaitText');
-      if (txt) txt.textContent = '⏱️ 시간 초과! 공격하지 못했습니다…';
+      if (txt) txt.textContent = '⏰️ 시간 초과! 공격하지 못했습니다…';
 
       const oppMove = bbAiChoose();
       const oppWasReady = BB.gaugeOpp >= BB_GAUGE_MAX; // 이번 판(내 시간 초과) 전에 이미 상대 게이지가 가득 차 있었는지
@@ -27164,7 +27189,7 @@
       const finishRound = () => {
         const res = {
           dmgToMe: BB_HIT_DMG, dmgToOpp: 0,
-          title: '⏱️ 시간 초과!',
+          title: '⏰️ 시간 초과!',
           body: `${esc(BB.me.nick)}${bbJosa(BB.me.nick, '이', '가')} 제때 기술을 내지 못해 무방비 상태로 당했습니다!`,
           tag: 'lose', rel: 'lose', winMove: oppMove, meMove: null, oppMove,
           meFinisherHit: false, oppFinisherHit: false, guardDrainOpp: false, guardDrainMe: false,
@@ -29487,13 +29512,13 @@
       function vcTick() {
         var foot = document.querySelector('#app .vc-foot.due'); if (!foot) return;
         var dl = null; try { dl = (typeof curT !== 'undefined' && curT && curT.deadline) ? new Date(curT.deadline).getTime() : null; } catch (e) { dl = null; }
-        if (!dl) { var cd = document.querySelector('#app .sub .countdown'); foot.textContent = cd ? '\u23F1 \uD22C\uD45C \uB9C8\uAC10\uAE4C\uC9C0 ' + cd.textContent.replace(/[^\d:\uC77C\s]/g, '').trim() : ''; return; }
+        if (!dl) { var cd = document.querySelector('#app .sub .countdown'); foot.textContent = cd ? '\u23F0\uFE0F \uD22C\uD45C \uB9C8\uAC10\uAE4C\uC9C0 ' + cd.textContent.replace(/[^\d:\uC77C\s]/g, '').trim() : ''; return; }
         var now = (typeof svrNow === 'function') ? svrNow().getTime() : Date.now();
         var ms = dl - now;
         if (ms <= 0) { foot.textContent = '\uD22C\uD45C\uAC00 \uB9C8\uAC10\uB418\uC5C8\uC2B5\uB2C8\uB2E4'; return; }
         var sec = Math.floor(ms / 1000), d = Math.floor(sec / 86400), h = Math.floor(sec % 86400 / 3600), mi = Math.floor(sec % 3600 / 60), ss = sec % 60;
         var pad = function (n) { return (n < 10 ? '0' : '') + n; };
-        foot.textContent = '\u23F1 \uD22C\uD45C \uB9C8\uAC10\uAE4C\uC9C0 ' + (d ? d + '\uC77C ' : '') + pad(h) + ':' + pad(mi) + ':' + pad(ss);
+        foot.textContent = '\u23F0\uFE0F \uD22C\uD45C \uB9C8\uAC10\uAE4C\uC9C0 ' + (d ? d + '\uC77C ' : '') + pad(h) + ':' + pad(mi) + ':' + pad(ss);
       }
       setInterval(vcTick, 1000);
       // 모바일: "게임 선택" 버튼을 로고 줄이 아니라 메뉴 줄 맨 오른쪽에 둔다
