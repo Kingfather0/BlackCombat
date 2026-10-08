@@ -17862,7 +17862,6 @@
     <h1 class="page">${esc(t.title)} ${stateBadge(t)} <button type="button" id="tKkoBtn" class="kko-btn" style="margin-left:auto" onpointerdown="tKkoArm()" onclick="tKkoShareCard('${esc(t.id)}')" aria-label="카톡 공유" title="카톡 공유"></button></h1>
     <div class="sub">
       🔒 ${fmtDT(t.deadline)} 마감
-      ${cd ? ` &nbsp;·&nbsp; ${cdHTML(t.deadline)}` : ''}
       &nbsp;·&nbsp; 👥 ${parts.length}명 참여
     </div>
     <div id="bc-live-sec">${liveNowHTML(t, matches, parts)}</div>`;
@@ -18869,11 +18868,26 @@
        - 블붕쪼렙 아이콘 → 🐣, 설명 "갓 입문한 새싹 팬!" → "갓 입문한 새싹 블붕이!"
        - 블붕잘알 아이콘 → 😎
        (서버 설정을 바꾸면 이 보정은 자연스럽게 무해해진다) */
+    /* 🐦‍🔥(불사조)는 비교적 최신 이모지(안드로이드 15 / iOS 17.4~)라, 지원하지 않는 기기에서는 🐦와 🔥가 따로 나란히 보인다.
+       캔버스로 글자 폭을 재서 한 글자로 합쳐 그려지면 🐦‍🔥를, 아니면 🐦(파랑새)를 쓴다. (한 번만 판정해 캐시) */
+    let _bqPhoenix = null;
+    function bqPhoenixIcon() {
+      if (_bqPhoenix === null) {
+        _bqPhoenix = '🐦‍🔥';
+        try {
+          const c = document.createElement('canvas').getContext('2d');
+          c.font = '32px sans-serif';
+          const w = c.measureText('🐦‍🔥').width, a = c.measureText('🐦').width, b = c.measureText('🔥').width;
+          if (a > 0 && b > 0 && w > (a + b) * 0.75) _bqPhoenix = '🐦';
+        } catch (e) { }
+      }
+      return _bqPhoenix;
+    }
     function bqFixTier(m) {
       if (!m || typeof m !== 'object') return m;
       const lb = String(m.label || '');
       if (lb.includes('쪼렙')) m.icon = '🐣';
-      else if (lb.includes('잘알')) m.icon = '😎';
+      else if (lb.includes('잘알')) m.icon = bqPhoenixIcon();
       else if (lb.includes('평타')) m.icon = '🐧';
       if (typeof m.desc === 'string') m.desc = m.desc.replace('갓 입문한 새싹 팬!', '갓 입문한 새싹 블붕이!');
       return m;
