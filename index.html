@@ -10737,7 +10737,7 @@
     .t-card:hover { filter: none; transform: none; box-shadow: none; background: transparent; }
     .t-card .tt { font-size: 16px; font-weight: 700; letter-spacing: -.02em; }
     .t-card .meta { gap: 12px; font-size: 12.5px; color: var(--text); font-weight: 400; margin-top: 6px; }
-    .t-card .meta .countdown { color: var(--amber-text); font-weight: 600; }
+    .t-card .meta .countdown { color: #b3261e; font-weight: 600; }
 
     /* ── 홈 상단 배너 — 홈 화면에서만, 헤더 바로 아래 화면 전체 폭으로 깐다.
        사진 자체는 화려하지만 사이트 톤(무채색+앰버)에 묻히도록 채도를 살짝 낮추고, 위/아래를
@@ -12994,7 +12994,7 @@
       window.__annActiveCache = activeAnns; // 공지별 공유 버튼이 자기 데이터를 찾을 때 쓰는 캐시
       if (navStale(__g)) return; $app.innerHTML = `
     ${activeAnns.length ? activeAnns.map(announcementCardHTML).join('') : ''}
-    ${open.length ? `<div class="sec-title">🔥 승부 예측 진행 중</div>${open.map(card).join('')}` : ''}
+    ${open.length ? `<div class="sec-title">🔥 투표 진행 중</div>${open.map(card).join('')}` : ''}
     ${!open.length && !wait.length && !done.length ? `<div class="empty">아직 등록된 대회가 없습니다.<br>관리자 페이지에서 첫 대회를 만들어 보세요!</div>` : ''}
     ${!open.length && (wait.length || done.length) ? `<div class="empty" style="padding:22px 0">현재 진행 중인 투표가 없습니다.</div>` : ''}
     ${wait.length ? `<div class="sec-title">⏳ 결과 대기</div>${wait.map(card).join('')}` : ''}
