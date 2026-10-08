@@ -10737,7 +10737,7 @@
     .t-card:hover { filter: none; transform: none; box-shadow: none; background: transparent; }
     .t-card .tt { font-size: 16px; font-weight: 700; letter-spacing: -.02em; }
     .t-card .meta { gap: 12px; font-size: 12.5px; color: var(--text); font-weight: 400; margin-top: 6px; }
-    .t-card .meta .countdown { color: #b3261e; font-weight: 600; }
+    .t-card .meta .countdown { color: #c62828; font-weight: 600; }
 
     /* ── 홈 상단 배너 — 홈 화면에서만, 헤더 바로 아래 화면 전체 폭으로 깐다.
        사진 자체는 화려하지만 사이트 톤(무채색+앰버)에 묻히도록 채도를 살짝 낮추고, 위/아래를
@@ -27393,11 +27393,11 @@
     function voteFormHTML(t, matches, parts) {
       const identityBlock = gmMyNick
         ? `<div class="home-login-id" style="margin:0">👤 <b>${esc(gmMyNick)}</b> 님으로 투표합니다</div>
-       <div class="note" style="margin-top:8px">💡 마감 전까지 수정 가능하고, 게이지를 누르면 <b>투표자 목록</b>이 보입니다.</div>`
+       <div class="note" style="margin-top:8px">마감 전까지 수정 가능 · 게이지를 누르면 <b>투표자 목록</b>이 보입니다.</div>`
         : `<div class="empty" style="padding:10px 0 4px;color:var(--red)"><b>투표하려면 로그인이 필요해요.</b></div>
        <button type="button" class="btn-kakao" style="width:auto;padding:8px 16px;font-size:13px;border-radius:10px;margin:0 0 6px" onclick="gmKakaoLogin()">${GM_KAKAO_ICON} 로그인하고 투표하기</button>`;
       return `
-    <div class="sec-title" style="justify-content:space-between">승부 예측 · 실시간 현황
+    <div class="sec-title" style="justify-content:space-between">승부 예측
       <button class="btn-parts" onclick="openPartsModal()">참가자 예측 현황</button>
     </div>
     <div class="card vform">${identityBlock}</div>
