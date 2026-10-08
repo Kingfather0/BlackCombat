@@ -572,6 +572,7 @@
     .countdown {
       color: #c62828;
       font-weight: 800;
+      font-variant-numeric: tabular-nums;
       white-space: nowrap
     }
 
@@ -12879,8 +12880,24 @@
       const cd = countdownText(deadline);
       if (!cd) return '';
       const urgent = new Date(deadline).getTime() - svrNow().getTime() < 3600000; // 1시간 미만
-      return `<span class="countdown${urgent ? ' urgent' : ''}">⏰ ${cd}</span>`;
+      // 2026-10-08: "20시간 34분 남음" → "20:34:00" 형태로 바꾸고 1초마다 줄어들게 한다(아래 타이머가 data-dl을 보고 갱신)
+      const ms0 = new Date(deadline).getTime() - svrNow().getTime();
+      return `<span class="countdown${urgent ? ' urgent' : ''}" data-dl="${new Date(deadline).getTime()}">⏰ ${cdFmt(ms0)}</span>`;
     }
+    function cdFmt(ms) {
+      const s = Math.max(0, Math.floor(ms / 1000)), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), ss = s % 60;
+      const p = n => String(n).padStart(2, '0');
+      return (d ? d + '일 ' : '') + p(h) + ':' + p(m) + ':' + p(ss);
+    }
+    setInterval(() => {
+      const now = svrNow().getTime();
+      document.querySelectorAll('.countdown[data-dl]').forEach(el => {
+        const ms = Number(el.dataset.dl) - now;
+        if (ms <= 0) { el.textContent = '⏰ 마감'; el.removeAttribute('data-dl'); return; }
+        el.textContent = '⏰ ' + cdFmt(ms);
+        el.classList.toggle('urgent', ms < 3600000);
+      });
+    }, 1000);
     function tState(t) {
       if (new Date(t.deadline).getTime() > svrNow().getTime()) return 'open';
       return t.finalized ? 'final' : 'wait';
@@ -18857,6 +18874,7 @@
       const lb = String(m.label || '');
       if (lb.includes('쪼렙')) m.icon = '🐣';
       else if (lb.includes('잘알')) m.icon = '😎';
+      else if (lb.includes('평타')) m.icon = '🐧';
       if (typeof m.desc === 'string') m.desc = m.desc.replace('갓 입문한 새싹 팬!', '갓 입문한 새싹 블붕이!');
       return m;
     }
@@ -29448,7 +29466,7 @@
       function vcTick() {
         var foot = document.querySelector('#app .vc-foot.due'); if (!foot) return;
         var dl = null; try { dl = (typeof curT !== 'undefined' && curT && curT.deadline) ? new Date(curT.deadline).getTime() : null; } catch (e) { dl = null; }
-        if (!dl) { var cd = document.querySelector('#app .sub .countdown'); foot.textContent = cd ? '\u23F1 \uD22C\uD45C \uB9C8\uAC10\uAE4C\uC9C0 ' + cd.textContent.replace(/[^\uAC00-\uD7A3\d\s]/g, '').trim() : ''; return; }
+        if (!dl) { var cd = document.querySelector('#app .sub .countdown'); foot.textContent = cd ? '\u23F1 \uD22C\uD45C \uB9C8\uAC10\uAE4C\uC9C0 ' + cd.textContent.replace(/[^\d:\uC77C\s]/g, '').trim() : ''; return; }
         var now = (typeof svrNow === 'function') ? svrNow().getTime() : Date.now();
         var ms = dl - now;
         if (ms <= 0) { foot.textContent = '\uD22C\uD45C\uAC00 \uB9C8\uAC10\uB418\uC5C8\uC2B5\uB2C8\uB2E4'; return; }
