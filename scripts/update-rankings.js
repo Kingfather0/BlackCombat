@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const TARGET = 'https://www.blackcombat-official.com/ranking.php?type=fighter';
 const OUT = 'fighters.json';
-const DIVS = ['플라이급','벤텀급','페더급','라이트급','웰터급','미들급','헤비급','언더그라운드','여성부'];
+const DIVS = ['플라이급','밴텀급','페더급','라이트급','웰터급','미들급','헤비급','언더그라운드','여성부'];
 const BADGES = /^(HOT|NEW|UP|DOWN|LIVE|[▲▼]\s*\d*)$/i;  // 사이트의 배지 텍스트는 이름이 아님
 // 이름 → 국가 코드 매핑표. 공식 페이지는 국기를 "이미지"로만 보여줘서 텍스트 수집으로는
 // 국적을 알 수 없기 때문에, 이 표 + 이전 fighters.json에서 이어받기로 국기를 채운다.
@@ -34,7 +34,11 @@ function parse(lines, flagOf){
   const out = [];
   let cur = null, pend = [], pendRank = null, pendBadge = '', pendMove = 0;
   for(const ln of lines){
-    const dHit = DIVS.find(d => ln === d || (ln.startsWith(d) && ln.length <= d.length + 12));
+    // 공식 페이지가 "벤텀급"을 "밴텀급"(공식 표기)으로 바꿔 쓰기 시작하면서 체급 제목을 못 알아봐
+    // 벤텀 선수 전원이 플라이급에 합쳐졌던 적이 있다(2026-10). 사이트도 공식 표기(밴텀급)로 통일했고,
+    // 예전 표기(벤텀급)가 와도 같은 체급으로 본다.
+    const nln = ln.replace(/벤텀/g, '밴텀');
+    const dHit = DIVS.find(d => nln === d || (nln.startsWith(d) && nln.length <= d.length + 12));
     if(dHit){
       if(out.some(o=>o.div===dHit)){ cur = null; continue; }  // 중복 섹션(미디어랭킹 등) 무시
       cur = {div:dHit, list:[]}; out.push(cur); pend=[]; pendRank=null; pendBadge=''; pendMove=0; continue;
@@ -107,6 +111,13 @@ function parse(lines, flagOf){
     const parsed = parse(htmlToLines(html), flagOf);
     const total = parsed.reduce((n,d)=>n+d.list.filter(f=>f[1]!=='공석').length, 0);
     console.log(`파싱 결과: ${parsed.length}개 체급, ${total}명`);
+    // 안전장치: 예전 데이터에 있던 체급(5명 이상)이 이번 결과에서 통째로 사라졌으면 페이지 구조/표기가
+    // 바뀐 것이므로 덮어쓰지 않고 실패 처리한다(실패 메일로 바로 알 수 있음).
+    try{
+      const prevAll = JSON.parse(fs.readFileSync(OUT,'utf8'));
+      const gone = (prevAll.divisions||[]).filter(d => d.list.filter(f=>f[1]!=='공석').length >= 5 && !parsed.some(p=>p.div===String(d.div).replace(/벤텀/g,'밴텀'))).map(d=>d.div);
+      if(gone.length) throw new Error('기존에 있던 체급이 사라졌습니다: ' + gone.join(', ') + ' — 공식 페이지의 체급 표기가 바뀌었는지 확인하세요. 기존 데이터를 유지합니다.');
+    }catch(e){ if(String(e.message).startsWith('기존에 있던 체급')) throw e; }
     if(parsed.length < 5 || total < 40){
       throw new Error('파싱 결과가 비정상적입니다 (체급 '+parsed.length+', 선수 '+total+'명). 기존 데이터를 유지합니다.');
     }
