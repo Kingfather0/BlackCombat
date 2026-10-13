@@ -15489,14 +15489,16 @@
         if (prefix && !/석$/.test(prefix)) prefix += '석';
         return (prefix ? prefix + ' ' : '') + '예매하러 가기';
       };
-      const buyBtnHTML = meta.buyUrl
+      // 2026-10-13: 종료된(지난) 티켓 화면(isPreview)에서는 예매 링크 버튼을 전부 숨기고
+      // "현재 티켓으로 돌아가기"만 남긴다(사용자 요청). 지난 행사 전체에 일괄 적용.
+      const buyBtnHTML = (meta.buyUrl && !isPreview)
         ? `<a class="btn primary small" style="flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">${esc(tkBuyLabelFull(meta.buyLabel, isDualProductEvent ? null : '예매하러 가기'))}</a>`
         : '';
       // 2026-09-17: 비지정석 버튼은 지정석(파란 강조) 버튼과 헷갈리지 않게 회색으로 구분한다.
       // 2026-09-17: border-color만 지정했더니 .btn.primary 기본 규칙(border 두께/스타일은
       // 그대로 두고 색만 바뀌는 캐스케이드) 때문에 회색 배경 위에 진한(거의 검정) 테두리가
       // 남아 눈에 띈다는 피드백 — 아예 테두리를 없애 배경색만으로 보이게 한다.
-      const buyBtn2HTML = meta.buyUrl2
+      const buyBtn2HTML = (meta.buyUrl2 && !isPreview)
         ? `<a class="btn primary small" style="background:#6b7280;border:none;color:#fff;flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl2)}" target="_blank" rel="noopener">${esc(tkBuyLabelFull(meta.buyLabel2, '비지정석 예매하러 가기'))}</a>`
         : '';
       // "현재 티켓으로 돌아가기"는 "예매하러 가기"(파란색 강조 버튼)와 색을 다르게 둬서
@@ -15511,7 +15513,7 @@
       // "뒤로가기"로 변경(사용자 요청, 화살표 없이 텍스트만) — 예매 링크가 1개뿐인 기존
       // 행사의 "현재 티켓으로 돌아가기" 문구는 그대로 둔다.
       const backBtnHTML = isPreview
-        ? `<a class="btn small" style="background:#0d9488;border-color:#0f766e;color:#fff;flex-shrink:0;white-space:nowrap" href="#/tickets">${isDualProductEvent ? '뒤로가기' : '현재 티켓으로 돌아가기'}</a>`
+        ? `<a class="btn small" style="background:#0d9488;border-color:#0f766e;color:#fff;flex-shrink:0;white-space:nowrap" href="#/tickets">현재 티켓으로 돌아가기</a>`
         : '';
       // 2026-09-17: 버튼 문구가 다시 길어져서(지정석/비지정석 각각 "…예매하러 가기") 좁은
       // 화면에서 세 버튼이 한 줄에 다 안 들어갈 수 있다 — 줄바꿈으로 깨지는 대신
