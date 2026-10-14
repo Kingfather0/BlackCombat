@@ -11714,8 +11714,11 @@
     /* 결과 페이지: 참가자 순위 팝업 + 제목줄 버튼 */
     body[data-route="t"] .v2-res-btns { display: flex; gap: 8px; align-items: center; margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
     /* 보조 강조 버튼 = 페트롤 블루(대진 왼쪽 색) + 흰 글씨: 참가자 순위, 현재 티켓으로 돌아가기 */
-    body[data-route="t"] .v2-res-btns .btn.small, body[data-route] .btn.v2-petrol, body[data-route="tickets"] .btn[style*="#0d9488"] { height: 34px; font-size: 13px !important; border-radius: 8px; padding: 0 14px; background: var(--teal) !important; border: none !important; color: #fff !important; font-weight: 700; }
-    @media (hover: hover) { body[data-route="t"] .v2-res-btns .btn.small:hover, body[data-route] .btn.v2-petrol:hover, body[data-route="tickets"] .btn[style*="#0d9488"]:hover { background: #174a5b !important; color: #fff !important; } }
+    body[data-route="t"] .v2-res-btns .btn.small, body[data-route] .btn.v2-petrol { height: 34px; font-size: 13px !important; border-radius: 8px; padding: 0 14px; background: var(--teal) !important; border: none !important; color: #fff !important; font-weight: 700; }
+    @media (hover: hover) { body[data-route="t"] .v2-res-btns .btn.small:hover, body[data-route] .btn.v2-petrol:hover { background: #174a5b !important; color: #fff !important; } }
+    /* 2026-10-14: 티켓 "현재 티켓으로 돌아가기/뒤로가기" 버튼 = 검정 배경 + 흰 글씨 */
+    body[data-route="tickets"] .btn[style*="#0d9488"] { height: 34px; font-size: 13px !important; border-radius: 8px; padding: 0 14px; background: #000 !important; border: none !important; color: #fff !important; font-weight: 700; }
+    @media (hover: hover) { body[data-route="tickets"] .btn[style*="#0d9488"]:hover { background: #222 !important; color: #fff !important; } }
     body[data-route="t"] .v2-res-btns .btn-parts { padding: 0 14px; height: 34px; }
     .v2-rank-modal { max-width: 520px; }
     .v2-rank-modal .modal-b { padding: 12px 14px 16px; }
@@ -15489,8 +15492,6 @@
         if (prefix && !/석$/.test(prefix)) prefix += '석';
         return (prefix ? prefix + ' ' : '') + '예매하러 가기';
       };
-      // 2026-10-13: 종료된(지난) 티켓 화면(isPreview)에서는 예매 링크 버튼을 전부 숨기고
-      // "현재 티켓으로 돌아가기"만 남긴다(사용자 요청). 지난 행사 전체에 일괄 적용.
       const buyBtnHTML = (meta.buyUrl && !isPreview)
         ? `<a class="btn primary small" style="flex-shrink:0;white-space:nowrap" href="${esc(meta.buyUrl)}" target="_blank" rel="noopener">${esc(tkBuyLabelFull(meta.buyLabel, isDualProductEvent ? null : '예매하러 가기'))}</a>`
         : '';
@@ -15513,7 +15514,7 @@
       // "뒤로가기"로 변경(사용자 요청, 화살표 없이 텍스트만) — 예매 링크가 1개뿐인 기존
       // 행사의 "현재 티켓으로 돌아가기" 문구는 그대로 둔다.
       const backBtnHTML = isPreview
-        ? `<a class="btn small" style="background:#0d9488;border-color:#0f766e;color:#fff;flex-shrink:0;white-space:nowrap" href="#/tickets">현재 티켓으로 돌아가기</a>`
+        ? `<a class="btn small" style="background:#0d9488;border-color:#0f766e;color:#fff;flex-shrink:0;white-space:nowrap" href="#/tickets">${isDualProductEvent ? '뒤로가기' : '현재 티켓으로 돌아가기'}</a>`
         : '';
       // 2026-09-17: 버튼 문구가 다시 길어져서(지정석/비지정석 각각 "…예매하러 가기") 좁은
       // 화면에서 세 버튼이 한 줄에 다 안 들어갈 수 있다 — 줄바꿈으로 깨지는 대신
