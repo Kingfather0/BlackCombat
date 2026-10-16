@@ -16,6 +16,37 @@ const BADGES = /^(HOT|NEW|UP|DOWN|LIVE|[▲▼]\s*\d*)$/i;  // 사이트의 배�
 //   flagcdn.com(ISO만 지원)으로는 안 그려지니 코드만 봐서 오타로 착각하지 말 것.
 const DEFAULT_FLAGS = {"탱크": "jp", "인디언킹": "br", "보로클": "mn", "크로커다일": "br", "아마존 키드": "br", "부기맨": "br", "스나이퍼": "us", "스탠 바키": "kz", "핏불": "br", "닌자": "jp", "메탈 리": "jp", "백구": "mn", "펜리르": "kg", "무사": "jp", "백사자": "ru", "골든보이": "br", "쿠르드 이글": "krd", "보오르추": "mn", "피카츄": "jp", "아이언 홀스": "br", "구아라": "br", "스컬": "kz", "잉카": "pe", "lg": "us", "몽크": "br", "도미네이터": "ru", "스패로우": "br", "카우보이": "br", "싸이코": "br", "울프킹": "kg", "락스톤": "br", "데드샷": "ru", "불곰": "ru", "젤메": "mn", "trg": "br", "모카": "br", "머큐리": "br", "the man": "us", "토르": "jp", "아이언 힙": "jp", "수부타이": "mn", "다게르": "ru", "lion king": "us", "라이언킹": "us", "글래디에이터": "br", "그리즐리": "jp", "파라오": "eg", "빅프린스": "br", "칠라운": "mn", "코만도": "uz", "헌츠맨": "bh", "레오파드": "br", "사무라이": "br", "바이킹": "br", "젠틀맨": "br", "너드": "br", "쿠빌라이": "mn", "니카": "br", "오니": "jp", "로꼬": "br", "gunslinger": "us", "타노스": "br", "모모": "jp", "예티": "br", "피닉스": "br", "알라딘": "uz", "디멘터": "us", "제베": "mn", "보스베이비": "br", "잭팟": "us", "무칼리": "mn", "히로시마": "jp", "스콜피온": "tj", "바비": "jp", "람로": "ru"};
 
+// ── 확정 대진 고정 선수 ──────────────────────────────────────────────
+// 공식 랭킹 페이지에는 없지만 대진이 확정된 선수를 여기에 등록하면, 매일 자동 갱신 때마다
+// 해당 체급 맨 아래에 "순위 없음('-')"으로 다시 채워 넣는다(갱신으로 지워지지 않음).
+//  - 공식 랭킹에 같은 닉네임(또는 실명)이 어느 체급에든 이미 있으면 공식 데이터를 우선하고 고정 항목은 건너뛴다
+//    → 경기 후 공식 명단에 들어가면 자동으로 공식 데이터로 바뀌고, 안 들어가도 계속 유지된다.
+//  - 형식: {div:체급, nick:대진 이름, real:실제 이름, w:승, l:패, d:무, flag:국가코드, until:'YYYY-MM-DD'(선택)}
+//  - until(선택)을 적으면 그 날짜가 지난 뒤부터 자동으로 빠진다. 안 적으면 지울 때까지 유지된다.
+//  - ※ 경기가 끝나면 전적이 바뀌므로, 공식 명단에 안 들어가는 선수는 이 줄의 승/패/무를 직접 고치거나 줄을 지울 것.
+const PINNED_FIGHTERS = [
+  {div:'언더그라운드', nick:'더 크리플러', real:'크리스 리벤', w:20, l:12, d:0, flag:'us'},
+  {div:'언더그라운드', nick:'섹시야마',   real:'추성훈',     w:16, l:7,  d:0, flag:'kr'},
+];
+
+function applyPinned(parsed, today){
+  const key = s => String(s).trim().toLowerCase();
+  const names = new Set(), reals = new Set();
+  parsed.forEach(d=>d.list.forEach(f=>{ if(f[1]!=='공석'){ names.add(key(f[1])); if(f[2]) reals.add(key(f[2])); } }));
+  const added = [];
+  for(const p of PINNED_FIGHTERS){
+    if(p.until && today > p.until) continue;                       // 만료
+    if(names.has(key(p.nick)) || (p.real && reals.has(key(p.real)))) continue;  // 공식 명단에 이미 있음
+    let dv = parsed.find(d=>d.div===p.div);
+    if(!dv){ dv = {div:p.div, list:[]}; parsed.push(dv); }
+    // 순위 칸은 '-'(순위 없음): 공식 랭킹 밖 선수라 순위가 의미 없다. 사이트가 '-'를 순위 없음으로 처리한다.
+    dv.list.push(['-', p.nick, p.real||'', p.w, p.l, p.d, p.flag||'kr', '', 0]);
+    names.add(key(p.nick)); if(p.real) reals.add(key(p.real));
+    added.push(p.nick);
+  }
+  return added;
+}
+
 function decodeEntities(s){
   return s.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>')
           .replace(/&quot;/g,'"').replace(/&#0?39;/g,"'").replace(/&nbsp;/g,' ');
@@ -121,6 +152,9 @@ function parse(lines, flagOf){
     if(parsed.length < 5 || total < 40){
       throw new Error('파싱 결과가 비정상적입니다 (체급 '+parsed.length+', 선수 '+total+'명). 기존 데이터를 유지합니다.');
     }
+    // 확정 대진 고정 선수 채워 넣기 (안전장치 통과 후, 파일에 쓰기 직전)
+    const pinnedAdded = applyPinned(parsed, new Date().toISOString().slice(0,10));
+    if(pinnedAdded.length) console.log('고정 선수 추가: ' + pinnedAdded.join(', '));
     fs.writeFileSync(OUT, JSON.stringify({updated_at:new Date().toISOString(), divisions:parsed}, null, 1));
     console.log('fighters.json 갱신 완료');
   }catch(e){
