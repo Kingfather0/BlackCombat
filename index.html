@@ -13511,7 +13511,7 @@
     function fmeta(name) {
       const key = String(name).trim().toLowerCase();
       const f = FIGHTER_MAP[key];
-      if (f) return `<span class="fmeta">${f.rank === 'C' ? '챔피언' : '랭킹 ' + f.rank + '위'} · ${f.w}승 ${f.l}패${f.dr ? ' ' + f.dr + '무' : ''}</span>`;
+      if (f) return `<span class="fmeta">${f.rank === 'C' ? '챔피언 · ' : (f.rank === '-' || f.rank == null ? '' : '랭킹 ' + f.rank + '위 · ')}${f.w}승 ${f.l}패${f.dr ? ' ' + f.dr + '무' : ''}</span>`;
       // 랭킹 갱신으로 목록에서 사라진 선수라도 보관함에 정보가 남아 있으면 전적은 계속
       // 보여준다 (공식 랭킹에 없는 선수이므로 "랭킹 N위"는 표시하지 않는다).
       const a = FIGHTER_ARCHIVE[key];
@@ -16576,7 +16576,7 @@
         if (!fl.has(key)) fl.set(key, []);
         // w/l/dr = 랭킹에 있는 그 선수의 "공식 전체 전적". 이 체급 트리 안에서 상대와 선으로
         // 이어졌는지와는 별개로, 정보 패널에 실제 전적을 그대로 보여주기 위해 들고 다닌다.
-        fl.get(key).push({ di, cc: f[6], champ: f[0] === 'C', rank: f[0] === 'C' ? 0 : Number(f[0]), w: f[3], l: f[4], dr: f[5] });
+        fl.get(key).push({ di, cc: f[6], champ: f[0] === 'C', rank: f[0] === 'C' ? 0 : (Number.isFinite(Number(f[0])) ? Number(f[0]) : null), w: f[3], l: f[4], dr: f[5] });
       }));
       const metaIn = (s, di) => { const arr = fl.get(String(nickOf(s)).trim().toLowerCase()); return arr && arr.find(m => m.di === di); };
       // 랭킹엔 있지만 이 체급 안에서 아직 아무와도 선(관계)이 없는 선수도 "선 없이" 노드로는
@@ -16643,10 +16643,10 @@
           includedNicks.add(nickKey);
           const realKey = String(f[2] || '').trim().toLowerCase();
           const rawId = idByKey.get(nickKey + '|' + realKey) || ('orphan:' + fi);
-          dnodes.push({ id: ns(rawId), nick: f[1], cc: f[6], champ: f[0] === 'C', rank: f[0] === 'C' ? 0 : Number(f[0]), gen: 0, cyc: false, ties: [], ow: f[3], ol: f[4], odr: f[5] });
+          dnodes.push({ id: ns(rawId), nick: f[1], cc: f[6], champ: f[0] === 'C', rank: f[0] === 'C' ? 0 : (Number.isFinite(Number(f[0])) ? Number(f[0]) : null), gen: 0, cyc: false, ties: [], ow: f[3], ol: f[4], odr: f[5] });
         });
         if (!dnodes.length) return;
-        const maxRank = Math.max(...dnodes.map(n => n.rank), 1);
+        const maxRank = Math.max(...dnodes.map(n => n.rank || 0), 1);
         divisions.push({ di, name: d.div, maxGen: Math.max(...dnodes.map(n => n.gen)), maxRank, dnodes, dedges: dEdges });
       });
       return divisions;
@@ -16768,7 +16768,7 @@
         const half = Math.ceil(nick.length / 2);
         return [nick.slice(0, half), nick.slice(half)];
       };
-      const tierOf = n => n.champ ? 0 : n.rank <= 4 ? 1 : n.rank <= 10 ? 2 : 3;
+      const tierOf = n => n.champ ? 0 : n.rank == null ? 3 : n.rank <= 4 ? 1 : n.rank <= 10 ? 2 : 3;
       // 라이트 테마 팔레트 — 사이트 공통 색(앰버/검정/페트롤/회색)만 쓴다. 광택(그라데이션) 없이 단색.
       // 관계선: 빨강 = 나를 이긴 상대, 파랑 = 내가 이긴 상대 (겹치지 않게 기존 색 유지)
       const JBX = { paper: '#fafafb', ink: '#111111', red: '#dc2626', blue: '#2563eb', redPale: '#f0b6b1', bluePale: '#aec7f1',
@@ -16784,7 +16784,7 @@
       DIVS.forEach((d, dix) => {
         d.ix = dix;
         d.dnodes.forEach(n => {
-          const t = 1 - (n.rank / (d.maxRank + 1));
+          const t = n.rank == null ? 0 : 1 - (n.rank / (d.maxRank + 1));
           const lines = nameLines(n.nick);
           const r = Math.max(21 + t * 15, Math.max(...lines.map(l => l.length)) * 5.6 + 9);
           const node = { ...n, div: dix, lines, r,
@@ -17055,7 +17055,7 @@
         }
         infoBody.innerHTML = '<span class=nk style="cursor:pointer" onclick="openFighterStats(\'' + n.nick.replace(/'/g, "\\'") + '\')" title="누르면 전적 팝업이 열립니다">' +
           (n.cc ? flagImg(n.cc) + ' ' : '') + n.nick + (n.champ ? ' 👑' : '') + '</span> ' +
-          '<span class=sub>' + (n.champ ? '챔피언' : n.rank + '위') + '</span>' +
+          '<span class=sub>' + (n.champ ? '챔피언' : n.rank == null ? '' : n.rank + '위') + '</span>' +
           (n.cyc ? '<span class="cycbadge" title="A→B→C→A처럼 서로 물고 물려서 위아래 세대를 나눌 수 없는 순환 관계예요">🐕 개족보</span>' : '') +
           '<span class="kchip' + (kinListMode === 'anc' ? ' on' : '') + '" onclick="jbxToggleKin(\'anc\')">조상 ' + anc.size + '</span>' +
           '<span class="kchip' + (kinListMode === 'desc' ? ' on2' : '') + '" onclick="jbxToggleKin(\'desc\')">자손 ' + desc.size + '</span>' +
