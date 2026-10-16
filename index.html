@@ -11021,6 +11021,12 @@
     body[data-route="t"] .corner.red::before, body[data-route="t"] .vc-f.a::before { left: -40px; right: 9px; border-radius: 0 4px 4px 0; }
     body[data-route="t"] .corner.blue::before, body[data-route="t"] .vc-f.b::before { left: 9px; right: -40px; border-radius: 4px 0 0 4px; }
     body[data-route="t"] .corner:not(.sel):hover::before { background: var(--hair2); }
+    /* 2026-10-16: 마우스오버/꾹 누름 시 회색 대신 각 진영 색(왼쪽 청록/오른쪽 보라)의 옅은 톤으로 미리 보여줌.
+       선택(.sel)되면 기존대로 진한 청록/보라 + 흰 글씨라서 "미리보기"와 "선택됨"이 구분된다. */
+    body[data-route="t"] .corner.red:not(.sel):hover::before, body[data-route="t"] .corner.red:not(.sel):active::before { background: var(--teal-tint); }
+    body[data-route="t"] .corner.blue:not(.sel):hover::before, body[data-route="t"] .corner.blue:not(.sel):active::before { background: var(--vio-tint); }
+    body[data-route="t"] .corner.red:not(.sel):hover .cn-name, body[data-route="t"] .corner.red:not(.sel):active .cn-name { color: var(--teal-text); }
+    body[data-route="t"] .corner.blue:not(.sel):hover .cn-name, body[data-route="t"] .corner.blue:not(.sel):active .cn-name { color: var(--vio-text); }
     body[data-route="t"] .corner.red.sel::before, body[data-route="t"] .vc-f.a.win::before { background: var(--teal); }
     body[data-route="t"] .corner.blue.sel::before, body[data-route="t"] .vc-f.b.win::before { background: var(--vio); }
     body[data-route="t"] .vote-grid:has(.corner) .vs-row .vs, body[data-route="t"] .vc-top .vc-vs { position: relative; z-index: 2; width: auto; height: auto; margin: 0 -1px; align-self: stretch; display: flex; align-items: center; justify-content: center; background: var(--ink); color: #fff; border-radius: 3px; transform: skewX(-12deg); font-size: 0; }
