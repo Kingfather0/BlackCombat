@@ -1,0 +1,23 @@
+name: 유튜브 프리미어 길이 진단
+
+on:
+  workflow_dispatch:
+    inputs:
+      video_id:
+        description: '영상 ID 또는 URL (비워두면 API로 예정/진행 중 영상을 자동 검색해 표로 출력)'
+        required: false
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 진단 실행
+        env:
+          VIDEO_ID: ${{ github.event.inputs.video_id }}
+          YOUTUBE_API_KEY: ${{ vars.YOUTUBE_API_KEY }}
+        run: node scripts/yt-premiere-diag.js
