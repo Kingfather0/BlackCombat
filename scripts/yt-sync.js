@@ -64,39 +64,6 @@ function parseISODuration(iso) {
   return total > 0 ? total : null;
 }
 
-// 프리미어 진행 중에는 videos.list가 길이를 안 주는 경우가 있어, 영상 시청 페이지의
-// videoDetails.lengthSeconds를 보조로 읽는다(비공식 경로 — GitHub Actions 같은 클라우드 IP에서는
-// 막힐 수 있으므로 실패해도 조용히 null을 돌려주고, 다음 실행/프리미어 종료 후 API 값으로 채워진다).
-async function fetchLengthFromWatchPage(videoId) {
-  try {
-    const res = await fetch(`https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}&hl=ko`, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; blbungi-sync)', 'Accept-Language': 'ko-KR,ko;q=0.9' },
-    });
-    if (!res.ok) { console.log(`   [길이 보조조회] ${videoId} HTTP ${res.status}`); return null; }
-    const html = await res.text();
-    const m = /"lengthSeconds":"(\d+)"/.exec(html);
-    const n = m ? parseInt(m[1], 10) : 0;
-    console.log(`   [길이 보조조회] ${videoId} → ${n > 0 ? n + '초' : '값 없음(차단/동의화면 가능성)'}`);
-    return n > 0 ? n : null;
-  } catch (e) {
-    console.log(`   [길이 보조조회] ${videoId} 실패: ${e.message}`);
-    return null;
-  }
-}
-
-// 제목 키워드 기반 1차 자동분류 — index.html의 ytClassify()와 반드시 동일하게 유지
-function classify(title, isShort) {
-  if (isShort) return 'shorts';
-  const t = title || '';
-  if (/trailer/i.test(t) || t.includes('트레일러')) return 'trailer';
-  if (t.includes('계체')) return 'weigh-in';
-  if (t.includes('티켓') || t.includes('직관')) return 'ticket-promo';
-  // 띄어쓰기("미디어 데이")/영문 표기까지 넓게 잡는다 — index.html의 ytClassify()와 동일
-  if (/미디어\s*데이/.test(t) || /media\s*day/i.test(t)) return 'media-day';
-  if (/vs/i.test(t)) return 'matchup';
-  return 'talk';
-}
-
 async function upsertRows(rows) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/yt_bot_upsert_videos`, {
     method: 'POST',
@@ -164,16 +131,6 @@ async function upsertRows(rows) {
             console.log(`   [진단] ${v.id} live=${lbc} duration="${v.contentDetails.duration}" liveStreamingDetails=${JSON.stringify(v.liveStreamingDetails || null)}`);
           }
         });
-        // 길이를 못 받은 "최근 3일 이내" 영상만 보조 조회(쿼터 소모 없음, 영상 몇 개 수준)
-        for (const it of items) {
-          const vid = it.contentDetails && it.contentDetails.videoId;
-          if (!vid) continue;
-          const st = statMap[vid] || (statMap[vid] = {});
-          const pub = (it.contentDetails && it.contentDetails.videoPublishedAt) || (it.snippet && it.snippet.publishedAt);
-          if (st.dur == null && pub && Date.now() - new Date(pub).getTime() < 3 * 86400000) {
-            st.dur = await fetchLengthFromWatchPage(vid);
-          }
-        }
       }
 
       const rows = items.map((it) => {
