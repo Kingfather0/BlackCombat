@@ -58,7 +58,30 @@ function parseISODuration(iso) {
   const m = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(iso || '');
   if (!m) return null;
   const h = +(m[1] || 0), mi = +(m[2] || 0), s = +(m[3] || 0);
-  return h * 3600 + mi * 60 + s;
+  const total = h * 3600 + mi * 60 + s;
+  // 프리미어/라이브 중에는 API가 길이를 0(PT0S 또는 P0D)으로 줄 수 있다. 0초를 그대로 믿으면
+  // "길이 0초 = Shorts(<=180초)"로 잘못 분류되므로 0은 "아직 모름(null)"으로 취급한다.
+  return total > 0 ? total : null;
+}
+
+// 프리미어 진행 중에는 videos.list가 길이를 안 주는 경우가 있어, 영상 시청 페이지의
+// videoDetails.lengthSeconds를 보조로 읽는다(비공식 경로 — GitHub Actions 같은 클라우드 IP에서는
+// 막힐 수 있으므로 실패해도 조용히 null을 돌려주고, 다음 실행/프리미어 종료 후 API 값으로 채워진다).
+async function fetchLengthFromWatchPage(videoId) {
+  try {
+    const res = await fetch(`https://www.youtube.com/watch?v=${encodeURIComponent(videoId)}&hl=ko`, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; blbungi-sync)', 'Accept-Language': 'ko-KR,ko;q=0.9' },
+    });
+    if (!res.ok) { console.log(`   [길이 보조조회] ${videoId} HTTP ${res.status}`); return null; }
+    const html = await res.text();
+    const m = /"lengthSeconds":"(\d+)"/.exec(html);
+    const n = m ? parseInt(m[1], 10) : 0;
+    console.log(`   [길이 보조조회] ${videoId} → ${n > 0 ? n + '초' : '값 없음(차단/동의화면 가능성)'}`);
+    return n > 0 ? n : null;
+  } catch (e) {
+    console.log(`   [길이 보조조회] ${videoId} 실패: ${e.message}`);
+    return null;
+  }
 }
 
 // 제목 키워드 기반 1차 자동분류 — index.html의 ytClassify()와 반드시 동일하게 유지
@@ -125,7 +148,7 @@ async function upsertRows(rows) {
       // 이 스크립트 방식만으로는 부족하다).
       let statMap = {};
       if (ids.length) {
-        const vUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics&id=${ids.join(',')}&key=${YT_API_KEY}`;
+        const vUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics,snippet,liveStreamingDetails&id=${ids.join(',')}&key=${YT_API_KEY}`;
         const vRes = await ytFetch(vUrl);
         const vJson = await vRes.json();
         if (vRes.ok) (vJson.items || []).forEach((v) => {
@@ -133,7 +156,24 @@ async function upsertRows(rows) {
             dur: parseISODuration(v.contentDetails.duration),
             views: v.statistics && v.statistics.viewCount != null ? Number(v.statistics.viewCount) : null,
           };
+          // 진단 로그: 프리미어/라이브/예정 상태이거나 길이를 못 받은 최근 영상은 API 원본값을 남긴다
+          // (다음 프리미어 때 Actions 로그에서 duration이 실제로 어떻게 오는지 바로 확인 가능).
+          const lbc = v.snippet && v.snippet.liveBroadcastContent;
+          const recent = Date.now() - new Date((v.snippet && v.snippet.publishedAt) || 0).getTime() < 3 * 86400000;
+          if ((lbc && lbc !== 'none') || (statMap[v.id].dur == null && recent)) {
+            console.log(`   [진단] ${v.id} live=${lbc} duration="${v.contentDetails.duration}" liveStreamingDetails=${JSON.stringify(v.liveStreamingDetails || null)}`);
+          }
         });
+        // 길이를 못 받은 "최근 3일 이내" 영상만 보조 조회(쿼터 소모 없음, 영상 몇 개 수준)
+        for (const it of items) {
+          const vid = it.contentDetails && it.contentDetails.videoId;
+          if (!vid) continue;
+          const st = statMap[vid] || (statMap[vid] = {});
+          const pub = (it.contentDetails && it.contentDetails.videoPublishedAt) || (it.snippet && it.snippet.publishedAt);
+          if (st.dur == null && pub && Date.now() - new Date(pub).getTime() < 3 * 86400000) {
+            st.dur = await fetchLengthFromWatchPage(vid);
+          }
+        }
       }
 
       const rows = items.map((it) => {
