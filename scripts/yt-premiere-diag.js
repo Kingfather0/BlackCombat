@@ -62,25 +62,34 @@ async function searchMode() {
     result.page = m && +m[1] > 0 ? +m[1] : null;
   } catch (e) { console.log('[2] 시청페이지 실패:', e.message); }
 
-  // [3] 내부 player API (웹 클라이언트)
-  try {
-    const r = await fetch('https://www.youtube.com/youtubei/v1/player?prettyPrint=false', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'User-Agent': UA, Origin: 'https://www.youtube.com' },
-      body: JSON.stringify({ videoId: VID, context: { client: { clientName: 'WEB', clientVersion: '2.20250101.00.00', hl: 'ko', gl: 'KR' } } }),
-    });
-    const j = await r.json().catch(() => ({}));
-    const ls = j.videoDetails && j.videoDetails.lengthSeconds;
-    console.log(`\n[3] player API HTTP ${r.status}, playability = ${j.playabilityStatus && j.playabilityStatus.status} / ${j.playabilityStatus && j.playabilityStatus.reason || ''}`);
-    console.log('[3] videoDetails.lengthSeconds =', ls || '없음');
-    result.player = ls && +ls > 0 ? +ls : null;
-  } catch (e) { console.log('[3] player API 실패:', e.message); }
+  // [3] 내부 player API — 여러 클라이언트 종류로 시도 (일부는 봇 차단을 덜 받는 것으로 알려져 있으나 버전 값이 낡았을 수 있음)
+  const clients = [
+    { name: 'WEB', ua: UA, ctx: { clientName: 'WEB', clientVersion: '2.20250101.00.00', hl: 'ko', gl: 'KR' } },
+    { name: 'ANDROID_VR', ua: 'com.google.android.apps.youtube.vr.oculus/1.60.19 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip', ctx: { clientName: 'ANDROID_VR', clientVersion: '1.60.19', deviceMake: 'Oculus', deviceModel: 'Quest 3', androidSdkVersion: 32, osName: 'Android', osVersion: '12L', hl: 'ko', gl: 'KR' } },
+    { name: 'IOS', ua: 'com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)', ctx: { clientName: 'IOS', clientVersion: '19.45.4', deviceMake: 'Apple', deviceModel: 'iPhone16,2', osName: 'iPhone', osVersion: '18.1.0.22B83', hl: 'ko', gl: 'KR' } },
+    { name: 'TV_EMBEDDED', ua: UA, ctx: { clientName: 'TVHTML5_SIMPLY_EMBEDDED_PLAYER', clientVersion: '2.0', hl: 'ko', gl: 'KR', thirdParty: { embedUrl: 'https://www.google.com/' } } },
+  ];
+  result.players = {};
+  for (const c of clients) {
+    try {
+      const r = await fetch('https://www.youtube.com/youtubei/v1/player?prettyPrint=false', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'User-Agent': c.ua, Origin: 'https://www.youtube.com' },
+        body: JSON.stringify({ videoId: VID, context: { client: c.ctx }, contentCheckOk: true, racyCheckOk: true }),
+      });
+      const j = await r.json().catch(() => ({}));
+      const ls = j.videoDetails && j.videoDetails.lengthSeconds;
+      console.log(`\n[3-${c.name}] HTTP ${r.status}, playability = ${j.playabilityStatus && j.playabilityStatus.status} / ${(j.playabilityStatus && j.playabilityStatus.reason) || ''}`);
+      console.log(`[3-${c.name}] videoDetails.lengthSeconds =`, ls || '없음');
+      result.players[c.name] = ls && +ls > 0 ? +ls : null;
+    } catch (e) { console.log(`[3-${c.name}] 실패:`, e.message); result.players[c.name] = null; }
+  }
 
   console.log('\n========== 판정 ==========');
   console.log('영상 상태:', result.state || '(확인 못함)', '← upcoming/live 이어야 "프리미어 중" 테스트로 유효');
-  for (const [k, n] of [['공식 API', result.api], ['시청 페이지', result.page], ['player API', result.player]]) {
+  for (const [k, n] of [['공식 API', result.api], ['시청 페이지', result.page], ...Object.entries(result.players || {}).map(([k2, n2]) => ['player ' + k2, n2])]) {
     console.log(`${k}: ${n ? '✅ ' + n + '초 (' + Math.floor(n / 60) + '분 ' + (n % 60) + '초)' : '❌ 길이 못 얻음'}`);
   }
-  const ok = result.api || result.page || result.player;
+  const ok = result.api || result.page || Object.values(result.players || {}).some(Boolean);
   console.log(ok ? '\n→ 최소 한 경로로 프리미어 중 길이 확보 가능' : '\n→ 이 영상/환경에서는 프리미어 중 길이 확보 불가');
 })();
