@@ -56,6 +56,12 @@
     return h > 0 ? h + ':' + p(m) + ':' + p(s) : m + ':' + p(s);
   }
 
+  // 카톡 카드에서 눌렀을 때: 바로 유튜브 영상으로 이동
+  if (q.get('go') === '1' && /^[A-Za-z0-9_-]{11}$/.test(id)) {
+    location.replace('https://youtu.be/' + id);
+    return;
+  }
+
   if (!/^[A-Za-z0-9_-]{11}$/.test(id) || !(sec > 0 && sec <= 86400)) {
     $('help').style.display = 'block';
     return;
@@ -66,26 +72,28 @@
   $('tag').textContent = kind === 'u' ? '프리미어 대기 중에 읽은 길이' : kind === 'l' ? '진행 중에 읽은 길이' : '';
   $('result').style.display = 'block';
 
-  function shareText() {
-    var tail = '\n⏱ 영상 길이 ' + fmt(sec) + '\nhttps://youtu.be/' + id;
-    var head = title ? '🎬 ' + title : '🎬 영상 길이 안내';
-    var max = 200 - tail.length;                       // 카카오 텍스트 메시지 200자 제한
-    if (head.length > max) head = head.slice(0, Math.max(0, max - 1)) + '…';
-    return head + tail;
-  }
-
   // 클릭 핸들러 안에서 곧바로 호출해야 아이폰에서도 카톡 앱으로 넘어간다
   $('share').addEventListener('click', function () {
-    var text = shareText();
+    var openUrl = SITE + 'length.html?go=1&v=' + id;          // 카드를 누르면 유튜브 영상으로 이동
+    var link = { mobileWebUrl: openUrl, webUrl: openUrl };
+    var thumb = 'https://img.youtube.com/vi/' + id + '/hqdefault.jpg';
+    var head = title || '영상 길이 안내';
+    if (head.length > 60) head = head.slice(0, 59) + '…';
     try {
       if (window.Kakao && !Kakao.isInitialized()) Kakao.init(KAKAO_JS_KEY);
       Kakao.Share.sendDefault({
-        objectType: 'text',
-        text: text,
-        link: { mobileWebUrl: SITE, webUrl: SITE },
-        buttonTitle: '블붕이 사이트'
+        objectType: 'feed',
+        content: {
+          title: head,
+          description: '⏱ 영상 길이 ' + fmt(sec) + '\nhttps://youtu.be/' + id,
+          imageUrl: thumb,
+          imageWidth: 480, imageHeight: 360,
+          link: link
+        },
+        buttons: [{ title: '영상 보기', link: link }]
       });
     } catch (e) {
+      var text = '🎬 ' + head + '\n⏱ 영상 길이 ' + fmt(sec) + '\nhttps://youtu.be/' + id;
       if (navigator.share) navigator.share({ text: text }).catch(function () {});
       else if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { alert('공유 문구를 복사했어요. 카톡에 붙여넣기 하세요.'); });
       else prompt('아래 문구를 복사하세요', text);
