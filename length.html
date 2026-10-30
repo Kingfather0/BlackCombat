@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>영상 길이 확인 · 블붕이</title>
+<style>
+  :root { --bg:#f6f6f7; --card:#fff; --text:#111; --sub:#666; --line:#e2e2e5; --accent:#c8a24a; --ok:#1a7f37; --err:#c62828; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#111214; --card:#1b1c1f; --text:#f2f2f3; --sub:#9a9aa1; --line:#2c2d31; --ok:#4cc26a; --err:#ff6b6b; } }
+  * { box-sizing: border-box; }
+  body { margin:0 auto; max-width:560px; background:var(--bg); color:var(--text); font:16px/1.45 -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+         padding: calc(env(safe-area-inset-top,0px) + 14px) 14px calc(env(safe-area-inset-bottom,0px) + 28px); }
+  h1 { font-size:20px; margin:4px 0 2px; }
+  .sub { color:var(--sub); font-size:13px; margin-bottom:14px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; margin-bottom:12px; }
+  input[type=text] { width:100%; padding:12px; font-size:16px; border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--text); }
+  .btns { display:flex; gap:8px; margin-top:10px; }
+  button { flex:1; padding:13px; font-size:16px; font-weight:700; border:0; border-radius:12px; background:var(--accent); color:#111; }
+  button.ghost { background:transparent; border:1px solid var(--line); color:var(--text); font-weight:600; }
+  button:disabled { opacity:.45; }
+  #playerBox { margin-top:12px; border-radius:12px; overflow:hidden; background:#000; display:none; aspect-ratio:16/9; }
+  #playerBox iframe { width:100%; height:100%; border:0; }
+  #status { margin-top:10px; font-size:14px; color:var(--sub); white-space:pre-wrap; }
+  #result { display:none; text-align:center; }
+  #big { font-size:44px; font-weight:800; letter-spacing:.5px; margin:4px 0; }
+  #ttl { font-size:14px; color:var(--sub); margin-bottom:6px; word-break:keep-all; }
+  .ok { color:var(--ok); } .err { color:var(--err); }
+  label { display:block; font-size:13px; color:var(--sub); margin:12px 0 6px; }
+  .hint { font-size:12px; color:var(--sub); margin-top:6px; }
+</style>
+</head>
+<body>
+<h1>⏱ 영상 길이 확인</h1>
+<div class="sub">유튜브 영상 주소를 붙여넣으면 프리미어(대기/진행 중)에도 전체 길이를 읽어옵니다.</div>
+
+<div class="card">
+  <input id="url" type="text" inputmode="url" placeholder="유튜브 영상 주소 붙여넣기" autocapitalize="off" autocorrect="off" spellcheck="false">
+  <div class="btns">
+    <button class="ghost" id="paste" type="button">📋 붙여넣기</button>
+    <button id="go" type="button">길이 확인</button>
+  </div>
+  <div id="playerBox"><div id="yt"></div></div>
+  <div id="status"></div>
+</div>
+
+<div class="card" id="result">
+  <div id="ttl"></div>
+  <div id="big"></div>
+  <div class="btns">
+    <button id="share" type="button">💬 카톡으로 공유</button>
+    <button class="ghost" id="copy" type="button">복사</button>
+  </div>
+</div>
+
+<div class="card" id="manualCard" style="display:none">
+  <label for="man">자동으로 못 읽었을 때: 길이를 직접 입력</label>
+  <input id="man" type="text" inputmode="numeric" placeholder="예) 12:34  또는  1:02:03  또는  754 (초)">
+  <button id="useMan" type="button" style="width:100%;margin-top:10px">이 길이로 공유 문구 만들기</button>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var player = null, apiReady = false, pendingId = '', curId = '', curTitle = '', curSec = 0;
+  var pollTimer = null, t0 = 0, lastRead = -1, runToken = 0;
+
+  function extractId(t) {
+    t = String(t || '').trim();
+    var m = /(?:[?&]v=|youtu\.be\/|\/shorts\/|\/live\/|\/embed\/)([A-Za-z0-9_-]{11})/.exec(t);
+    if (m) return m[1];
+    return /^[A-Za-z0-9_-]{11}$/.test(t) ? t : '';
+  }
+  function fmt(sec) {
+    var n = Math.round(Number(sec)); if (!(n > 0)) return '';
+    var h = Math.floor(n / 3600), m = Math.floor((n - h * 3600) / 60), s = n - h * 3600 - m * 60;
+    var p = function (x) { return (x < 10 ? '0' : '') + x; };
+    return h > 0 ? h + ':' + p(m) + ':' + p(s) : m + ':' + p(s);
+  }
+  function parseDur(t) {
+    t = String(t || '').trim();
+    if (!t) return 0;
+    if (/^\d+$/.test(t)) return parseInt(t, 10);
+    var p = t.split(':');
+    if (p.length < 2 || p.length > 3 || p.some(function (x) { return !/^\d+$/.test(x); })) return 0;
+    var n = p.map(function (x) { return parseInt(x, 10); });
+    return n.length === 2 ? n[0] * 60 + n[1] : n[0] * 3600 + n[1] * 60 + n[2];
+  }
+  function status(msg, cls) { var s = $('status'); s.className = cls || ''; s.textContent = msg; }
+
+  // YouTube IFrame API 로드
+  window.onYouTubeIframeAPIReady = function () { apiReady = true; if (pendingId) { var id = pendingId; pendingId = ''; start(id); } };
+  var tag = document.createElement('script'); tag.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(tag);
+
+  function stopPoll() { clearTimeout(pollTimer); pollTimer = null; }
+
+  function start(id) {
+    stopPoll(); runToken++;
+    curId = id; curTitle = ''; curSec = 0; lastRead = -1;
+    $('result').style.display = 'none'; $('manualCard').style.display = 'none';
+    $('playerBox').style.display = 'block';
+    if (!apiReady) { pendingId = id; status('플레이어 불러오는 중…'); return; }
+    if (player && player.destroy) { try { player.destroy(); } catch (e) {} player = null; }
+    $('playerBox').innerHTML = '<div id="yt"></div>';
+    status('영상 정보를 읽는 중…');
+    var myToken = runToken;
+    player = new YT.Player('yt', {
+      videoId: id,
+      playerVars: { playsinline: 1, rel: 0, origin: location.origin },
+      events: {
+        onReady: function () { if (myToken !== runToken) return; t0 = Date.now(); poll(myToken); },
+        onError: function (e) { if (myToken !== runToken) return; onErr(e.data); }
+      }
+    });
+  }
+
+  function onErr(code) {
+    var map = { 2: '영상 주소가 올바르지 않습니다.', 5: '플레이어 오류가 발생했습니다.', 100: '영상을 찾을 수 없거나 비공개입니다.', 101: '이 영상은 외부 재생(임베드)이 막혀 있어 자동 확인이 안 됩니다.', 150: '이 영상은 외부 재생(임베드)이 막혀 있어 자동 확인이 안 됩니다.' };
+    status('❌ ' + (map[code] || ('오류 코드 ' + code)) + '\n아래에 길이를 직접 입력하면 공유 문구는 만들 수 있어요.', 'err');
+    $('manualCard').style.display = 'block';
+  }
+
+  function poll(token) {
+    if (token !== runToken || !player) return;
+    var d = 0;
+    try { d = Math.round(player.getDuration() || 0); } catch (e) {}
+    // 같은 값이 연속 두 번 읽혀야 확정 (라이브처럼 계속 늘어나는 값은 걸러냄)
+    if (d > 0 && d === lastRead) { finish(d); return; }
+    lastRead = d > 0 ? d : -1;
+    var elapsed = Date.now() - t0;
+    if (elapsed > 20000) {
+      status('아직 길이를 읽지 못했어요. 프리미어가 시작되거나 영상 정보가 준비되면 자동으로 계속 확인합니다.\n급하면 아래에 직접 입력하세요.');
+      $('manualCard').style.display = 'block';
+    } else status('길이 읽는 중… (' + Math.ceil(elapsed / 1000) + '초)');
+    if (elapsed > 10 * 60 * 1000) { status('10분 동안 못 읽었습니다. 다시 확인 버튼을 눌러주세요.', 'err'); return; }
+    pollTimer = setTimeout(function () { poll(token); }, elapsed > 20000 ? 4000 : 700);
+  }
+
+  function readTitle(cb) {
+    var t = '';
+    try { var vd = player && player.getVideoData && player.getVideoData(); if (vd && vd.title) t = vd.title; } catch (e) {}
+    if (t) return cb(t);
+    fetch('https://www.youtube.com/oembed?format=json&url=' + encodeURIComponent('https://www.youtube.com/watch?v=' + curId))
+      .then(function (r) { return r.json(); }).then(function (j) { cb((j && j.title) || ''); }).catch(function () { cb(''); });
+  }
+
+  function show(sec) {
+    curSec = sec;
+    $('big').textContent = '⏱ ' + fmt(sec);
+    $('ttl').textContent = curTitle || '';
+    $('result').style.display = 'block';
+    $('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function finish(sec) {
+    stopPoll();
+    status('✅ 길이를 읽었습니다: ' + fmt(sec), 'ok');
+    $('manualCard').style.display = 'none';
+    readTitle(function (t) { curTitle = t; show(sec); });
+  }
+
+  function shareText() {
+    return (curTitle ? '🎬 ' + curTitle + '\n' : '') + '⏱ 영상 길이 ' + fmt(curSec) + '\nhttps://youtu.be/' + curId;
+  }
+
+  $('go').addEventListener('click', function () {
+    var id = extractId($('url').value);
+    if (!id) return status('유튜브 영상 주소를 확인해 주세요.', 'err');
+    start(id);
+  });
+  $('url').addEventListener('paste', function () { setTimeout(function () { var id = extractId($('url').value); if (id) start(id); }, 50); });
+  $('paste').addEventListener('click', function () {
+    if (!navigator.clipboard || !navigator.clipboard.readText) return status('이 브라우저는 자동 붙여넣기를 지원하지 않습니다. 입력칸을 길게 눌러 붙여넣어 주세요.', 'err');
+    navigator.clipboard.readText().then(function (t) {
+      $('url').value = t; var id = extractId(t);
+      if (id) start(id); else status('클립보드에 유튜브 주소가 없습니다.', 'err');
+    }).catch(function () { status('붙여넣기 권한이 없습니다. 입력칸을 길게 눌러 붙여넣어 주세요.', 'err'); });
+  });
+  $('useMan').addEventListener('click', function () {
+    var s = parseDur($('man').value);
+    if (!(s > 0)) return status('길이를 12:34 형식으로 입력해 주세요.', 'err');
+    stopPoll(); status('직접 입력한 길이로 문구를 만들었어요: ' + fmt(s), 'ok');
+    readTitle(function (t) { curTitle = t; show(s); });
+  });
+  $('share').addEventListener('click', function () {
+    var text = shareText();
+    if (navigator.share) {
+      navigator.share({ text: text }).catch(function () {});
+    } else {
+      copy(text, '공유 기능이 없어 문구를 복사했어요. 카톡에 붙여넣기 하세요.');
+    }
+  });
+  $('copy').addEventListener('click', function () { copy(shareText(), '복사했어요. 카톡에 붙여넣기 하세요.'); });
+  function copy(text, okMsg) {
+    var done = function () { status(okMsg, 'ok'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(function () { prompt('아래 문구를 복사하세요', text); });
+    else prompt('아래 문구를 복사하세요', text);
+  }
+})();
+</script>
+</body>
+</html>
