@@ -62,21 +62,67 @@
     return;
   }
 
+  function fmtKo(n) {
+    n = Math.round(Number(n));
+    var h = Math.floor(n / 3600), m = Math.floor((n - h * 3600) / 60), s = n - h * 3600 - m * 60;
+    var p = function (x) { return (x < 10 ? '0' : '') + x; };
+    return h > 0 ? h + '시간 ' + p(m) + '분 ' + p(s) + '초' : m + '분 ' + p(s) + '초';
+  }
+
   if (!/^[A-Za-z0-9_-]{11}$/.test(id) || !(sec > 0 && sec <= 86400)) {
     $('help').style.display = 'block';
     return;
   }
 
   $('ttl').textContent = title;
-  $('big').textContent = '⏱ ' + fmt(sec);
+  $('big').textContent = '\u23F0 ' + fmtKo(sec);
   $('tag').textContent = kind === 'u' ? '프리미어 대기 중에 읽은 길이' : kind === 'l' ? '진행 중에 읽은 길이' : '';
   $('result').style.display = 'block';
+
+  // 카톡 카드 이미지: 썸네일 아래에 진한 빨강 글씨로 길이를 얹어 미리 만들어 업로드해 둔다
+  // (아이폰은 클릭 후 비동기 작업을 하면 카톡 앱 전환이 막혀서, 공유 버튼을 누르기 전에 준비)
+  var cardImg = '', cardW = 480, cardH = 360;
+  var thumb = 'https://img.youtube.com/vi/' + id + '/hqdefault.jpg';
+
+  function prepareCard() {
+    try {
+      if (window.Kakao && !Kakao.isInitialized()) Kakao.init(KAKAO_JS_KEY);
+      var img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function () {
+        try {
+          var W = 800, H = 450, c = document.createElement('canvas');
+          c.width = W; c.height = H;
+          var g = c.getContext('2d');
+          // hqdefault는 위아래 검은 띠가 있어 16:9로 가운데만 잘라 사용
+          var sh = img.naturalWidth * 9 / 16, sy = (img.naturalHeight - sh) / 2;
+          g.drawImage(img, 0, sy, img.naturalWidth, sh, 0, 0, W, H);
+          // 하단 흰 바 + 진한 빨강 글씨
+          g.fillStyle = 'rgba(255,255,255,0.94)';
+          g.fillRect(0, H - 110, W, 110);
+          g.fillStyle = '#C80000';
+          g.textAlign = 'center'; g.textBaseline = 'middle';
+          g.font = '800 54px -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
+          g.fillText('\u23F0 영상 길이 ' + fmtKo(sec), W / 2, H - 55);
+          c.toBlob(function (blob) {
+            if (!blob) return;
+            var file = new File([blob], 'len.png', { type: 'image/png' });
+            Kakao.Share.uploadImage({ file: [file] }).then(function (up) {
+              var u = up && up.infos && up.infos.original && up.infos.original.url;
+              if (u) { cardImg = u; cardW = W; cardH = H; }
+            }).catch(function () {});
+          }, 'image/png');
+        } catch (e) {}   // 캔버스가 막히면 기본 썸네일 카드로 보낸다
+      };
+      img.src = thumb;
+    } catch (e) {}
+  }
+  prepareCard();
 
   // 클릭 핸들러 안에서 곧바로 호출해야 아이폰에서도 카톡 앱으로 넘어간다
   $('share').addEventListener('click', function () {
     var openUrl = SITE + 'length.html?go=1&v=' + id;          // 카드를 누르면 유튜브 영상으로 이동
     var link = { mobileWebUrl: openUrl, webUrl: openUrl };
-    var thumb = 'https://img.youtube.com/vi/' + id + '/hqdefault.jpg';
     var head = title || '영상 길이 안내';
     if (head.length > 60) head = head.slice(0, 59) + '…';
     try {
@@ -85,15 +131,15 @@
         objectType: 'feed',
         content: {
           title: head,
-          description: '⏱ 영상 길이 ' + fmt(sec) + '\nhttps://youtu.be/' + id,
-          imageUrl: thumb,
-          imageWidth: 480, imageHeight: 360,
+          description: '\u23F0 영상 길이 ' + fmtKo(sec) + '\nhttps://youtu.be/' + id,
+          imageUrl: cardImg || thumb,
+          imageWidth: cardImg ? cardW : 480, imageHeight: cardImg ? cardH : 360,
           link: link
         },
         buttons: [{ title: '영상 보기', link: link }]
       });
     } catch (e) {
-      var text = '🎬 ' + head + '\n⏱ 영상 길이 ' + fmt(sec) + '\nhttps://youtu.be/' + id;
+      var text = '🎬 ' + head + '\n\u23F0 영상 길이 ' + fmtKo(sec) + '\nhttps://youtu.be/' + id;
       if (navigator.share) navigator.share({ text: text }).catch(function () {});
       else if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { alert('공유 문구를 복사했어요. 카톡에 붙여넣기 하세요.'); });
       else prompt('아래 문구를 복사하세요', text);
