@@ -64,6 +64,19 @@ function parseISODuration(iso) {
   return total > 0 ? total : null;
 }
 
+// 제목 키워드 기반 1차 자동분류 — index.html의 ytClassify()와 반드시 동일하게 유지
+function classify(title, isShort) {
+  if (isShort) return 'shorts';
+  const t = title || '';
+  if (/trailer/i.test(t) || t.includes('트레일러')) return 'trailer';
+  if (t.includes('계체')) return 'weigh-in';
+  if (t.includes('티켓') || t.includes('직관')) return 'ticket-promo';
+  // 띄어쓰기("미디어 데이")/영문 표기까지 넓게 잡는다 — index.html의 ytClassify()와 동일
+  if (/미디어\s*데이/.test(t) || /media\s*day/i.test(t)) return 'media-day';
+  if (/vs/i.test(t)) return 'matchup';
+  return 'talk';
+}
+
 async function upsertRows(rows) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/yt_bot_upsert_videos`, {
     method: 'POST',
