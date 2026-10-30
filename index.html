@@ -21562,11 +21562,11 @@
     // "프리미어 시작 직후에도 영상 총 길이를 보여달라" 요청 반영 — duration_sec(초)을 m:ss 또는 h:mm:ss로.
     // 값이 없으면(프리미어라 아직 못 받았거나 옛 데이터) 조용히 생략한다(0:00처럼 잘못 보이지 않게).
     function fmtVideoDur(sec) {
-      const n = Number(sec);
+      const n = Math.round(Number(sec));
       if (!(n > 0)) return '';
-      const h = Math.floor(n / 3600), m = Math.floor((n % 3600) / 60), s = Math.floor(n % 60);
+      const h = Math.floor(n / 3600), m = Math.floor((n % 3600) / 60), s = n % 60;
       const pad = (x) => String(x).padStart(2, '0');
-      return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+      return h > 0 ? `${h}시간 ${pad(m)}분 ${pad(s)}초` : `${m}분 ${pad(s)}초`;
     }
     function ytVideoRowHTML(v, extraNote, gapDaysOverride) {
       const idx = ytRegisterVideo(v, extraNote);
@@ -21591,7 +21591,7 @@
         <img class="yt-recent-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:700;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ytShortsEmoji(v)} ${esc(v.title)}</div>
-          <div class="note">${new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}${viewsText ? ` · ${esc(viewsText)}` : ''}${fmtVideoDur(v.duration_sec) ? ` · ⏱ ${esc(fmtVideoDur(v.duration_sec))}` : ''}</div>
+          <div class="note">${new Date(v.published_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}${viewsText ? ` · ${esc(viewsText)}` : ''}${fmtVideoDur(v.duration_sec) ? ` · ⏰ ${esc(fmtVideoDur(v.duration_sec))}` : ''}</div>
           ${gapNote ? `<div class="note" style="color:var(--key-deep);font-weight:600;font-size:10.5px;margin-top:2px">${esc(gapNote)}</div>` : ''}
         </div>
       </div>`;
@@ -21618,7 +21618,7 @@
             <div style="cursor:pointer" onclick="window.open('${esc(url)}','_blank','noopener');ytCloseVideoPreview()">
               <img class="yt-vp-thumb" src="${esc(v.thumbnail_url || '')}" loading="lazy">
               <div class="yt-vp-title">${ytShortsEmoji(v)} ${esc(v.title)}</div>
-              <div class="note">${esc(dateText)}${viewsText ? ` · ${esc(viewsText)}` : ''}${fmtVideoDur(v.duration_sec) ? ` · ⏱ ${esc(fmtVideoDur(v.duration_sec))}` : ''}</div>
+              <div class="note">${esc(dateText)}${viewsText ? ` · ${esc(viewsText)}` : ''}${fmtVideoDur(v.duration_sec) ? ` · ⏰ ${esc(fmtVideoDur(v.duration_sec))}` : ''}</div>
               ${entry.extraNote ? `<div class="yt-vp-extra">${entry.extraNote}</div>`
         : (ytPrevGapNote(v) ? `<div class="yt-vp-extra">${esc(ytPrevGapNote(v))}</div>` : '')}
             </div>
