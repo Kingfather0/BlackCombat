@@ -11809,6 +11809,28 @@
     body[data-route] .hm-h a:hover { text-decoration-color: var(--text); }
     body[data-route] .plink { text-decoration: none !important; }
     body[data-route] .plink:hover { color: var(--text); }
+    /* 2026-11-02: 티켓 — 등급 옆 색 동그라미(목록 단계; 도넛 병합 후에는 .tk-pie-chip이 같은 모양으로 대신함) */
+    body[data-route="tickets"] .tk-grade-chip { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; flex: none; box-shadow: 0 0 0 2px var(--card), 0 0 0 3px rgba(11, 11, 11, .06); }
+    /* 2026-11-02: 등급 13개 이상(블랙컴뱃 17 = 24개) PC 배치 — 등급을 12개씩 좌·우 같은 크기로, 그 아래에
+       왼쪽 일별 | 오른쪽 시간별. (--tk-rows = 등급 수의 절반, tkDash가 지정) 모바일/태블릿은 기존 한 줄 목록. */
+    @media (min-width: 1024px) {
+      body[data-route="tickets"] .tk-dash-main.tk-grades-wide { grid-template-columns: minmax(0, 1fr); }
+      body[data-route="tickets"] .tk-dash-main.tk-grades-wide .tk-pie-wrap.v2-pie-merged .tk-pie-legend,
+      body[data-route="tickets"] .tk-dash-main.tk-grades-wide .tk-grades-list {
+        display: grid !important; width: 100%;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-flow: column;
+        grid-template-rows: repeat(var(--tk-rows, 12), auto);
+        column-gap: 32px;
+      }
+      body[data-route="tickets"] .tk-dash-main.tk-grades-wide .tk-pie-item.v2-merged { flex: none; min-height: 0; }
+      body[data-route="tickets"] .tk-dash-main.tk-grades-wide .tk-pie-item.v2-merged.tk-col-last { border-bottom: none; }
+      /* 일별·시간별 막대: 옆 목록 높이에 맞춰 늘어나지 않게 고정 높이로 */
+      body[data-route="tickets"] .tk-dash-trends.tk-trends-below .card.tk-card > .tk-trend .tk-day-chart,
+      body[data-route="tickets"] .tk-dash-trends.tk-trends-below .card.tk-card > .tk-hourly .tk-day-chart {
+        flex: none !important; height: 80px !important; min-height: 0 !important;
+      }
+    }
   </style>
 </head>
 
@@ -13626,6 +13648,33 @@
     }
     // 등급은 매번 데이터에 저장된 순서(뒤죽박죽일 수 있음)가 아니라, 항상 비싼 등급 순으로
     // 고정해서 보여준다. 목록에 없는 새 등급명이 나오면 뒤쪽에 가나다순으로 붙는다.
+    // 2026-11-02: 블랙컴뱃 17(29CM) — 등급을 29CM 판매 페이지와 똑같은 순서·이름·색으로 보여준다
+    // (가격순 정렬 대신 이 순서를 그대로 사용, 이름 뒤에 "석"을 억지로 붙이지도 않는다).
+    // 이 표에 없는 행사는 기존 방식(가격순 + 팔레트/공식색)이 그대로 적용된다.
+    const TK_GRADE_ORDER_BY_EVENT = {
+      'bc17_vantablack_2026_1121': [
+        '블랙티넘 2인 테이블', '블랙티넘', '선수입장로석', '로얄석', '플로어석', '플로어 이코노미', '다이아석',
+        '1층 테이블석(2인)', '1층 테이블석(3인)', '1층 스탠다드', '1층 이코노미', '1층 커플석(2인)',
+        '2층 테이블석(2인)', '2층 테이블석(3인)', '2층 스탠다드', '2층 이코노미', '2층 커플석(2인)',
+        '스카이박스 20인룸', '스카이박스 14인룸', '스카이박스 9인룸', '스카이박스 6인룸',
+        '3층 지정석', '4층 지정석', '휠체어석'
+      ],
+    };
+    // 등급 옆 동그라미 색 — 29CM API(seatGradeColorCode)가 주는 값과 동일. 기록(meta.gradeColors)에
+    // 색이 아직 없거나 판매량 0이라 도넛에 안 나오는 등급도 항상 같은 색이 나오도록 여기에도 고정해 둔다.
+    const TK_GRADE_COLORS_BY_EVENT = {
+      'bc17_vantablack_2026_1121': {
+        '블랙티넘 2인 테이블': '#57504E', '블랙티넘': '#57504E', '선수입장로석': '#CC4951', '로얄석': '#4E9B53',
+        '플로어석': '#91CE4D', '플로어 이코노미': '#8E4AA2', '다이아석': '#D4567B',
+        '1층 테이블석(2인)': '#6F80B9', '1층 테이블석(3인)': '#6F80B9', '1층 스탠다드': '#1DB9A4',
+        '1층 이코노미': '#7CD8CB', '1층 커플석(2인)': '#1DB9A4',
+        '2층 테이블석(2인)': '#31519A', '2층 테이블석(3인)': '#31519A', '2층 스탠다드': '#4B7698',
+        '2층 이코노미': '#7BBBE1', '2층 커플석(2인)': '#4B7698',
+        '스카이박스 20인룸': '#349FBC', '스카이박스 14인룸': '#349FBC', '스카이박스 9인룸': '#349FBC', '스카이박스 6인룸': '#349FBC',
+        '3층 지정석': '#E88029', '4층 지정석': '#F5D623', '휠체어석': '#BEA886'
+      },
+    };
+    let tkGradeOrder = null; // 현재 보고 있는 행사의 고정 등급 순서(없으면 null → 기존 정렬)
     const GRADE_ORDER = ['VIP', 'R', 'S', 'A', 'B', 'C'];
     function sortGradeKeys(keys) {
       return [...keys].sort((a, b) => {
@@ -13640,6 +13689,12 @@
     // 가격을 모르는 등급은 맨 뒤에 이름순으로 붙는다. 가격 정보가 아예 없으면 기존 방식 유지.
     // 도넛 차트와 상세 좌석 목록, 예상 매출이 모두 이 순서를 함께 쓴다.
     function sortGradeKeysByPrice(keys, prices) {
+      // 고정 순서가 등록된 행사(블랙컴뱃 17 등)는 가격과 상관없이 그 순서를 그대로 쓴다.
+      // 목록에 없는 새 등급은 맨 뒤에 가나다순으로 붙는다.
+      if (tkGradeOrder && tkGradeOrder.length) {
+        const pos = k => { const i = tkGradeOrder.indexOf(k); return i < 0 ? 9999 : i; };
+        return [...keys].sort((a, b) => (pos(a) - pos(b)) || a.localeCompare(b, 'ko'));
+      }
       if (!prices || !Object.keys(prices).length) return sortGradeKeys(keys);
       return [...keys].sort((a, b) => {
         const pa = prices[a], pb = prices[b];
@@ -13650,9 +13705,12 @@
         return a.localeCompare(b, 'ko');
       });
     }
-    function gradeRowsHTML(grades, totals, prices, holds) {
+    function gradeRowsHTML(grades, totals, prices, holds, colors) {
       const keys = sortGradeKeysByPrice(Object.keys(grades || {}), prices);
       if (!keys.length) return '<div class="empty" style="padding:8px 0">등급별 정보 없음</div>';
+      return '<div class="tk-grades-list">' + gradeRowItemsHTML(keys, grades, totals, prices, holds, colors) + '</div>';
+    }
+    function gradeRowItemsHTML(keys, grades, totals, prices, holds, colors) {
       // 위쪽 "전체 좌석"과 표현을 통일: 항상 "남은 좌석 수"와 "판매율"을 같이 보여준다
       // (총원을 몰라서 판매율을 계산 못 할 때만 "총원 미집계"로 대체).
       // prices(등급별 정가)를 알면 등급명 옆에 1석 가격도 함께 보여준다.
@@ -13681,9 +13739,13 @@
           ? `<div class="tk-bar"><i style="width:${soldPct}%"></i></div><div class="tk-pct"><span class="tk-pct-sub">${total.toLocaleString()}석 중 ${(total - remain).toLocaleString()}석 판매</span> · 전체의 ${soldPct}%${holdTag}</div>`
           : '';
         // 등급명이 이미 "~석"으로 끝나면(예: 시야방해석) 뒤에 "석"을 또 붙이지 않는다("시야방해석석" 방지).
-        const gradeLabel = /석$/.test(k) ? k : k + '석';
+        // 고정 순서 행사(블랙컴뱃 17)는 29CM 판매 페이지의 등급명을 그대로(석을 덧붙이지 않고) 쓴다.
+        const gradeLabel = tkGradeOrder ? k : (/석$/.test(k) ? k : k + '석');
+        // 등급 옆 동그라미 — 색을 아는 등급만. (<i>로 만들어서 아래 병합 코드의 "첫 span = 가격" 판별에 영향 없음)
+        const chipColor = colors && (colors[k] || colors[String(k).replace(/석$/, '')]);
+        const chipHTML = chipColor ? `<i class="tk-grade-chip" style="background:${esc(chipColor)}"></i>` : '';
         return `<div class="tk-grade">
-        <div class="tk-grade-top"><span class="tk-grade-name">${esc(gradeLabel)}${priceText}</span>
+        <div class="tk-grade-top"><span class="tk-grade-name">${chipHTML}${esc(gradeLabel)}${priceText}</span>
           <span class="tk-grade-remain${isSoldOut ? ' sold-out' : ''}">${remainText}</span></div>
         ${statusLine}
       </div>`;
@@ -15343,6 +15405,9 @@
       // 이 행사의 미배정(미분류) 좌석 설정을 렌더 전에 확정한다 — 이후의 분모 선택
       // (tkPickTotal)과 등급별 총원 보정(tkApplyHolds)이 전부 이 값을 본다.
       tkHoldsCfg = TK_HOLDS_BY_EVENT[eventKey] || null;
+      // 2026-11-02: 등급 고정 순서/이름 표기(블랙컴뱃 17 등 — 위 TK_GRADE_ORDER_BY_EVENT 참고)
+      tkGradeOrder = TK_GRADE_ORDER_BY_EVENT[eventKey] || null;
+      window.__tkExactGradeNames = !!tkGradeOrder;
       let rows; try { rows = await fetchTicketSnapshots(eventKey); } catch (e) { return fail(e, __g); }
 
       // 2026-09-18: NOL에서 관리자가 회차 표시 시간을 고치면(예: 복마전 002 — 오후 6시→3시)
@@ -15621,6 +15686,14 @@
         if (!pricesByRound.has(key) && r.meta && r.meta.gradePrices && Object.keys(r.meta.gradePrices).length) pricesByRound.set(key, r.meta.gradePrices);
         if (!colorsByRound.has(key) && r.meta && r.meta.gradeColors && Object.keys(r.meta.gradeColors).length) colorsByRound.set(key, r.meta.gradeColors);
       });
+      // 2026-11-02: 행사별 고정 색(TK_GRADE_COLORS_BY_EVENT) + 기록에 담긴 공식 색을 합쳐 둔다.
+      // 판매량 0이라 도넛에 안 나오는 등급(오픈 직후 대부분)도 같은 색 동그라미를 쓰기 위함.
+      const tkColorsFor = (base) => {
+        const fixed = TK_GRADE_COLORS_BY_EVENT[eventKey];
+        if (!fixed) return base || null;
+        return Object.assign({}, fixed, base || {});
+      };
+      window.__tkGradeColorMap = tkColorsFor(Array.from(colorsByRound.values()).reduce((a, c) => Object.assign(a, c), {})) || {};
       // 2026-09-20: 등급별 정가 조회를 함수로 빼서, 아래 "예상 매출" 계산뿐 아니라 판매
       // 히스토리의 등급별 변화 팝업(histHTML/tkHistDeltaShow)에서도 같은 라운드별 가격
       // (+ 하드코딩 보정표)을 그대로 재사용할 수 있게 한다.
@@ -15877,7 +15950,7 @@
         // 보여준다: ① 미분류 제외(일반 예매 집계 기준), ② 미분류 포함(전량 정가 판매 시 상한).
         const TK_UNCLASSIFIED_HOLDS = tkHoldsCfg ? tkHoldsCfg.holds : null;
         const gradePrices = resolveTkGradePrices(roundKey);
-        const gradeColors = colorsByRound.get(roundKey) || null;
+        const gradeColors = tkColorsFor(colorsByRound.get(roundKey) || null);
         let revenueHTML = '';
         if (gradeTotals && gradePrices) {
           let revSum = 0, revNetSum = 0, holdSeats = 0;
@@ -15915,7 +15988,7 @@
       <div class="card tk-card">
         ${showRoundLabel && r.round_label ? `<div class="tk-round">${esc(r.round_label)}</div>` : ''}
         ${gradePieHTML(r.grades, gradeTotals, gradePrices, gradeColors)}
-        ${gradeRowsHTML(r.grades, gradeTotals, gradePrices, TK_UNCLASSIFIED_HOLDS)}
+        ${gradeRowsHTML(r.grades, gradeTotals, gradePrices, TK_UNCLASSIFIED_HOLDS, gradeColors)}
         ${revenueHTML}
       </div>`;
       }).join('');
@@ -29593,7 +29666,18 @@
         if (fc) kpi.appendChild(fc);
         T.title.forEach(function (t) { t.style.display = 'none'; kpi.appendChild(t); });   // "전체 좌석" 제목(수동 갱신 배지용)만 보관
         var main = mk('tk-dash-main'), trends = null;
-        if (L.body.length) {
+        // 2026-11-02: 구역 지도가 없고 등급이 13개 이상(블랙컴뱃 17 = 24개)이면 PC에서 등급을
+        // 반반(12개씩) 좌·우로 나눠 같은 크기로 보여주고, 그 아래에 왼쪽 일별 | 오른쪽 시간별을 놓는다.
+        // (예전엔 등급 목록 옆에 추이 카드가 붙어서, 목록이 길어지면 일별/시간별 막대가 같이 세로로
+        //  쭉 늘어났다.) 모바일은 CSS가 적용되지 않아 기존처럼 위→아래 한 줄로 나온다.
+        var gradeCnt = R.body.reduce(function (a, c) { return a + c.querySelectorAll('.tk-grade').length; }, 0);
+        var wideGrades = !L.body.length && gradeCnt > 12;
+        if (wideGrades) {
+          main.classList.add('tk-grades-wide');
+          main.style.setProperty('--tk-rows', Math.ceil(gradeCnt / 2));
+          main.appendChild(col(R.title, [pie].concat(R.body)));
+          if (D.body.length) { trends = mk('tk-dash-trends tk-trends-below'); trends.appendChild(col(D.title, D.body)); }
+        } else if (L.body.length) {
           main.classList.add('has-map');
           main.appendChild(col(L.title, L.body));
           main.appendChild(col(R.title, [pie].concat(R.body)));
@@ -29728,6 +29812,13 @@
             // 겹치는 이름은 괄호 안 내용을 이름 뒤에 붙이고 끝의 "석"은 뗀다: "VIP 플로어(5열)석" → "VIP 플로어 5열"
             return fixSeok(r.replace(/\s*[(（]([^)）]*)[)）]\s*/g, ' $1 ')).replace(/\s+/g, ' ').replace(/석$/, '').trim();
           });
+          // 2026-11-02: 고정 순서 행사(블랙컴뱃 17)는 29CM 등급명을 괄호까지 그대로 표시한다.
+          if (window.__tkExactGradeNames) dispNames = rawNames.slice();
+          var nrmG = function (s) { return String(s || '').replace(/\s+/g, '').replace(/석$/, ''); };
+          var gradeColorOf = function (nm) {
+            var m = window.__tkGradeColorMap || {};
+            return m[nm] || m[String(nm).replace(/석$/, '')] || '';
+          };
           grades.forEach(function (g, gi) {
             var nameEl = g.querySelector('.tk-grade-name');
             var priceEl = nameEl && nameEl.querySelector('span');
@@ -29739,7 +29830,14 @@
             if (pc) { pct = (tx(pc).match(/([\d.]+)%/) || [])[1] || ''; var sb = pc.querySelector('.tk-pct-sub'); sub = tx(sb).replace(/^·\s*/, ''); var hd = pc.querySelector('span[style*="10.5px"]'); hold = tx(hd).replace(/[()]/g, ''); }
 
             var it, color, share = '', innerW = '';
+            // 이름이 정확히 같은 도넛 항목을 먼저 찾고, 없을 때만 앞부분 일치로 대체한다.
+            // ("블랙티넘"이 "블랙티넘 2인 테이블" 항목을 잘못 가져가는 것 방지)
             var idx = unmerged.findIndex(function (cand) {
+              var top = cand.firstElementChild; if (!top) return false;
+              var spans = top.querySelectorAll(':scope > span');
+              return nrmG(tx(spans[1])) === nrmG(gName);
+            });
+            if (idx < 0) idx = unmerged.findIndex(function (cand) {
               var top = cand.firstElementChild; if (!top) return false;
               var spans = top.querySelectorAll(':scope > span');
               var label = tx(spans[1]);
@@ -29757,7 +29855,8 @@
               // 판매량 0이라 도넛 범례가 없던 등급(휠체어석 등) — 같은 모양의 항목을 새로 만든다.
               it = document.createElement('div');
               it.className = 'tk-pie-item';
-              color = (typeof TK_PIE_COLORS !== 'undefined' && TK_PIE_COLORS.length) ? TK_PIE_COLORS[gi % TK_PIE_COLORS.length] : '#9e9ea6';
+              // 공식 등급 색을 아는 등급은 그 색(블랙컴뱃 17 등), 모르면 기존처럼 팔레트 순환.
+              color = gradeColorOf(gName) || ((typeof TK_PIE_COLORS !== 'undefined' && TK_PIE_COLORS.length) ? TK_PIE_COLORS[gi % TK_PIE_COLORS.length] : '#9e9ea6');
             }
             var line2 = [];
             var soldN = '', totN = '', remN = '';
@@ -29784,6 +29883,11 @@
           // 12개가 다 있어도 스크롤 부담이 적도록 CSS만 조정(.v2-merged 쪽 padding/줄간격 축소).
           var legendItems = [].slice.call(legend.querySelectorAll(':scope > .tk-pie-item.v2-merged'));
           if (legendItems.length > 8) legend.classList.add('v2-dense');
+          // 2026-11-02: PC 좌·우 2열(등급 13개 이상) 배치에서는 각 열의 마지막 줄 아래 구분선을 없앤다.
+          if (app.querySelector('.tk-dash-main.tk-grades-wide')) {
+            var wRows = Math.ceil(legendItems.length / 2);
+            legendItems.forEach(function (el, i) { el.classList.toggle('tk-col-last', (i + 1) % wRows === 0 || i === legendItems.length - 1); });
+          }
           grades.forEach(function (x) { x.style.display = 'none'; });
           var gcard = grades[0].closest('.card'); if (gcard && ![].some.call(gcard.children, function (c) { return c.style.display !== 'none' && getComputedStyle(c).display !== 'none' && c.getBoundingClientRect().height > 2; })) gcard.style.display = 'none';
           var wrap = app.querySelector('.tk-pie-wrap'); if (wrap) { wrap.classList.add('v2-pie-merged'); var blk = wrap.parentElement; if (blk) blk.classList.add('v2-pie-block'); var cardEl = blk && blk.closest('.card'); if (cardEl) cardEl.classList.add('v2-pie-card'); var tt = blk && blk.querySelector(':scope > .tk-trend-title'); if (tt) tt.style.display = 'none'; }
