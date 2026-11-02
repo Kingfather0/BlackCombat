@@ -15104,6 +15104,10 @@
       const mins = Math.max(0, Math.round((Date.now() - new Date(at).getTime()) / 60000));
       return `${fmtSnapTime(at)} 기준${mins >= 1 ? ` (${mins}분 전)` : ''}`;
     }
+    // 잔여 N석 / 결제 대기 N석 박스를 같은 크기로(다른 스타일에 밀리지 않게 직접 지정)
+    function z17SameSize(el) {
+      [['box-sizing', 'border-box'], ['display', 'inline-flex'], ['align-items', 'center'], ['justify-content', 'center'], ['height', '24px'], ['padding', '0 9px'], ['border-radius', '4px'], ['font-size', '12px'], ['font-weight', '700'], ['line-height', '1'], ['margin-top', '0'], ['margin-bottom', '0']].forEach(([k, v]) => el.style.setProperty(k, v, 'important'));
+    }
     function z17Paint() {
       const box = document.getElementById('z17-box');
       if (!box) return;
@@ -15123,6 +15127,7 @@
         const remain = d.reduce((s, x) => s + x.free, 0);
         badge.textContent = Z17.err ? '준비 중' : !Z17.state ? '불러오는 중…' : (remain > 0 ? `잔여 ${remain}석` : '잔여 없음');
         badge.classList.toggle('zero', !!Z17.state && remain === 0);
+        z17SameSize(badge);
         const bb = badge.closest('button');
         if (bb) {
           const has = !Z17.err && !!Z17.state && remain > 0;
@@ -15136,6 +15141,7 @@
           let held = 0;
           if (Z17.state && Z17.state.z) Object.keys(Z17.state.z).forEach(k => { held += (Z17.state.z[k].match(/h/g) || []).length; });
           hb.textContent = `결제 대기 ${held}석`;
+          z17SameSize(hb);
           hb.style.display = (!Z17.err && Z17.state && held > 0) ? '' : 'none';
         }
       }
