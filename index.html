@@ -1311,11 +1311,21 @@
     /* ── "맨 앞열 바로 찾기" — 구역별 무대 최근접 열 좌석만 전 구역에서 한눈에 모아본다 ──
        사람들이 취소표를 노리고 구역을 하나하나 눌러 앞열을 확인하는 불편을 없애는 기능.
        구역마다 시작 열이 달라(대부분 1열, 일부 2·3·4·8열) 절대 열 번호가 아닌 구역별 min 열 기준. */
-    .z17-wrap { max-width: 640px; margin: 0 auto; }
+    .z17-wrap { margin: 0 auto; }
+    .z17-mapbox { position: relative; }
+    .z17-leg { display: flex; flex-wrap: wrap; gap: 3px 10px; font-size: 10.5px; color: var(--dim); line-height: 1.3; }
+    .z17-lg { display: inline-flex; align-items: center; white-space: nowrap; border: 0; background: none; padding: 1px 2px; margin: 0; font: inherit; color: inherit; cursor: pointer; border-radius: 4px; }
+    .z17-lg:hover { background: rgba(0,0,0,.06); text-decoration: underline; }
+    .z17-lg i { width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; flex: none; }
+    .z17-leg-l, .z17-leg-r { display: none; }
+    .z17-leg-m { margin-top: 6px; }
+    @media (max-width: 1023px) { .z17-mapbox { margin: 0 -12px; } .z17-leg-m { padding: 0 12px; } }
     @media (min-width: 1024px) {
-      .z17-grid { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 3fr); gap: 28px; align-items: start; }
-      .z17-wrap { max-width: none; margin: 0; }
-      .z17-side > .z17-sp-title:first-child { margin-top: 0; }
+      .z17-wrap { max-width: 1040px; }
+      .z17-leg-m { display: none; }
+      .z17-leg-l, .z17-leg-r { display: flex; flex-direction: column; flex-wrap: nowrap; gap: 5px; position: absolute; top: 6px; font-size: 12px; }
+      .z17-leg-l { left: 2%; } .z17-leg-r { right: 2%; }
+      .z17-lg i { width: 10px; height: 10px; margin-right: 6px; }
       body[data-route="tickets"] .tk-dash-map .tk-dash-col > .card { padding: 12px 0 !important; }
     }
     .tk-dash-map { margin-top: 6px; }
@@ -15037,7 +15047,7 @@
       }).join('');
       const decor = ['stage', 'g1', 'g2', 'g3', 'g4', 'g5', 'g6'].map(k => `<polygon points="${Z17_DECOR[k]}" fill="${k === 'stage' ? '#bcbcbc' : (k === 'g1' || k === 'g2' ? '#bdbdbd' : '#d9d9d9')}"/>`).join('');
       const tier = (t, x, y) => `<rect x="${x - 33}" y="${y - 14}" width="66" height="28" rx="14" fill="#e6e6e6"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-size="15" font-weight="700" fill="#444">${t}</text>`;
-      return `<svg viewBox="50 10 1074 910" class="z17-svg" preserveAspectRatio="xMidYMid meet">${decor}<text x="594" y="281" text-anchor="middle" font-size="19" font-weight="700" fill="#fff">케이지</text>${tier('플로어', 263, 236)}${tier('1층', 1017, 286)}${tier('2층', 157, 368)}${tier('3층', 1086, 440)}${tier('4층', 88, 503)}${parts}</svg>`;
+      return `<svg viewBox="56 14 1060 898" class="z17-svg" preserveAspectRatio="xMidYMid meet">${decor}<text x="594" y="281" text-anchor="middle" font-size="19" font-weight="700" fill="#fff">케이지</text>${tier('플로어', 263, 236)}${tier('1층', 1017, 286)}${tier('2층', 157, 368)}${tier('3층', 1086, 440)}${tier('4층', 88, 503)}${parts}</svg>`;
     }
     function z17SpecialHTML() {
       if (!Z17.specials) return '';
@@ -15053,7 +15063,7 @@
         return `<div class="z17-sp-title">${title}</div><div class="z17-chips">${chips}</div>`;
       }).join('');
     }
-    function z17LegendHTML() {
+    function z17LegendItems() {
       const m = TK_GRADE_COLORS_BY_EVENT[Z17_EVENT] || {};
       const seen = new Set(), out = [];
       Z17.layout.zones.forEach(z => {
@@ -15061,10 +15071,12 @@
         if (!nm || seen.has(nm)) return;
         seen.add(nm);
         const key = tkGradeOrder ? tkGradeOrder.indexOf(nm) : -1;
-        out.push({ nm, c: m[nm] || '#8a93a6', ord: key >= 0 ? key : 99 });
+        out.push({ nm, code: z17GradeCode(z), c: m[nm] || '#8a93a6', ord: key >= 0 ? key : 99 });
       });
       out.sort((a, b) => a.ord - b.ord);
-      return out.map(o => `<span class="tk-live-legend-item"><i style="background:${o.c}"></i>${esc(o.nm)}</span>`).join('') + `<span class="tk-live-legend-item"><i style="background:#dadde2"></i>매진</span>`;
+      const items = out.map(o => `<button type="button" class="z17-lg" onclick="z17OpenGrade('${o.code}')" title="${esc(o.nm)} 구역 목록 보기"><i style="background:${o.c}"></i>${esc(o.nm)}</button>`);
+      items.push('<span class="z17-lg"><i style="background:#dadde2"></i>매진</span>');
+      return items;
     }
     function z17AtText() {
       const at = Z17.state && Z17.state.at;
@@ -15079,8 +15091,12 @@
       if (!Z17.layout) { box.innerHTML = '<div class="sub" style="padding:14px 4px;color:var(--dim)">불러오는 중…</div>'; return; }
       if (!Z17.geoms) z17Build();
       const stale = Z17.state && Z17.state.at && (Date.now() - new Date(Z17.state.at).getTime()) > 10 * 60000;
-      box.innerHTML = `<div class="z17-grid"><div class="z17-wrap">${z17MapSvg()}</div><div class="z17-side"><div class="tk-live-legend">${z17LegendHTML()}</div>
-        <div class="sub" style="margin-top:8px;font-size:11px;color:var(--dim);line-height:1.6">${esc(z17AtText())}${stale ? ' · 갱신이 지연되고 있습니다' : ''}<br>※ 29CM 구역도와 같은 모양으로 그린 지도입니다. 구역을 누르면 좌석별 현황이 열립니다.</div></div></div>`;
+      const items = z17LegendItems(), half = Math.ceil(items.length / 2);
+      box.innerHTML = `<div class="z17-mapbox"><div class="z17-wrap">${z17MapSvg()}</div>
+        <div class="z17-leg z17-leg-l">${items.slice(0, half).join('')}</div><div class="z17-leg z17-leg-r">${items.slice(half).join('')}</div>
+        <div class="z17-leg z17-leg-m">${items.join('')}</div></div>`;
+      const atEl = document.getElementById('z17At');
+      if (atEl) { const t = Z17.state && Z17.state.at ? fmtSnapTime(Z17.state.at) + ' 기준' : ''; atEl.textContent = t ? t + (stale ? ' (갱신 지연) · ' : ' · ') : ''; }
       const badge = document.getElementById('z17Badge');
       if (badge) {
         const d = z17FrontData(1);
@@ -15151,6 +15167,29 @@
       modal.innerHTML = `<div class="tk-live-modal-inner">${z17ZoneModalHTML(id)}</div>`;
       modal.style.display = 'flex';
     }
+    // ── 등급별 구역 목록 (범례의 등급을 누르면) ──
+    function z17GradeModalHTML(code) {
+      const nm = Z17_GRADE_NAME[code] || '';
+      const color = (TK_GRADE_COLORS_BY_EVENT[Z17_EVENT] || {})[nm] || '#8a93a6';
+      const num = n => parseInt(String(n).replace(/\D/g, ''), 10) || 0;
+      const zs = Z17.layout.zones.filter(z => z17GradeCode(z) === code).map(z => ({ z, st: z17Stat(z) }));
+      zs.sort((a, b) => ((b.st ? b.st.free : 0) > 0) - ((a.st ? a.st.free : 0) > 0) || (a.z.n[0] < b.z.n[0] ? -1 : a.z.n[0] > b.z.n[0] ? 1 : 0) || num(a.z.n) - num(b.z.n));
+      const free = zs.reduce((t, x) => t + (x.st ? x.st.free : 0), 0), open = zs.filter(x => x.st && x.st.free > 0).length;
+      const head = `<div class="tk-live-modal-head"><b style="color:${color}">${esc(nm)}</b><span>${zs.length}개 구역</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>`;
+      const chips = zs.map(({ z, st }) => {
+        const on = st && st.free > 0, na = st && st.na === st.total;
+        const txt = !st ? '…' : (na ? '판매 대상 아님' : (on ? `잔여 ${st.free}` : '매진'));
+        return `<button type="button" class="z17-chip${on ? '' : ' off'}" style="${on ? `background:${color};color:#fff` : ''}" onclick="z17OpenZone(${z.id})"><b>${esc(z.n)}</b><span>${txt}</span></button>`;
+      }).join('');
+      return `${head}<div class="tk-live-modal-sub">${free > 0 ? `잔여 <b>${free.toLocaleString()}석</b> · 잔여 있는 구역 ${open}개` : '잔여 없음'} · ${esc(z17AtText())}<br>구역을 누르면 좌석별 현황이 열립니다</div><div class="z17-chips z17-scroll" style="padding-top:6px">${chips}</div>`;
+    }
+    function z17OpenGrade(code) {
+      if (!Z17.layout) return;
+      const modal = z17EnsureModal();
+      modal.dataset.mode = 'grade'; modal.dataset.id = code;
+      modal.innerHTML = `<div class="tk-live-modal-inner">${z17GradeModalHTML(code)}</div>`;
+      modal.style.display = 'flex';
+    }
     function z17CloseModal() { const m = document.getElementById('z17-modal'); if (m) m.style.display = 'none'; }
     function z17RefreshModal() {
       const modal = document.getElementById('z17-modal');
@@ -15158,7 +15197,7 @@
       const inner = modal.querySelector('.tk-live-modal-inner');
       const keep = inner && inner.querySelector('.z17-scroll, .tk-row1-list');
       const top = keep ? keep.scrollTop : 0;
-      inner.innerHTML = modal.dataset.mode === 'front' ? z17FrontModalHTML() : z17ZoneModalHTML(+modal.dataset.id);
+      inner.innerHTML = modal.dataset.mode === 'front' ? z17FrontModalHTML() : modal.dataset.mode === 'grade' ? z17GradeModalHTML(modal.dataset.id) : z17ZoneModalHTML(+modal.dataset.id);
       const k2 = inner.querySelector('.z17-scroll, .tk-row1-list');
       if (k2) k2.scrollTop = top;
     }
@@ -15207,7 +15246,7 @@
     }
     function z17CardHTML() {
       return `
-      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">1분 단위 자동 갱신</span></div>
+      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)"><span id="z17At"></span>1분 단위 자동 갱신</span></div>
       <div class="card">
         <button type="button" class="tk-row1-btn" onclick="z17OpenFront()">맨 앞열 바로 찾기 <span class="tk-row1-badge" id="z17Badge">불러오는 중…</span></button>
         <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">매진(회색) 잔여(컬러) · 구역을 누르면 좌석 배치 확인</div>
