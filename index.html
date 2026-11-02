@@ -15124,8 +15124,8 @@
       if (!Z17.timer) {
         Z17.timer = setInterval(() => {
           if (!document.getElementById('z17-box')) { clearInterval(Z17.timer); Z17.timer = null; return; }
-          z17Load();
-        }, 60000);
+          if (!document.hidden) z17Load();
+        }, 20000);
       }
     }
     // ── 구역 상세 ──
@@ -15231,7 +15231,7 @@
       }).join('');
       return `<div class="tk-live-modal-head"><b>${labels[z17Nth - 1]} 바로 찾기</b><span style="color:var(--dim);font-size:12px">구역별 무대 최근접 열</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>
         <div class="tk-row1-top">${sel}<span class="tk-row1-sum">${free > 0 ? `잔여 <b>${free}석</b>` : '잔여 없음'}</span></div>
-        <div class="tk-row1-note top">잔여(컬러) · 매진(회색) · 선택 중(노랑) · 구역을 누르면 그 구역 전체 좌석<br>※ ${esc(z17AtText())} · 1분 단위로 자동 갱신됩니다</div>
+        <div class="tk-row1-note top">잔여(컬러) · 매진(회색) · 선택 중(노랑) · 구역을 누르면 그 구역 전체 좌석<br>※ ${esc(z17AtText())} · 약 20초 단위로 자동 갱신됩니다</div>
         <div class="tk-row1-list">${body || '<div class="tk-live-zone-loading">불러오는 중…</div>'}</div>`;
     }
     function z17SetNth(v) { const n = parseInt(v, 10); if (n >= 1 && n <= 15) { z17Nth = n; z17RefreshModal(); } }
@@ -15246,7 +15246,7 @@
     }
     function z17CardHTML() {
       return `
-      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)"><span id="z17At"></span>1분 단위 자동 갱신</span></div>
+      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)"><span id="z17At"></span>약 20초 단위 자동 갱신</span></div>
       <div class="card">
         <button type="button" class="tk-row1-btn" onclick="z17OpenFront()">맨 앞열 바로 찾기 <span class="tk-row1-badge" id="z17Badge">불러오는 중…</span></button>
         <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">매진(회색) 잔여(컬러) · 구역을 누르면 좌석 배치 확인</div>
