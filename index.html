@@ -11712,10 +11712,8 @@
     /* 2: 맨 앞열 바로 찾기 = 회색 버튼 타일 */
     body[data-route] .tk-row1-btn.v2-tile { background: var(--bg2) !important; border-color: transparent !important; }
     @media (hover: hover) { body[data-route] .tk-row1-btn.v2-tile:hover { background: #dedee4 !important; } }
-    /* 잔여석이 생기면 버튼이 앰버(노랑)로 바뀐다 */
-    body[data-route] .tk-row1-btn.z17-has, body[data-route] .tk-row1-btn.v2-tile.z17-has { background: #F2B32A !important; border-color: #F2B32A !important; color: #1d1d1f !important; }
-    @media (hover: hover) { body[data-route] .tk-row1-btn.z17-has:hover { background: #e6a61a !important; } }
-    .tk-row1-btn.z17-has .tk-row1-badge { background: #1d1d1f !important; color: #fff !important; }
+    /* 잔여석이 생기면 "잔여 N석" 표시만 앰버(노랑)로 바뀐다(버튼 배경은 그대로) */
+    body[data-route] .tk-row1-btn.z17-has .tk-row1-badge { background: #F2B32A !important; color: #1d1d1f !important; }
     /* 3: 10분 간격 차트 — 위 두 차트와 구분선, 더 높게 */
     body[data-route="tickets"] .tk-dash-trends .tk-trend:has(> .tk-trend-title:first-child) { }
     body[data-route="tickets"] .tk-trend.v2-flat.tk-min10, body[data-route="tickets"] .tk-min10 { border-top: 1px solid var(--hair) !important; margin-top: 18px !important; padding-top: 14px !important; }
@@ -15127,10 +15125,9 @@
         if (bb) {
           const has = !Z17.err && !!Z17.state && remain > 0;
           bb.classList.toggle('z17-has', has);
-          // 다른 스타일에 밀리지 않게 직접 지정(잔여가 생기면 앰버, 없으면 원래 색)
-          ['background', 'border-color', 'color'].forEach(p => { if (has) bb.style.setProperty(p, p === 'background' ? '#F2B32A' : p === 'border-color' ? '#F2B32A' : '#1d1d1f', 'important'); else bb.style.removeProperty(p); });
-          badge.style.setProperty('background', has ? '#1d1d1f' : '', has ? 'important' : '');
-          if (!has) badge.style.removeProperty('background');
+          // 잔여가 생기면 "잔여 N석" 표시만 앰버로(버튼 배경은 그대로)
+          if (has) { badge.style.setProperty('background', '#F2B32A', 'important'); badge.style.setProperty('color', '#1d1d1f', 'important'); }
+          else { badge.style.removeProperty('background'); badge.style.removeProperty('color'); }
         }
         const hb = document.getElementById('z17Hold');
         if (hb) {
