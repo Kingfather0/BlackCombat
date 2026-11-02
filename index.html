@@ -1311,6 +1311,24 @@
     /* ── "맨 앞열 바로 찾기" — 구역별 무대 최근접 열 좌석만 전 구역에서 한눈에 모아본다 ──
        사람들이 취소표를 노리고 구역을 하나하나 눌러 앞열을 확인하는 불편을 없애는 기능.
        구역마다 시작 열이 달라(대부분 1열, 일부 2·3·4·8열) 절대 열 번호가 아닌 구역별 min 열 기준. */
+    .z17-wrap { max-width: 640px; margin: 0 auto; }
+    .z17-svg { width: 100%; height: auto; display: block; }
+    .z17-shape { stroke: #fff; stroke-width: 1.5; cursor: pointer; }
+    .z17-shape.z17-off, .z17-shape.z17-load { stroke: #fff; }
+    .z17-g:hover .z17-shape { stroke: #111; stroke-width: 2; }
+    .z17-lbl { fill: #fff; font-weight: 700; pointer-events: none; paint-order: stroke; stroke: rgba(0,0,0,.28); stroke-width: 2.2px; }
+    .z17-lbl.dark { fill: #6b7280; stroke: none; font-weight: 600; }
+    .z17-stage { fill: #2b2f38; } .z17-stage-t { fill: #fff; font-weight: 700; letter-spacing: 2px; }
+    .z17-sp-title { margin: 12px 0 6px; font-size: 12px; font-weight: 700; color: var(--dim); }
+    .z17-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+    .z17-chip { border: none; border-radius: 6px; padding: 5px 8px; font-size: 11px; cursor: pointer; display: inline-flex; gap: 5px; align-items: baseline; font-family: inherit; }
+    .z17-chip.off { background: #e9ecf1; color: #6b7280; }
+    .z17-chip span { opacity: .9; font-size: 10.5px; }
+    .z17-row { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+    .z17-row-seats { position: relative; height: 9px; flex: none; display: block; }
+    .z17-row-seats i { position: absolute; top: 0; width: 8px; height: 8px; border-radius: 2px; display: block; }
+    .z17-scroll { overflow: auto; max-height: 60vh; }
+    .tk-row1-seats { flex-wrap: wrap; }
     .tk-row1-btn {
       width: 100%;
       margin: 0 0 10px;
@@ -14915,6 +14933,283 @@
       await Promise.all(Array.from({ length: Math.min(5, zones.length) }, worker));
       tkLiveZonesLoading = false;
     }
+    /* ── 블랙컴뱃 17 : 구역별 실시간 좌석 + 맨 앞열 바로 찾기 (2026-11-02) ──
+       사이트에서 29CM API를 직접 부를 수 없어, 수집 봇(scripts/ticket-zone-bc17.js)이 10분마다 읽어
+       site_data 'tk_layout_bc17'(구역별 좌석 배치, 정적)과 'tk_state_bc17'(좌석 상태 문자열)에 저장한다.
+       상태 문자: 1=판매 · 0=판매중 · h=선택 중(장바구니) · -=판매 대상 아님/미확인.
+       경기장 전체 위치 좌표는 29CM 데이터에 없어서, 층별 링(1~4층) + 플로어 격자로 근사해 그렸다. */
+    const Z17_EVENT = 'bc17_vantablack_2026_1121';
+    const Z17_GRADE_NAME = { '001': '블랙티넘 2인 테이블', '002': '블랙티넘', '003': '선수입장로석', '004': '로얄석', '005': '플로어석', '006': '플로어 이코노미', '007': '다이아석', '008': '1층 테이블석(2인)', '009': '1층 테이블석(3인)', '010': '1층 스탠다드', '011': '1층 이코노미', '012': '1층 커플석(2인)', '013': '2층 테이블석(2인)', '014': '2층 테이블석(3인)', '015': '2층 스탠다드', '016': '2층 이코노미', '017': '2층 커플석(2인)', '018': '스카이박스 20인룸', '019': '스카이박스 14인룸', '020': '스카이박스 9인룸', '021': '스카이박스 6인룸', '022': '3층 지정석', '023': '4층 지정석', '024': '휠체어석' };
+    const Z17_SKY = { S01: '018', S16: '018', S06: '019', S11: '019', S03: '020', S04: '020', S12: '020', S14: '020', S07: '021', S08: '021' };
+    const Z17 = { layout: null, state: null, at: null, loading: false, err: false, geoms: null, timer: null };
+    function z17GradeCode(z) {
+      if (z.g && z.g.length) return z.g[0];
+      if (/^D/.test(z.n)) return '007';
+      if (/^S/.test(z.n)) return Z17_SKY[z.n] || '018';
+      return '';
+    }
+    function z17Color(z) {
+      const m = TK_GRADE_COLORS_BY_EVENT[Z17_EVENT] || {};
+      return m[Z17_GRADE_NAME[z17GradeCode(z)]] || '#8a93a6';
+    }
+    function z17GradeLabel(z) {
+      const codes = (z.g && z.g.length) ? z.g : [z17GradeCode(z)];
+      return codes.map(c => Z17_GRADE_NAME[c]).filter(Boolean).join(' · ');
+    }
+    function z17Rows(z) { // 배치 문자열 → 행 목록(+ 상태 문자열 내 시작 위치)
+      if (z._rows) return z._rows;
+      let off = 0;
+      z._rows = z.rows.map(line => {
+        const i1 = line.indexOf(';'), i2 = line.indexOf(';', i1 + 1);
+        const seats = line.slice(i2 + 1).split(',').map(t => { const at = t.lastIndexOf('@'); return { col: t.slice(0, at), x: +t.slice(at + 1) }; });
+        const r = { k: line.slice(0, i1), y: +line.slice(i1 + 1, i2), seats, off };
+        off += seats.length;
+        return r;
+      });
+      return z._rows;
+    }
+    function z17Stat(z) {
+      const s = Z17.state && Z17.state.z && Z17.state.z[z.id];
+      if (!s) return null;
+      let free = 0, sold = 0, held = 0, na = 0;
+      for (let i = 0; i < s.length; i++) { const c = s[i]; if (c === '0') free++; else if (c === '1') sold++; else if (c === 'h') held++; else na++; }
+      return { s, free, sold, held, na, total: s.length };
+    }
+    // 구역 → 도형 (층별 링 · 플로어 격자 · 특수석 칩)
+    function z17Build() {
+      const zs = Z17.layout.zones.slice();
+      const num = n => parseInt(String(n).replace(/\D/g, ''), 10) || 0;
+      const geoms = [];
+      const C = 500, tiers = { 1: [300, 345], 2: [350, 392], 3: [397, 440], 4: [445, 488] };
+      [1, 2, 3, 4].forEach(t => {
+        const list = zs.filter(z => /^\d{3}$/.test(z.n) && +z.n[0] === t).sort((a, b) => num(a.n) - num(b.n));
+        const n = list.length, step = Math.PI * 2 / Math.max(1, n), gap = 0.012;
+        list.forEach((z, i) => {
+          const a0 = -Math.PI / 2 + i * step + gap, a1 = -Math.PI / 2 + (i + 1) * step - gap;
+          const [r0, r1] = tiers[t];
+          const P = (r, a) => (C + r * Math.cos(a)).toFixed(1) + ',' + (C + r * Math.sin(a)).toFixed(1);
+          const large = (a1 - a0) > Math.PI ? 1 : 0;
+          const d = `M${P(r1, a0)} A${r1},${r1} 0 ${large} 1 ${P(r1, a1)} L${P(r0, a1)} A${r0},${r0} 0 ${large} 0 ${P(r0, a0)} Z`;
+          const am = (a0 + a1) / 2, rm = (r0 + r1) / 2;
+          geoms.push({ z, d, lx: C + rm * Math.cos(am), ly: C + rm * Math.sin(am), fs: t >= 3 ? 10 : 12 });
+        });
+      });
+      const grid = (list, x0, y0, w, h, cols) => {
+        const rows = Math.ceil(list.length / cols), tw = w / cols, th = h / rows;
+        list.forEach((z, i) => {
+          const x = x0 + (i % cols) * tw, y = y0 + Math.floor(i / cols) * th;
+          geoms.push({ z, rect: [x + 1, y + 1, tw - 2, th - 2], lx: x + tw / 2, ly: y + th / 2, fs: 10 });
+        });
+      };
+      grid(zs.filter(z => /^B\d/.test(z.n)).sort((a, b) => num(a.n) - num(b.n)), 300, 336, 400, 26, 5);
+      grid(zs.filter(z => /^F1\d\d$/.test(z.n)).sort((a, b) => num(a.n) - num(b.n)), 300, 366, 196, 326, 4);
+      grid(zs.filter(z => /^F2\d\d$/.test(z.n)).sort((a, b) => num(a.n) - num(b.n)), 504, 366, 196, 326, 4);
+      Z17.geoms = geoms;
+      Z17.specials = {
+        '테이블석': zs.filter(z => /^T\d/.test(z.n)).sort((a, b) => num(a.n) - num(b.n)),
+        '다이아석': zs.filter(z => /^D\d/.test(z.n)).sort((a, b) => num(a.n) - num(b.n)),
+        '스카이박스': zs.filter(z => /^S\d/.test(z.n)).sort((a, b) => num(a.n) - num(b.n)),
+      };
+    }
+    function z17ZoneFill(z, st) {
+      if (!st) return { fill: '#e9ecf1', op: 1, cls: 'z17-load' };
+      if (st.free > 0) return { fill: z17Color(z), op: 1, cls: 'z17-on' };
+      if (st.held > 0) return { fill: z17Color(z), op: 0.45, cls: 'z17-on' };
+      return { fill: '#dadde2', op: 1, cls: 'z17-off' };
+    }
+    function z17TitleOf(z, st) {
+      if (!st) return `${z.n} · 불러오는 중…`;
+      const bits = [`잔여 ${st.free}석`];
+      if (st.held) bits.push(`선택 중 ${st.held}석`);
+      return `${z.n} · ${z17GradeLabel(z)} · ${bits.join(' · ')} (전체 ${st.total.toLocaleString()}석)`;
+    }
+    function z17MapSvg() {
+      if (!Z17.geoms) return '';
+      const parts = Z17.geoms.map(g => {
+        const st = z17Stat(g.z), f = z17ZoneFill(g.z, st);
+        const shape = g.d ? `<path d="${g.d}" fill="${f.fill}" fill-opacity="${f.op}" class="z17-shape ${f.cls}"/>` : `<rect x="${g.rect[0].toFixed(1)}" y="${g.rect[1].toFixed(1)}" width="${g.rect[2].toFixed(1)}" height="${g.rect[3].toFixed(1)}" rx="3" fill="${f.fill}" fill-opacity="${f.op}" class="z17-shape ${f.cls}"/>`;
+        const dark = f.cls === 'z17-off' || f.cls === 'z17-load';
+        const sub = (st && st.free > 0) ? `<tspan x="${g.lx.toFixed(1)}" dy="1.15em" font-weight="700">${st.free}</tspan>` : '';
+        return `<g class="z17-g" onclick="z17OpenZone(${g.z.id})"><title>${esc(z17TitleOf(g.z, st))}</title>${shape}<text x="${g.lx.toFixed(1)}" y="${(g.ly - (sub ? g.fs * 0.45 : -g.fs * 0.35)).toFixed(1)}" text-anchor="middle" font-size="${g.fs}" class="z17-lbl${dark ? ' dark' : ''}">${esc(g.z.n)}${sub}</text></g>`;
+      }).join('');
+      return `<svg viewBox="0 0 1000 1000" class="z17-svg" preserveAspectRatio="xMidYMid meet">
+        <rect x="380" y="296" width="240" height="30" rx="6" class="z17-stage"/><text x="500" y="315" text-anchor="middle" font-size="14" class="z17-stage-t">STAGE</text>${parts}</svg>`;
+    }
+    function z17SpecialHTML() {
+      if (!Z17.specials) return '';
+      return Object.keys(Z17.specials).map(title => {
+        const list = Z17.specials[title];
+        if (!list.length) return '';
+        const chips = list.map(z => {
+          const st = z17Stat(z), f = z17ZoneFill(z, st);
+          const txt = !st ? '…' : (st.na === st.total ? '판매 대상 아님' : (st.free > 0 ? `잔여 ${st.free}` : '매진'));
+          const off = f.cls === 'z17-off' || f.cls === 'z17-load';
+          return `<button type="button" class="z17-chip${off ? ' off' : ''}" style="${off ? '' : `background:${f.fill};color:#fff`}" onclick="z17OpenZone(${z.id})" title="${esc(z17TitleOf(z, st))}"><b>${esc(z.n)}</b><span>${txt}</span></button>`;
+        }).join('');
+        return `<div class="z17-sp-title">${title}</div><div class="z17-chips">${chips}</div>`;
+      }).join('');
+    }
+    function z17LegendHTML() {
+      const m = TK_GRADE_COLORS_BY_EVENT[Z17_EVENT] || {};
+      const seen = new Set(), out = [];
+      Z17.layout.zones.forEach(z => {
+        const nm = Z17_GRADE_NAME[z17GradeCode(z)];
+        if (!nm || seen.has(nm)) return;
+        seen.add(nm);
+        const key = tkGradeOrder ? tkGradeOrder.indexOf(nm) : -1;
+        out.push({ nm, c: m[nm] || '#8a93a6', ord: key >= 0 ? key : 99 });
+      });
+      out.sort((a, b) => a.ord - b.ord);
+      return out.map(o => `<span class="tk-live-legend-item"><i style="background:${o.c}"></i>${esc(o.nm)}</span>`).join('') + `<span class="tk-live-legend-item"><i style="background:#dadde2"></i>매진</span>`;
+    }
+    function z17AtText() {
+      const at = Z17.state && Z17.state.at;
+      if (!at) return '';
+      const mins = Math.max(0, Math.round((Date.now() - new Date(at).getTime()) / 60000));
+      return `${fmtSnapTime(at)} 기준${mins >= 1 ? ` (${mins}분 전)` : ''}`;
+    }
+    function z17Paint() {
+      const box = document.getElementById('z17-box');
+      if (!box) return;
+      if (Z17.err && !Z17.layout) { box.innerHTML = '<div class="sub" style="padding:14px 4px;color:var(--dim)">구역별 좌석 데이터를 아직 준비 중입니다. 잠시 후 다시 확인해주세요.</div>'; return; }
+      if (!Z17.layout) { box.innerHTML = '<div class="sub" style="padding:14px 4px;color:var(--dim)">불러오는 중…</div>'; return; }
+      if (!Z17.geoms) z17Build();
+      const stale = Z17.state && Z17.state.at && (Date.now() - new Date(Z17.state.at).getTime()) > 40 * 60000;
+      box.innerHTML = `<div class="z17-wrap">${z17MapSvg()}</div>${z17SpecialHTML()}<div class="tk-live-legend" style="margin-top:10px">${z17LegendHTML()}</div>
+        <div class="sub" style="margin-top:8px;font-size:11px;color:var(--dim);line-height:1.6">${esc(z17AtText())}${stale ? ' · 갱신이 지연되고 있습니다' : ''}<br>※ 29CM 구역 배치를 근사해 그린 약식 지도입니다(실제 위치와 다를 수 있음). 정확한 좌석은 29CM에서 확인하세요.</div>`;
+      const badge = document.getElementById('z17Badge');
+      if (badge) {
+        const d = z17FrontData(1);
+        const remain = d.reduce((s, x) => s + x.free, 0);
+        badge.textContent = !Z17.state ? '불러오는 중…' : (remain > 0 ? `잔여 ${remain}석` : '잔여 없음');
+        badge.classList.toggle('zero', !!Z17.state && remain === 0);
+      }
+      const modal = document.getElementById('z17-modal');
+      if (modal && modal.style.display === 'flex') z17RefreshModal();
+    }
+    async function z17Load(force) {
+      if (Z17.loading) return;
+      Z17.loading = true;
+      try {
+        if (!Z17.layout) {
+          const { data } = await sb.from('site_data').select('value').eq('key', 'tk_layout_bc17').single();
+          if (data && data.value && Array.isArray(data.value.zones)) Z17.layout = data.value;
+        }
+        const { data: sd } = await sb.from('site_data').select('value').eq('key', 'tk_state_bc17').single();
+        if (sd && sd.value && sd.value.z) Z17.state = sd.value;
+        Z17.err = !Z17.layout;
+      } catch (e) { Z17.err = !Z17.layout; }
+      Z17.loading = false;
+      z17Paint();
+      if (!Z17.timer) {
+        Z17.timer = setInterval(() => {
+          if (!document.getElementById('z17-box')) { clearInterval(Z17.timer); Z17.timer = null; return; }
+          z17Load();
+        }, 120000);
+      }
+    }
+    // ── 구역 상세 ──
+    function z17SeatColor(c, color) { return c === '1' ? '#dadde2' : c === '0' ? color : c === 'h' ? '#f6c453' : '#f1f3f6'; }
+    function z17SeatWord(c) { return c === '1' ? '매진' : c === '0' ? '잔여' : c === 'h' ? '선택 중' : '판매 대상 아님'; }
+    function z17ZoneModalHTML(id) {
+      const z = Z17.layout.zones.find(q => q.id === id);
+      if (!z) return '';
+      const st = z17Stat(z), color = z17Color(z);
+      const head = `<div class="tk-live-modal-head"><b>${esc(z.n)}</b><span style="color:${color}">${esc(z17GradeLabel(z))}</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>`;
+      if (!st) return `${head}<div class="tk-live-zone-loading">불러오는 중…</div>`;
+      let prevY = null, body = '';
+      z17Rows(z).forEach(r => {
+        const maxX = r.seats.reduce((m, s) => Math.max(m, s.x), 0);
+        const seatsHtml = r.seats.map((s, i) => { const c = st.s[r.off + i] || '-'; return `<i style="left:${s.x * 4.5}px;background:${z17SeatColor(c, color)}" title="${esc(z.n)} ${esc(r.k)}열 ${esc(s.col)}번 · ${z17SeatWord(c)}"></i>`; }).join('');
+        if (prevY !== null && r.y - prevY > 1.6) body += '<div class="tk-live-aisle">통로</div>';
+        prevY = r.y;
+        body += `<div class="z17-row"><span class="tk-live-row-num">${esc(r.k)}열</span><span class="z17-row-seats" style="width:${maxX * 4.5 + 9}px">${seatsHtml}</span></div>`;
+      });
+      const extra = [st.held ? `선택 중 ${st.held}석` : '', st.na ? `판매 대상 아님 ${st.na}석` : ''].filter(Boolean).join(' · ');
+      return `${head}<div class="tk-live-modal-sub">잔여 ${st.free.toLocaleString()} / 전체 ${st.total.toLocaleString()}석${extra ? ' · ' + extra : ''} · ${esc(z17AtText())}<br>위쪽(A열)이 무대에 가까운 쪽입니다 · 회색=매진 · 노랑=다른 분이 선택 중</div>
+        <div class="tk-live-modal-rows z17-scroll">${body}</div>`;
+    }
+    function z17EnsureModal() {
+      let modal = document.getElementById('z17-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'z17-modal';
+        modal.className = 'tk-live-modal';
+        modal.addEventListener('click', e => { if (e.target === modal) z17CloseModal(); });
+        document.body.appendChild(modal);
+      }
+      return modal;
+    }
+    function z17OpenZone(id) {
+      if (!Z17.layout) return;
+      const modal = z17EnsureModal();
+      modal.dataset.mode = 'zone'; modal.dataset.id = id;
+      modal.innerHTML = `<div class="tk-live-modal-inner">${z17ZoneModalHTML(id)}</div>`;
+      modal.style.display = 'flex';
+    }
+    function z17CloseModal() { const m = document.getElementById('z17-modal'); if (m) m.style.display = 'none'; }
+    function z17RefreshModal() {
+      const modal = document.getElementById('z17-modal');
+      if (!modal || modal.style.display !== 'flex') return;
+      const inner = modal.querySelector('.tk-live-modal-inner');
+      const keep = inner && inner.querySelector('.z17-scroll, .tk-row1-list');
+      const top = keep ? keep.scrollTop : 0;
+      inner.innerHTML = modal.dataset.mode === 'front' ? z17FrontModalHTML() : z17ZoneModalHTML(+modal.dataset.id);
+      const k2 = inner.querySelector('.z17-scroll, .tk-row1-list');
+      if (k2) k2.scrollTop = top;
+    }
+    // ── 맨 앞열 바로 찾기 ──
+    let z17Nth = 1;
+    function z17FrontData(nth) {
+      if (!Z17.layout || !Z17.state) return [];
+      const out = [];
+      Z17.layout.zones.forEach(z => {
+        const st = z17Stat(z);
+        if (!st || st.na === st.total) return; // 판매 대상이 없는 구역은 제외
+        const rows = z17Rows(z);
+        const r = rows[nth - 1];
+        if (!r) return;
+        const seq = r.seats.map((s, i) => ({ col: s.col, c: st.s[r.off + i] || '-' }));
+        out.push({ z, row: r.k, seq, free: seq.filter(q => q.c === '0').length, held: seq.filter(q => q.c === 'h').length });
+      });
+      return out;
+    }
+    function z17FrontModalHTML() {
+      const data = z17FrontData(z17Nth);
+      const free = data.reduce((s, d) => s + d.free, 0);
+      const labels = TK_ROW1_ORDINALS;
+      const sel = `<select class="tk-row1-select" onchange="z17SetNth(this.value)">${labels.slice(0, 15).map((l, k) => `<option value="${k + 1}" ${k + 1 === z17Nth ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
+      const sorted = data.slice().sort((a, b) => ((b.free > 0) - (a.free > 0)) || (b.free - a.free) || String(a.z.n).localeCompare(String(b.z.n), 'ko', { numeric: true }));
+      const body = sorted.map(d => {
+        const color = z17Color(d.z);
+        const seatsHtml = d.seq.map(q => `<i style="background:${z17SeatColor(q.c, color)}" title="${esc(d.z.n)} ${esc(d.row)}열 ${esc(q.col)}번 · ${z17SeatWord(q.c)}"></i>`).join('');
+        const remain = d.free > 0 ? `<span class="tk-row1-remain">잔여 ${d.free}석</span>` : (d.held > 0 ? `<span class="tk-row1-remain none">선택 중 ${d.held}</span>` : `<span class="tk-row1-remain none">매진</span>`);
+        return `<div class="tk-row1-zone${d.free > 0 ? ' has' : ''}" onclick="z17OpenZone(${d.z.id})" title="${esc(d.z.n)} 구역 전체 좌석 보기"><b>${esc(d.z.n)}</b><span class="tk-row1-rowtag">${esc(d.row)}열</span><span class="tk-row1-seats">${seatsHtml}</span>${remain}</div>`;
+      }).join('');
+      return `<div class="tk-live-modal-head"><b>${labels[z17Nth - 1]} 바로 찾기</b><span style="color:var(--dim);font-size:12px">구역별 무대 최근접 열</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>
+        <div class="tk-row1-top">${sel}<span class="tk-row1-sum">${free > 0 ? `잔여 <b>${free}석</b>` : '잔여 없음'}</span><button type="button" class="tk-row1-refresh" onclick="z17FrontRefresh(this)">↻ 새로고침</button></div>
+        <div class="tk-row1-note top">잔여(컬러) · 매진(회색) · 선택 중(노랑) · 구역을 누르면 그 구역 전체 좌석<br>※ ${esc(z17AtText())} · 약 10분 간격으로 갱신됩니다</div>
+        <div class="tk-row1-list">${body || '<div class="tk-live-zone-loading">불러오는 중…</div>'}</div>`;
+    }
+    function z17SetNth(v) { const n = parseInt(v, 10); if (n >= 1 && n <= 15) { z17Nth = n; z17RefreshModal(); } }
+    async function z17FrontRefresh(btn) { if (btn) { btn.disabled = true; btn.textContent = '갱신 중…'; } await z17Load(); z17RefreshModal(); }
+    function z17OpenFront() {
+      z17Nth = 1;
+      const modal = z17EnsureModal();
+      modal.dataset.mode = 'front';
+      modal.innerHTML = `<div class="tk-live-modal-inner">${z17FrontModalHTML()}</div>`;
+      modal.style.display = 'flex';
+      fpTrackAction('row1_finder_open');
+    }
+    function z17CardHTML() {
+      return `
+      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">약 10분 간격 갱신</span></div>
+      <div class="card">
+        <button type="button" class="tk-row1-btn" onclick="z17OpenFront()">맨 앞열 바로 찾기 <span class="tk-row1-badge" id="z17Badge">불러오는 중…</span></button>
+        <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">매진(회색) 잔여(컬러) · 구역을 누르면 좌석 배치 확인</div>
+        <div id="z17-box"></div>
+      </div>`;
+    }
     /* --- 도넛 차트 조각 말풍선 (마우스 오버 + 탭/클릭 공용) ---
        SVG로 그린 도넛이지만 조각별로 이벤트를 따로 걸지 않고, 마우스/탭 좌표를
        중심 기준 각도로 바꿔서 어느 조각 위인지 계산한다(도넛 전체가 하나의 hit 영역).
@@ -16116,6 +16411,7 @@
       ${totalBarHTML}
       ${forecastHTML}
       ${liveZonesHTML}
+      ${eventKey === Z17_EVENT ? z17CardHTML() : ''}
       <div class="sec-title" style="justify-content:space-between"><span>판매 · 잔여 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">${fmtSnapTime(newestAt)} 기준</span></div>
       ${currentHTML}
       ${trendsSectionHTML}
@@ -16125,6 +16421,7 @@
       tkFitTotalLine();
       tkFitForecastLines();
       tkFitPies();
+      if (eventKey === Z17_EVENT) { z17Paint(); z17Load(); }
       if (liveZonesEnabled) { tkLoadLiveZoneSnapshot().then(() => { if (!navStale(__g)) tkLoadLiveSeatMap(); }); }
     }
 
