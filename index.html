@@ -15081,7 +15081,7 @@
       if (Z17.err && !Z17.layout) { box.innerHTML = '<div class="sub" style="padding:14px 4px;color:var(--dim)">구역별 좌석 데이터를 아직 준비 중입니다. 잠시 후 다시 확인해주세요.</div>'; return; }
       if (!Z17.layout) { box.innerHTML = '<div class="sub" style="padding:14px 4px;color:var(--dim)">불러오는 중…</div>'; return; }
       if (!Z17.geoms) z17Build();
-      const stale = Z17.state && Z17.state.at && (Date.now() - new Date(Z17.state.at).getTime()) > 40 * 60000;
+      const stale = Z17.state && Z17.state.at && (Date.now() - new Date(Z17.state.at).getTime()) > 10 * 60000;
       box.innerHTML = `<div class="z17-grid"><div class="z17-wrap">${z17MapSvg()}</div><div class="z17-side">${z17SpecialHTML()}<div class="tk-live-legend" style="margin-top:12px">${z17LegendHTML()}</div>
         <div class="sub" style="margin-top:8px;font-size:11px;color:var(--dim);line-height:1.6">${esc(z17AtText())}${stale ? ' · 갱신이 지연되고 있습니다' : ''}<br>※ 29CM 구역 배치를 근사해 그린 약식 지도입니다(실제 위치와 다를 수 있음). 정확한 좌석은 29CM에서 확인하세요.</div></div></div>`;
       const badge = document.getElementById('z17Badge');
@@ -15112,7 +15112,7 @@
         Z17.timer = setInterval(() => {
           if (!document.getElementById('z17-box')) { clearInterval(Z17.timer); Z17.timer = null; return; }
           z17Load();
-        }, 120000);
+        }, 60000);
       }
     }
     // ── 구역 상세 ──
@@ -15195,7 +15195,7 @@
       }).join('');
       return `<div class="tk-live-modal-head"><b>${labels[z17Nth - 1]} 바로 찾기</b><span style="color:var(--dim);font-size:12px">구역별 무대 최근접 열</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>
         <div class="tk-row1-top">${sel}<span class="tk-row1-sum">${free > 0 ? `잔여 <b>${free}석</b>` : '잔여 없음'}</span><button type="button" class="tk-row1-refresh" onclick="z17FrontRefresh(this)">↻ 새로고침</button></div>
-        <div class="tk-row1-note top">잔여(컬러) · 매진(회색) · 선택 중(노랑) · 구역을 누르면 그 구역 전체 좌석<br>※ ${esc(z17AtText())} · 약 10분 간격으로 갱신됩니다</div>
+        <div class="tk-row1-note top">잔여(컬러) · 매진(회색) · 선택 중(노랑) · 구역을 누르면 그 구역 전체 좌석<br>※ ${esc(z17AtText())} · 새로고침(↻)하면 최신 현황을 다시 불러옵니다</div>
         <div class="tk-row1-list">${body || '<div class="tk-live-zone-loading">불러오는 중…</div>'}</div>`;
     }
     function z17SetNth(v) { const n = parseInt(v, 10); if (n >= 1 && n <= 15) { z17Nth = n; z17RefreshModal(); } }
@@ -15210,7 +15210,7 @@
     }
     function z17CardHTML() {
       return `
-      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">약 10분 간격 갱신</span></div>
+      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">새로고침 시 최신 현황 갱신</span></div>
       <div class="card">
         <button type="button" class="tk-row1-btn" onclick="z17OpenFront()">맨 앞열 바로 찾기 <span class="tk-row1-badge" id="z17Badge">불러오는 중…</span></button>
         <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">매진(회색) 잔여(컬러) · 구역을 누르면 좌석 배치 확인</div>
