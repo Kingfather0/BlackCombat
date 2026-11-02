@@ -15890,7 +15890,7 @@
         </div>
         <div class="tk-total-num">총 ${sumTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%) · 잔여 ${sumRemainForTotal.toLocaleString()}석</div>
         <div class="tk-bar tk-total-bar"><i style="width:${Math.min(100, Math.max(0, pct))}%"></i></div>
-        ${TK_TOTAL_NOTE_BY_EVENT[eventKey] ? `<div class="sub" style="margin-top:8px;font-size:11px;color:#d93025;line-height:1.6">※ ${sumTotal.toLocaleString()}석은 오픈 전 29CM 집계 기준 전체 좌석 수이며, 사전 판매분이 포함되어 있습니다.<br>※ 다이아석, 1층 커플석(2인), 2층 커플석(2인), 스카이박스 20인룸·14인룸 등 5개 등급은 29CM 티켓 구매 페이지에 판매 좌석이 등록되어 있지 않습니다.<br>18시 오픈 시점부터 구매와 집계가 모두 불가능하므로, 해당 5개 등급은 제외하고 집계합니다.</div>` : ''}
+        ${TK_TOTAL_NOTE_BY_EVENT[eventKey] ? `<div class="sub" style="margin-top:8px;font-size:11px;color:#d93025;line-height:1.6">※ 다이아석, 1층 커플석(2인), 2층 커플석(2인), 스카이박스 20인룸·14인룸 등 5개 등급은 29CM 티켓 구매 페이지에 판매 좌석이 등록되어 있지 않습니다.<br>18시 오픈 시점부터 구매와 집계가 모두 불가능하므로, 해당 5개 등급은 제외하고 집계합니다.</div>` : ''}
         ${roundBreakdownHTML}
         ${estimateNoteHTML}
         ${bulkTopHTML}
