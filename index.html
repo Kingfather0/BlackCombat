@@ -15088,7 +15088,7 @@
       if (badge) {
         const d = z17FrontData(1);
         const remain = d.reduce((s, x) => s + x.free, 0);
-        badge.textContent = !Z17.state ? '불러오는 중…' : (remain > 0 ? `잔여 ${remain}석` : '잔여 없음');
+        badge.textContent = Z17.err ? '준비 중' : !Z17.state ? '불러오는 중…' : (remain > 0 ? `잔여 ${remain}석` : '잔여 없음');
         badge.classList.toggle('zero', !!Z17.state && remain === 0);
       }
       const modal = document.getElementById('z17-modal');
