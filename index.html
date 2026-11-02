@@ -1321,9 +1321,10 @@
     .z17-leg-m { margin-top: 6px; }
     @media (max-width: 1023px) { .z17-mapbox { margin: 0 -12px; } .z17-leg-m { padding: 0 12px; } }
     @media (min-width: 1024px) {
-      .z17-wrap { max-width: 1040px; }
+      .z17-mapbox { max-width: 1040px; margin: 0 auto; container-type: inline-size; }
+      .z17-wrap { max-width: none; }
       .z17-leg-m { display: none; }
-      .z17-leg-l, .z17-leg-r { display: flex; flex-direction: column; flex-wrap: nowrap; gap: 5px; position: absolute; top: 6px; font-size: 12px; }
+      .z17-leg-l, .z17-leg-r { display: flex; flex-direction: column; flex-wrap: nowrap; gap: .3cqw; position: absolute; top: 0; font-size: 11px; font-size: clamp(7px, .95cqw, 11px); line-height: 1.3; }
       .z17-leg-l { left: 2%; } .z17-leg-r { right: 2%; }
       .z17-lg i { width: 10px; height: 10px; margin-right: 6px; }
       body[data-route="tickets"] .tk-dash-map .tk-dash-col > .card { padding: 12px 0 !important; }
@@ -11711,6 +11712,10 @@
     /* 2: 맨 앞열 바로 찾기 = 회색 버튼 타일 */
     body[data-route] .tk-row1-btn.v2-tile { background: var(--bg2) !important; border-color: transparent !important; }
     @media (hover: hover) { body[data-route] .tk-row1-btn.v2-tile:hover { background: #dedee4 !important; } }
+    /* 잔여석이 생기면 버튼이 앰버(노랑)로 바뀐다 */
+    body[data-route] .tk-row1-btn.z17-has, body[data-route] .tk-row1-btn.v2-tile.z17-has { background: #F2B32A !important; border-color: #F2B32A !important; color: #1d1d1f !important; }
+    @media (hover: hover) { body[data-route] .tk-row1-btn.z17-has:hover { background: #e6a61a !important; } }
+    .tk-row1-btn.z17-has .tk-row1-badge { background: #1d1d1f !important; color: #fff !important; }
     /* 3: 10분 간격 차트 — 위 두 차트와 구분선, 더 높게 */
     body[data-route="tickets"] .tk-dash-trends .tk-trend:has(> .tk-trend-title:first-child) { }
     body[data-route="tickets"] .tk-trend.v2-flat.tk-min10, body[data-route="tickets"] .tk-min10 { border-top: 1px solid var(--hair) !important; margin-top: 18px !important; padding-top: 14px !important; }
@@ -13730,7 +13735,7 @@
     // (총원 재산정이 끝나면 이 항목을 지우면 안내가 사라진다)
     // 판매율 표기 — 잔여가 1석이라도 남았으면 반올림으로 100.0%가 되지 않게 99.9%에서 멈춘다
     function tkPctStr(sold, total) { let v = total ? sold / total * 100 : 0; if (sold < total) v = Math.min(v, 99.9); return Math.max(0, Math.min(100, v)).toFixed(1); }
-    const TK_TOTAL_NOTE_BY_EVENT = { 'bc17_vantablack_2026_1121': true };
+    const TK_TOTAL_NOTE_BY_EVENT = {};
     let tkGradeOrder = null; // 현재 보고 있는 행사의 고정 등급 순서(없으면 null → 기존 정렬)
     const GRADE_ORDER = ['VIP', 'R', 'S', 'A', 'B', 'C'];
     function sortGradeKeys(keys) {
@@ -15060,7 +15065,7 @@
       }).join('');
       const decor = ['stage', 'g1', 'g2', 'g3', 'g4', 'g5', 'g6'].map(k => `<polygon points="${Z17_DECOR[k]}" fill="${k === 'stage' ? '#bcbcbc' : (k === 'g1' || k === 'g2' ? '#bdbdbd' : '#d9d9d9')}"/>`).join('');
       const tier = (t, x, y) => `<rect x="${x - 33}" y="${y - 14}" width="66" height="28" rx="14" fill="#e6e6e6"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-size="15" font-weight="700" fill="#444">${t}</text>`;
-      return `<svg viewBox="56 14 1060 898" class="z17-svg" preserveAspectRatio="xMidYMid meet">${decor}<text x="594" y="281" text-anchor="middle" font-size="19" font-weight="700" fill="#fff">케이지</text>${tier('플로어', 263, 236)}${tier('1층', 1017, 286)}${tier('2층', 157, 368)}${tier('3층', 1086, 440)}${tier('4층', 88, 503)}${parts}</svg>`;
+      return `<svg viewBox="52 14 1076 898" class="z17-svg" preserveAspectRatio="xMidYMid meet">${decor}<text x="594" y="281" text-anchor="middle" font-size="19" font-weight="700" fill="#fff">케이지</text>${tier('플로어', 263, 236)}${tier('1층', 1017, 286)}${tier('2층', 157, 368)}${tier('3층', 1086, 440)}${tier('4층', 88, 503)}${parts}</svg>`;
     }
     function z17SpecialHTML() {
       if (!Z17.specials) return '';
@@ -15069,7 +15074,7 @@
         if (!list.length) return '';
         const chips = list.map(z => {
           const st = z17Stat(z), f = z17ZoneFill(z, st);
-          const txt = !st ? '…' : (st.na === st.total ? '판매 대상 아님' : (st.free > 0 ? `잔여 ${st.free}` : '매진'));
+          const txt = !st ? '…' : (st.free > 0 ? `잔여 ${st.free}` : '매진');
           const off = f.cls === 'z17-off' || f.cls === 'z17-load';
           return `<button type="button" class="z17-chip${off ? ' off' : ''}" style="${off ? '' : `background:${f.fill};color:#fff`}" onclick="z17OpenZone(${z.id})" title="${esc(z17TitleOf(z, st))}"><b>${esc(z.n)}</b><span>${txt}</span></button>`;
         }).join('');
@@ -15091,7 +15096,6 @@
       });
       out.sort((a, b) => a.ord - b.ord);
       const items = out.map(o => `<button type="button" class="z17-lg" onclick="z17OpenGrade('${o.code}')" title="${esc(o.nm)} 구역 목록 보기"><i style="background:${o.c}"></i>${esc(o.nm)}</button>`);
-      items.push('<span class="z17-lg"><i style="background:#dadde2"></i>매진</span>');
       return items;
     }
     function z17AtText() {
@@ -15119,6 +15123,15 @@
         const remain = d.reduce((s, x) => s + x.free, 0);
         badge.textContent = Z17.err ? '준비 중' : !Z17.state ? '불러오는 중…' : (remain > 0 ? `잔여 ${remain}석` : '잔여 없음');
         badge.classList.toggle('zero', !!Z17.state && remain === 0);
+        const bb = badge.closest('button');
+        if (bb) {
+          const has = !Z17.err && !!Z17.state && remain > 0;
+          bb.classList.toggle('z17-has', has);
+          // 다른 스타일에 밀리지 않게 직접 지정(잔여가 생기면 앰버, 없으면 원래 색)
+          ['background', 'border-color', 'color'].forEach(p => { if (has) bb.style.setProperty(p, p === 'background' ? '#F2B32A' : p === 'border-color' ? '#F2B32A' : '#1d1d1f', 'important'); else bb.style.removeProperty(p); });
+          badge.style.setProperty('background', has ? '#1d1d1f' : '', has ? 'important' : '');
+          if (!has) badge.style.removeProperty('background');
+        }
         const hb = document.getElementById('z17Hold');
         if (hb) {
           let held = 0;
@@ -15154,8 +15167,8 @@
     // ── 구역 상세 ──
     const Z17_TICKET_URL = 'https://ticket.29cm.co.kr/catalog/4347803';
     function z17GoTicket(e) { if (e) e.stopPropagation(); window.open(Z17_TICKET_URL, '_blank', 'noopener'); }
-    function z17SeatColor(c, color) { return c === '1' ? '#dadde2' : c === '0' ? color : c === 'h' ? '#E91E8C' : '#f1f3f6'; }
-    function z17SeatWord(c) { return c === '1' ? '매진' : c === '0' ? '잔여' : c === 'h' ? '선택 중' : '판매 대상 아님'; }
+    function z17SeatColor(c, color) { return c === '1' ? '#dadde2' : c === '0' ? color : c === 'h' ? '#E91E8C' : '#dadde2'; }
+    function z17SeatWord(c) { return c === '1' ? '매진' : c === '0' ? '잔여' : c === 'h' ? '선택 중' : '매진'; }
     function z17ZoneModalHTML(id, hr, hc) {
       const z = Z17.layout.zones.find(q => q.id === id);
       if (!z) return '';
@@ -15170,7 +15183,7 @@
         prevY = r.y;
         body += `<div class="z17-row"><span class="tk-live-row-num">${esc(r.k)}열</span><span class="z17-row-seats" style="width:${maxX * 6 + 12}px">${seatsHtml}</span></div>`;
       });
-      const extra = [st.held ? `선택 중 ${st.held}석` : '', st.na ? `판매 대상 아님 ${st.na}석` : ''].filter(Boolean).join(' · ');
+      const extra = [st.held ? `선택 중 ${st.held}석` : '', ''].filter(Boolean).join(' · ');
       return `${head}<div class="tk-live-modal-sub">잔여 ${st.free.toLocaleString()} / 전체 ${st.total.toLocaleString()}석${extra ? ' · ' + extra : ''} · ${esc(z17AtText())}</div><a class="z17-book" href="${Z17_TICKET_URL}" target="_blank" rel="noopener">29CM 예매 페이지로 이동 ↗</a><div class="z17-key"><span><i style="background:${color}"></i>잔여</span><span><i style="background:#dadde2"></i>매진</span><span title="다른 분이 장바구니·결제 중이라 잠시 잡혀 있는 좌석(취소되면 다시 잔여로 돌아옴)"><i style="background:#E91E8C"></i>선택 중(결제 대기)</span>${st.na ? '<span><i style="background:#f1f3f6;border:1px solid #d5d9e0"></i>판매 대상 아님</span>' : ''}<span>※ 잔여 좌석을 누르면 29CM 예매 페이지로 이동</span></div>
         <div class="z17-front">▲ 무대 방향 (A열)</div><div class="tk-live-modal-rows z17-scroll">${body}</div>`;
     }
@@ -15206,7 +15219,7 @@
       const head = `<div class="tk-live-modal-head"><b style="color:${color}">${esc(nm)}</b><span>${zs.length}개 구역</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>`;
       const chips = zs.map(({ z, st, part }) => {
         const on = st && st.free > 0, na = st && st.na === st.total;
-        const txt = !st ? '…' : (na ? '판매 대상 아님' : (on ? `잔여 ${st.free}` : '매진'));
+        const txt = !st ? '…' : (on ? `잔여 ${st.free}` : '매진');
         return `<button type="button" class="z17-chip${on ? '' : ' off'}" style="${on ? `background:${color};color:#fff` : ''}" onclick="z17OpenZone(${z.id})"><b>${esc(z.n)}</b><span>${txt}</span>${part ? '<span title="이 구역 안의 일부 좌석">*</span>' : ''}</button>`;
       }).join('');
       const none = !zs.length ? '<div class="tk-live-zone-loading">이 등급은 구역 정보가 따로 없어요.<br>잔여 수는 아래 "판매 · 잔여 좌석"에서 확인하세요.</div>' : '';
@@ -16170,6 +16183,8 @@
         // 최상단(전체 좌석 아래)에 노출하고 그 뒤엔 자동으로 내린다(2026-08-20 요청 — 3시간 →
         // 5시간을 거쳐 하루에 한 번 들어오는 유저도 볼 수 있게 24시간으로 확정).
         // 지난 급감 이력은 아래 판매 추이(10분 간격) 차트의 ⚡ 점에서 기존처럼 계속 확인할 수 있다.
+        // 사실상 매진(잔여가 전체의 1% 미만)이면 "지금 벌어지는 일"이 아니므로 알림을 내린다(2026-11-02 요청).
+        if (hasTotal && sumTotal > 0 && sumRemainForTotal / sumTotal < 0.01) return '';
         const FRESH_MS = 24 * 3600 * 1000;
         const fresh = allBulkEvents.filter(ev => (svrNow().getTime() - new Date(ev.tCur).getTime()) <= FRESH_MS);
         if (!fresh.length) return '';
