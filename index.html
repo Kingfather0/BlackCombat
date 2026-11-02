@@ -13677,6 +13677,8 @@
     };
     // 2026-11-02: 총 좌석수가 잠정치일 때 "전체 좌석" 바 아래에 붉은 안내를 띄우는 행사 목록
     // (총원 재산정이 끝나면 이 항목을 지우면 안내가 사라진다)
+    // 판매율 표기 — 잔여가 1석이라도 남았으면 반올림으로 100.0%가 되지 않게 99.9%에서 멈춘다
+    function tkPctStr(sold, total) { let v = total ? sold / total * 100 : 0; if (sold < total) v = Math.min(v, 99.9); return Math.max(0, Math.min(100, v)).toFixed(1); }
     const TK_TOTAL_NOTE_BY_EVENT = { 'bc17_vantablack_2026_1121': true };
     let tkGradeOrder = null; // 현재 보고 있는 행사의 고정 등급 순서(없으면 null → 기존 정렬)
     const GRADE_ORDER = ['VIP', 'R', 'S', 'A', 'B', 'C'];
@@ -13722,7 +13724,7 @@
         const remain = grades[k] && grades[k].remain;
         const total = totals && totals[k];
         const price = prices && prices[k];
-        const soldPct = (total && remain != null) ? Math.min(100, Math.max(0, (total - remain) / total * 100)).toFixed(1) : null;
+        const soldPct = (total && remain != null) ? tkPctStr(total - remain, total) : null;
         // remain===0이어도 total이 0(또는 미집계)이면 "원래 이 회차엔 그 등급 좌석 자체가 없다"는
         // 뜻이지 "있던 좌석이 다 팔렸다"는 뜻이 아니다(예: 시야방해석 0석 — 29CM 자체도 이 등급을
         // 판매 대상에서 아예 뺐다) — 이 경우까지 "매진"으로 표시하면 마치 있던 좌석이 동난 것처럼
@@ -15052,7 +15054,7 @@
         const sumRemain = Object.values(remainByGrade).reduce((s, v) => s + (v || 0), 0);
         if (tkLive.overallTotal) {
           const sold = tkLive.overallTotal - sumRemain;
-          const pct = (sold / tkLive.overallTotal * 100).toFixed(1);
+          const pct = tkPctStr(sold, tkLive.overallTotal);
           const numEl = document.querySelector('.tk-total-num');
           const barEl = document.querySelector('.tk-total-bar i');
           if (numEl) { numEl.textContent = `총 ${tkLive.overallTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%) · 잔여 ${sumRemain.toLocaleString()}석`; tkFitTotalLine(); }
@@ -15881,7 +15883,7 @@
         </div>` : '';
       const totalBarHTML = totalTitleHTML + ((hasTotal && sumTotal > 0) ? (() => {
         const sold = sumTotal - sumRemainForTotal;
-        const pct = (sold / sumTotal * 100).toFixed(1);
+        const pct = tkPctStr(sold, sumTotal);
         return `
       <div class="card tk-total-card">
         <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
