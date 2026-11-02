@@ -43,7 +43,13 @@ async function collectInPage({ SB, SB_KEY, PASS, needLayout }) {
     layoutZones.sort((a, b) => a.id - b.id);
     await save('tk_layout_bc17', { v: 1, at: new Date().toISOString(), zones: layoutZones });
   }
-  const zones = needLayout ? layoutZones : window.__z17Layout;
+  let zones = needLayout ? layoutZones : window.__z17Layout;
+  if (!zones) { // 페이지를 새로고침하면 기억해 둔 배치가 사라지므로 Supabase에 저장된 배치를 다시 읽는다
+    const lr = await fetch(SB + '/rest/v1/site_data?key=eq.tk_layout_bc17&select=value', { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } });
+    const rows = lr.ok ? await lr.json() : [];
+    zones = rows[0] && rows[0].value && rows[0].value.zones;
+    if (!zones || !zones.length) throw new Error('배치 데이터가 없습니다');
+  }
   window.__z17Layout = zones;
   const state = {}; let free = 0, fail = 0;
   await pool(zones, 5, async z => {
