@@ -15,7 +15,8 @@ const { collectInPage } = require('./z17-page-collect');
 
 const SB = process.env.SUPABASE_URL, SB_KEY = process.env.SUPABASE_ANON_KEY, PASS = process.env.ADMIN_PASS;
 const ENC = process.env.Z17_ENC_KEY, INIT = process.env.Z17_SESSION;
-const EVERY_MS = (parseInt(process.env.Z17_EVERY_SEC, 10) || 60) * 1000;
+const EVERY_MS = (parseInt(process.env.Z17_EVERY_SEC, 10) || 15) * 1000; // 빠른 갱신 주기(잔여가 있는 구역만)
+const FULL_EVERY = parseInt(process.env.Z17_FULL_EVERY, 10) || 4; // N번에 한 번은 전 구역 읽기(약 1분)
 const RUN_MS = (parseInt(process.env.Z17_RUN_MIN, 10) || 340) * 60000;
 const PAGE_URL = 'https://ticket.29cm.co.kr/catalog/4347803';
 const EVENT_END = new Date('2026-11-22T00:00:00+09:00').getTime();
@@ -54,21 +55,24 @@ async function loadSession() {
   let ctx = await browser.newContext({ storageState: session, viewport: { width: 1280, height: 900 } });
   let page = await ctx.newPage();
   const deadline = Math.min(Date.now() + RUN_MS, EVENT_END);
-  let layoutDone = false, runs = 0, lastSave = 0, fails = 0;
+  let layoutDone = false, runs = 0, lastSave = 0, fails = 0, lastGoto = 0;
   while (Date.now() < deadline) {
     try {
-      await page.goto(PAGE_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
-      await sleep(2500);
-      const r = await page.evaluate(collectInPage, { SB, SB_KEY, PASS, needLayout: !layoutDone });
+      if (!lastGoto || Date.now() - lastGoto > 10 * 60000) { // 페이지는 10분마다만 다시 열어 로그인 토큰을 갱신
+        await page.goto(PAGE_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+        await sleep(2500); lastGoto = Date.now();
+      }
+      const full = !layoutDone || runs % FULL_EVERY === 0;
+      const r = await page.evaluate(collectInPage, { SB, SB_KEY, PASS, needLayout: !layoutDone, fast: !full });
       layoutDone = true; fails = 0; runs++;
-      console.log(`✅ [${new Date().toISOString()}] ${runs}회째 · 구역 ${r.zones}개 · 잔여 ${r.free}석 · 실패 ${r.fail}개`);
+      console.log(`✅ [${new Date().toISOString()}] ${runs}회째(${full ? '전체' : '빠른'}) · 읽은 구역 ${r.polled}/${r.zones}개 · 잔여 ${r.free}석 · 실패 ${r.fail}개`);
       if (Date.now() - lastSave > 10 * 60000) { // 갱신된 세션을 10분마다 암호화해 보관
         await sbSave('z17_session_enc', encrypt(JSON.stringify(await ctx.storageState()))); lastSave = Date.now();
       }
       await sleep(EVERY_MS);
     } catch (e) {
       const m = String(e.message || e).split('\n')[0];
-      fails++;
+      fails++; lastGoto = 0;
       if (/401/.test(m)) { console.error('🔑 29CM 로그인 세션이 만료되었습니다. ticket-zone-bc17-login.js로 다시 만들어 Secret Z17_SESSION을 교체하고, z17_session_enc는 자동으로 덮어쓰이게 둡니다.'); try { await sbSave('z17_session_enc', {}); } catch (x) {} await browser.close(); process.exit(2); }
       if (/저장 실패/.test(m)) { console.error('❌ ' + m + ' — 관리자 비밀번호(ADMIN_PASS)를 확인하세요.'); await browser.close(); process.exit(1); }
       console.error(`⚠️ 이번 회차 실패: ${m}`);

@@ -1,6 +1,6 @@
 // 로그인된 29CM 페이지 안에서 실행되는 구역 수집 함수 (ticket-zone-bc17-local.js / -cloud.js 공용)
 // page.evaluate(collectInPage, {...}) 로 호출하므로 바깥 변수를 쓰지 않는 독립 함수여야 한다.
-async function collectInPage({ SB, SB_KEY, PASS, needLayout }) {
+async function collectInPage({ SB, SB_KEY, PASS, needLayout, fast }) {
   const PMC = 1322, TURN = 12626, ROOT = 529;
   const j = async (u, opt) => { const r = await fetch(u, opt); if (r.status === 401) throw new Error('401'); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); };
   function buildRows(c) {
@@ -51,17 +51,25 @@ async function collectInPage({ SB, SB_KEY, PASS, needLayout }) {
     if (!zones || !zones.length) throw new Error('배치 데이터가 없습니다');
   }
   window.__z17Layout = zones;
-  const state = {}; let free = 0, fail = 0;
-  await pool(zones, 5, async z => {
+  // fast=true: 잔여/선택 중 좌석이 있는 구역만 다시 읽고(나머지는 직전 값 유지) 빠르게 갱신한다. 전체 읽기는 주기적으로 별도 실행.
+  let state = {}, targets = zones;
+  if (fast) {
+    let prev = window.__z17State;
+    if (!prev) { const sr = await fetch(SB + '/rest/v1/site_data?key=eq.tk_state_bc17&select=value', { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } }); const rr = sr.ok ? await sr.json() : []; prev = rr[0] && rr[0].value && rr[0].value.z; }
+    if (prev && Object.keys(prev).length >= zones.length) { state = Object.assign({}, prev); targets = zones.filter(z => /[0h]/.test(prev[z.id] || '0')); }
+  }
+  let free = 0, fail = 0;
+  await pool(targets, 5, async z => {
     try {
       const a = await j(`/api/preempt/seat/info?productMasterCode=${PMC}&turnSequence=${TURN}&placeId=${z.id}`, { credentials: 'include' });
       const u = (a.data && a.data.seatAssignUnits) || [];
-      const s = mapState(z.rows, u, u.length ? '1' : '-');
-      state[z.id] = s; free += (s.match(/0/g) || []).length;
+      state[z.id] = mapState(z.rows, u, u.length ? '1' : '-');
     } catch (e) { if (String(e.message) === '401') throw e; fail++; }
   });
+  zones.forEach(z => { free += ((state[z.id] || '').match(/0/g) || []).length; });
+  window.__z17State = state;
   await save('tk_state_bc17', { at: new Date().toISOString(), z: state });
-  return { zones: zones.length, free, fail };
+  return { zones: zones.length, free, fail, polled: targets.length };
 }
 
 module.exports = { collectInPage };
