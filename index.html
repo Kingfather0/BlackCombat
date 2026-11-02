@@ -1357,9 +1357,10 @@
     .z17-hl { box-shadow: 0 0 0 2px #111, 0 0 0 4.5px rgba(17,17,17,.25) !important; animation: z17pulse 1.2s ease-in-out infinite; }
     @keyframes z17pulse { 50% { transform: scale(1.35); } }
     .z17-book { display: block; text-align: center; margin: 8px 0 2px; padding: 9px 0; border-radius: 10px; background: #111; color: #fff !important; font-size: 13px; font-weight: 700; text-decoration: none; }
-    .z17-holdbox { display: inline-block; margin-left: 6px; background: #E91E8C; color: #fff; vertical-align: middle; }
+    #z17-modal .tk-row1-sum b { display: inline-block; background: #F2B32A; color: #1d1d1f; padding: 1px 7px; border-radius: 4px; margin: 0 2px; }
+    .z17-holdbox { display: inline-block; margin-left: 0; background: #E91E8C; color: #fff; vertical-align: middle; }
     /* 잔여 N석 / 결제 대기 N석 박스는 같은 크기 */
-    body[data-route] .tk-row1-btn #z17Badge, body[data-route] .tk-row1-btn .z17-holdbox { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; height: 24px; padding: 0 9px !important; border-radius: 4px !important; font-size: 12px !important; font-weight: 700 !important; line-height: 1 !important; vertical-align: middle; }
+    body[data-route] .tk-row1-btn #z17Badge, body[data-route] .tk-row1-btn .z17-holdbox { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; height: 26px; padding: 0 10px !important; border-radius: 4px !important; font-size: 12px !important; font-weight: 700 !important; line-height: 1 !important; vertical-align: middle; }
     .z17-key { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 6px; font-size: 11.5px; color: var(--dim); }
     .z17-key i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: -1px; margin-right: 4px; }
     .z17-front { text-align: center; font-size: 11.5px; font-weight: 700; color: #6b7280; background: #eceef2; border-radius: 6px; padding: 4px 0; margin-bottom: 6px; }
@@ -15106,7 +15107,7 @@
     }
     // 잔여 N석 / 결제 대기 N석 박스를 같은 크기로(다른 스타일에 밀리지 않게 직접 지정)
     function z17SameSize(el) {
-      [['box-sizing', 'border-box'], ['display', 'inline-flex'], ['align-items', 'center'], ['justify-content', 'center'], ['height', '24px'], ['padding', '0 9px'], ['border-radius', '4px'], ['font-size', '12px'], ['font-weight', '700'], ['line-height', '1'], ['margin-top', '0'], ['margin-bottom', '0']].forEach(([k, v]) => el.style.setProperty(k, v, 'important'));
+      [['box-sizing', 'border-box'], ['display', 'inline-flex'], ['align-items', 'center'], ['justify-content', 'center'], ['height', '26px'], ['padding', '0 10px'], ['min-height', '26px'], ['max-height', '26px'], ['align-self', 'center'], ['position', 'static'], ['top', '0'], ['transform', 'none'], ['border', '0'], ['border-radius', '4px'], ['font-size', '12px'], ['font-weight', '700'], ['line-height', '1'], ['margin-top', '0'], ['margin-bottom', '0']].forEach(([k, v]) => el.style.setProperty(k, v, 'important'));
     }
     function z17Paint() {
       const box = document.getElementById('z17-box');
