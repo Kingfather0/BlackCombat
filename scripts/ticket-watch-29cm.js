@@ -183,6 +183,26 @@ async function getJSON(url) {
   return json.data;
 }
 
+// 한 회차의 등급별 잔여석(quantityList)을 가져온다.
+// 2026-11-02: 예전에 쓰던 turn/detail/seat/info가 이날 "로그인이 필요합니다"(401)로 바뀌어
+// GitHub Actions(비로그인)에서 막혔다. 같은 quantityList를 로그인 없이 내려주는 공개 API
+// turn/seat/info(상품 페이지가 직접 호출하는 것)를 1순위로 쓰고, 그게 실패하면 예전 방식으로 대체한다.
+async function fetchTurnRow(productMasterCode, turn) {
+  try {
+    const d = await getJSON(`${API_BASE}/turn/seat/info?productMasterCode=${productMasterCode}`);
+    const list = d && d.turnList;
+    const hit = Array.isArray(list) ? list.find((t) => t.turnSequence === turn.turnSequence) : null;
+    if (hit && Array.isArray(hit.quantityList) && hit.quantityList.length) return hit;
+    console.log(`ℹ️ turn/seat/info에서 회차(turnSequence=${turn.turnSequence})의 잔여석을 못 찾아 예전 방식으로 대체합니다.`);
+  } catch (e) {
+    console.log('ℹ️ turn/seat/info 조회 실패(' + (e.message || e) + ') — 예전 방식(turn/detail/seat/info)으로 대체합니다.');
+  }
+  const detail = await getJSON(
+    `${API_BASE}/turn/detail/seat/info?productMasterCode=${productMasterCode}&turnSequence=${turn.turnSequence}`
+  );
+  return Array.isArray(detail) ? detail.find((x) => x.turnSequence === turn.turnSequence) || detail[0] : null;
+}
+
 // 29CM API가 주는 등급명("VIP 티켓", "일반 티켓" 등)에서 뒤에 붙는 "티켓"을 떼어 사이트
 // 표시용 등급명("VIP", "일반")으로 통일한다. grades/totals/gradePrices 세 곳 모두 이 이름을
 // 키로 써야 index.html에서 서로 매칭되므로, 한 곳에서만 정의해서 어긋나지 않게 한다.
@@ -365,10 +385,7 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
     console.log(`🔎 ${turns.length}개 회차 확인됨`);
 
     for (const turn of turns) {
-      const detail = await getJSON(
-        `${API_BASE}/turn/detail/seat/info?productMasterCode=${productMasterCode}&turnSequence=${turn.turnSequence}`
-      );
-      const row = Array.isArray(detail) ? detail.find((d) => d.turnSequence === turn.turnSequence) || detail[0] : null;
+      const row = await fetchTurnRow(productMasterCode, turn);
       const quantityList = row && row.quantityList;
       if (!Array.isArray(quantityList) || quantityList.length === 0) {
         console.log(`ℹ️ 회차(turnSequence=${turn.turnSequence})의 잔여석 정보를 찾지 못해 건너뜁니다.`);
