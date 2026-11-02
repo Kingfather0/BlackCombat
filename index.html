@@ -1356,6 +1356,7 @@
     .z17-hl { box-shadow: 0 0 0 2px #111, 0 0 0 4.5px rgba(17,17,17,.25) !important; animation: z17pulse 1.2s ease-in-out infinite; }
     @keyframes z17pulse { 50% { transform: scale(1.35); } }
     .z17-book { display: block; text-align: center; margin: 8px 0 2px; padding: 9px 0; border-radius: 10px; background: #111; color: #fff !important; font-size: 13px; font-weight: 700; text-decoration: none; }
+    .z17-holdbox { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 4px; background: #E91E8C; color: #fff; font-size: 12px; font-weight: 700; vertical-align: middle; }
     .z17-key { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 6px; font-size: 11.5px; color: var(--dim); }
     .z17-key i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: -1px; margin-right: 4px; }
     .z17-front { text-align: center; font-size: 11.5px; font-weight: 700; color: #6b7280; background: #eceef2; border-radius: 6px; padding: 4px 0; margin-bottom: 6px; }
@@ -15115,6 +15116,13 @@
         const remain = d.reduce((s, x) => s + x.free, 0);
         badge.textContent = Z17.err ? '준비 중' : !Z17.state ? '불러오는 중…' : (remain > 0 ? `잔여 ${remain}석` : '잔여 없음');
         badge.classList.toggle('zero', !!Z17.state && remain === 0);
+        const hb = document.getElementById('z17Hold');
+        if (hb) {
+          let held = 0;
+          if (Z17.state && Z17.state.z) Object.keys(Z17.state.z).forEach(k => { held += (Z17.state.z[k].match(/h/g) || []).length; });
+          hb.textContent = `결제 대기 ${held}석`;
+          hb.style.display = (!Z17.err && Z17.state && held > 0) ? '' : 'none';
+        }
       }
       const modal = document.getElementById('z17-modal');
       if (modal && modal.style.display === 'flex') z17RefreshModal();
@@ -15260,7 +15268,7 @@
       return `
       <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)"><span id="z17At"></span>약 20초 단위 자동 갱신</span></div>
       <div class="card">
-        <button type="button" class="tk-row1-btn" onclick="z17OpenFront()">잔여석 바로 찾기 <span class="tk-row1-badge" id="z17Badge">불러오는 중…</span></button>
+        <button type="button" class="tk-row1-btn" onclick="z17OpenFront()">잔여석 바로 찾기 <span class="tk-row1-badge" id="z17Badge">불러오는 중…</span><span class="z17-holdbox" id="z17Hold" style="display:none"></span></button>
         <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">잔여(컬러) · 매진(회색) · 선택 중(결제 대기) · 구역 누르면 좌석 배치 확인</div>
         <div id="z17-box"></div>
       </div>`;
