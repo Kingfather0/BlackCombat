@@ -99,6 +99,46 @@ const VERIFIED_TOTAL_OVERRIDE = {
     watchGrades: ['시야방해석'],
     verifiedNote: '2026-08-18 38개 구역 전수 시각 확인(Konva 렌더링 좌석 수 집계, 구역별 등급까지 매칭)',
   },
+  // 블랙컴뱃 17 : VANTABLACK (2026-11-21 13:00, 고척 스카이돔) — catalog 4347803
+  // 총원 = 판매 개시(2026-11-02 18:00 KST) 전에 턴 상세 API(turn/detail/seat/info)로 직접 캡처한
+  // 등급별 잔여석(2026-11-02 12:32 KST, saleStatus=판매가능이나 온라인 판매 시작 전). 판매 전이라
+  // 잔여석이 곧 총원이다. 이 시점엔 좌석배치도 API(preempt/seat/info)가 빈 응답(좌석 0개)이라
+  // 자동 탐지가 불가능하고, 과거(1246)에 그 API가 좌석을 누락한 전례가 있어 이 값을 우선 사용한다.
+  // 판매 시작 후 좌석배치도가 열리면 아래 비교 로그("총원 교차검증")가 두 값을 대조해 알려준다.
+  // 0석 등급(다이아석/커플석/스카이박스 20·14인룸)은 가격이 등록된 등급이라 총원 0으로 둔다 —
+  // 판매 도중 잔여가 생기면(재분류) "새 등급 총원 임시 추정" 안전망이 경고 로그를 남긴다.
+  1322: {
+    overallTotal: 15722,
+    sellableTotal: 15722,
+    noGradeTotal: 0,
+    totals: {
+      '블랙티넘 2인 테이블': 14,
+      '블랙티넘': 11,
+      '선수입장로석': 426,
+      '로얄석': 1438,
+      '플로어석': 2865,
+      '플로어 이코노미': 1435,
+      '다이아석': 0,
+      '1층 테이블석(2인)': 102,
+      '1층 테이블석(3인)': 4,
+      '1층 스탠다드': 1222,
+      '1층 이코노미': 991,
+      '1층 커플석(2인)': 0,
+      '2층 테이블석(2인)': 74,
+      '2층 테이블석(3인)': 2,
+      '2층 스탠다드': 198,
+      '2층 이코노미': 792,
+      '2층 커플석(2인)': 0,
+      '스카이박스 20인룸': 0,
+      '스카이박스 14인룸': 0,
+      '스카이박스 9인룸': 4,
+      '스카이박스 6인룸': 4,
+      '3층 지정석': 1062,
+      '4층 지정석': 5038,
+      '휠체어석': 40,
+    },
+    verifiedNote: '2026-11-02 12:32 KST 판매 개시 전 등급별 잔여석 직접 캡처(잔여=총원, 합계 15,722석)',
+  },
 };
 
 function bail(msg) {
@@ -380,7 +420,22 @@ async function postSnapshot(grades, roundLabel, note, totals, meta) {
             console.log(`⚠️ [${roundLabel}] 수동 검증 총원에 없는 새 등급 발견: ${missing.join(', ')} — 잔여석을 총원으로 임시 추정했습니다. VERIFIED_TOTAL_OVERRIDE를 실측으로 갱신해 주세요!`);
           }
         }
-        note = `총원은 수동 검증값 사용(29CM 좌석배치도 API 누락 버그 확인됨, ${verifiedOverride.verifiedNote}) — 잔여석은 실시간 API`;
+        // 교차검증(2026-11-02 추가): 좌석배치도 API가 열려 있으면 수동 검증 총원과 등급별로 대조해
+        // 로그로 남긴다. 좌석배치도 쪽이 더 적게 나오는 건 과거에 확인된 누락 버그와 같은 현상이라
+        // 정상으로 보고, 더 많게 나오면 검증값이 틀렸을 수 있으니 눈에 띄게 경고한다.
+        if (breakdown && totals) {
+          const diffs = [];
+          for (const g of Object.keys(totals)) {
+            const mapCnt = breakdown.totals[g] != null ? breakdown.totals[g] : 0;
+            if (mapCnt !== totals[g]) diffs.push(`${g}: 검증 ${totals[g]} / 좌석배치도 ${mapCnt}`);
+          }
+          const over = Object.keys(totals).filter((g) => (breakdown.totals[g] || 0) > totals[g]);
+          console.log(`🔍 [${roundLabel}] 총원 교차검증: 좌석배치도 합계 ${breakdown.sellableTotal}석 vs 검증값 ${verifiedOverride.sellableTotal}석, 등급별 불일치 ${diffs.length}건${diffs.length ? ' → ' + diffs.join(' | ') : ''}`);
+          if (over.length) console.log(`⚠️ 좌석배치도가 검증값보다 많은 등급: ${over.join(', ')} — VERIFIED_TOTAL_OVERRIDE 총원 재확인 필요!`);
+        } else if (!breakdown) {
+          console.log(`ℹ️ [${roundLabel}] 좌석배치도 API가 아직 비어 있어 총원 교차검증은 건너뜁니다(판매 개시 후 열리면 자동 수행).`);
+        }
+        note = `총원은 수동 검증값 사용(${verifiedOverride.verifiedNote}) — 잔여석은 실시간 API`;
         turnMeta = { ...meta, overallTotal: verifiedOverride.overallTotal, sellableTotal: verifiedOverride.sellableTotal, noGradeTotal: verifiedOverride.noGradeTotal };
         console.log(
           `✅ [${roundLabel}] 수동 검증된 총원 오버라이드 적용: 총 ${verifiedOverride.overallTotal}석 (${verifiedOverride.verifiedNote})`
