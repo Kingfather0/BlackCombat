@@ -1346,6 +1346,13 @@
     .z17-row-seats i { position: absolute; top: 0; width: 11px; height: 11px; border-radius: 50%; display: block; }
     .z17-go { cursor: pointer; box-shadow: 0 0 0 1.5px rgba(0,0,0,.35); }
     .z17-go:hover { transform: scale(1.35); z-index: 2; }
+    .z17-fz { border: 1px solid #e6e9ee; border-radius: 10px; padding: 8px 10px; margin: 6px 0; }
+    .z17-fz-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; cursor: pointer; }
+    .z17-fz-h b { font-size: 14px; } .z17-fz-g { font-size: 11px; font-weight: 600; } .z17-fz-n { margin-left: auto; font-size: 12px; font-weight: 700; }
+    .z17-fz-seats { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+    .z17-fs { border: 0; border-radius: 6px; color: #fff; font: inherit; font-size: 11.5px; font-weight: 600; padding: 3px 7px; cursor: pointer; }
+    .z17-fs:hover { filter: brightness(.92); }
+    .z17-fs-more { font-size: 11px; color: var(--dim); align-self: center; }
     .z17-key { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 6px; font-size: 11.5px; color: var(--dim); }
     .z17-key i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: -1px; margin-right: 4px; }
     .z17-front { text-align: center; font-size: 11.5px; font-weight: 700; color: #6b7280; background: #eceef2; border-radius: 6px; padding: 4px 0; margin-bottom: 6px; }
@@ -12240,7 +12247,7 @@
       return `(${range.from} ~ ${range.to})`;
     }
     // 활동 코드(영문) -> 사람이 읽기 좋은 한글 이름. 새 활동 추적을 추가하면 여기에도 이름을 등록한다.
-    const FP_ACTION_LABELS = { submit_vote: '🗳️ 승부 예측 제출', row1_finder_open: '🎯 맨 앞열 바로 찾기' };
+    const FP_ACTION_LABELS = { submit_vote: '🗳️ 승부 예측 제출', row1_finder_open: '🎯 잔여석/맨 앞열 바로 찾기' };
     // 달력으로 고른 기간의 길이에 따라 집계 단위를 자동 결정 — 한 달 이내는 일별,
     // 반년 이내는 주별, 그보다 길면 월별로 묶어 화면 길이를 일정하게 유지한다.
     function fpCustomBucket(fromStr, toStr) {
@@ -15101,7 +15108,7 @@
       if (atEl) { const t = Z17.state && Z17.state.at ? fmtSnapTime(Z17.state.at) + ' 기준' : ''; atEl.textContent = t ? t + (stale ? ' (갱신 지연) · ' : ' · ') : ''; }
       const badge = document.getElementById('z17Badge');
       if (badge) {
-        const d = z17FrontData(1);
+        const d = z17FreeData();
         const remain = d.reduce((s, x) => s + x.free, 0);
         badge.textContent = Z17.err ? '준비 중' : !Z17.state ? '불러오는 중…' : (remain > 0 ? `잔여 ${remain}석` : '잔여 없음');
         badge.classList.toggle('zero', !!Z17.state && remain === 0);
@@ -15205,43 +15212,38 @@
       const k2 = inner.querySelector('.z17-scroll, .tk-row1-list');
       if (k2) k2.scrollTop = top;
     }
-    // ── 맨 앞열 바로 찾기 ──
-    let z17Nth = 1;
-    function z17FrontData(nth) {
+    // ── 잔여석 바로 찾기: 잔여 좌석이 있는 구역과 그 좌석을 한 번에 모아 보여준다 ──
+    function z17FreeData() {
       if (!Z17.layout || !Z17.state) return [];
       const out = [];
       Z17.layout.zones.forEach(z => {
         const st = z17Stat(z);
-        if (!st || st.na === st.total) return; // 판매 대상이 없는 구역은 제외
-        const rows = z17Rows(z);
-        const r = rows[nth - 1];
-        if (!r) return;
-        const seq = r.seats.map((s, i) => ({ col: s.col, c: st.s[r.off + i] || '-' }));
-        out.push({ z, row: r.k, seq, free: seq.filter(q => q.c === '0').length, held: seq.filter(q => q.c === 'h').length });
+        if (!st || st.free <= 0) return;
+        const seats = [];
+        z17Rows(z).forEach(r => r.seats.forEach((s, i) => { if (st.s[r.off + i] === '0') seats.push({ row: r.k, col: s.col }); }));
+        out.push({ z, free: st.free, held: st.held, seats });
       });
+      out.sort((a, b) => (b.free - a.free) || String(a.z.n).localeCompare(String(b.z.n), 'ko', { numeric: true }));
       return out;
     }
     function z17FrontModalHTML() {
-      const data = z17FrontData(z17Nth);
+      const data = z17FreeData();
       const free = data.reduce((s, d) => s + d.free, 0);
-      const labels = TK_ROW1_ORDINALS;
-      const sel = `<select class="tk-row1-select" onchange="z17SetNth(this.value)">${labels.slice(0, 15).map((l, k) => `<option value="${k + 1}" ${k + 1 === z17Nth ? 'selected' : ''}>${l}</option>`).join('')}</select>`;
-      const sorted = data.slice().sort((a, b) => ((b.free > 0) - (a.free > 0)) || (b.free - a.free) || String(a.z.n).localeCompare(String(b.z.n), 'ko', { numeric: true }));
-      const body = sorted.map(d => {
-        const color = z17Color(d.z);
-        const seatsHtml = d.seq.map(q => `<i${q.c === '0' ? ' class="z17-go" onclick="z17GoTicket(event)"' : ''} style="background:${z17SeatColor(q.c, color)}" title="${esc(d.z.n)} ${esc(d.row)}열 ${esc(q.col)}번 · ${z17SeatWord(q.c)}${q.c === '0' ? ' (누르면 29CM 예매 페이지로 이동)' : ''}"></i>`).join('');
-        const remain = d.free > 0 ? `<span class="tk-row1-remain">잔여 ${d.free}석</span>` : (d.held > 0 ? `<span class="tk-row1-remain none">선택 중 ${d.held}</span>` : `<span class="tk-row1-remain none">매진</span>`);
-        return `<div class="tk-row1-zone${d.free > 0 ? ' has' : ''}" onclick="z17OpenZone(${d.z.id})" title="${esc(d.z.n)} 구역 전체 좌석 보기"><b>${esc(d.z.n)}</b><span class="tk-row1-rowtag">${esc(d.row)}열</span><span class="tk-row1-seats">${seatsHtml}</span>${remain}</div>`;
+      let held = 0;
+      if (Z17.state && Z17.state.z) Object.keys(Z17.state.z).forEach(k => { held += (Z17.state.z[k].match(/h/g) || []).length; });
+      const body = data.map(d => {
+        const color = z17Color(d.z), MAX = 40;
+        const chips = d.seats.slice(0, MAX).map(q => `<button type="button" class="z17-fs" style="background:${color}" onclick="z17GoTicket(event)" title="누르면 29CM 예매 페이지로 이동">${esc(q.row)}열 ${esc(q.col)}번</button>`).join('');
+        const more = d.seats.length > MAX ? `<span class="z17-fs-more">외 ${d.seats.length - MAX}석 · 구역을 눌러 전체 보기</span>` : '';
+        return `<div class="z17-fz"><div class="z17-fz-h" onclick="z17OpenZone(${d.z.id})" title="${esc(d.z.n)} 구역 전체 좌석 보기"><b>${esc(d.z.n)}</b><span class="z17-fz-g" style="color:${color}">${esc(z17GradeLabel(d.z))}</span><span class="z17-fz-n">잔여 ${d.free}석${d.held ? ` · 선택 중 ${d.held}` : ''}</span></div><div class="z17-fz-seats">${chips}${more}</div></div>`;
       }).join('');
-      return `<div class="tk-live-modal-head"><b>${labels[z17Nth - 1]} 바로 찾기</b><span style="color:var(--dim);font-size:12px">구역별 무대 최근접 열</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>
-        <div class="tk-row1-top">${sel}<span class="tk-row1-sum">${free > 0 ? `잔여 <b>${free}석</b>` : '잔여 없음'}</span></div>
-        <div class="tk-row1-note top">잔여(컬러) · 매진(회색) · 선택 중(결제 대기) · 구역을 누르면 그 구역 전체 좌석 · 잔여 좌석을 누르면 29CM 예매 페이지<br>※ ${esc(z17AtText())} · 약 20초 단위로 자동 갱신됩니다</div>
-        <div class="tk-row1-list">${body || '<div class="tk-live-zone-loading">불러오는 중…</div>'}</div>`;
+      const empty = Z17.state ? `<div class="tk-live-zone-loading">지금은 잔여석이 없어요.${held ? `<br>선택 중(결제 대기) 좌석 ${held}석이 있어 곧 풀릴 수 있어요.` : ''}<br>약 20초 단위로 자동 갱신됩니다.</div>` : '<div class="tk-live-zone-loading">불러오는 중…</div>';
+      return `<div class="tk-live-modal-head"><b>잔여석 바로 찾기</b><span style="color:var(--dim);font-size:12px">잔여 좌석이 있는 구역</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>
+        <div class="tk-row1-top"><span class="tk-row1-sum">${free > 0 ? `잔여 <b>${free}석</b> · ${data.length}개 구역` : '잔여 없음'}</span></div>
+        <div class="tk-row1-note top">좌석을 누르면 29CM 예매 페이지 · 구역명을 누르면 그 구역 전체 좌석<br>※ ${esc(z17AtText())} · 약 20초 단위로 자동 갱신됩니다</div>
+        <div class="z17-scroll">${body || empty}</div>`;
     }
-    function z17SetNth(v) { const n = parseInt(v, 10); if (n >= 1 && n <= 15) { z17Nth = n; z17RefreshModal(); } }
-    async function z17FrontRefresh(btn) { if (btn) { btn.disabled = true; btn.textContent = '갱신 중…'; } await z17Load(); z17RefreshModal(); }
     function z17OpenFront() {
-      z17Nth = 1;
       const modal = z17EnsureModal();
       modal.dataset.mode = 'front';
       modal.innerHTML = `<div class="tk-live-modal-inner">${z17FrontModalHTML()}</div>`;
@@ -15252,7 +15254,7 @@
       return `
       <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)"><span id="z17At"></span>약 20초 단위 자동 갱신</span></div>
       <div class="card">
-        <button type="button" class="tk-row1-btn" onclick="z17OpenFront()">맨 앞열 바로 찾기 <span class="tk-row1-badge" id="z17Badge">불러오는 중…</span></button>
+        <button type="button" class="tk-row1-btn" onclick="z17OpenFront()">잔여석 바로 찾기 <span class="tk-row1-badge" id="z17Badge">불러오는 중…</span></button>
         <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">잔여(컬러) · 매진(회색) · 선택 중(결제 대기) · 구역 누르면 좌석 배치 확인</div>
         <div id="z17-box"></div>
       </div>`;
