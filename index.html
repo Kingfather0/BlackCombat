@@ -1344,6 +1344,8 @@
     .z17-row { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
     .z17-row-seats { position: relative; height: 12px; flex: none; display: block; }
     .z17-row-seats i { position: absolute; top: 0; width: 11px; height: 11px; border-radius: 50%; display: block; }
+    .z17-go { cursor: pointer; box-shadow: 0 0 0 1.5px rgba(0,0,0,.35); }
+    .z17-go:hover { transform: scale(1.35); z-index: 2; }
     .z17-key { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 6px; font-size: 11.5px; color: var(--dim); }
     .z17-key i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: -1px; margin-right: 4px; }
     .z17-front { text-align: center; font-size: 11.5px; font-weight: 700; color: #6b7280; background: #eceef2; border-radius: 6px; padding: 4px 0; margin-bottom: 6px; }
@@ -15129,6 +15131,8 @@
       }
     }
     // ── 구역 상세 ──
+    const Z17_TICKET_URL = 'https://ticket.29cm.co.kr/catalog/4347803';
+    function z17GoTicket(e) { if (e) e.stopPropagation(); window.open(Z17_TICKET_URL, '_blank', 'noopener'); }
     function z17SeatColor(c, color) { return c === '1' ? '#dadde2' : c === '0' ? color : c === 'h' ? '#f6c453' : '#f1f3f6'; }
     function z17SeatWord(c) { return c === '1' ? '매진' : c === '0' ? '잔여' : c === 'h' ? '선택 중' : '판매 대상 아님'; }
     function z17ZoneModalHTML(id) {
@@ -15140,13 +15144,13 @@
       let prevY = null, body = '';
       z17Rows(z).forEach(r => {
         const maxX = r.seats.reduce((m, s) => Math.max(m, s.x), 0);
-        const seatsHtml = r.seats.map((s, i) => { const c = st.s[r.off + i] || '-'; return `<i style="left:${s.x * 6}px;background:${z17SeatColor(c, color)}" title="${esc(z.n)} ${esc(r.k)}열 ${esc(s.col)}번 · ${z17SeatWord(c)}"></i>`; }).join('');
+        const seatsHtml = r.seats.map((s, i) => { const c = st.s[r.off + i] || '-'; return `<i${c === '0' ? ' class="z17-go" onclick="z17GoTicket(event)"' : ''} style="left:${s.x * 6}px;background:${z17SeatColor(c, color)}" title="${esc(z.n)} ${esc(r.k)}열 ${esc(s.col)}번 · ${z17SeatWord(c)}${c === '0' ? ' (누르면 29CM 예매 페이지로 이동)' : ''}"></i>`; }).join('');
         if (prevY !== null && r.y - prevY > 1.6) body += '<div class="tk-live-aisle">통로</div>';
         prevY = r.y;
         body += `<div class="z17-row"><span class="tk-live-row-num">${esc(r.k)}열</span><span class="z17-row-seats" style="width:${maxX * 6 + 12}px">${seatsHtml}</span></div>`;
       });
       const extra = [st.held ? `선택 중 ${st.held}석` : '', st.na ? `판매 대상 아님 ${st.na}석` : ''].filter(Boolean).join(' · ');
-      return `${head}<div class="tk-live-modal-sub">잔여 ${st.free.toLocaleString()} / 전체 ${st.total.toLocaleString()}석${extra ? ' · ' + extra : ''} · ${esc(z17AtText())}</div><div class="z17-key"><span><i style="background:${color}"></i>잔여</span><span><i style="background:#dadde2"></i>매진</span><span><i style="background:#f6c453"></i>선택 중</span>${st.na ? '<span><i style="background:#f1f3f6;border:1px solid #d5d9e0"></i>판매 대상 아님</span>' : ''}</div>
+      return `${head}<div class="tk-live-modal-sub">잔여 ${st.free.toLocaleString()} / 전체 ${st.total.toLocaleString()}석${extra ? ' · ' + extra : ''} · ${esc(z17AtText())}</div><div class="z17-key"><span><i style="background:${color}"></i>잔여</span><span><i style="background:#dadde2"></i>매진</span><span title="다른 분이 장바구니·결제 중이라 잠시 잡혀 있는 좌석(취소되면 다시 잔여로 돌아옴)"><i style="background:#f6c453"></i>선택 중</span>${st.na ? '<span><i style="background:#f1f3f6;border:1px solid #d5d9e0"></i>판매 대상 아님</span>' : ''}<span>※ 잔여 좌석을 누르면 29CM 예매 페이지로 이동</span></div>
         <div class="z17-front">▲ 무대 방향 (A열)</div><div class="tk-live-modal-rows z17-scroll">${body}</div>`;
     }
     function z17EnsureModal() {
@@ -15225,13 +15229,13 @@
       const sorted = data.slice().sort((a, b) => ((b.free > 0) - (a.free > 0)) || (b.free - a.free) || String(a.z.n).localeCompare(String(b.z.n), 'ko', { numeric: true }));
       const body = sorted.map(d => {
         const color = z17Color(d.z);
-        const seatsHtml = d.seq.map(q => `<i style="background:${z17SeatColor(q.c, color)}" title="${esc(d.z.n)} ${esc(d.row)}열 ${esc(q.col)}번 · ${z17SeatWord(q.c)}"></i>`).join('');
+        const seatsHtml = d.seq.map(q => `<i${q.c === '0' ? ' class="z17-go" onclick="z17GoTicket(event)"' : ''} style="background:${z17SeatColor(q.c, color)}" title="${esc(d.z.n)} ${esc(d.row)}열 ${esc(q.col)}번 · ${z17SeatWord(q.c)}${q.c === '0' ? ' (누르면 29CM 예매 페이지로 이동)' : ''}"></i>`).join('');
         const remain = d.free > 0 ? `<span class="tk-row1-remain">잔여 ${d.free}석</span>` : (d.held > 0 ? `<span class="tk-row1-remain none">선택 중 ${d.held}</span>` : `<span class="tk-row1-remain none">매진</span>`);
         return `<div class="tk-row1-zone${d.free > 0 ? ' has' : ''}" onclick="z17OpenZone(${d.z.id})" title="${esc(d.z.n)} 구역 전체 좌석 보기"><b>${esc(d.z.n)}</b><span class="tk-row1-rowtag">${esc(d.row)}열</span><span class="tk-row1-seats">${seatsHtml}</span>${remain}</div>`;
       }).join('');
       return `<div class="tk-live-modal-head"><b>${labels[z17Nth - 1]} 바로 찾기</b><span style="color:var(--dim);font-size:12px">구역별 무대 최근접 열</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>
         <div class="tk-row1-top">${sel}<span class="tk-row1-sum">${free > 0 ? `잔여 <b>${free}석</b>` : '잔여 없음'}</span></div>
-        <div class="tk-row1-note top">잔여(컬러) · 매진(회색) · 선택 중(노랑) · 구역을 누르면 그 구역 전체 좌석<br>※ ${esc(z17AtText())} · 약 20초 단위로 자동 갱신됩니다</div>
+        <div class="tk-row1-note top">잔여(컬러) · 매진(회색) · 선택 중(노랑) · 구역을 누르면 그 구역 전체 좌석 · 잔여 좌석을 누르면 29CM 예매 페이지<br>※ ${esc(z17AtText())} · 약 20초 단위로 자동 갱신됩니다</div>
         <div class="tk-row1-list">${body || '<div class="tk-live-zone-loading">불러오는 중…</div>'}</div>`;
     }
     function z17SetNth(v) { const n = parseInt(v, 10); if (n >= 1 && n <= 15) { z17Nth = n; z17RefreshModal(); } }
