@@ -13914,6 +13914,13 @@
         holds: { '스탠다드': 440, '골드': 174, '플로어': 78, '이코노미': 70 },
         revNote: ' 미분류 762석(29CM 판매 API에 잡히지 않아 일반 예매 불가 — 스탠다드 440·골드 174·플로어 78·이코노미 70석)은 유료 판매 여부를 확인할 수 없어 제외한 값과 포함한 값을 함께 표시합니다.',
       },
+      // 2026-11-02 블랙컴뱃 17: 29CM 구역 도면(회색 포함)의 전체 좌석을 총원으로 쓴다.
+      // 판매 등급이 없는 구역 좌석(334석)은 등급별 총원엔 없고 전체 좌석에만 포함(사전/현재 판매 모두 회색).
+      'bc17_vantablack_2026_1121': {
+        includedInTotals: false,
+        holds: {},
+        revNote: ' 등급 미배정 334석(예매 화면에서 회색 표시)은 유료 판매 여부를 확인할 수 없어 제외한 값과 포함한 값을 함께 표시합니다.',
+      },
       'road_2026_0811': {
         includedInTotals: false,
         holds: { 'S석(지정석)': 380, '일반석(지정석)': 141, 'VIP 플로어(1열)': 13, 'VIP 플로어(2열)': 15 },
@@ -15890,7 +15897,7 @@
         </div>
         <div class="tk-total-num">총 ${sumTotal.toLocaleString()}석 중 ${sold.toLocaleString()}석 판매 (${pct}%) · 잔여 ${sumRemainForTotal.toLocaleString()}석</div>
         <div class="tk-bar tk-total-bar"><i style="width:${Math.min(100, Math.max(0, pct))}%"></i></div>
-        ${TK_TOTAL_NOTE_BY_EVENT[eventKey] ? `<div class="sub" style="margin-top:8px;font-size:11px;color:#d93025;line-height:1.6">※ 다이아석, 1층 커플석(2인), 2층 커플석(2인), 스카이박스 20인룸·14인룸 등 5개 등급은 29CM 티켓 구매 페이지에 판매 좌석이 등록되어 있지 않습니다.<br>18시 오픈 시점부터 구매와 집계가 모두 불가능하므로, 해당 5개 등급은 제외하고 집계합니다.</div>` : ''}
+        ${TK_TOTAL_NOTE_BY_EVENT[eventKey] ? `<div class="sub" style="margin-top:8px;font-size:11px;color:#d93025;line-height:1.6">※ 다이아석, 1층 커플석(2인), 2층 커플석(2인), 스카이박스 20인룸·14인룸 등 5개 등급은 29CM 티켓 구매 페이지에 판매 좌석이 등록되어 있지 않습니다.<br>18시 오픈 시점부터 구매와 집계가 모두 불가능하므로, 해당 5개 등급은 등급별 현황에서 제외합니다.<br>※ 전체 좌석에는 29CM 구역 도면의 좌석(회색 표시 포함)이 모두 포함되며, 사전 판매와 현재 판매는 모두 판매로 집계합니다.</div>` : ''}
         ${roundBreakdownHTML}
         ${estimateNoteHTML}
         ${bulkTopHTML}
