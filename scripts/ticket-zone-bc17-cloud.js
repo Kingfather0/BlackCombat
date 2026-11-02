@@ -10,6 +10,7 @@
 
 const { chromium } = require('playwright');
 const crypto = require('crypto');
+const zlib = require('zlib');
 const { collectInPage } = require('./z17-page-collect');
 
 const SB = process.env.SUPABASE_URL, SB_KEY = process.env.SUPABASE_ANON_KEY, PASS = process.env.ADMIN_PASS;
@@ -44,7 +45,7 @@ async function loadSession() {
   const stored = await sbGet('z17_session_enc');
   if (stored && stored.data) { try { const s = JSON.parse(decrypt(stored)); console.log('저장된(갱신된) 세션을 사용합니다.'); return s; } catch (e) { console.log('저장된 세션을 풀지 못해 Secret 값을 사용합니다.'); } }
   if (!INIT) bail('Z17_SESSION(Secret)이 없습니다. ticket-zone-bc17-login.js로 만들어 등록해 주세요.');
-  try { return JSON.parse(INIT); } catch (e) { bail('Z17_SESSION이 올바른 JSON이 아닙니다.'); }
+  try { return JSON.parse(INIT.startsWith('gz:') ? zlib.gunzipSync(Buffer.from(INIT.slice(3), 'base64')).toString('utf8') : INIT); } catch (e) { bail('Z17_SESSION 형식이 올바르지 않습니다.'); }
 }
 
 (async () => {
