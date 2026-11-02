@@ -1313,7 +1313,7 @@
        구역마다 시작 열이 달라(대부분 1열, 일부 2·3·4·8열) 절대 열 번호가 아닌 구역별 min 열 기준. */
     .z17-wrap { max-width: 640px; margin: 0 auto; }
     @media (min-width: 1024px) {
-      .z17-grid { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 32px; align-items: start; }
+      .z17-grid { display: grid; grid-template-columns: minmax(0, 8fr) minmax(0, 3fr); gap: 28px; align-items: start; }
       .z17-wrap { max-width: none; margin: 0; }
       .z17-side > .z17-sp-title:first-child { margin-top: 0; }
       body[data-route="tickets"] .tk-dash-map .tk-dash-col > .card { padding: 12px 0 !important; }
@@ -1332,8 +1332,11 @@
     .z17-chip.off { background: #e9ecf1; color: #6b7280; }
     .z17-chip span { opacity: .9; font-size: 10.5px; }
     .z17-row { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
-    .z17-row-seats { position: relative; height: 9px; flex: none; display: block; }
-    .z17-row-seats i { position: absolute; top: 0; width: 8px; height: 8px; border-radius: 2px; display: block; }
+    .z17-row-seats { position: relative; height: 12px; flex: none; display: block; }
+    .z17-row-seats i { position: absolute; top: 0; width: 11px; height: 11px; border-radius: 50%; display: block; }
+    .z17-key { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0 6px; font-size: 11.5px; color: var(--dim); }
+    .z17-key i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: -1px; margin-right: 4px; }
+    .z17-front { text-align: center; font-size: 11.5px; font-weight: 700; color: #6b7280; background: #eceef2; border-radius: 6px; padding: 4px 0; margin-bottom: 6px; }
     .z17-scroll { overflow: auto; max-height: 60vh; }
     .tk-row1-seats { flex-wrap: wrap; }
     .tk-row1-btn {
@@ -14944,7 +14947,7 @@
        사이트에서 29CM API를 직접 부를 수 없어, 수집 봇(scripts/ticket-zone-bc17.js)이 10분마다 읽어
        site_data 'tk_layout_bc17'(구역별 좌석 배치, 정적)과 'tk_state_bc17'(좌석 상태 문자열)에 저장한다.
        상태 문자: 1=판매 · 0=판매중 · h=선택 중(장바구니) · -=판매 대상 아님/미확인.
-       경기장 전체 위치 좌표는 29CM 데이터에 없어서, 층별 링(1~4층) + 플로어 격자로 근사해 그렸다. */
+       구역 지도는 29CM 구역도 이미지의 윤곽(Z17_POLY)을 그대로 옮긴 것이다. */
     const Z17_EVENT = 'bc17_vantablack_2026_1121';
     const Z17_GRADE_NAME = { '001': '블랙티넘 2인 테이블', '002': '블랙티넘', '003': '선수입장로석', '004': '로얄석', '005': '플로어석', '006': '플로어 이코노미', '007': '다이아석', '008': '1층 테이블석(2인)', '009': '1층 테이블석(3인)', '010': '1층 스탠다드', '011': '1층 이코노미', '012': '1층 커플석(2인)', '013': '2층 테이블석(2인)', '014': '2층 테이블석(3인)', '015': '2층 스탠다드', '016': '2층 이코노미', '017': '2층 커플석(2인)', '018': '스카이박스 20인룸', '019': '스카이박스 14인룸', '020': '스카이박스 9인룸', '021': '스카이박스 6인룸', '022': '3층 지정석', '023': '4층 지정석', '024': '휠체어석' };
     const Z17_SKY = { S01: '018', S16: '018', S06: '019', S11: '019', S03: '020', S04: '020', S12: '020', S14: '020', S07: '021', S08: '021' };
@@ -14982,35 +14985,30 @@
       for (let i = 0; i < s.length; i++) { const c = s[i]; if (c === '0') free++; else if (c === '1') sold++; else if (c === 'h') held++; else na++; }
       return { s, free, sold, held, na, total: s.length };
     }
-    // 구역 → 도형 (층별 링 · 플로어 격자 · 특수석 칩)
+    // 구역 → 도형: 29CM 구역 지도(1174x920) 윤곽을 그대로 옮긴 다각형
+    const Z17_POLY = {"F216":"434,124 465,148 499,118 442,115","F201":"754,123 747,115 690,117 724,148","F215":"339,169 417,191 454,157 434,139 384,127","F202":"849,169 803,127 757,139 735,157 771,191","F118":"505,127 474,157 528,202 530,195","F102":"683,127 658,196 662,202 714,157","F119":"523,131 542,187 568,185 568,146 530,128","F101":"659,128 619,147 621,185 646,188 667,133","F117":"431,195 507,216 515,212 465,166","F103":"757,195 724,166 674,212 680,216","F214":"310,236 395,236 410,204 335,183","F203":"879,236 853,183 779,204 793,236","B05":"542,199 542,206 548,220 570,216 570,196 553,196","B01":"618,196 617,216 641,220 647,206 647,199 635,196","F116":"409,236 492,236 498,229 422,207","F104":"780,236 766,207 691,229 697,236","B04":"508,231 495,244 495,304 505,317 526,313 515,299 514,279 515,250 526,234","B02":"681,231 663,234 674,249 674,300 663,313 684,317 694,304 694,244","F213":"393,249 310,250 310,300 393,300","F115":"407,249 407,300 488,299 488,249","F105":"701,249 701,300 781,300 781,249","F204":"796,249 796,300 878,300 878,249","F212":"326,311 361,358 409,345 395,310","F114":"409,311 422,341 498,319 492,311","F106":"691,319 767,341 780,311 697,311","F205":"779,345 827,360 863,311 793,311","B03":"547,347 562,353 627,353 643,347 639,325 550,325","F107":"674,336 724,382 756,354 683,332","F113":"514,336 503,333 433,355 464,382","F112":"525,345 474,392 504,421 530,352","F108":"663,346 659,352 683,421 715,391","F211":"419,358 372,371 407,415 436,408 454,392","F206":"770,358 735,392 753,408 782,415 817,372","F111":"545,358 520,430 553,442 553,360","F109":"643,358 635,361 636,442 669,430","F110":"566,362 566,419 622,419 622,362","F210":"464,401 445,418 436,454 477,503 502,433","F207":"725,401 687,433 712,503 753,453 744,419","F209":"515,440 493,507 538,524 540,462 550,452","F208":"672,440 639,452 648,462 650,524 696,507","114":"215,252 210,319 265,306 264,301 241,281 239,272","113":"291,317 281,308 212,327 234,352","112":"296,323 238,357 252,376 310,343","111":"302,357 257,382 277,408 321,382","110":"326,388 283,414 304,441 348,416","109":"368,413 310,448 332,476 381,448 381,428","108":"381,457 338,482 362,512 382,500","101":"974,252 950,272 948,281 923,306 980,318","102":"898,317 955,352 976,327 908,308","103":"893,323 878,343 937,376 951,357","104":"887,357 868,381 912,408 931,382","105":"863,388 841,416 883,442 906,413","106":"821,413 808,427 808,446 857,476 879,448","107":"808,456 806,499 827,512 851,481","210":"198,327 193,398 201,407 220,397 225,388 240,379","201":"991,326 948,378 988,408 996,400","209":"252,392 206,412 225,439 268,414","202":"937,391 920,414 964,440 984,413 966,402 959,403","208":"275,420 232,445 252,473 272,462 293,444","203":"914,420 895,444 912,454 917,462 938,473 957,445","207":"302,455 257,479 279,508 323,482","204":"887,455 867,477 866,482 910,508 932,479","206":"352,513 328,488 285,516 294,526 312,518 325,532 330,533 334,526","205":"836,514 855,526 859,533 876,518 895,526 904,515 861,488","322":"174,435 156,447 156,449 180,477 199,464 179,438","321":"202,471 184,483 209,512 227,499 205,471","320":"231,505 213,518 238,549 244,553 261,541","319":"265,547 247,559 273,591 279,594 295,583","318":"299,589 282,600 307,630 310,631 326,621","317":"330,626 313,638 341,670 356,658","316":"359,665 344,676 366,701 369,701 383,689 383,686 364,666","315":"387,694 371,707 395,734 412,717","314":"400,738 457,769 468,749 418,722","313":"464,771 540,786 542,762 474,751","312":"549,763 547,786 591,786 588,763","301":"1015,435 1010,438 990,464 1008,478 1033,449 1033,447","302":"987,471 981,474 962,499 980,512 1004,484","303":"959,506 928,541 944,553 977,518","304":"923,547 894,583 911,594 942,559","305":"890,589 864,620 865,623 879,631 882,630 907,600","306":"860,627 851,634 833,658 848,670 876,638","307":"829,664 827,664 806,686 806,689 821,701 828,696 845,676","308":"802,694 777,717 794,734 818,707","309":"789,738 771,722 721,750 732,770","310":"725,773 715,751 647,763 649,786","311":"601,763 598,786 642,787 640,763","424":"148,452 124,467 142,553 181,530 180,526 198,513","423":"209,525 182,536 144,561 160,605 235,558","422":"240,564 164,611 184,654 266,597","421":"277,609 251,619 187,660 207,693 299,638","420":"304,643 211,699 235,733 306,691 327,672","419":"338,683 240,739 274,775 359,708","418":"366,712 281,779 315,811 373,756 372,751 386,737","417":"420,758 399,748 383,762 379,760 324,817 362,841","416":"429,762 368,846 409,868 451,776","415":"465,781 419,871 469,888 496,786","414":"503,788 476,889 530,899 538,818 533,811 534,793","413":"551,793 537,900 591,904 591,793","401":"1039,451 991,513 1046,553 1065,467","402":"979,525 954,558 1029,605 1043,560","403":"949,564 923,598 1005,654 1025,612","404":"913,608 890,638 982,693 1002,660","405":"885,643 862,672 880,689 952,733 977,700","406":"830,706 915,775 947,740 855,684","407":"823,712 801,737 874,812 909,779","408":"769,757 827,844 866,817 810,759 790,747","409":"761,762 738,777 780,868 820,846","410":"724,781 693,786 719,888 770,871 737,798","411":"686,788 653,793 659,900 712,889","412":"598,793 598,902 649,902 640,795","T07":"385,506 368,518 417,575 434,564","T06":"437,570 421,580 457,626 472,609","T05":"464,630 489,645 536,656 537,636 504,629 480,616","T04":"547,639 547,656 642,656 642,639","T03":"725,630 709,616 685,629 652,636 653,656 700,645","T02":"751,570 717,609 732,626 768,580","T01":"804,506 756,565 774,575 820,520","T17":"342,539 383,591 403,578 369,536 356,530","T16":"407,593 392,605 418,638 430,645 447,627 420,597","T15":"445,652 447,657 478,676 484,670 516,678 515,661 487,655 460,640","T11":"833,530 820,536 786,575 805,591 847,540","T12":"796,602 782,593 770,596 742,629 759,645 770,638 797,605","T13":"744,653 729,640 704,655 674,661 672,675 676,678 699,670 713,674","D07":"483,555 465,566 478,583 497,574","D06":"477,591 494,611 514,622 528,600 509,588 502,579","D05":"526,616 550,626 565,626 564,610 533,604","D04":"617,610 571,611 572,627 618,626","D03":"663,616 656,604 624,610 625,626 639,626","D02":"710,592 687,579 671,595 661,601 675,622 695,610","D01":"706,555 692,574 710,584 714,580 721,564","S16":"309,526 281,541 280,547 318,593 349,561 331,540 321,538","S15":"355,568 323,598 332,611 364,579","S14":"369,585 337,617 347,628 379,597","S13":"384,603 352,635 363,647 392,618","S12":"398,623 368,653 377,665 407,635","S11":"427,651 411,641 383,672 397,681","S10":"435,655 403,686 420,696 448,667 446,663","S09":"474,681 456,670 427,700 445,710","S01":"879,526 858,540 840,561 871,593 909,547 909,542","S02":"834,568 825,579 857,611 866,598","S03":"820,585 810,597 842,628 852,617","S04":"805,603 796,617 826,647 837,635","S05":"791,623 781,634 812,665 821,653","S06":"776,640 771,646 762,651 793,681 806,672 806,670","S07":"741,665 769,696 786,686 756,655","S08":"715,681 744,710 762,700 733,670"};
+    const Z17_DECOR = {"stage":"487,23 486,96 577,137 577,230 547,258 547,292 575,317 612,317 639,292 639,258 610,231 610,137 702,96 702,24","g1":"533,248 533,300 541,300 541,248","g2":"648,248 647,300 656,300 656,249","g3":"308,352 355,411 362,405 315,348","g4":"881,353 874,349 827,405 834,411","g5":"391,442 392,496 452,568 478,549","g6":"798,442 711,549 737,568 797,495"};
+    function z17Centroid(pts) {
+      let a = 0, cx = 0, cy = 0;
+      for (let i = 0; i < pts.length; i++) {
+        const [x0, y0] = pts[i], [x1, y1] = pts[(i + 1) % pts.length], w = x0 * y1 - x1 * y0;
+        a += w; cx += (x0 + x1) * w; cy += (y0 + y1) * w;
+      }
+      return Math.abs(a) < 1 ? pts[0] : [cx / (3 * a), cy / (3 * a)];
+    }
     function z17Build() {
       const zs = Z17.layout.zones.slice();
       const num = n => parseInt(String(n).replace(/\D/g, ''), 10) || 0;
       const geoms = [];
-      const C = 500, tiers = { 1: [300, 345], 2: [350, 392], 3: [397, 440], 4: [445, 488] };
-      [1, 2, 3, 4].forEach(t => {
-        const list = zs.filter(z => /^\d{3}$/.test(z.n) && +z.n[0] === t).sort((a, b) => num(a.n) - num(b.n));
-        const n = list.length, step = Math.PI * 2 / Math.max(1, n), gap = 0.012;
-        list.forEach((z, i) => {
-          const a0 = -Math.PI / 2 + i * step + gap, a1 = -Math.PI / 2 + (i + 1) * step - gap;
-          const [r0, r1] = tiers[t];
-          const P = (r, a) => (C + r * Math.cos(a)).toFixed(1) + ',' + (C + r * Math.sin(a)).toFixed(1);
-          const large = (a1 - a0) > Math.PI ? 1 : 0;
-          const d = `M${P(r1, a0)} A${r1},${r1} 0 ${large} 1 ${P(r1, a1)} L${P(r0, a1)} A${r0},${r0} 0 ${large} 0 ${P(r0, a0)} Z`;
-          const am = (a0 + a1) / 2, rm = (r0 + r1) / 2;
-          geoms.push({ z, d, lx: C + rm * Math.cos(am), ly: C + rm * Math.sin(am), fs: t >= 3 ? 10 : 12 });
-        });
+      zs.forEach(z => {
+        const str = Z17_POLY[z.n];
+        if (!str) return;
+        const pts = str.split(' ').map(p => p.split(',').map(Number));
+        const [lx, ly] = z17Centroid(pts);
+        const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+        const area = (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys));
+        geoms.push({ z, d: 'M' + pts.map(p => p.join(',')).join('L') + 'Z', lx, ly, fs: area < 2600 ? 9 : 11 });
       });
-      const grid = (list, x0, y0, w, h, cols) => {
-        const rows = Math.ceil(list.length / cols), tw = w / cols, th = h / rows;
-        list.forEach((z, i) => {
-          const x = x0 + (i % cols) * tw, y = y0 + Math.floor(i / cols) * th;
-          geoms.push({ z, rect: [x + 1, y + 1, tw - 2, th - 2], lx: x + tw / 2, ly: y + th / 2, fs: 10 });
-        });
-      };
-      grid(zs.filter(z => /^B\d/.test(z.n)).sort((a, b) => num(a.n) - num(b.n)), 300, 336, 400, 26, 5);
-      grid(zs.filter(z => /^F1\d\d$/.test(z.n)).sort((a, b) => num(a.n) - num(b.n)), 300, 366, 196, 326, 4);
-      grid(zs.filter(z => /^F2\d\d$/.test(z.n)).sort((a, b) => num(a.n) - num(b.n)), 504, 366, 196, 326, 4);
       Z17.geoms = geoms;
       Z17.specials = {
         '테이블석': zs.filter(z => /^T\d/.test(z.n)).sort((a, b) => num(a.n) - num(b.n)),
@@ -15034,13 +15032,12 @@
       if (!Z17.geoms) return '';
       const parts = Z17.geoms.map(g => {
         const st = z17Stat(g.z), f = z17ZoneFill(g.z, st);
-        const shape = g.d ? `<path d="${g.d}" fill="${f.fill}" fill-opacity="${f.op}" class="z17-shape ${f.cls}"/>` : `<rect x="${g.rect[0].toFixed(1)}" y="${g.rect[1].toFixed(1)}" width="${g.rect[2].toFixed(1)}" height="${g.rect[3].toFixed(1)}" rx="3" fill="${f.fill}" fill-opacity="${f.op}" class="z17-shape ${f.cls}"/>`;
         const dark = f.cls === 'z17-off' || f.cls === 'z17-load';
-        const sub = (st && st.free > 0) ? `<tspan x="${g.lx.toFixed(1)}" dy="1.15em" font-weight="700">${st.free}</tspan>` : '';
-        return `<g class="z17-g" onclick="z17OpenZone(${g.z.id})"><title>${esc(z17TitleOf(g.z, st))}</title>${shape}<text x="${g.lx.toFixed(1)}" y="${(g.ly - (sub ? g.fs * 0.45 : -g.fs * 0.35)).toFixed(1)}" text-anchor="middle" font-size="${g.fs}" class="z17-lbl${dark ? ' dark' : ''}">${esc(g.z.n)}${sub}</text></g>`;
+        return `<g class="z17-g" onclick="z17OpenZone(${g.z.id})"><title>${esc(z17TitleOf(g.z, st))}</title><path d="${g.d}" fill="${f.fill}" fill-opacity="${f.op}" class="z17-shape ${f.cls}"/><text x="${g.lx.toFixed(1)}" y="${(g.ly + g.fs * 0.35).toFixed(1)}" text-anchor="middle" font-size="${g.fs}" class="z17-lbl${dark ? ' dark' : ''}">${esc(g.z.n)}</text></g>`;
       }).join('');
-      return `<svg viewBox="0 0 1000 1000" class="z17-svg" preserveAspectRatio="xMidYMid meet">
-        <rect x="380" y="296" width="240" height="30" rx="6" class="z17-stage"/><text x="500" y="315" text-anchor="middle" font-size="14" class="z17-stage-t">STAGE</text>${parts}</svg>`;
+      const decor = ['stage', 'g1', 'g2', 'g3', 'g4', 'g5', 'g6'].map(k => `<polygon points="${Z17_DECOR[k]}" fill="${k === 'stage' ? '#bcbcbc' : (k === 'g1' || k === 'g2' ? '#bdbdbd' : '#d9d9d9')}"/>`).join('');
+      const tier = (t, x, y) => `<rect x="${x - 33}" y="${y - 14}" width="66" height="28" rx="14" fill="#e6e6e6"/><text x="${x}" y="${y + 5}" text-anchor="middle" font-size="15" font-weight="700" fill="#444">${t}</text>`;
+      return `<svg viewBox="50 10 1074 910" class="z17-svg" preserveAspectRatio="xMidYMid meet">${decor}<text x="594" y="281" text-anchor="middle" font-size="19" font-weight="700" fill="#fff">케이지</text>${tier('플로어', 263, 236)}${tier('1층', 1017, 286)}${tier('2층', 157, 368)}${tier('3층', 1086, 440)}${tier('4층', 88, 503)}${parts}</svg>`;
     }
     function z17SpecialHTML() {
       if (!Z17.specials) return '';
@@ -15082,8 +15079,8 @@
       if (!Z17.layout) { box.innerHTML = '<div class="sub" style="padding:14px 4px;color:var(--dim)">불러오는 중…</div>'; return; }
       if (!Z17.geoms) z17Build();
       const stale = Z17.state && Z17.state.at && (Date.now() - new Date(Z17.state.at).getTime()) > 10 * 60000;
-      box.innerHTML = `<div class="z17-grid"><div class="z17-wrap">${z17MapSvg()}</div><div class="z17-side">${z17SpecialHTML()}<div class="tk-live-legend" style="margin-top:12px">${z17LegendHTML()}</div>
-        <div class="sub" style="margin-top:8px;font-size:11px;color:var(--dim);line-height:1.6">${esc(z17AtText())}${stale ? ' · 갱신이 지연되고 있습니다' : ''}<br>※ 29CM 구역 배치를 근사해 그린 약식 지도입니다(실제 위치와 다를 수 있음). 정확한 좌석은 29CM에서 확인하세요.</div></div></div>`;
+      box.innerHTML = `<div class="z17-grid"><div class="z17-wrap">${z17MapSvg()}</div><div class="z17-side"><div class="tk-live-legend">${z17LegendHTML()}</div>
+        <div class="sub" style="margin-top:8px;font-size:11px;color:var(--dim);line-height:1.6">${esc(z17AtText())}${stale ? ' · 갱신이 지연되고 있습니다' : ''}<br>※ 29CM 구역도와 같은 모양으로 그린 지도입니다. 구역을 누르면 좌석별 현황이 열립니다.</div></div></div>`;
       const badge = document.getElementById('z17Badge');
       if (badge) {
         const d = z17FrontData(1);
@@ -15127,14 +15124,14 @@
       let prevY = null, body = '';
       z17Rows(z).forEach(r => {
         const maxX = r.seats.reduce((m, s) => Math.max(m, s.x), 0);
-        const seatsHtml = r.seats.map((s, i) => { const c = st.s[r.off + i] || '-'; return `<i style="left:${s.x * 4.5}px;background:${z17SeatColor(c, color)}" title="${esc(z.n)} ${esc(r.k)}열 ${esc(s.col)}번 · ${z17SeatWord(c)}"></i>`; }).join('');
+        const seatsHtml = r.seats.map((s, i) => { const c = st.s[r.off + i] || '-'; return `<i style="left:${s.x * 6}px;background:${z17SeatColor(c, color)}" title="${esc(z.n)} ${esc(r.k)}열 ${esc(s.col)}번 · ${z17SeatWord(c)}"></i>`; }).join('');
         if (prevY !== null && r.y - prevY > 1.6) body += '<div class="tk-live-aisle">통로</div>';
         prevY = r.y;
-        body += `<div class="z17-row"><span class="tk-live-row-num">${esc(r.k)}열</span><span class="z17-row-seats" style="width:${maxX * 4.5 + 9}px">${seatsHtml}</span></div>`;
+        body += `<div class="z17-row"><span class="tk-live-row-num">${esc(r.k)}열</span><span class="z17-row-seats" style="width:${maxX * 6 + 12}px">${seatsHtml}</span></div>`;
       });
       const extra = [st.held ? `선택 중 ${st.held}석` : '', st.na ? `판매 대상 아님 ${st.na}석` : ''].filter(Boolean).join(' · ');
-      return `${head}<div class="tk-live-modal-sub">잔여 ${st.free.toLocaleString()} / 전체 ${st.total.toLocaleString()}석${extra ? ' · ' + extra : ''} · ${esc(z17AtText())}<br>위쪽(A열)이 무대에 가까운 쪽입니다 · 회색=매진 · 노랑=다른 분이 선택 중</div>
-        <div class="tk-live-modal-rows z17-scroll">${body}</div>`;
+      return `${head}<div class="tk-live-modal-sub">잔여 ${st.free.toLocaleString()} / 전체 ${st.total.toLocaleString()}석${extra ? ' · ' + extra : ''} · ${esc(z17AtText())}</div><div class="z17-key"><span><i style="background:${color}"></i>잔여</span><span><i style="background:#dadde2"></i>매진</span><span><i style="background:#f6c453"></i>선택 중</span>${st.na ? '<span><i style="background:#f1f3f6;border:1px solid #d5d9e0"></i>판매 대상 아님</span>' : ''}</div>
+        <div class="z17-front">▲ 무대 방향 (A열)</div><div class="tk-live-modal-rows z17-scroll">${body}</div>`;
     }
     function z17EnsureModal() {
       let modal = document.getElementById('z17-modal');
@@ -15194,8 +15191,8 @@
         return `<div class="tk-row1-zone${d.free > 0 ? ' has' : ''}" onclick="z17OpenZone(${d.z.id})" title="${esc(d.z.n)} 구역 전체 좌석 보기"><b>${esc(d.z.n)}</b><span class="tk-row1-rowtag">${esc(d.row)}열</span><span class="tk-row1-seats">${seatsHtml}</span>${remain}</div>`;
       }).join('');
       return `<div class="tk-live-modal-head"><b>${labels[z17Nth - 1]} 바로 찾기</b><span style="color:var(--dim);font-size:12px">구역별 무대 최근접 열</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>
-        <div class="tk-row1-top">${sel}<span class="tk-row1-sum">${free > 0 ? `잔여 <b>${free}석</b>` : '잔여 없음'}</span><button type="button" class="tk-row1-refresh" onclick="z17FrontRefresh(this)">↻ 새로고침</button></div>
-        <div class="tk-row1-note top">잔여(컬러) · 매진(회색) · 선택 중(노랑) · 구역을 누르면 그 구역 전체 좌석<br>※ ${esc(z17AtText())} · 새로고침(↻)하면 최신 현황을 다시 불러옵니다</div>
+        <div class="tk-row1-top">${sel}<span class="tk-row1-sum">${free > 0 ? `잔여 <b>${free}석</b>` : '잔여 없음'}</span></div>
+        <div class="tk-row1-note top">잔여(컬러) · 매진(회색) · 선택 중(노랑) · 구역을 누르면 그 구역 전체 좌석<br>※ ${esc(z17AtText())} · 1분 단위로 자동 갱신됩니다</div>
         <div class="tk-row1-list">${body || '<div class="tk-live-zone-loading">불러오는 중…</div>'}</div>`;
     }
     function z17SetNth(v) { const n = parseInt(v, 10); if (n >= 1 && n <= 15) { z17Nth = n; z17RefreshModal(); } }
@@ -15210,7 +15207,7 @@
     }
     function z17CardHTML() {
       return `
-      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">새로고침 시 최신 현황 갱신</span></div>
+      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">1분 단위 자동 갱신</span></div>
       <div class="card">
         <button type="button" class="tk-row1-btn" onclick="z17OpenFront()">맨 앞열 바로 찾기 <span class="tk-row1-badge" id="z17Badge">불러오는 중…</span></button>
         <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">매진(회색) 잔여(컬러) · 구역을 누르면 좌석 배치 확인</div>
@@ -16396,7 +16393,7 @@
       // 구역별 실시간 좌석 현황 — 이 행사(BC_2026_0829)에서만, "전체 좌석"과 "잔여 좌석" 사이에 넣는다.
       const liveZonesEnabled = (eventKey === 'BC_2026_0829');
       const liveZonesHTML = liveZonesEnabled ? `
-      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">새로고침 시 최신 현황 갱신</span></div>
+      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">1분 단위 자동 갱신</span></div>
       <div class="card">
         <button type="button" class="tk-row1-btn" onclick="tkRow1OpenModal()">맨 앞열 바로 찾기 <span class="tk-row1-badge" id="tkRow1Badge">불러오는 중…</span></button>
         <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">매진(회색) 잔여(컬러) · 정확한 좌석은 29CM 확인 · 구역 선택 시 좌석 오픈</div>
