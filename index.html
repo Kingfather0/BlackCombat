@@ -1312,6 +1312,13 @@
        사람들이 취소표를 노리고 구역을 하나하나 눌러 앞열을 확인하는 불편을 없애는 기능.
        구역마다 시작 열이 달라(대부분 1열, 일부 2·3·4·8열) 절대 열 번호가 아닌 구역별 min 열 기준. */
     .z17-wrap { max-width: 640px; margin: 0 auto; }
+    @media (min-width: 1024px) {
+      .z17-grid { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 32px; align-items: start; }
+      .z17-wrap { max-width: none; margin: 0; }
+      .z17-side > .z17-sp-title:first-child { margin-top: 0; }
+      body[data-route="tickets"] .tk-dash-map .tk-dash-col > .card { padding: 12px 0 !important; }
+    }
+    .tk-dash-map { margin-top: 6px; }
     .z17-svg { width: 100%; height: auto; display: block; }
     .z17-shape { stroke: #fff; stroke-width: 1.5; cursor: pointer; }
     .z17-shape.z17-off, .z17-shape.z17-load { stroke: #fff; }
@@ -15075,8 +15082,8 @@
       if (!Z17.layout) { box.innerHTML = '<div class="sub" style="padding:14px 4px;color:var(--dim)">불러오는 중…</div>'; return; }
       if (!Z17.geoms) z17Build();
       const stale = Z17.state && Z17.state.at && (Date.now() - new Date(Z17.state.at).getTime()) > 40 * 60000;
-      box.innerHTML = `<div class="z17-wrap">${z17MapSvg()}</div>${z17SpecialHTML()}<div class="tk-live-legend" style="margin-top:10px">${z17LegendHTML()}</div>
-        <div class="sub" style="margin-top:8px;font-size:11px;color:var(--dim);line-height:1.6">${esc(z17AtText())}${stale ? ' · 갱신이 지연되고 있습니다' : ''}<br>※ 29CM 구역 배치를 근사해 그린 약식 지도입니다(실제 위치와 다를 수 있음). 정확한 좌석은 29CM에서 확인하세요.</div>`;
+      box.innerHTML = `<div class="z17-grid"><div class="z17-wrap">${z17MapSvg()}</div><div class="z17-side">${z17SpecialHTML()}<div class="tk-live-legend" style="margin-top:12px">${z17LegendHTML()}</div>
+        <div class="sub" style="margin-top:8px;font-size:11px;color:var(--dim);line-height:1.6">${esc(z17AtText())}${stale ? ' · 갱신이 지연되고 있습니다' : ''}<br>※ 29CM 구역 배치를 근사해 그린 약식 지도입니다(실제 위치와 다를 수 있음). 정확한 좌석은 29CM에서 확인하세요.</div></div></div>`;
       const badge = document.getElementById('z17Badge');
       if (badge) {
         const d = z17FrontData(1);
@@ -29977,10 +29984,13 @@
         // (예전엔 등급 목록 옆에 추이 카드가 붙어서, 목록이 길어지면 일별/시간별 막대가 같이 세로로
         //  쭉 늘어났다.) 모바일은 CSS가 적용되지 않아 기존처럼 위→아래 한 줄로 나온다.
         var gradeCnt = R.body.reduce(function (a, c) { return a + c.querySelectorAll('.tk-grade').length; }, 0);
-        var wideGrades = !L.body.length && gradeCnt > 12;
+        var wideGrades = gradeCnt > 12;
+        var mapBlock = null;
         if (wideGrades) {
           main.classList.add('tk-grades-wide');
           main.style.setProperty('--tk-rows', Math.ceil(gradeCnt / 2));
+          // 구역 지도가 있으면(블랙컴뱃 17) 지도는 맨 위 전체 폭을 혼자 쓰고, 그 아래에서 등급을 12개씩 좌·우로 나눈다.
+          if (L.body.length) { mapBlock = mk('tk-dash-map'); mapBlock.appendChild(col(L.title, L.body)); }
           main.appendChild(col(R.title, [pie].concat(R.body)));
           if (D.body.length) { trends = mk('tk-dash-trends tk-trends-below'); trends.appendChild(col(D.title, D.body)); }
         } else if (L.body.length) {
@@ -30036,7 +30046,7 @@
         } else { H.body.forEach(function (c) { hist.appendChild(c); }); }
         var past = null;
         if (P.body.length) { past = mk('tk-dash-past'); P.title.forEach(function (t) { past.appendChild(t); }); P.body.forEach(function (c) { past.appendChild(c); }); }
-        var out = [h1, kpi, main]; if (trends) out.push(trends); out.push(hist); if (past) out.push(past);
+        var out = [h1, kpi]; if (mapBlock) out.push(mapBlock); out.push(main); if (trends) out.push(trends); out.push(hist); if (past) out.push(past);
         app.replaceChildren.apply(app, out.filter(Boolean));
         // KPI: "총 N석 중 M석 판매 (p%) · 잔여 R석" → 큰 판매율 + 한 줄 보조
         var tn = kpi.querySelector('.tk-total-num');
