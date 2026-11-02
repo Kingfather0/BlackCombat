@@ -27,6 +27,7 @@ const DEFAULT_FLAGS = {"탱크": "jp", "인디언킹": "br", "보로클": "mn", 
 const PINNED_FIGHTERS = [
   {div:'언더그라운드', nick:'더 크리플러', real:'크리스 리벤', w:20, l:12, d:0, flag:'us'},
   {div:'언더그라운드', nick:'섹시야마',   real:'추성훈',     w:16, l:7,  d:0, flag:'kr'},
+  {div:'밴텀급',       nick:'미스터 퍼펙트', real:'강경호',   w:19, l:11, d:0, flag:'kr'},
 ];
 
 function applyPinned(parsed, today){
