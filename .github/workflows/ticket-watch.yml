@@ -119,6 +119,19 @@ jobs:
           SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
           TICKET_BOT_SECRET: ${{ secrets.TICKET_BOT_SECRET }}
         run: node scripts/ticket-watch-29cm.js
+
+      # ── 블랙컴뱃 17 구역별 실시간 좌석 (29CM 행사 기록과 같은 주기로 함께 갱신) ──
+      # 사이트에서 29CM을 직접 부를 수 없어서 이 봇이 구역별 좌석 상태를 읽어 Supabase에 저장합니다.
+      # ADMIN_PASS(저장소 Secret)가 있을 때만 동작하고, 실패해도 위 기록에는 영향이 없습니다.
+      - name: (선택) 블랙컴뱃 17 구역별 좌석 갱신
+        if: ${{ !cancelled() && vars.ITEM_ID_29CM != '' && vars.TICKET_ZONE_BC17_ENABLED == 'true' }}
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          ADMIN_PASS: ${{ secrets.ADMIN_PASS }}
+        run: node scripts/ticket-zone-bc17.js
+
       - name: 실패 시 디버그 스크린샷 저장
         if: failure()
         uses: actions/upload-artifact@v4
