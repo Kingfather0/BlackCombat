@@ -11907,6 +11907,9 @@
     .mt-ch.on { background: rgba(17, 17, 17, .06); border-color: #111; color: #111; box-shadow: inset 0 0 0 1px #111; }
     .mt-f input:focus, .mt-f textarea:focus, .mt-sel:focus { border-color: #111; box-shadow: 0 0 0 3px rgba(0, 0, 0, .08); }
     .mt-form .mt-ch.on, .mt-form.c-watch .mt-ch.on, .mt-form.c-carpool .mt-ch.on, .mt-form.c-ticket .mt-ch.on, .mt-ch.on { box-shadow: none; border-width: 1px; }
+    /* 글쓰기 팝업: 등록하기 버튼을 스크롤 영역 맨 아래에 붙인다(아래 여백 때문에 버튼 밑으로 폼이 비쳐 보이던 문제) */
+    .modal-b:has(.mt-submit) { padding-bottom: 0; }
+    .modal-b:has(.mt-submit) .mt-submit { bottom: 0; margin: 0 -14px; padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 22%); }
     .mt-submit .mt-b.pri { background: #111; border-color: #111; color: #fff; }
     .mt-submit .mt-b.pri:hover { background: #333; border-color: #333; filter: none; }
     .mt-submit .mt-b.pri:disabled { background: #aaa; border-color: #aaa; }
@@ -29496,7 +29499,7 @@
         const b = q('mt-vfy');
         b.className = 'mt-b sm ' + (done ? 'okline' : 'gray');
         b.textContent = done ? '✓ 확인 완료' : (k === 'kakaoid' ? '카카오톡에서 검색해봤어요' : '열어서 확인');
-        q('mt-vhint').textContent = done ? '' : (k === 'openkakao' ? '링크가 열리는지 확인해야 진행할 수 있어요' : k === 'insta' ? '내 프로필이 열리는지 확인해야 진행할 수 있어요' : '카카오톡 ID 검색에서 나오는지 확인한 뒤 눌러주세요 (자동 확인은 어려워요)');
+        q('mt-vhint').textContent = done ? '' : (k === 'openkakao' ? '링크가 열리는지 확인해야 진행할 수 있어요' : k === 'insta' ? '내 프로필이 열리는지 확인해야 진행할 수 있어요' : '카카오톡 ID 검색에서 나오는지 확인한 뒤 눌러주세요');
       };
       root.querySelectorAll('.mt-chs[data-g="ckind"] .mt-ch').forEach(b => b.addEventListener('click', paint));
       q('mt-cval').addEventListener('input', paint);
