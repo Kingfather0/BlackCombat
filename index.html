@@ -11907,8 +11907,21 @@
     .hm-finder:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, .25); }
     .hm-finder:active { transform: translateY(0) scale(.99); }
     .hm-f-t { font-size: 17px; font-weight: 800; letter-spacing: -.03em; }
-    .z17-back { border: 1px solid #d5d9e0; background: #fff; color: #333; border-radius: 6px; font-size: 12px; font-weight: 700; padding: 5px 9px; cursor: pointer; white-space: nowrap; font-family: inherit; }
-    .z17-back:hover { background: #f3f4f6; }
+    @media (min-width: 900px) {
+      #z17-modal .tk-live-modal-inner { max-width: 760px; padding: 24px 28px; max-height: 88vh; }
+      #z17-modal .tk-live-modal-head { font-size: 17px; gap: 10px; }
+      #z17-modal .tk-live-modal-head b { font-size: 19px; }
+      #z17-modal .z17-scroll { max-height: 66vh; }
+      #z17-modal .z17-fz { padding: 12px 14px; margin: 8px 0; }
+      #z17-modal .z17-fz-h b { font-size: 16px; } #z17-modal .z17-fz-g { font-size: 13px; } #z17-modal .z17-fz-n { font-size: 14px; }
+      #z17-modal .z17-fs { font-size: 13px; padding: 5px 10px; }
+      #z17-modal .tk-row1-top, #z17-modal .tk-live-modal-sub { font-size: 14px; }
+      #z17-modal .tk-row1-note { font-size: 12.5px; }
+      #z17-modal .z17-back { font-size: 13px; padding: 6px 12px; }
+      #z17-modal .tk-live-modal-close { width: 32px; height: 32px; font-size: 14px; }
+    }
+    .z17-back { border: 0; background: #eceef1; color: #555; border-radius: 6px; font-size: 12px; font-weight: 700; padding: 5px 9px; cursor: pointer; white-space: nowrap; font-family: inherit; }
+    .z17-back:hover { background: #e1e4e8; }
     .hm-f-t { display: flex; align-items: center; gap: 8px; }
     .hm-f-t em { font-style: normal; font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: #D91E2B; color: #fff; }
     .hm-f-s { font-size: 13px; color: rgba(255, 255, 255, .75); }
@@ -15635,7 +15648,7 @@
       if (!z) return '';
       const st = z17Stat(z), color = z17Color(z);
       const zm = document.getElementById('z17-modal');
-      const back = zm && zm.dataset.from === 'front' ? '<button type="button" class="z17-back" onclick="z17OpenFront()">← 잔여석 찾기</button>' : '';
+      const back = zm && zm.dataset.from === 'front' ? '<button type="button" class="z17-back" onclick="z17OpenFront()">뒤로가기</button>' : '';
       const head = `<div class="tk-live-modal-head">${back}<b>${esc(z.n)}</b><span style="color:${color}">${esc(z17GradeLabel(z))}</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>`;
       if (!st) return `${head}<div class="tk-live-zone-loading">불러오는 중…</div>`;
       let prevY = null, body = '';
