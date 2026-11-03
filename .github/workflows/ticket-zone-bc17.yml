@@ -38,7 +38,7 @@ jobs:
           ADMIN_PASS: ${{ secrets.ADMIN_PASS }}
           Z17_SESSION: ${{ secrets.Z17_SESSION }}
           Z17_ENC_KEY: ${{ secrets.Z17_ENC_KEY }}
-          Z17_EVERY_SEC: '10'   # 빠른 회차 주기(초). 차단 조짐(401/403)이 보이면 15 이상으로 되돌릴 것
+          Z17_EVERY_SEC: '15'   # 빠른 회차 주기(초). 10초에서 약 6분 만에 세션 만료(401)가 나 15로 되돌림
         run: node scripts/ticket-zone-bc17-cloud.js
       # 이 실행이 정상적으로 끝나면(약 5시간 40분) 바로 다음 실행을 스스로 시작해 끊김 없이 이어간다.
       # (GitHub의 예약 실행은 지연·누락되는 일이 잦아서, 예약에만 기대지 않는다.)
