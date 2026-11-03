@@ -11903,10 +11903,12 @@
     .hm-banners .mt-home { margin: 0; grid-template-columns: 1fr; min-height: 128px; align-content: center; background: linear-gradient(90deg, #0b0c0e calc(100% - 238px), rgba(11, 12, 14, 0) calc(100% - 118px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #0b0c0e; }
     .hm-banners .mt-home:hover { background: linear-gradient(90deg, #0b0c0e calc(100% - 238px), rgba(11, 12, 14, 0) calc(100% - 118px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #15171a; }
     .hm-banners .mt-home-p { grid-column: 1; grid-row: auto; margin-top: 8px; }
-    .hm-finder { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 4px; min-height: 128px; padding: 18px 20px; border-radius: 10px; color: #fff; overflow: hidden; text-decoration: none; background: linear-gradient(90deg, rgba(8, 9, 11, .94) 0%, rgba(8, 9, 11, .72) 50%, rgba(8, 9, 11, .3) 100%), url(finder-hero.jpg) 80% 16% / cover no-repeat, #0b0c0e; transition: transform .15s, box-shadow .15s; }
+    .hm-finder { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 4px; min-height: 128px; padding: 18px 20px; border-radius: 10px; color: #fff; overflow: hidden; text-decoration: none; background: linear-gradient(90deg, rgba(8, 9, 11, .94) 0%, rgba(8, 9, 11, .72) 50%, rgba(8, 9, 11, .3) 100%), url(finder-hero.jpg) 82% 16px / auto 190% no-repeat, #0b0c0e; transition: transform .15s, box-shadow .15s; }
     .hm-finder:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, .25); }
     .hm-finder:active { transform: translateY(0) scale(.99); }
     .hm-f-t { font-size: 17px; font-weight: 800; letter-spacing: -.03em; }
+    .hm-f-t { display: flex; align-items: center; gap: 8px; }
+    .hm-f-t em { font-style: normal; font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: #D91E2B; color: #fff; }
     .hm-f-s { font-size: 13px; color: rgba(255, 255, 255, .75); }
     .hm-f-b { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .hm-fb, .hm-fh { box-sizing: border-box; display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 4px; font-size: 12px; font-weight: 700; line-height: 1; }
@@ -12342,7 +12344,7 @@
         <h3>바로가기</h3>
         <div class="hm-banners">
         <a class="hm-finder" id="hm-finder" href="#/tickets" onclick="return hmFinderGo(event)">
-          <span class="hm-f-t">실시간 잔여석 바로 찾기</span>
+          <span class="hm-f-t"><em>티켓</em>실시간 잔여석 바로 찾기</span>
           <span class="hm-f-s">29CM 예매 구역별 실시간 좌석 현황</span>
           <span class="hm-f-b"><span class="hm-fb" id="hmBadge">불러오는 중…</span><span class="hm-fh" id="hmHold" style="display:none"></span></span>
         </a>
@@ -15550,7 +15552,7 @@
     }
     function hmFinderOpen() {
       window.__z17AutoOpen = false;
-      setTimeout(() => { const bx = document.getElementById('z17-box'); if (bx) bx.scrollIntoView({ block: 'start' }); z17OpenFront(); }, 150);
+      setTimeout(() => { z17OpenFront(); }, 150);
     }
     function hmFinderBoot() {
       if (!document.getElementById('hmBadge') || document.body.dataset.route !== 'home') return;
