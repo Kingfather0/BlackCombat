@@ -10,6 +10,11 @@ concurrency:
   group: ticket-zone-bc17
   cancel-in-progress: false
 
+# 다음 실행을 스스로 이어 붙이기 위해 필요한 권한
+permissions:
+  contents: read
+  actions: write
+
 jobs:
   collect:
     runs-on: ubuntu-latest
@@ -34,3 +39,11 @@ jobs:
           Z17_SESSION: ${{ secrets.Z17_SESSION }}
           Z17_ENC_KEY: ${{ secrets.Z17_ENC_KEY }}
         run: node scripts/ticket-zone-bc17-cloud.js
+      # 이 실행이 정상적으로 끝나면(약 5시간 40분) 바로 다음 실행을 스스로 시작해 끊김 없이 이어간다.
+      # (GitHub의 예약 실행은 지연·누락되는 일이 잦아서, 예약에만 기대지 않는다.)
+      # 로그인 세션 만료 등으로 실패한 경우에는 이어 붙이지 않는다(무한 반복 방지).
+      - name: 다음 실행 이어 붙이기
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run ticket-zone-bc17.yml --repo "${{ github.repository }}" --ref "${{ github.ref_name }}"
