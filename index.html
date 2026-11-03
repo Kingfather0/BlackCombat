@@ -895,6 +895,16 @@
       margin-top: 8px
     }
 
+    .tk-rev-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+    body[data-route="tickets"] .tk-rev .tk-rev-btns button { margin-top: 12px; }
+    .tk-price-body { margin-top: 10px; border: 1px solid var(--border); border-radius: 10px; padding: 6px 14px 8px; background: #fff; }
+    .tk-pr-title { font-size: 12px; font-weight: 700; color: var(--dim); padding: 6px 0 4px; }
+    .tk-pr-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid #eef0f3; font-size: 14px; }
+    .tk-pr-title + .tk-pr-row { border-top: 0; }
+    .tk-pr-n { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #222; }
+    .tk-pr-n i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+    .tk-pr-v { font-size: 15px; font-weight: 800; letter-spacing: -.01em; color: #111; font-variant-numeric: tabular-nums; }
+
     .tk-trend {
       margin-top: 12px;
       padding-top: 10px;
@@ -15886,11 +15896,24 @@
     }
     /* 예상 매출 접기/펼치기 (당첨 선물 배너의 "지급 방식 예시 보기"와 같은 방식) */
     function toggleTkRevenue(btn) {
-      const box = btn.parentElement.querySelector('.tk-rev-body');
+      const wrap = btn.closest('.tk-rev'); if (!wrap) return;
+      const box = wrap.querySelector('.tk-rev-body');
       if (!box) return;
       const open = box.style.display !== 'none';
+      const pb = wrap.querySelector('.tk-price-body'), pbtn = wrap.querySelector('.tk-price-btn');
+      if (!open && pb) { pb.style.display = 'none'; if (pbtn) pbtn.textContent = '🎟️ 티켓 가격 보기 ▾'; }
       box.style.display = open ? 'none' : '';
       btn.textContent = open ? '💰 예상 매출 보기 ▾' : '💰 예상 매출 접기 ▴';
+    }
+    function toggleTkPrices(btn) {
+      const wrap = btn.closest('.tk-rev'); if (!wrap) return;
+      const box = wrap.querySelector('.tk-price-body');
+      if (!box) return;
+      const open = box.style.display !== 'none';
+      const rb = wrap.querySelector('.tk-rev-body'), rbtn = wrap.querySelector('.tk-rev-btn');
+      if (!open && rb) { rb.style.display = 'none'; if (rbtn) rbtn.textContent = '💰 예상 매출 보기 ▾'; }
+      box.style.display = open ? 'none' : '';
+      btn.textContent = open ? '🎟️ 티켓 가격 보기 ▾' : '🎟️ 티켓 가격 접기 ▴';
     }
     /* 수동 갱신 — 5분 자동 스케줄을 기다리지 않고, 예매 사이트의 잔여석을 즉석 조회해
        화면만 갱신한다. (기록으로 저장되지는 않는다 — 히스토리는 자동 기록이 계속 담당) */
@@ -16840,9 +16863,18 @@
           });
           if (revRows.length) {
             const twoTier = TK_UNCLASSIFIED_HOLDS && holdSeats > 0;
+            const priceKeys = sortGradeKeysByPrice(Object.keys(gradePrices).filter(k => typeof gradePrices[k] === 'number' && gradePrices[k] > 0), gradePrices);
+            const priceRowsHTML = priceKeys.map(k => {
+              const dot = (gradeColors && (gradeColors[k] || gradeColors[String(k).replace(/석$/, '')])) || '#8a93a6';
+              return `<div class="tk-pr-row"><span class="tk-pr-n"><i style="background:${dot}"></i>${esc(k)}${/석$/.test(k) ? '' : '석'}</span><b class="tk-pr-v">${gradePrices[k].toLocaleString()}원</b></div>`;
+            }).join('');
             revenueHTML = `
         <div class="tk-rev">
-          <button type="button" class="btn xs" onclick="toggleTkRevenue(this)">💰 예상 매출 보기 ▾</button>
+          <div class="tk-rev-btns">
+            <button type="button" class="btn xs tk-rev-btn" onclick="toggleTkRevenue(this)">💰 예상 매출 보기 ▾</button>
+            ${priceRowsHTML ? '<button type="button" class="btn xs tk-price-btn" onclick="toggleTkPrices(this)">🎟️ 티켓 가격 보기 ▾</button>' : ''}
+          </div>
+          ${priceRowsHTML ? `<div class="tk-price-body" style="display:none"><div class="tk-pr-title">등급별 티켓 가격</div>${priceRowsHTML}</div>` : ''}
           <div class="tk-rev-body" style="display:none">
             ${twoTier ? `
             <div class="tk-rev-top"><span>💰 예상 매출(미분류 포함 시 상한)</span><span class="tk-rev-sum" style="font-size:15px;font-weight:800">${revSum.toLocaleString()}원</span></div>
@@ -31629,14 +31661,6 @@
         app.querySelectorAll('.tk-dash-info .sub, .tk-dash-info div').forEach(function (n) { n.childNodes.forEach(function (c) { if (c.nodeType === 3 && c.nodeValue.indexOf('\u{1F4CD}') >= 0) c.nodeValue = c.nodeValue.replace(/\u{1F4CD}\s*/gu, ''); }); });
         // 급감 알림 목록은 차트의 ⚡ 점(툴팁)으로 충분 — 목록은 숨김
         app.querySelectorAll('.tk-rev-note[style*="b45309"]').forEach(function (n) { n.style.display = 'none'; });
-        // 예상 매출: 마우스오버로 펼침
-        var revBox = app.querySelector('.tk-rev');
-        if (revBox && !revBox.dataset.hover) {
-          revBox.dataset.hover = '1';
-          revBox.addEventListener('mouseenter', function () { if (window.__v2Touch) return; var bd = revBox.querySelector('.tk-rev-body'), bt = revBox.querySelector('button'); if (bd && bt && bd.style.display === 'none') bt.click(); });
-          revBox.addEventListener('mouseleave', function () { if (window.__v2Touch) return; var bd = revBox.querySelector('.tk-rev-body'), bt = revBox.querySelector('button'); if (bd && bt && bd.style.display !== 'none') bt.click(); });
-          document.addEventListener('pointerdown', function (e) { if (!document.body.contains(revBox) || e.target.closest('.tk-rev')) return; var bd = revBox.querySelector('.tk-rev-body'), bt = revBox.querySelector('button'); if (bd && bt && bd.style.display !== 'none') bt.click(); }, true);
-        }
         // 매진 예측: "빠듯"은 노랑 대신 주황 이모지(전석 매진의 옅은 앰버와 구분)
         app.querySelectorAll('.tk-fc-line b').forEach(function (b) { if (/매진은 빠듯/.test(b.textContent)) b.textContent = b.textContent.replace('\u{1F7E1}', '\u{1F7E0}'); });
         // 판매 추이(시간별): 10분 기록에서 시간대별 판매량을 집계해 일별 차트 옆에 그린다 (날짜 선택 가능)
