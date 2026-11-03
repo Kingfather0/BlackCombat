@@ -1357,7 +1357,7 @@
     .z17-hl { box-shadow: 0 0 0 2px #111, 0 0 0 4.5px rgba(17,17,17,.25) !important; animation: z17pulse 1.2s ease-in-out infinite; }
     @keyframes z17pulse { 50% { transform: scale(1.35); } }
     .z17-book { display: block; text-align: center; margin: 8px 0 2px; padding: 9px 0; border-radius: 10px; background: #111; color: #fff !important; font-size: 13px; font-weight: 700; text-decoration: none; }
-    #z17-modal .tk-row1-sum b { color: #1d1d1f; }
+    #z17-modal .tk-row1-sum b, #z17-modal .tk-live-modal-sub b { color: #1d1d1f; font-size: inherit !important; font-weight: inherit !important; line-height: inherit; }
     .z17-holdbox { display: inline-block; margin-left: 0; background: #E91E8C; color: #fff; vertical-align: middle; }
     /* 잔여 N석 / 결제 대기 N석 박스는 같은 크기 */
     body[data-route] .tk-row1-btn #z17Badge, body[data-route] .tk-row1-btn .z17-holdbox { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; height: 26px; padding: 0 10px !important; border-radius: 4px !important; font-size: 12px !important; font-weight: 700 !important; line-height: 1 !important; vertical-align: middle; }
@@ -15741,7 +15741,7 @@
       if (total != null && total > 0 && fc.remainNow != null) {
         const soldPct = ((total - fc.remainNow) / total) * 100;
         if (soldPct >= 99) {
-          return wrap('#1d4ed8', '#e3edfd', `🎊 사실상 매진! ㅡ 판매율 ${soldPct.toFixed(1)}% · 잔여 ${fc.remainNow.toLocaleString()}석`);
+          return wrap('#1d4ed8', '#e3edfd', `🎊 사실상 매진! ㅡ 판매율 ${tkPctStr(total - fc.remainNow, total)}% · 잔여 ${fc.remainNow.toLocaleString()}석`);
         }
       }
       if (fc.status === 'insufficient') return wrap('#475467', '#e8ecf2', '⏳ 데이터 수집 중 ㅡ 기록이 더 쌓이면 자동으로 표시됩니다');
@@ -16311,12 +16311,10 @@
         </div>
         ${fcParts.join('<hr class="sep" style="margin:8px 0">')}
         <div id="tk-fc-info" style="display:none;background:#f4f6fa;border-radius:9px;padding:9px 12px;margin-top:9px;font-size:11.5px;color:var(--muted);line-height:1.8">
-          <div>· 총 좌석수는 ${(tkHoldsCfg && !tkHoldsCfg.includedInTotals) ? `'전체 좌석' 기준(등급 미배정 좌석을 소진으로 포함)` : `'판매 대상 좌석' 기준(등급 미배정 좌석 제외)`}</div>
           <div>· 매진 예상일은 현재 잔여석 ÷ 하루 판매 속도로 계산</div>
           <div>· 판매 속도는 최근 3일 회귀 추세선 기준</div>
           <div>· 일괄 발권(이벤트표 등)은 잔여석에만 반영, 판매 속도엔 미포함</div>
-          <div>· 기록이 24시간 미만이면 "데이터 수집 중"으로 표시(예측은 자동으로 나중에 채워짐)</div>
-          <div>· 현재 페이스 기준 추정 — 기록 갱신 때마다 재계산</div>
+          <div>· 기록이 24시간 미만이면 "데이터 수집 중"으로 표시</div>
         </div>
       </div>` : '';
 
