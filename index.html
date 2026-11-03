@@ -15536,7 +15536,7 @@
         const hb = document.getElementById('z17Hold');
         if (hb) {
           let held = 0;
-          if (Z17.state && Z17.state.z) Object.keys(Z17.state.z).forEach(k => { held += (Z17.state.z[k].match(/h/g) || []).length; });
+          if (Z17.layout && Z17.state && Z17.state.z) Z17.layout.zones.forEach(z => { const q = z17Stat(z); if (q) held += q.held; }); // 휠체어석 제외
           hb.textContent = `결제 대기 ${held}석`;
           z17SameSize(hb);
           hb.style.display = (!Z17.err && Z17.state && held > 0) ? '' : 'none';
@@ -15663,7 +15663,7 @@
       const data = z17FreeData();
       const free = data.reduce((s, d) => s + d.free, 0);
       let held = 0;
-      if (Z17.state && Z17.state.z) Object.keys(Z17.state.z).forEach(k => { held += (Z17.state.z[k].match(/h/g) || []).length; });
+      if (Z17.layout && Z17.state && Z17.state.z) Z17.layout.zones.forEach(z => { const q = z17Stat(z); if (q) held += q.held; }); // 휠체어석 제외
       const body = data.map(d => {
         const color = z17Color(d.z), MAX = 40;
         const chips = d.seats.slice(0, MAX).map(q => `<button type="button" class="z17-fs" style="background:${color}" onclick="z17OpenZone(${d.z.id},'${esc(q.row)}','${esc(q.col)}')" title="누르면 이 좌석이 있는 구역 좌석표가 열립니다">${esc(q.row)}열 ${esc(q.col)}번</button>`).join('');
