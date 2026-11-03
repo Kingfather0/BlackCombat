@@ -11618,14 +11618,16 @@
 
     /* 카드 */
     .mt-card { position: relative; margin-top: 10px; padding: 16px 18px 14px 20px; background: #fff; border: 1px solid var(--hair); border-radius: 12px; overflow: hidden; }
-    .mt-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--hair2); }
-    .mt-card.c-watch::before { background: var(--mt-vio); }
-    .mt-card.c-carpool::before { background: var(--mt-blue); }
-    .mt-card.c-ticket::before { background: var(--mt-grn); }
+    .mt-card::before { display: none; }
+    .mt-card { cursor: pointer; transition: transform .15s, box-shadow .15s, border-color .15s; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+    .mt-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.12); border-color: #bfc4cc; }
+    .mt-card:active { transform: translateY(0) scale(.985); box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+    .mt-card.is-mine:hover { border-color: #111; }
+    .mt-card.is-mine { border: 1.5px solid #111; background: #fbfbfc; }
+    .mt-badge.mine { background: #111 !important; color: #fff !important; }
     .mt-card.closed, .mt-card.hidden { background: #f7f7f8; }
     .mt-card.closed > *:not(.mt-card-h), .mt-card.hidden > *:not(.mt-card-h) { opacity: .6; }
     .mt-card.full { background: #f8f8fa; }
-    .mt-card.full::before { background: #9aa0aa; }
     .mt-card-h { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
     .mt-ago { margin-left: auto; font-size: 12px; color: var(--dim); font-weight: 600; }
     .mt-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; background: var(--bg2); color: var(--muted); line-height: 1.4; }
@@ -11728,6 +11730,7 @@
     .mt-confirm-b { font-size: 13px; color: var(--muted); line-height: 1.6; }
     .mt-confirm-a { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
     .mt-adm { padding: 12px 14px; margin-top: 8px; font-size: 13.5px; line-height: 1.6; }
+
     .mt-adm .btn.xs { height: 28px; padding: 0 9px; font-size: 12px; margin-top: 6px; }
     .mt-b.blk { background: #fff1e4; border-color: #f5cfa6; color: #a4510a; }
     .mt-b.blk:hover { background: #ffe6cf; }
@@ -11778,7 +11781,7 @@
     .mt-disc b { font-size: 12.5px; }
 
     /* 컴팩트 카드 */
-    .mt-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 18px; align-items: center; padding: 12px 16px 12px 19px; }
+    .mt-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 18px; align-items: center; padding: 12px 16px; }
     .mt-main { min-width: 0; }
     .mt-card-h { margin-bottom: 5px; }
     .mt-title { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -11809,8 +11812,42 @@
     .mt-on { font-style: normal; font-size: 11px; font-weight: 800; color: #14803c; background: #e4f5ea; border-radius: 999px; padding: 0 7px; margin-left: 2px; display: inline-flex; align-items: center; gap: 4px; line-height: 17px; }
     .mt-on::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #1fb457; }
     .mt-on[hidden] { display: none; }
-    .mt-b.blk { background: #fff1e4; border-color: #f5cfa6; color: #a4510a; }
-    .mt-b.blk:hover { background: #ffe6cf; }
+
+    /* ===== v5: 차분한 톤(색은 포인트에만) + PC 배너 이미지 축소 ===== */
+    .mt-fchip.g, .mt-fchip.m { background: #fff; border-color: var(--hair2); color: var(--muted); }
+    .mt-fchip.g i { background: #1fb457; }
+    .mt-fchip.g.on, .mt-fchip.m.on { background: #111; border-color: #111; color: #fff; }
+    .mt-fchip.g.on i { background: #1fb457; }
+    .mt-sel.sm { font-weight: 700; color: var(--muted); }
+    .mt-pill.blk { background: #fff; border-color: var(--hair2); color: var(--muted); }
+    .mt-pill.blk:hover { background: var(--bg2); color: var(--text); }
+    .mt-tab.on, .mt-tab.c-watch.on, .mt-tab.c-carpool.on, .mt-tab.c-ticket.on { background: #fff; border-color: #111; color: #111; }
+    .mt-tab.c-watch.on { box-shadow: inset 0 -3px 0 var(--mt-vio); }
+    .mt-tab.c-carpool.on { box-shadow: inset 0 -3px 0 var(--mt-blue); }
+    .mt-tab.c-ticket.on { box-shadow: inset 0 -3px 0 var(--mt-grn); }
+    .mt-tab.c-watch.on small, .mt-tab.c-carpool.on small, .mt-tab.c-ticket.on small { color: var(--muted); opacity: 1; }
+    .mt-b.blue, .mt-b.gray, .mt-b.warn { background: #fff; border-color: var(--hair2); color: var(--text); }
+    .mt-b.blue:hover, .mt-b.gray:hover, .mt-b.warn:hover { background: var(--bg2); }
+    .mt-b.no { background: #fff; border-color: #efc2c2; color: var(--mt-red); }
+    .mt-b.no:hover { background: var(--mt-red-t); }
+    .mt-b.blk { background: #fff; border-color: var(--hair2); color: #555; }
+    .mt-b.blk:hover { background: var(--bg2); }
+    .mt-req-b .mt-b.warn { color: var(--text); }
+    .mt-form .mt-ch.on, .mt-form.c-watch .mt-ch.on, .mt-form.c-carpool .mt-ch.on, .mt-form.c-ticket .mt-ch.on { background: #111; border-color: #111; color: #fff; box-shadow: none; }
+    .mt-ch.on { background: #111; border-color: #111; color: #fff; box-shadow: none; }
+    .mt-tags span.hl { background: var(--bg2); color: #444; }
+    .mt-badge.wait { background: #fff; color: var(--mt-amb-x); border: 1px solid var(--mt-amb-l); }
+    .mt-badge.open { background: transparent; padding-left: 0; color: var(--mt-grn); }
+    .mt-badge.cat-watch, .mt-badge.cat-carpool, .mt-badge.cat-ticket { background: var(--bg2); color: #333; }
+    .mt-badge.cat-carpool.kind-rec { background: #111; color: #fff; }
+    .mt-badge.cat-carpool.kind-wish { background: #fff; color: #111; box-shadow: inset 0 0 0 1px #111; }
+    @media (min-width: 900px) {
+      .mt-hero { min-height: 190px; background: linear-gradient(90deg, #0b0c0e calc(100% - 351px), rgba(11, 12, 14, 0) calc(100% - 250px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #0b0c0e; }
+      .mt-hero-in { padding: 30px 30px; max-width: 60%; }
+      .mt-home { min-height: 128px; background: linear-gradient(90deg, #0b0c0e calc(100% - 238px), rgba(11, 12, 14, 0) calc(100% - 118px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #0b0c0e; }
+      .mt-home:hover { background: linear-gradient(90deg, #0b0c0e calc(100% - 238px), rgba(11, 12, 14, 0) calc(100% - 118px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #15171a; }
+      .mt-home-p { grid-column: 1; grid-row: auto; align-self: start; margin-top: 10px; }
+    }
     .mt-foot-note { margin-top: 18px; padding: 12px 4px 0; border-top: 1px solid var(--hair); font-size: 12px; line-height: 1.7; color: var(--dim); }
     .mt-empty { margin-top: 10px; padding: 40px 16px; text-align: center; background: #fff; border: 1px dashed var(--hair2); border-radius: 12px; color: var(--muted); font-size: 14px; font-weight: 600; line-height: 1.7; }
 
@@ -12233,7 +12270,7 @@
         <h3>바로가기</h3>
         <a class="mt-home" href="#/meetup">
           <span class="mt-home-t"><em>쉐어</em><b>NEW</b>직관 · 카풀 · 티켓 양도</span>
-          <span class="mt-home-s">같이 갈 사람 구하고, 카풀 타고, 못 가게 된 티켓은 정가 이하로 양도해요</span>
+          <span class="mt-home-s">같이 갈 블붕이 구하고, 카풀 타고, 못 가게 된 티켓은 정가 이하로 양도해요</span>
           <span class="mt-home-p"><i>👥 직관</i><i>🚗 카풀</i><i>🎟️ 티켓 양도</i></span>
         </a>
         <div class="v2-links">
@@ -28785,7 +28822,7 @@
     let resSel = {}; // 결과 입력 선택 상태 {tid:{mid:'A'|'B'|'X'}}
 
     /* =====================================================================
-       직관 · 카풀 · 티켓 양도 (#/meetup) — 회원끼리 직관 동행 / 카풀 / 티켓 양도 게시판.
+       직관 · 카풀 · 티켓 양도 (#/meetup) — 블붕이끼리 직관 동행 / 카풀 / 티켓 양도 게시판.
        서버: scripts/meetup.sql (Supabase에서 한 번 실행). 모든 쓰기/읽기는 meetup_* RPC 경유,
        연락처는 서버가 '작성자가 승인한 사이'에만 내려준다. 글 작성/참여는 카카오 로그인 필수(서버도 강제).
        ===================================================================== */
@@ -28807,7 +28844,7 @@
       '인천': ['중구', '동구', '미추홀구', '연수구', '남동구', '부평구', '계양구', '서구'],
       '그 외': ['부산', '대구', '대전', '광주', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주']
     };
-        const MT_DISCLAIMER = '이 게시판은 회원끼리 직접 약속하고 거래하는 공간이에요. 관리자는 만남·동행·카풀·티켓 거래에 관여하지 않으며, 그로 인한 사고·분쟁·사기·금전 손실 등에 대해 어떠한 책임도 지지 않아요. 모든 만남과 거래는 본인 책임으로 신중하게 진행해주세요.';
+        const MT_DISCLAIMER = '이 게시판은 블붕이끼리 직접 약속하고 거래하는 공간이에요. 관리자는 만남·동행·카풀·티켓 거래에 관여하지 않으며, 그로 인한 사고·분쟁·사기·금전 손실 등에 대해 어떠한 책임도 지지 않아요. 모든 만남과 거래는 본인 책임으로 신중하게 진행해주세요.';
     let MT = { events: [], ev: '', cat: 'watch', mine: false, onlyOpen: false, posts: [], prices: null, f: {}, fOpen: false };
     /* 테스트 계정: preview.html 에서만 보이는 기능. 서버의 '테스트 모드'(어드민에서 켬)가 켜져 있을 때만 동작하고,
        카카오 로그인 없이 가상 계정(테스트-A 등)으로 글쓰기/신청/승인을 시험해볼 수 있다. 창(탭)마다 다른 계정 선택 가능. */
@@ -28868,11 +28905,11 @@
     }
 
     /* ---------- 작은 UI 부품 ---------- */
-    function mtModal(title, body, width) {
+    function mtModal(title, body, width, keep) {
       const ov = document.createElement('div');
       ov.className = 'modal-ov';
       ov.innerHTML = `<div class="modal" style="max-width:${width || 520}px"><div class="modal-h"><b>${title}</b><button class="modal-x" onclick="history.back()">✕</button></div><div class="modal-b">${body}</div></div>`;
-      ov.onclick = e => { if (e.target === ov) history.back(); };
+      if (!keep) ov.onclick = e => { if (e.target === ov) history.back(); };   // keep=true: 글쓰기처럼 작성 중인 창은 바깥을 눌러도 닫히지 않음
       pushModal(ov);
       return ov;
     }
@@ -29061,9 +29098,9 @@
         <li><b>계좌, 선입금, 링크</b> 같은 외부 결제 유도는 금지예요. 비고란에도 쓸 수 없어요.</li>
         <li>경기마다 종류별로 진행 중인 글은 <b>1개</b>씩 올릴 수 있어요. 내용이 바뀌면 글을 수정하면 돼요.</li>
         <li>카풀비는 기름값·통행료를 나누는 용도로만 사용해주세요.</li></ul></div>
-      <div class="mt-gcard"><h4>신청과 연락처</h4>
+      <div class="mt-gcard"><h4>신청과 연락 수단</h4>
         <ul><li>여러 글에 중복으로 신청할 수 있어요. 한 곳에서 승인되면 같은 경기·같은 종류의 다른 대기 신청은 자동으로 취소돼요.</li>
-        <li>연락처는 작성자가 승인한 뒤에만 서로 보여요. 승인 전에는 아무도 볼 수 없어요.</li>
+        <li>연락 수단은 작성자가 승인한 뒤에만 서로 보여요. 승인 전에는 아무도 볼 수 없어요.</li>
         <li>카풀과 동행은 처음 만나는 분과 하게 돼요. 출발지·시간·인원을 확인하고 가족이나 지인에게 알려두면 좋아요.</li>
         <li>불편한 글이나 사람은 신고·차단으로 알려주세요.</li></ul></div>
       <div class="mt-gcard"><h4>경기가 끝나면</h4>
@@ -29086,7 +29123,7 @@
     <h1 class="page">직관 · 카풀 · 티켓 양도</h1>
     <div class="mt-hero">
       <div class="mt-hero-in"><div class="mt-hero-t">같이 가고, 같이 타고, 편하게 양도해요</div>
-      <div class="mt-hero-s">직관 동행, 카풀, 티켓 양도를 회원끼리 직접 약속해요.<br>연락처는 승인한 뒤에만 서로 공개돼요.</div>
+      <div class="mt-hero-s">직관 동행, 카풀, 티켓 양도를 블붕이끼리 직접 약속해요.<br>연락 수단은 승인한 뒤에만 서로 공개돼요.</div>
       <button type="button" class="mt-gbtn" id="mt-gbtn" onclick="mtToggleGuide()">이용 안내 보기 ▾</button></div>
     </div>
     <div class="mt-gpanel" id="mt-gpanel">${mtGuideHTML()}</div>
@@ -29124,7 +29161,7 @@
         facts = [`내 인원 <b>${p.my_people || 1}명</b>`, `모집 <b>${p.people}명</b>`, `확정 <b>${p.approved}명</b>`];
         hi = `<div class="mt-hi"><small>남은 자리</small><b>${mtLeft(p)}<i>/${p.capacity}명</i></b></div>`;
       } else if (p.category === 'carpool') {
-        facts = [`<b>${esc(p.cp_kind)}</b>`, `<b>${esc(p.origin)}</b>${p.origin_detail ? ' ' + esc(p.origin_detail) : ''} 출발`, esc(p.trip === '무관' ? '편도·왕복 무관' : p.trip), `내 인원 <b>${p.my_people || 1}명</b>`, `${p.cp_kind === '모집' ? '빈 자리' : '탑승'} <b>${p.people}명</b>${p.cp_kind === '모집' ? ` (남은 ${mtLeft(p)})` : ''}`];
+        facts = [`<b>${esc(p.cp_kind)}</b>`, `<b>${esc(p.origin)}</b>${p.origin_detail ? ' <b>' + esc(p.origin_detail) + '</b>' : ''} 출발`, esc(p.trip === '무관' ? '편도·왕복 무관' : p.trip), `내 인원 <b>${p.my_people || 1}명</b>`, `${p.cp_kind === '모집' ? '빈 자리' : '탑승'} <b>${p.people}명</b>${p.cp_kind === '모집' ? ` (남은 ${mtLeft(p)})` : ''}`];
         hi = `<div class="mt-hi"><small>카풀비 (1인)</small><b>${p.fare < 0 ? '협의' : p.fare ? mtN(p.fare) + '<i>원</i>' : '없음'}</b></div>`;
       } else {
         const pct = p.unit_price > 0 ? Math.round((1 - p.sell_price / p.unit_price) * 100) : 0;
@@ -29135,22 +29172,22 @@
       const ev = mtCurEvent(), evEnded = !!(ev && ev.ended);
       let btns = '';
       if (p.mine) {
-        btns = `<button type="button" class="mt-b ok sm" onclick="mtManage(${p.id})">신청자 관리${p.pending ? `<span class="mt-dot">${p.pending}</span>` : ''}</button>`
+        btns = `<button type="button" class="mt-b sm" onclick="mtManage(${p.id})">신청자 관리${p.pending ? `<span class="mt-dot">${p.pending}</span>` : ''}</button>`
           + (p.status === 'open' || p.status === 'full' ? `<button type="button" class="mt-b blue sm" onclick="mtEdit(${p.id})">수정</button><button type="button" class="mt-b gray sm" onclick="mtClosePost(${p.id},false)">마감</button>` : '')
           + (p.status === 'closed' && !evEnded ? `<button type="button" class="mt-b warn sm" onclick="mtReopen(${p.id})">마감 취소</button>` : '')
           + `<button type="button" class="mt-b no sm" onclick="mtClosePost(${p.id},true)">삭제</button>`;
       } else {
         if (p.status === 'open' && (!p.my_req || p.my_req === 'cancelled')) btns += `<button type="button" class="mt-b pri sm" onclick="mtApply(${p.id})">참여 신청</button>`;
         if (p.my_req === 'pending') btns += `<button type="button" class="mt-b warn sm" onclick="mtCancel(${p.id})">신청 취소</button>`;
-        if (p.my_req === 'approved') btns += `<button type="button" class="mt-b ok sm" onclick="mtShowContact(${p.id})">연락처 보기</button><button type="button" class="mt-b warn sm" onclick="mtCancel(${p.id})">참여 취소</button>`;
+        if (p.my_req === 'approved') btns += `<button type="button" class="mt-b ok sm" onclick="mtShowContact(${p.id})">연락 수단 보기</button><button type="button" class="mt-b warn sm" onclick="mtCancel(${p.id})">참여 취소</button>`;
         if (p.my_req === 'rejected' || p.my_req === 'kicked') btns += `<span class="mt-doneNote">신청할 수 없는 글이에요</span>`;
         else if (p.status === 'full' && !p.my_req) btns += `<span class="mt-doneNote">모집이 완료됐어요</span>`;
         else if (p.status === 'closed' && !p.my_req) btns += `<span class="mt-doneNote">마감된 글이에요</span>`;
         btns += `<button type="button" class="mt-b no sm" onclick="mtReport(${p.id})">🚨 신고</button><button type="button" class="mt-b blk sm" data-nick="${esc(p.author_nick)}" onclick="mtBlock(this.dataset.nick)">🚫 차단</button>`;
       }
-      return `<div class="mt-card c-${p.category} ${p.status}">
+      return `<div class="mt-card c-${p.category} ${p.status}${p.mine ? ' is-mine' : ''}">
       <div class="mt-main">
-        <div class="mt-card-h"><span class="mt-badge cat-${p.category}">${c.ico} ${c.n}</span><span class="mt-badge ${st[1]}">${st[0]}</span>${p.mine ? '<span class="mt-badge mine">내 글</span>' : mtNick(p.author_nick)}${reqB}<span class="mt-ago">${mtAgo(p.created_at)}</span></div>
+        <div class="mt-card-h"><span class="mt-badge cat-${p.category}${p.category === 'carpool' ? ' kind-' + (p.cp_kind === '모집' ? 'rec' : 'wish') : ''}">${c.ico} ${p.category === 'carpool' ? '카풀 ' + esc(p.cp_kind) : c.n}</span><span class="mt-badge ${st[1]}">${st[0]}</span>${p.mine ? '<span class="mt-badge mine">내 글</span>' : mtNick(p.author_nick)}${reqB}<span class="mt-ago">${mtAgo(p.created_at)}</span></div>
         <div class="mt-title">${esc(mtTitle(p))}</div>
         <div class="mt-facts">${facts.map(x => `<span>${x}</span>`).join('')}</div>
         ${tags.length ? `<div class="mt-tags">${tags.join('')}</div>` : ''}
@@ -29166,7 +29203,7 @@
       if (!ev || ev.ended) { mtToast('종료된 경기에는 글을 쓸 수 없어요.'); return; }
       const prices = await mtLoadPrices();
       const prof = mtLS('mt_prof') || {};
-      const ov = mtModal('글쓰기', `<div class="mt-form" id="mt-form"></div>`, 560);
+      const ov = mtModal('글쓰기', `<div class="mt-form" id="mt-form"></div>`, 560, true);
       const S = { ov, root: ov.querySelector('#mt-form'), prices, prof, cat: '', edit: null, own: null };
       mtDrawType(S);
     }
@@ -29186,7 +29223,7 @@
       let own = null;
       try { const r = await mtRpc('meetup_contacts', { p_post_id: id }); own = r && r.own; } catch (e) { return mtToast(mtErr(e)); }
       const prices = await mtLoadPrices();
-      const ov = mtModal('글 수정', `<div class="mt-form" id="mt-form"></div>`, 560);
+      const ov = mtModal('글 수정', `<div class="mt-form" id="mt-form"></div>`, 560, true);
       const S = { ov, root: ov.querySelector('#mt-form'), prices, prof: mtLS('mt_prof') || {}, cat: p.category, edit: p, own };
       mtDrawForm(S);
     }
@@ -29246,7 +29283,7 @@
       if (cat === 'carpool') {
         f += `<div class="mt-f"><label>구분</label>${mtChoices('cpkind', [{ v: '모집', l: '카풀 모집 (차량 있음)' }, { v: '희망', l: '카풀 희망 (탑승 원함)' }], D.cp_kind || '')}</div>
         <div class="mt-f"><label>출발지 <small>상세 위치는 선택</small></label><select id="mt-origin" class="mt-sel wide"><option value="">지역 선택</option>${Object.entries(MT_REGIONS).map(([g, arr]) => `<optgroup label="${g}">${arr.map(a => `<option value="${esc(g === '그 외' ? a : g + ' ' + a)}">${esc(a)}</option>`).join('')}</optgroup>`).join('')}</select>
-          <input id="mt-od" type="text" maxlength="30" style="margin-top:8px" placeholder="상세 위치 (예: 판교역 1번 출구)" value="${esc(D.origin_detail || '')}"></div>
+          <input id="mt-od" type="text" maxlength="30" style="margin-top:8px" placeholder="상세 위치 (예: 강남역 1번 출구)" value="${esc(D.origin_detail || '')}"></div>
         <div class="mt-f"><label id="mt-plabel">${D.cp_kind === '희망' ? '탑승 인원' : '모집 인원 (빈 자리)'}</label>${mtNumChips('people', [1, 2, 3, 4], D.people, 8, n => n + '명')}</div>
         <div class="mt-f"><label>편도 / 왕복</label>${mtChoices('trip', ['편도', '왕복', '무관'], D.trip || '')}</div>
         <div class="mt-f"><label>카풀비 (1인 기준)</label>${mtNumChips('fare', [0, -1], D.fare, 200000, n => n === 0 ? '없음' : '협의')}<div class="mt-hint">유류비·통행료 실비 분담 용도로만 사용해주세요.</div></div>`;
@@ -29266,7 +29303,7 @@
         <div class="mt-f"><label>모집 성별</label>${mtChoices('genderpref', ['무관', '동성만'], D.gender_pref || '무관')}</div>`;
       }
       f += mtContactHTML2('내 연락 수단', '승인한 사람에게만 공개돼요', ck, cv, false);
-      f += `<div class="mt-f"><label>비고 <small>최대 100자</small></label><textarea id="mt-note" maxlength="100" rows="2" placeholder="간단한 추가 내용만 적어주세요 (계좌, 링크, 연락처 입력 금지)">${esc(D.note || '')}</textarea><div class="mt-hint"><span id="mt-cnt">${(D.note || '').length}</span>/100</div></div>
+      f += `<div class="mt-f"><label>비고 <small>최대 100자</small></label><textarea id="mt-note" maxlength="100" rows="2" placeholder="간단한 추가 내용만 적어주세요 (계좌, 링크, 연락 수단 입력 금지)">${esc(D.note || '')}</textarea><div class="mt-hint"><span id="mt-cnt">${(D.note || '').length}</span>/100</div></div>
         ${edit ? '' : `<label class="mt-agree"><input type="checkbox" id="mt-agree"> <span>${esc(MT_DISCLAIMER)} 정가 초과 판매와 외부 결제 유도 금지에 동의합니다.</span></label>`}
         <div class="mt-submit"><div class="mt-msg" style="display:none;margin-bottom:8px"></div><button type="button" class="mt-b pri lg wide" id="mt-submit">${edit ? '수정 저장' : '등록하기'}</button></div>`;
       root.innerHTML = f;
@@ -29315,7 +29352,7 @@
       }
       q('mt-submit').onclick = async () => {
         const note = q('mt-note').value.trim();
-        if (mtBadText(note)) return mtSetMsg(root, '비고에 금지된 표현(계좌/입금/링크/연락처/웃돈 등)이 있어요.');
+        if (mtBadText(note)) return mtSetMsg(root, '비고에 금지된 표현(계좌/입금/링크/연락 수단/웃돈 등)이 있어요.');
         const ckind = ct.kind(), cval = ct.value();
         if (!mtValidContact(ckind, cval)) return mtSetMsg(root, '연락 수단 형식을 확인해주세요. (' + MT_CONTACT[ckind].ph + ')');
         if (!ct.verified()) return mtSetMsg(root, ckind === 'kakaoid' ? '카카오톡에서 내 ID가 검색되는지 확인하고 버튼을 눌러주세요.' : '"열어서 확인"으로 내 연락 수단이 열리는지 확인해주세요.');
@@ -29372,9 +29409,9 @@
       ${multi ? `<div class="mt-f"><label>신청 인원 <small>나를 포함 · 남은 자리 ${left}명</small></label>${mtNumChips('party', [1, 2, 3], 1, Math.max(left, 1), n => n + '명')}</div>` : ''}
       <div id="mt-apwarn"></div>
       <div class="mt-f"><label>한마디 <small>선택 · 최대 50자</small></label><input id="mt-msg" type="text" maxlength="50" placeholder="간단한 인사나 요청 사항"></div>
-      ${mtContactHTML2('내 연락 수단', '없음을 고르면 작성자 연락처만 받고 내가 먼저 연락해요', 'openkakao', '', true)}
+      ${mtContactHTML2('내 연락 수단', '없음을 고르면 작성자 연락 수단만 받고 내가 먼저 연락해요', 'openkakao', '', true)}
       <label class="mt-agree"><input type="checkbox" id="mt-agree"> <span>${esc(MT_DISCLAIMER)} 이에 동의합니다.</span></label>
-      <div class="mt-submit"><div class="mt-msg" style="display:none;margin-bottom:8px"></div><button type="button" class="mt-b pri lg wide" id="mt-submit">신청하기</button></div></div>`, 520);
+      <div class="mt-submit"><div class="mt-msg" style="display:none;margin-bottom:8px"></div><button type="button" class="mt-b pri lg wide" id="mt-submit">신청하기</button></div></div>`, 520, true);
       const root = ov.querySelector('#mt-ap');
       const warn = () => {
         if (isT) return;
@@ -29393,10 +29430,10 @@
         if (!isT && (!g || !a)) return mtSetMsg(root, '내 성별과 나이대를 선택해주세요.');
         let party = 1;
         if (multi) { party = mtInt(mtVal(root, 'party'), 1, 30); if (!party) return mtSetMsg(root, '신청 인원을 선택하거나 입력해주세요.'); if (party > left) return mtSetMsg(root, `남은 자리(${left}명)보다 많은 인원은 신청할 수 없어요.`); }
-        if (mtBadText(msg)) return mtSetMsg(root, '한마디에 금지된 표현(계좌/입금/링크/연락처 등)이 있어요.');
+        if (mtBadText(msg)) return mtSetMsg(root, '한마디에 금지된 표현(계좌/입금/링크/연락 수단 등)이 있어요.');
         const none = ct.none(), ck = none ? '' : ct.kind(), cv = none ? '' : ct.value();
         if (!none) {
-          if (!mtValidContact(ck, cv)) return mtSetMsg(root, '연락 수단 형식을 확인해주세요. (' + MT_CONTACT[ck].ph + ') 연락처를 남기지 않으려면 "없음"을 골라주세요.');
+          if (!mtValidContact(ck, cv)) return mtSetMsg(root, '연락 수단 형식을 확인해주세요. (' + MT_CONTACT[ck].ph + ') 연락 수단을 남기지 않으려면 "없음"을 골라주세요.');
           if (!ct.verified()) return mtSetMsg(root, ck === 'kakaoid' ? '카카오톡에서 내 ID가 검색되는지 확인하고 버튼을 눌러주세요.' : '"열어서 확인"으로 내 연락 수단이 열리는지 확인해주세요.');
         }
         if (!root.querySelector('#mt-agree').checked) return mtSetMsg(root, '이용 안내와 면책 내용에 동의해주세요.');
@@ -29404,12 +29441,12 @@
         try {
           await mtRpc('meetup_apply', { p_post_id: id, p_gender: g, p_age_group: a, p_message: msg, p_contact_kind: ck, p_contact_value: cv, p_agreed: true, p_party: party });
           if (!isT) mtLS('mt_prof', { gender: g, age: a });
-          history.back(); mtToast('신청했어요. 작성자가 승인하면 연락처를 볼 수 있어요.'); setTimeout(mtReload, 120);
+          history.back(); mtToast('신청했어요. 작성자가 승인하면 연락 수단을 볼 수 있어요.'); setTimeout(mtReload, 120);
         } catch (e) { btn.disabled = false; btn.textContent = '신청하기'; mtSetMsg(root, mtErr(e)); }
       };
     }
     function mtCancel(id) {
-      mtConfirm('신청을 취소할까요?', '취소하면 연락처 공개도 중단돼요.', '신청 취소', async () => {
+      mtConfirm('신청을 취소할까요?', '취소하면 연락 수단 공개도 중단돼요.', '신청 취소', async () => {
         try { await mtRpc('meetup_cancel_apply', { p_post_id: id }); mtToast('취소했어요.'); } catch (e) { mtToast(mtErr(e)); }
         mtReload();
       }, true);
@@ -29425,7 +29462,7 @@
       mtReload();
     }
 
-    /* ---------- 연락처 / 신청자 관리 ---------- */
+    /* ---------- 연락 수단 / 신청자 관리 ---------- */
     function mtContactHTML(kind, value) {
       const k = MT_CONTACT[kind] || { n: kind };
       const v = esc(value);
@@ -29441,9 +29478,9 @@
     async function mtShowContact(id) {
       try {
         const r = await mtRpc('meetup_contacts', { p_post_id: id });
-        const ov = mtModal('연락처', `<div class="mt-form"><div class="mt-sum">작성자 <b>${esc(r.nick)}</b></div>
+        const ov = mtModal('연락 수단', `<div class="mt-form"><div class="mt-sum">작성자 <b>${esc(r.nick)}</b></div>
           <div class="mt-contact">${mtContactHTML(r.kind, r.value)}</div>
-          <div class="mt-hint" style="margin-top:10px">신청 때 내 연락처를 남기지 않았다면 내가 먼저 연락해주세요.</div>
+          <div class="mt-hint" style="margin-top:10px">신청 때 내 연락 수단을 남기지 않았다면 내가 먼저 연락해주세요.</div>
           <div class="mt-warnbox">${esc(MT_DISCLAIMER)} 선입금이나 정가 초과를 요구하면 신고해주세요.</div></div>`, 480);
         mtBindCopy(ov);
       } catch (e) { mtToast(mtErr(e)); }
@@ -29462,25 +29499,25 @@
         const lab = { pending: '⏳ 승인 대기', approved: '참여 확정', rejected: '거절됨', kicked: '추방됨' };
         const cls = { pending: 'wait', approved: 'open', rejected: 'closed', kicked: 'hidden' };
         root.innerHTML = `<div class="mt-sum">${esc(mtTitle(p))}</div>`
-          + (cts.own && cts.own.value ? `<div class="mt-hint" style="margin:-4px 0 12px">승인하면 신청자에게 내 연락처(${esc((MT_CONTACT[cts.own.kind] || {}).n || '')})가 공개돼요.</div>` : '')
+          + (cts.own && cts.own.value ? `<div class="mt-hint" style="margin:-4px 0 12px">승인하면 신청자에게 내 연락 수단(${esc((MT_CONTACT[cts.own.kind] || {}).n || '')})이 공개돼요.</div>` : '')
           + (reqs.length ? reqs.map(r => {
             const c = cmap[r.nick];
             return `<div class="mt-req ${r.status}"><div class="mt-req-h"><b>${esc(r.nick)}</b>${r.gender ? ` <span class="mt-dim">${esc(r.gender)} · ${esc(r.age_group)}</span>` : ''} <span class="mt-badge ${cls[r.status] || 'closed'}">${lab[r.status] || r.status}</span>${r.party > 1 ? ` <span class="mt-badge cat-watch">${r.party}명 신청</span>` : ''}<span class="mt-ago">${mtAgo(r.created_at)}</span></div>
             ${r.message ? `<div class="mt-note">${esc(r.message)}</div>` : ''}
-            ${r.status === 'approved' ? (c && c.value ? `<div class="mt-contact">${mtContactHTML(c.kind, c.value)}</div>` : `<div class="mt-hint">연락처를 남기지 않은 신청자예요. 내 연락처가 공개됐으니 신청자가 먼저 연락할 거예요.</div>`) : ''}
+            ${r.status === 'approved' ? (c && c.value ? `<div class="mt-contact">${mtContactHTML(c.kind, c.value)}</div>` : `<div class="mt-hint">연락 수단을 남기지 않은 신청자예요. 내 연락 수단이 공개됐으니 신청자가 먼저 연락할 거예요.</div>`) : ''}
             <div class="mt-req-b" data-id="${r.id}" data-nick="${esc(r.nick)}">
               ${r.status === 'pending' ? '<button type="button" class="mt-b ok sm" data-a="approve">승인</button><button type="button" class="mt-b no sm" data-a="reject">거절</button>' : ''}
               ${r.status === 'approved' ? '<button type="button" class="mt-b no sm" data-a="kick">추방</button>' : ''}
               <span class="sp"><button type="button" class="mt-b no sm" data-a="report">🚨 신고</button><button type="button" class="mt-b blk sm" data-a="block">🚫 차단</button></span></div></div>`;
           }).join('') : '<div class="mt-empty">아직 신청자가 없어요.</div>')
-          + `<div class="mt-hint" style="margin-top:12px">승인하기 전에는 내 연락처가 공개되지 않아요. 이상하다고 느껴지면 거절하거나 추방하세요.</div>`;
+          + `<div class="mt-hint" style="margin-top:12px">승인하기 전에는 내 연락 수단이 공개되지 않아요. 이상하다고 느껴지면 거절하거나 추방하세요.</div>`;
         mtBindCopy(root);
         root.querySelectorAll('.mt-req-b button').forEach(b => b.onclick = async () => {
           const box = b.closest('.mt-req-b'), a = b.dataset.a, rid = Number(box.dataset.id), nick = box.dataset.nick;
           if (a === 'report') return mtReport(id, nick);
           if (a === 'block') return mtBlock(nick);
           const run = async () => { try { await mtRpc('meetup_decide', { p_request_id: rid, p_action: a }); } catch (e) { mtToast(mtErr(e)); } await draw(); mtReload(); };
-          if (a === 'kick') mtConfirm('추방할까요?', nick + ' 님은 이 글에 다시 신청할 수 없게 되고, 남겨둔 연락처도 지워져요.', '추방', run, true); else run();
+          if (a === 'kick') mtConfirm('추방할까요?', nick + ' 님은 이 글에 다시 신청할 수 없게 되고, 남겨둔 연락 수단도 지워져요.', '추방', run, true); else run();
         });
       };
       draw();
@@ -29554,7 +29591,7 @@
       <div><button type="button" class="btn xs" onclick="mtaResolve(${r.id})">처리 완료</button> <button type="button" class="btn xs" onclick="mtaStatus(${r.post_id},'hidden')">글 숨김</button> <button type="button" class="btn xs" onclick="mtaStatus(${r.post_id},'deleted')">글 삭제</button> <button type="button" class="btn xs" data-nick="${esc(r.target)}" onclick="mtaBan(this.dataset.nick)">이용 정지</button></div></div>`).join('') : '<div class="empty">대기 중인 신고가 없습니다.</div>'}
     <div class="sec-title">글 목록 (${posts.length})</div>
     ${posts.length ? posts.map(p => `<div class="card mt-adm"><b>#${p.id}</b> <span class="mt-badge ${p.status === 'open' ? 'open' : 'closed'}">${stl[p.status] || p.status}</span> ${MT_CATS.find(c => c.k === p.category).n} · ${esc(p.author_nick)} ${p.reports ? `<span class="mt-dot">${p.reports}</span>` : ''}
-      <div class="mt-dim">${esc(p.summary)}${p.note ? ' / ' + esc(p.note) : ''}</div><div class="mt-dim">연락처 ${esc(p.contact_kind)}: ${esc(p.contact_value)}</div>
+      <div class="mt-dim">${esc(p.summary)}${p.note ? ' / ' + esc(p.note) : ''}</div><div class="mt-dim">연락 수단 ${esc(p.contact_kind)}: ${esc(p.contact_value)}</div>
       <div><button type="button" class="btn xs" onclick="mtaStatus(${p.id},'open')">복구</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'hidden')">숨김</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'closed')">마감</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'deleted')">삭제</button> <button type="button" class="btn xs" data-nick="${esc(p.author_nick)}" onclick="mtaBan(this.dataset.nick)">이용 정지</button></div></div>`).join('') : '<div class="empty">글이 없습니다.</div>'}
     <div class="sec-title">이용 정지 (${bans.filter(b => b.active).length})</div>
     <div class="card"><div class="mt-f3"><input id="mta-bn" type="text" placeholder="닉네임"><select id="mta-bd" class="mt-sel"><option value="7">7일</option><option value="30">30일</option><option value="">영구</option></select><input id="mta-br" type="text" placeholder="사유"></div>
