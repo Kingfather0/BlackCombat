@@ -11907,6 +11907,8 @@
     .hm-finder:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, .25); }
     .hm-finder:active { transform: translateY(0) scale(.99); }
     .hm-f-t { font-size: 17px; font-weight: 800; letter-spacing: -.03em; }
+    .z17-back { border: 1px solid #d5d9e0; background: #fff; color: #333; border-radius: 6px; font-size: 12px; font-weight: 700; padding: 5px 9px; cursor: pointer; white-space: nowrap; font-family: inherit; }
+    .z17-back:hover { background: #f3f4f6; }
     .hm-f-t { display: flex; align-items: center; gap: 8px; }
     .hm-f-t em { font-style: normal; font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: #D91E2B; color: #fff; }
     .hm-f-s { font-size: 13px; color: rgba(255, 255, 255, .75); }
@@ -15632,7 +15634,9 @@
       const z = Z17.layout.zones.find(q => q.id === id);
       if (!z) return '';
       const st = z17Stat(z), color = z17Color(z);
-      const head = `<div class="tk-live-modal-head"><b>${esc(z.n)}</b><span style="color:${color}">${esc(z17GradeLabel(z))}</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>`;
+      const zm = document.getElementById('z17-modal');
+      const back = zm && zm.dataset.from === 'front' ? '<button type="button" class="z17-back" onclick="z17OpenFront()">← 잔여석 찾기</button>' : '';
+      const head = `<div class="tk-live-modal-head">${back}<b>${esc(z.n)}</b><span style="color:${color}">${esc(z17GradeLabel(z))}</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>`;
       if (!st) return `${head}<div class="tk-live-zone-loading">불러오는 중…</div>`;
       let prevY = null, body = '';
       z17Rows(z).forEach(r => {
@@ -15657,10 +15661,11 @@
       }
       return modal;
     }
-    function z17OpenZone(id, hr, hc) {
+    function z17OpenZone(id, hr, hc, fromFront) {
       if (!Z17.layout) return;
       const modal = z17EnsureModal();
       modal.dataset.mode = 'zone'; modal.dataset.id = id;
+      if (fromFront) modal.dataset.from = 'front'; else delete modal.dataset.from;
       if (hr != null) { modal.dataset.hr = hr; modal.dataset.hc = hc; } else { delete modal.dataset.hr; delete modal.dataset.hc; }
       modal.innerHTML = `<div class="tk-live-modal-inner">${z17ZoneModalHTML(id, modal.dataset.hr, modal.dataset.hc)}</div>`;
       modal.style.display = 'flex';
@@ -15723,9 +15728,9 @@
       if (Z17.layout && Z17.state && Z17.state.z) Z17.layout.zones.forEach(z => { const q = z17Stat(z); if (q) held += q.held; }); // 휠체어석 제외
       const body = data.map(d => {
         const color = z17Color(d.z), MAX = 40;
-        const chips = d.seats.slice(0, MAX).map(q => `<button type="button" class="z17-fs" style="background:${color}" onclick="z17OpenZone(${d.z.id},'${esc(q.row)}','${esc(q.col)}')" title="누르면 이 좌석이 있는 구역 좌석표가 열립니다">${esc(q.row)}열 ${esc(q.col)}번</button>`).join('');
+        const chips = d.seats.slice(0, MAX).map(q => `<button type="button" class="z17-fs" style="background:${color}" onclick="z17OpenZone(${d.z.id},'${esc(q.row)}','${esc(q.col)}',1)" title="누르면 이 좌석이 있는 구역 좌석표가 열립니다">${esc(q.row)}열 ${esc(q.col)}번</button>`).join('');
         const more = d.seats.length > MAX ? `<span class="z17-fs-more">외 ${d.seats.length - MAX}석 · 구역을 눌러 전체 보기</span>` : '';
-        return `<div class="z17-fz"><div class="z17-fz-h" onclick="z17OpenZone(${d.z.id})" title="${esc(d.z.n)} 구역 전체 좌석 보기"><b>${esc(d.z.n)}</b><span class="z17-fz-g" style="color:${color}">${esc(z17GradeLabel(d.z))}</span><span class="z17-fz-n">잔여 ${d.free}석${d.held ? ` · 선택 중 ${d.held}` : ''}</span></div><div class="z17-fz-seats">${chips}${more}</div></div>`;
+        return `<div class="z17-fz"><div class="z17-fz-h" onclick="z17OpenZone(${d.z.id},null,null,1)" title="${esc(d.z.n)} 구역 전체 좌석 보기"><b>${esc(d.z.n)}</b><span class="z17-fz-g" style="color:${color}">${esc(z17GradeLabel(d.z))}</span><span class="z17-fz-n">잔여 ${d.free}석${d.held ? ` · 선택 중 ${d.held}` : ''}</span></div><div class="z17-fz-seats">${chips}${more}</div></div>`;
       }).join('');
       // 결제 대기(선택 중) 좌석이 어느 구역·열·번호인지 (휠체어석 제외)
       const heldList = [];
@@ -15734,12 +15739,12 @@
         z17Rows(z).forEach(r => r.seats.forEach((s, i) => { if (q.s[r.off + i] === 'h') heldList.push({ z, row: r.k, col: s.col }); }));
       });
       const HMAX = 30;
-      const heldHtml = heldList.length ? `<div class="z17-fz-seats" style="justify-content:flex-start">${heldList.slice(0, HMAX).map(q => `<button type="button" class="z17-fs" style="background:#E91E8C" onclick="z17OpenZone(${q.z.id},'${esc(q.row)}','${esc(q.col)}')" title="결제 대기 중인 좌석 — 누르면 구역 좌석표가 열립니다">${esc(z17GradeLabel(q.z))}(${esc(q.z.n)} ${esc(q.row)}열 ${esc(q.col)}번)</button>`).join('')}${heldList.length > HMAX ? `<span class="z17-fs-more">외 ${heldList.length - HMAX}석</span>` : ''}</div>` : '';
+      const heldHtml = heldList.length ? `<div class="z17-fz-seats" style="justify-content:flex-start">${heldList.slice(0, HMAX).map(q => `<button type="button" class="z17-fs" style="background:${z17Color(q.z)}" onclick="z17OpenZone(${q.z.id},'${esc(q.row)}','${esc(q.col)}',1)" title="결제 대기 중인 좌석 — 누르면 구역 좌석표가 열립니다">${esc(z17GradeLabel(q.z))}(${esc(q.z.n)} ${esc(q.row)}열 ${esc(q.col)}번)</button>`).join('')}${heldList.length > HMAX ? `<span class="z17-fs-more">외 ${heldList.length - HMAX}석</span>` : ''}</div>` : '';
       const empty = Z17.state ? `<div class="tk-live-zone-loading" style="text-align:left;padding-left:2px"><div>지금은 잔여석이 없어요.${held ? `<br>선택 중(결제 대기) 좌석 ${held}석이 있어 곧 풀릴 수 있어요.` : ''}</div>${heldHtml ? `<div style="margin-top:12px">${heldHtml}</div>` : ''}</div>` : '<div class="tk-live-zone-loading">불러오는 중…</div>';
       return `<div class="tk-live-modal-head"><b>잔여석 바로 찾기</b><span style="color:var(--dim);font-size:12px">잔여 좌석이 있는 구역</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>
         <div class="tk-row1-top"><span class="tk-row1-sum">${free > 0 ? `잔여 <b>${free}석</b> · ${data.length}개 구역` : '잔여 없음'}</span></div>
         <div class="tk-row1-note top">좌석을 누르면 그 구역 좌석표(해당 좌석 표시) · 좌석표에서 29CM 예매로 이동<br>※ ${esc(z17AtText())} · 실시간으로 자동 갱신됩니다</div>
-        <div class="z17-scroll">${body || empty}${body && heldHtml ? `<div class="z17-fz-h" style="cursor:default;margin-top:14px"><b style="color:#E91E8C">결제 대기 ${held}석</b><span class="z17-fz-n">곧 풀릴 수 있어요</span></div><div style="margin-top:6px">${heldHtml}</div>` : ''}</div>`;
+        <div class="z17-scroll">${body || empty}${body && heldHtml ? `<div class="z17-fz-h" style="cursor:default;margin-top:14px"><b>결제 대기 ${held}석</b><span class="z17-fz-n">곧 풀릴 수 있어요</span></div><div style="margin-top:6px">${heldHtml}</div>` : ''}</div>`;
     }
     function z17OpenFront() {
       const modal = z17EnsureModal();
