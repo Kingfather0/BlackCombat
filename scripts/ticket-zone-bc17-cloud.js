@@ -57,6 +57,7 @@ async function loadSession() {
   const deadline = Math.min(Date.now() + RUN_MS, EVENT_END);
   let layoutDone = false, runs = 0, lastSave = 0, fails = 0, lastGoto = 0, retried401 = false;
   while (Date.now() < deadline) {
+    const tickStart = Date.now();
     try {
       if (!lastGoto || Date.now() - lastGoto > 5 * 60000) { // 페이지는 5분마다 다시 열어 로그인 토큰을 갱신(토큰은 페이지를 열 때 갱신됨)
         await page.goto(PAGE_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
@@ -69,7 +70,8 @@ async function loadSession() {
       if (Date.now() - lastSave > 10 * 60000) { // 갱신된 세션을 10분마다 암호화해 보관
         await sbSave('z17_session_enc', encrypt(JSON.stringify(await ctx.storageState()))); lastSave = Date.now();
       }
-      await sleep(EVERY_MS);
+      // 읽는 데 걸린 시간만큼 빼고 쉰다 → 회차 간격이 (작업시간 + 주기)가 아니라 정확히 주기(EVERY_MS)가 된다
+      await sleep(Math.max(1500, EVERY_MS - (Date.now() - tickStart)));
     } catch (e) {
       const m = String(e.message || e).split('\n')[0];
       fails++; lastGoto = 0;
