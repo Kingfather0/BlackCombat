@@ -11536,17 +11536,34 @@
       body[data-route="game"]:not([data-sub=""]) .wrap, body[data-route="admin"] .wrap, body[data-route="t"] .wrap { max-width: 860px; }
     }
 
-    /* ── 직관 카풀 티켓 양도 (#/meetup) ── */
+    /* ── 직관 · 카풀 · 티켓양도 (#/meetup) ── */
     body[data-route="meetup"] .wrap { max-width: 860px; }
     body[data-route="meetup"] h1.page::before { content: "Meetup · Carpool · Ticket"; }
-    .mt-disc { margin-top: 16px; padding: 14px 16px; border: 1.5px solid #e9b3b3; background: #fff6f6; border-radius: 10px; font-size: 13px; line-height: 1.65; color: #5a2a2a; }
-    .mt-disc b { color: #b42318; }
-    .mt-disc-sub { display: block; margin-top: 6px; color: #7a4a4a; font-size: 12.5px; }
-    .mt-link { background: none; border: none; padding: 0; color: var(--muted); font-size: 12.5px; font-weight: 700; text-decoration: underline; cursor: pointer; margin-right: 10px; }
-    .mt-disc .mt-link { display: inline-block; margin-top: 8px; }
+    .mt-hero { margin-top: 18px; padding: 20px 20px 16px; border-radius: 16px; background: linear-gradient(135deg, #eef4ff 0%, #fff7e4 100%); border: 1px solid #dbe6ff; }
+    .mt-hero-t { font-size: 19px; font-weight: 800; letter-spacing: -.03em; color: #1b2a4a; }
+    .mt-hero-s { margin-top: 4px; font-size: 14px; color: #3d4c6b; font-weight: 600; line-height: 1.5; }
+    .mt-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .mt-pills span { padding: 5px 11px; background: #fff; border: 1px solid #d3e0fb; border-radius: 999px; font-size: 12.5px; font-weight: 700; color: #2a56c6; }
+    .mt-hero-n { margin-top: 12px; font-size: 12.5px; line-height: 1.65; color: #5b6b85; }
+    .mt-link { display: inline-flex; align-items: center; height: 30px; padding: 0 12px; background: #fff; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: 12.5px; font-weight: 700; text-decoration: none; cursor: pointer; margin: 0 0 0 6px; transition: background .15s, color .15s, border-color .15s; }
+    .mt-link:hover { background: var(--bg2); color: var(--text); border-color: #c9ced6; }
+    .mt-hero .mt-link { margin: 12px 0 0; border-color: #cddcf7; color: #2a56c6; }
+    .mt-hero .mt-link:hover { background: #e8f0ff; color: #1d44a5; }
+    .mt-test { margin-top: 12px; padding: 14px 16px; border-radius: 14px; background: #f5f0ff; border: 1px dashed #b9a6ee; }
+    .mt-test-t { font-size: 14px; font-weight: 800; color: #4a2fa0; }
+    .mt-test-t span { margin-left: 6px; font-size: 11.5px; font-weight: 700; color: #7b66c2; }
+    .mt-test-s { margin: 4px 0 10px; font-size: 12.5px; line-height: 1.55; color: #5b4d8f; }
+    .nav-new { margin-left: 5px; padding: 2px 6px; border-radius: 999px; background: #f59e0b; color: #fff; font-size: 9px; font-weight: 800; letter-spacing: .03em; line-height: 1.3; align-self: center; }
+    .mt-home { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 16px; margin: 4px 0 12px; padding: 16px 20px; border-radius: 14px; background: linear-gradient(135deg, #eef4ff 0%, #fff7e4 100%); border: 1px solid #dbe6ff; text-decoration: none; color: inherit; transition: box-shadow .15s, transform .15s; }
+    .mt-home:hover { box-shadow: 0 6px 18px rgba(37, 99, 235, .12); transform: translateY(-1px); }
+    .mt-home-t { font-size: 17px; font-weight: 800; letter-spacing: -.03em; color: #1b2a4a; white-space: nowrap; }
+    .mt-home-s { font-size: 13px; color: #4a5a78; font-weight: 600; line-height: 1.45; }
+    .mt-home-p { display: inline-flex; gap: 5px; }
+    .mt-home-p i { font-style: normal; padding: 4px 10px; background: #fff; border: 1px solid #d3e0fb; border-radius: 999px; font-size: 12px; font-weight: 800; color: #2a56c6; white-space: nowrap; }
+    @media (max-width: 760px) { .mt-home { grid-template-columns: 1fr; } .mt-home-p { margin-top: 4px; } }
     .mt-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
     .mt-bar-r { white-space: nowrap; }
-    .mt-bar-r .mt-link:last-child { margin-right: 0; }
+    .mt-bar-r { display: inline-flex; gap: 0; }
     .mt-sel { border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 14px; font-weight: 700; background: var(--bg); color: var(--text); max-width: 100%; }
     .mt-sel.wide { width: 100%; }
     .mt-tabs { display: flex; gap: 6px; margin-top: 14px; border-bottom: 1px solid var(--text); overflow-x: auto; scrollbar-width: none; }
@@ -11555,7 +11572,7 @@
     .mt-tab.on { color: var(--text); border-bottom-color: var(--text); }
     .mt-actions { display: flex; justify-content: space-between; align-items: center; margin: 12px 0 4px; gap: 8px; }
     .mt-mine { font-size: 13px; font-weight: 700; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
-    .mt-login { margin: 8px 0; padding: 10px 12px; background: var(--bg2); border-radius: 8px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+    .mt-login { margin: 8px 0; padding: 10px 14px; background: #f1f6ff; border-radius: 10px; font-size: 12.5px; color: #4a5a78; font-weight: 600; }
     .mt-card { padding: 16px 0; border-bottom: 1px solid var(--hair); }
     .mt-card.closed, .mt-card.hidden { opacity: .62; }
     .mt-card-h { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
@@ -11579,7 +11596,7 @@
     .mt-nick { font-size: 13px; font-weight: 800; }
     .mt-btns { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
     .mt-btns .btn.small, .mt-req .btn.small { height: 32px; padding: 0 12px; font-size: 13px; border-radius: 8px; }
-    .mt-btns .mt-link { margin-right: 0; margin-left: 4px; }
+    .mt-btns .mt-link { margin: 0 0 0 2px; height: 28px; font-size: 12px; }
     .mt-state { font-size: 12.5px; font-weight: 700; color: var(--muted); }
     .mt-dot { display: inline-block; min-width: 18px; height: 18px; line-height: 18px; text-align: center; border-radius: 9px; background: #e0332a; color: #fff; font-size: 11px; font-weight: 800; padding: 0 5px; margin-left: 4px; }
     .mt-form { padding-top: 14px; }
@@ -11597,17 +11614,18 @@
     .mt-auto { padding: 10px 12px; background: var(--bg2); border-radius: 8px; font-size: 14px; font-weight: 800; }
     .mt-quick { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
     .mt-quick button { border: 1px solid var(--border); background: var(--bg); border-radius: 6px; padding: 5px 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
-    .mt-agree { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; line-height: 1.55; color: var(--muted); margin: 6px 0 12px; padding: 10px 12px; background: #fff6f6; border-radius: 8px; cursor: pointer; }
+    .mt-agree { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; line-height: 1.6; color: #4a5a78; margin: 6px 0 12px; padding: 12px 14px; background: #f1f6ff; border: 1px solid #dbe6ff; border-radius: 12px; cursor: pointer; }
     .mt-agree input { margin-top: 3px; flex: none; }
-    .mt-msg { margin: 0 0 10px; padding: 9px 12px; border-radius: 8px; background: #fdecec; color: #a51c1c; font-size: 13px; font-weight: 700; }
+    .mt-msg { margin: 0 0 10px; padding: 9px 12px; border-radius: 10px; background: #fff1f0; color: #c0392b; font-size: 13px; font-weight: 700; }
     .mt-sum { padding: 10px 12px; background: var(--bg2); border-radius: 8px; font-size: 14px; font-weight: 800; margin-bottom: 14px; line-height: 1.5; }
     .mt-req { padding: 12px 0; border-bottom: 1px solid var(--hair); }
     .mt-req-b { display: flex; gap: 6px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
     .mt-contact { margin-top: 8px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 14px; }
     .mt-ct { word-break: break-all; }
-    .mt-warnbox, .mt-guide .mt-warnbox { margin: 14px 0; padding: 12px 14px; background: #fff6f6; border: 1px solid #e9b3b3; border-radius: 8px; font-size: 12.5px; line-height: 1.65; color: #5a2a2a; }
+    .mt-warnbox, .mt-guide .mt-warnbox { margin: 14px 0; padding: 12px 14px; background: #fff9e6; border: 1px solid #f3e2a9; border-radius: 12px; font-size: 12.5px; line-height: 1.65; color: #6b5a1e; }
     .mt-guide { padding-top: 12px; font-size: 13.5px; line-height: 1.7; }
-    .mt-guide h4 { margin: 16px 0 4px; font-size: 14px; }
+    .mt-guide h4 { margin: 0 0 6px; font-size: 14.5px; font-weight: 800; color: #1b2a4a; }
+    .mt-gcard { margin-bottom: 10px; padding: 12px 14px; background: #f6f9ff; border: 1px solid #e3ecff; border-radius: 12px; }
     .mt-guide ul { margin: 0; padding-left: 18px; }
     .mt-guide li { margin-bottom: 4px; }
     .mt-confirm { background: var(--bg); width: 100%; max-width: 320px; border-radius: 14px; padding: 22px 20px 16px; box-shadow: 0 14px 40px rgba(0,0,0,.35); }
@@ -11984,7 +12002,7 @@
         <a href="#/" data-nav="home">홈</a>
         <a href="#/videos" data-nav="videos">영상</a>
         <a href="#/tickets" data-nav="tickets">티켓</a>
-        <a href="#/meetup" data-nav="meetup">직관 카풀 티켓 양도</a>
+        <a href="#/meetup" data-nav="meetup">직관·카풀·양도<span class="nav-new">NEW</span></a>
         <a href="#/jokbo" data-nav="fighters">선수</a>
         <a href="#/ranking" data-nav="ranking">격잘알</a>
         <a href="#/game" data-nav="game">게임</a>
@@ -12034,11 +12052,15 @@
       </div>
       <div class="v2-box v2-box-links">
         <h3>바로가기</h3>
+        <a class="mt-home" href="#/meetup">
+          <span class="mt-home-t">직관 · 카풀 · 티켓양도</span>
+          <span class="mt-home-s">같이 갈 사람 구하고, 카풀 타고, 못 가게 된 티켓은 정가 이하로 양도해요</span>
+          <span class="mt-home-p"><i>직관</i><i>카풀</i><i>티켓양도</i></span>
+        </a>
         <div class="v2-links">
           <a href="#/matches">경기<small>승부예측 투표·결과</small></a>
           <a href="#/videos">영상<small>업로드 예측 캘린더</small></a>
           <a href="#/tickets">티켓<small>판매 현황·잔여석</small></a>
-          <a href="#/meetup">직관 카풀 티켓 양도<small>같이 가요·티켓 양도</small></a>
           <a href="#/jokbo">선수<small>족보·랭킹·업적</small></a>
           <a href="#/ranking">격잘알<small>승부예측 랭킹</small></a>
           <a href="#/game">게임<small>미니게임 5종</small></a>
@@ -19205,10 +19227,10 @@
     /* --- 게임 시작 전 로그인 확인. 비로그인이면 바로 카카오 로그인, 닉네임 미설정이면 설정 창. */
     function gmStartGate(startFn) {
       if (gmMyNick) return startFn();
-      gmRequireLogin();
+      mtGate();
     }
     /* 로그인이 필요한 동작에서 공통으로 호출: 상태에 맞는 다음 단계(카카오 로그인 / 닉네임 설정)로 안내 */
-    function gmRequireLogin() {
+    function mtGate() {
       if (gmMyNick) return true;
       if (gmAuthUser && gmNeedsNick) { gmShowNickSetupModal(); return false; }
       gmKakaoLogin();
@@ -19221,7 +19243,7 @@
     /* --- 내 계정 메뉴 (헤더 닉네임 클릭). 예전의 "로그인 변경/비밀번호 변경" 모달 자리.
        mode 인자는 예전 호출부('register'|'login')와의 호환용 — 비로그인 상태면 곧바로 카카오 로그인으로 보낸다. */
     function gmShowNickChangeModal(mode) {
-      if (!gmMyNick) { gmRequireLogin(); return; }
+      if (!gmMyNick) { mtGate(); return; }
       const ov = document.createElement('div');
       ov.className = 'modal-ov';
       ov.innerHTML = `<div class="modal" style="max-width:360px">
@@ -19647,7 +19669,7 @@
       // 2026-10-02: 로그인 전에는 버튼이 꺼져있지 않고 눌리므로, 로그인 안 된 상태에서 누르면
       // 바로 로그인/등록 모달을 띄워준다(진짜 "오늘 횟수 소진"일 때만 disabled로 막힘).
       if (btn && !btn.disabled) {
-        btn.onclick = gmMyNick ? onStart : () => gmRequireLogin();
+        btn.onclick = gmMyNick ? onStart : () => mtGate();
       }
     }
 
@@ -19655,7 +19677,7 @@
        아니라 quiz_user_submission 에 검토 대기(PENDING)로만 쌓이고, 관리자가 골라 승인한
        것만 실제 문제로 등록된다. */
     function bqShowSubmitModal() {
-      if (!gmMyNick) { gmRequireLogin(); return; }
+      if (!gmMyNick) { mtGate(); return; }
       const ov = document.createElement('div');
       ov.className = 'modal-ov';
       ov.innerHTML = `<div class="modal" style="max-width:400px">
@@ -19792,7 +19814,7 @@
        시작 확인 — "시작하면 기회가 소진된다"를 반드시 먼저 알린다
        ────────────────────────────────────────────────────────────── */
     function bqConfirmStart() {
-      if (!gmMyNick) { gmRequireLogin(); return; }
+      if (!gmMyNick) { mtGate(); return; }
       // 확인 팝업 제거 — 동선 단축 요청으로 START 클릭 시 바로 시작.
       // 기회 소진 안내는 START 버튼 아래 문구("시작하면 1회가 소진됩니다")로 대체.
       bqBegin();
@@ -28097,7 +28119,7 @@
     async function submitVote(tid, matchCount) {
       const msg = document.getElementById('v-msg');
       const show = (cls, s) => { msg.className = 'msg ' + cls; msg.textContent = s; msg.scrollIntoView({ block: 'center', behavior: 'smooth' }); };
-      if (!gmMyNick) { gmRequireLogin(); return; }
+      if (!gmMyNick) { mtGate(); return; }
       if (Object.keys(voteSel).length < matchCount) return show('err', `모든 경기에 투표해야 제출할 수 있습니다. 현재 ${matchCount}경기 중 ${Object.keys(voteSel).length}경기만 선택하셨어요.`);
       const btn = document.getElementById('vb-submit'); btn.disabled = true;
       try {
@@ -28583,7 +28605,7 @@
     let resSel = {}; // 결과 입력 선택 상태 {tid:{mid:'A'|'B'|'X'}}
 
     /* =====================================================================
-       직관 카풀 티켓 양도 (#/meetup) — 회원끼리 직관 동행 / 카풀 / 티켓 양도 게시판.
+       직관 · 카풀 · 티켓양도 (#/meetup) — 회원끼리 직관 동행 / 카풀 / 티켓 양도 게시판.
        서버: scripts/meetup.sql (Supabase에서 한 번 실행). 모든 쓰기/읽기는 meetup_* RPC 경유,
        연락처는 서버가 '작성자가 승인한 사이'에만 내려준다. 글 작성/참여는 카카오 로그인 필수(서버도 강제).
        ===================================================================== */
@@ -28603,8 +28625,21 @@
       '그 외': ['부산', '대구', '대전', '광주', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주']
     };
     const MT_FARES = [0, 5000, 10000, 15000, 20000, 30000, 40000, 50000];
-    const MT_DISCLAIMER = '운영진은 회원 간의 만남·동행·카풀·티켓 거래에 일체 관여하지 않으며, 이로 인해 발생하는 사고·분쟁·사기·금전적 손실 등 어떠한 책임도 지지 않습니다. 모든 거래와 만남은 이용자 본인의 책임입니다.';
+    const MT_DISCLAIMER = '이 게시판은 회원끼리 직접 약속하고 거래하는 공간이에요. 운영진은 만남·동행·카풀·티켓 거래에 관여하지 않으며, 그로 인한 사고·분쟁·사기·금전 손실 등에 대해 어떠한 책임도 지지 않아요. 모든 만남과 거래는 본인 책임으로 신중하게 진행해주세요.';
     let MT = { events: [], ev: '', cat: 'all', mine: false, posts: [], prices: null };
+    /* 테스트 계정: preview.html 에서만 보이는 기능. 서버의 '테스트 모드'(어드민에서 켬)가 켜져 있을 때만 동작하고,
+       카카오 로그인 없이 가상 계정(테스트-A 등)으로 글쓰기/신청/승인을 시험해볼 수 있다. 창(탭)마다 다른 계정 선택 가능. */
+    const MT_TEST_UI = /preview\.html$/.test(location.pathname);
+    let MT_TEST_ID = '';
+    try { MT_TEST_ID = MT_TEST_UI ? (sessionStorage.getItem('mt_test_id') || '') : ''; } catch (e) { }
+    function mtSetTest(id) { MT_TEST_ID = id; try { sessionStorage.setItem('mt_test_id', id); } catch (e) { } mtReload(); }
+    function mtTestBar() {
+      const ids = ['', 'A', 'B', 'C', 'D'];
+      return `<div class="mt-test"><div class="mt-test-t">테스트 모드 <span>이 테스트 페이지에서만 보여요</span></div>
+        <div class="mt-test-s">카카오 로그인 없이 가상 계정으로 글쓰기·신청·승인을 시험해볼 수 있어요. 창을 두 개 열어서 한쪽은 A, 한쪽은 B로 골라보세요. (관리자 페이지에서 테스트 모드를 켜야 동작해요)</div>
+        <div class="mt-chs">${ids.map(i => `<button type="button" class="mt-ch${MT_TEST_ID === i ? ' on' : ''}" onclick="mtSetTest('${i}')">${i ? '테스트-' + i : '내 카카오 계정'}</button>`).join('')}</div></div>`;
+    }
+    function mtGate() { if (MT_TEST_ID) return true; return mtGate(); }
 
     const mtN = n => Number(n || 0).toLocaleString('ko-KR');
     function mtErr(e) {
@@ -28614,6 +28649,7 @@
       return '처리하지 못했습니다. 잠시 후 다시 시도해주세요.';
     }
     async function mtRpc(fn, args) {
+      if (MT_TEST_ID && !/^admin_/.test(fn) && fn !== 'meetup_events_list' && fn !== 'meetup_public_cfg') args = Object.assign({}, args, { p_test: MT_TEST_ID });
       const { data, error } = await sb.rpc(fn, args || {});
       if (error) throw error;
       return data;
@@ -28709,7 +28745,7 @@
       const __g = __navGen;
       loading();
       try { MT.events = (await mtRpc('meetup_events_list')) || []; }
-      catch (e) { if (navStale(__g)) return; $app.innerHTML = `<h1 class="page">직관 카풀 티켓 양도</h1><div class="empty">${esc(mtErr(e))}</div>`; return; }
+      catch (e) { if (navStale(__g)) return; $app.innerHTML = `<h1 class="page">직관 · 카풀 · 티켓양도</h1><div class="empty">${esc(mtErr(e))}</div>`; return; }
       if (!MT.ev || !MT.events.some(e => e.event_key === MT.ev)) {
         const up = MT.events.filter(e => !e.ended).sort((a, b) => new Date(a.ends_at) - new Date(b.ends_at))[0];
         MT.ev = (up || MT.events[0] || {}).event_key || '';
@@ -28720,7 +28756,7 @@
       const gg = g == null ? __navGen : g;
       if (MT.ev) {
         try { MT.posts = (await mtRpc('meetup_list', { p_event_key: MT.ev })) || []; }
-        catch (e) { if (navStale(gg)) return; $app.innerHTML = `<h1 class="page">직관 카풀 티켓 양도</h1><div class="empty">${esc(mtErr(e))}</div>`; return; }
+        catch (e) { if (navStale(gg)) return; $app.innerHTML = `<h1 class="page">직관 · 카풀 · 티켓양도</h1><div class="empty">${esc(mtErr(e))}</div>`; return; }
       } else MT.posts = [];
       if (navStale(gg)) return;
       mtRender();
@@ -28731,15 +28767,20 @@
       const ended = !!(ev && ev.ended);
       const cnt = k => MT.posts.filter(p => (k === 'all' || p.category === k) && p.status === 'open').length;
       let list = MT.posts.filter(p => (MT.cat === 'all' || p.category === MT.cat) && (!MT.mine || p.mine || p.my_req));
-      const loggedIn = !!(typeof gmMyNick !== 'undefined' && gmMyNick);
+      const loggedIn = !!(MT_TEST_ID || (typeof gmMyNick !== 'undefined' && gmMyNick));
       const evSel = MT.events.length > 1
         ? `<select class="mt-sel" onchange="MT.ev=this.value;mtRefresh()">${MT.events.map(e => `<option value="${esc(e.event_key)}"${e.event_key === MT.ev ? ' selected' : ''}>${esc(e.title)}${e.ended ? ' (종료)' : ''}</option>`).join('')}</select>`
         : (ev ? `<b>${esc(ev.title)}</b>` : '');
       $app.innerHTML = `
-    <h1 class="page">직관 카풀 티켓 양도</h1>
-    <div class="mt-disc"><b>이용 전 꼭 읽어주세요</b><br>${esc(MT_DISCLAIMER)}<br>
-      <span class="mt-disc-sub">정가 초과 판매와 외부 결제 유도는 금지이며, 적발 시 글 삭제 및 이용이 정지됩니다. 거래 전 상대방을 꼭 확인하고, 선입금은 특히 조심하세요.</span>
-      <button type="button" class="mt-link" onclick="mtGuide()">이용 안내 전체 보기</button></div>
+    <h1 class="page">직관 · 카풀 · 티켓양도</h1>
+    <div class="mt-hero">
+      <div class="mt-hero-t">같이 가고, 같이 타고, 편하게 양도해요</div>
+      <div class="mt-hero-s">블랙컴뱃 직관을 함께할 사람을 찾고, 못 가게 된 티켓은 정가 이하로 넘겨보세요.</div>
+      <div class="mt-pills"><span>정가 이하로만 양도</span><span>외부 결제 유도 금지</span><span>연락처는 승인 후 공개</span><span>신고·차단으로 안전하게</span></div>
+      <div class="mt-hero-n">${esc(MT_DISCLAIMER)}</div>
+      <button type="button" class="mt-link" onclick="mtGuide()">이용 안내 자세히 보기</button>
+    </div>
+    ${MT_TEST_UI ? mtTestBar() : ''}
     ${!ev ? `<div class="empty">등록된 행사가 없습니다.</div>` : `
     <div class="mt-bar"><div>${evSel}${ended ? ' <span class="mt-badge closed">행사 종료 · 지난 글 보기</span>' : ''}</div>
       <div class="mt-bar-r"><button type="button" class="mt-link" onclick="mtBlocked()">차단 목록</button><button type="button" class="mt-link" onclick="mtRefresh()">새로고침</button></div></div>
@@ -28750,7 +28791,7 @@
       <label class="mt-mine"><input type="checkbox" ${MT.mine ? 'checked' : ''} onchange="MT.mine=this.checked;mtRender()"> 내 글 · 내 신청만</label>
       ${ended ? '' : `<button type="button" class="btn primary small" onclick="mtOpenCreate('${MT.cat === 'all' ? '' : MT.cat}')">글쓰기</button>`}
     </div>
-    ${loggedIn ? '' : `<div class="mt-login">글쓰기와 참여 신청은 카카오 로그인 후 이용할 수 있어요. 목록은 로그인 없이 볼 수 있습니다.</div>`}
+    ${loggedIn ? '' : `<div class="mt-login">글쓰기와 참여 신청은 카카오 로그인 후 이용할 수 있어요. 목록은 로그인 없이 편하게 구경하세요.</div>`}
     ${list.length ? list.map(mtCard).join('') : `<div class="empty">${MT.mine ? '내 글이나 신청 내역이 없습니다.' : '등록된 글이 없습니다.'}</div>`}`}`;
     }
     function mtCard(p) {
@@ -28795,25 +28836,27 @@
     /* ---------- 이용 안내 ---------- */
     function mtGuide() {
       mtModal('이용 안내', `<div class="mt-guide">
-      <p class="mt-warnbox"><b>책임의 한계</b><br>${esc(MT_DISCLAIMER)}</p>
-      <h4>금지 사항</h4>
-      <ul><li><b>정가 초과 판매</b> (웃돈, 프리미엄 포함). 양도 금액은 정가를 넘을 수 없습니다.</li>
-      <li><b>외부 결제 유도</b> (계좌, 입금, 선입금, 링크 등). 비고란에는 이런 표현을 쓸 수 없습니다.</li>
-      <li>같은 좌석 중복 등록, 같은 종류 글 중복 등록 (행사당 종류별 진행 중인 글은 1개)</li>
-      <li>욕설, 비하, 영리 목적의 카풀 (카풀비는 유류비·통행료 실비 분담 취지, 1인 5만원 이하)</li></ul>
-      <h4>안전하게 이용하려면</h4>
-      <ul><li>연락처는 작성자가 신청을 승인한 뒤에만 서로에게 공개됩니다. 승인 전에는 누구도 볼 수 없습니다.</li>
-      <li>티켓 거래는 직거래나 예매처 양도 기능처럼 안전한 방법을 우선 고려하세요. 선입금 요구는 사기일 가능성이 높습니다.</li>
-      <li>카풀과 동행은 처음 만나는 사람과 이뤄집니다. 출발지와 시간, 인원을 꼭 확인하고 가족이나 지인에게 알려두세요.</li>
-      <li>10대 이용자는 보호자의 동의 아래 이용해주세요. 작성자는 모집 연령대(전체/같은 연령대/성인만)를 선택할 수 있습니다.</li>
-      <li>이상한 글이나 사람은 <b>신고</b>와 <b>차단</b>을 이용하세요. 서로 다른 3명이 신고하면 글이 자동으로 숨겨지고 운영진이 검토합니다.</li></ul>
-      <h4>마감과 기록</h4>
-      <ul><li>행사가 끝나면 모든 글이 자동으로 마감되고, 지난 글로 남아 읽기만 가능합니다.</li></ul></div>`, 560);
+      <div class="mt-gcard"><h4>이런 걸 올릴 수 있어요</h4>
+        <ul><li><b>직관</b> 같이 경기 보러 갈 사람 모으기</li><li><b>카풀</b> 같은 방향 사람끼리 차 나눠 타기 (모집/희망)</li><li><b>티켓 양도</b> 못 가게 된 티켓을 정가 이하로 넘기기</li></ul></div>
+      <div class="mt-gcard"><h4>이것만은 지켜주세요</h4>
+        <ul><li>양도 금액은 <b>정가 이하</b>로만 올릴 수 있어요. 웃돈과 프리미엄은 안 돼요.</li>
+        <li><b>계좌, 선입금, 링크</b> 같은 외부 결제 유도는 금지예요. 비고란에도 쓸 수 없어요.</li>
+        <li>행사마다 종류별로 진행 중인 글은 <b>1개</b>까지, 같은 좌석은 한 번만 올릴 수 있어요.</li>
+        <li>카풀비는 기름값·통행료를 나누는 용도로 1인 5만원까지만 가능해요.</li></ul></div>
+      <div class="mt-gcard"><h4>안전하게 즐기는 팁</h4>
+        <ul><li>연락처는 작성자가 승인한 뒤에만 서로 보여요. 승인 전에는 아무도 볼 수 없어요.</li>
+        <li>티켓은 직접 만나서 확인하는 직거래를 추천해요. 선입금을 요구하면 한 번 더 의심해보세요.</li>
+        <li>카풀과 동행은 처음 만나는 분과 하게 돼요. 출발지·시간·인원을 확인하고 가족이나 지인에게 알려두면 좋아요.</li>
+        <li>10대는 보호자 동의 아래 이용해주세요. 글쓴이가 모집 연령대(전체/같은 연령대/성인만)를 고를 수 있어요.</li>
+        <li>불편한 글이나 사람은 신고·차단으로 알려주세요. 서로 다른 3명이 신고하면 글이 자동으로 숨겨지고 운영진이 확인해요.</li></ul></div>
+      <div class="mt-gcard"><h4>행사가 끝나면</h4>
+        <ul><li>글이 자동으로 마감되고, 지난 글로 남아 읽기만 할 수 있어요.</li></ul></div>
+      <div class="mt-warnbox"><b>알아두세요</b><br>${esc(MT_DISCLAIMER)}</div></div>`, 560);
     }
 
     /* ---------- 글쓰기 ---------- */
     async function mtOpenCreate(cat) {
-      if (!gmRequireLogin()) return;
+      if (!mtGate()) return;
       const ev = mtCurEvent();
       if (!ev || ev.ended) { mtToast('종료된 행사에는 글을 쓸 수 없습니다.'); return; }
       const prices = await mtLoadPrices();
@@ -28931,7 +28974,7 @@
 
     /* ---------- 참여 신청 / 취소 ---------- */
     function mtApply(id) {
-      if (!gmRequireLogin()) return;
+      if (!mtGate()) return;
       const p = MT.posts.find(x => x.id === id); if (!p) return;
       const prof = mtLS('mt_prof') || {};
       const ov = mtModal('참여 신청', `<div class="mt-form" id="mt-ap">
@@ -29002,7 +29045,7 @@
         const r = await mtRpc('meetup_contacts', { p_post_id: id });
         const ov = mtModal('연락처', `<div class="mt-form"><div class="mt-sum">작성자 <b>${esc(r.nick)}</b></div>
           <div class="mt-contact">${mtContactHTML(r.kind, r.value)}</div>
-          <div class="mt-warnbox">${esc(MT_DISCLAIMER)} 선입금 요구, 정가 초과 요구는 사기일 수 있으니 신고해주세요.</div></div>`, 480);
+          <div class="mt-warnbox">${esc(MT_DISCLAIMER)} 선입금이나 정가 초과를 요구하면 신고해주세요.</div></div>`, 480);
         mtBindCopy(ov);
       } catch (e) { mtToast(mtErr(e)); }
     }
@@ -29042,7 +29085,7 @@
 
     /* ---------- 신고 / 차단 ---------- */
     function mtReport(postId, targetNick) {
-      if (!gmRequireLogin()) return;
+      if (!mtGate()) return;
       const ov = mtModal('신고하기', `<div class="mt-form" id="mt-rp"><div class="mt-sum">${targetNick ? esc(targetNick) + ' 님을 신고합니다.' : '이 글을 신고합니다. 서로 다른 3명이 신고하면 글이 자동으로 숨겨지고 운영진이 검토합니다.'}</div>
         <div class="mt-f"><label>신고 사유</label>${mtChoices('reason', MT_REPORT_REASONS, '')}</div><div class="mt-msg" style="display:none"></div>
         <button type="button" class="btn primary wide" id="mt-submit">신고 접수</button></div>`, 460);
@@ -29054,14 +29097,14 @@
       };
     }
     function mtBlock(nick) {
-      if (!gmRequireLogin()) return;
+      if (!mtGate()) return;
       mtConfirm(nick + ' 님을 차단할까요?', '서로의 글이 보이지 않고, 서로의 글에 신청할 수 없게 됩니다. 차단 목록에서 해제할 수 있어요.', '차단', async () => {
         try { await mtRpc('meetup_block', { p_nick: nick }); mtToast('차단했습니다.'); } catch (e) { mtToast(mtErr(e)); }
         mtReload();
       });
     }
     async function mtBlocked() {
-      if (!gmRequireLogin()) return;
+      if (!mtGate()) return;
       let list = []; try { list = await mtRpc('meetup_blocked_list'); } catch (e) { return mtToast(mtErr(e)); }
       const ov = mtModal('차단 목록', `<div class="mt-form">${list.length ? list.map(n => `<div class="mt-req"><b>${esc(n)}</b> <button type="button" class="btn small" data-n="${esc(n)}">해제</button></div>`).join('') : '<div class="empty">차단한 사용자가 없습니다.</div>'}</div>`, 420);
       ov.querySelectorAll('[data-n]').forEach(b => b.onclick = async () => { try { await mtRpc('meetup_unblock', { p_nick: b.dataset.n }); b.closest('.mt-req').remove(); mtReload(); } catch (e) { mtToast(mtErr(e)); } });
@@ -29072,22 +29115,27 @@
       const __g = __navGen;
       if (!adminPass()) { $app.innerHTML = `<h1 class="page">관리자</h1><div class="empty">먼저 <a href="#/admin">관리자 페이지</a>에서 로그인해주세요.</div>`; return; }
       loading();
-      let evs, posts = [], reps = [], bans = [];
+      let evs, posts = [], reps = [], bans = [], cfg = {};
       try {
         evs = (await mtRpc('meetup_events_list')) || [];
         if (!MT.ev || !evs.some(e => e.event_key === MT.ev)) MT.ev = (evs[0] || {}).event_key || '';
         const P = adminPass();
+        cfg = (await mtRpc('meetup_public_cfg')) || {};
         [posts, reps, bans] = await Promise.all([
           MT.ev ? mtRpc('admin_meetup_posts', { p_pass: P, p_event_key: MT.ev }) : [],
           mtRpc('admin_meetup_reports', { p_pass: P, p_only_open: true }),
           mtRpc('admin_meetup_bans', { p_pass: P })]);
-      } catch (e) { if (navStale(__g)) return; $app.innerHTML = `<h1 class="page">직관 카풀 티켓 양도 관리</h1><div class="empty">${esc(mtErr(e))}</div>`; return; }
+      } catch (e) { if (navStale(__g)) return; $app.innerHTML = `<h1 class="page">직관 · 카풀 · 티켓양도 관리</h1><div class="empty">${esc(mtErr(e))}</div>`; return; }
       if (navStale(__g)) return;
       const ev = evs.find(e => e.event_key === MT.ev) || {};
       const stl = { open: '모집 중', full: '모집 완료', closed: '마감', hidden: '숨김', deleted: '삭제됨' };
       const toLocal = d => { if (!d) return ''; const t = new Date(new Date(d).getTime() + 9 * 3600000); return t.toISOString().slice(0, 16); };
       $app.innerHTML = `
-    <h1 class="page">직관 카풀 티켓 양도 관리 <a href="#/admin" class="btn small ghost" style="text-decoration:none">관리자 홈</a></h1>
+    <h1 class="page">직관 · 카풀 · 티켓양도 관리 <a href="#/admin" class="btn small ghost" style="text-decoration:none">관리자 홈</a></h1>
+    <div class="sec-title">테스트 모드</div>
+    <div class="card"><div class="mt-row">현재 <b>${cfg.test_mode ? '켜짐' : '꺼짐'}</b> <span class="mt-dim">켜져 있는 동안에만 테스트 페이지(preview.html)에서 가상 계정(테스트-A~D)으로 글쓰기·신청이 가능해요. 라이브 오픈 전에는 꼭 꺼주세요.</span></div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn small ${cfg.test_mode ? '' : 'primary'}" onclick="mtaTestMode(${cfg.test_mode ? 'false' : 'true'})">${cfg.test_mode ? '테스트 모드 끄기' : '테스트 모드 켜기'}</button>
+      <button type="button" class="btn small" onclick="mtaClearTest()">테스트 데이터 모두 삭제</button></div></div>
     <div class="sec-title">행사 설정</div>
     <div class="card">
       <div class="mt-f"><label>행사</label><select class="mt-sel wide" onchange="MT.ev=this.value;viewMeetupAdmin()">${evs.map(e => `<option value="${esc(e.event_key)}"${e.event_key === MT.ev ? ' selected' : ''}>${esc(e.title)} (${esc(e.event_key)})</option>`).join('')}</select></div>
@@ -29114,6 +29162,8 @@
       try { await mtRpc(fn, Object.assign({ p_pass: adminPass() }, args)); if (ok) mtToast(ok); } catch (e) { mtToast(mtErr(e)); }
       viewMeetupAdmin();
     }
+    const mtaTestMode = on => mtaDo('admin_meetup_set_test_mode', { p_on: on }, on ? '테스트 모드를 켰습니다.' : '테스트 모드를 껐습니다.');
+    function mtaClearTest() { mtConfirm('테스트 데이터를 모두 삭제할까요?', '테스트 계정(테스트-A~)이 만든 글, 신청, 신고, 차단, 정지 기록이 지워집니다. 실제 회원 데이터는 그대로예요.', '삭제', () => mtaDo('admin_meetup_clear_test', {}, '테스트 데이터를 삭제했습니다.')); }
     const mtaResolve = id => mtaDo('admin_meetup_resolve_report', { p_id: id }, '처리했습니다.');
     const mtaStatus = (id, s) => mtaDo('admin_meetup_set_status', { p_id: id, p_status: s }, '변경했습니다.');
     const mtaUnban = id => mtaDo('admin_meetup_unban', { p_ban_id: id }, '해제했습니다.');
@@ -29235,7 +29285,7 @@
       if (navStale(__g)) return; $app.innerHTML = `
     <h1 class="page">🛠️ 관리자
       <a href="#/admin/yttest" class="btn small ghost" style="text-decoration:none">🔗 경기 공식 링크 관리</a>
-      <a href="#/admin/meetup" class="btn small ghost" style="text-decoration:none">직관 카풀 티켓 양도 관리</a>
+      <a href="#/admin/meetup" class="btn small ghost" style="text-decoration:none">직관 · 카풀 · 티켓양도 관리</a>
       <button class="btn small ghost" onclick="sessionStorage.removeItem('fp_admin');route()" style="color:#c62828">로그아웃</button></h1>
     <div class="sec-title" style="margin-top:26px">📢 공지 관리</div>
     ${annNeedPatch ? '<div class="empty">⚠️ admin_save_data 함수가 아직 없어 공지 저장이 안 됩니다. (선수 랭킹 갱신 기능과 같은 함수를 씁니다 — 랭킹 갱신이 이미 되고 있다면 이 메시지는 무시해도 됩니다)</div>' : `
