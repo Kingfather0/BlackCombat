@@ -11633,7 +11633,6 @@
     .mt-ms-o.on { font-weight: 800; }
     .mt-br { display: none; }
     @media (max-width: 640px) { .mt-br { display: inline; } }
-    .mt-badge.cat-ticket.kind-buy { background: #fff; color: var(--mt-blue); box-shadow: inset 0 0 0 1.5px var(--mt-blue); }
     .mt-note { cursor: pointer; }
     .mt-note:hover { background: #ececf0; }
     .mt-deals { margin: 6px 0; padding: 8px 10px; background: var(--bg2); border-radius: 8px; display: grid; gap: 4px; font-size: 13px; }
@@ -11872,7 +11871,6 @@
     .mt-tags span.hl { background: var(--bg2); color: #444; }
     .mt-badge.wait { background: #fff; color: var(--mt-amb-x); border: 1px solid var(--mt-amb-l); }
     .mt-badge.open { background: transparent; padding-left: 0; color: var(--mt-grn); }
-    .mt-badge.cat-carpool.kind-wish { background: #fff; color: var(--mt-grn); box-shadow: inset 0 0 0 1.5px var(--mt-grn); }
     @media (min-width: 900px) {
       .mt-hero { min-height: 190px; background: linear-gradient(90deg, #0b0c0e calc(100% - 351px), rgba(11, 12, 14, 0) calc(100% - 250px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #0b0c0e; }
       .mt-hero-in { padding: 30px 30px; max-width: 60%; }
@@ -11883,10 +11881,9 @@
     .mt-foot-note { margin-top: 18px; padding: 12px 4px 0; border-top: 1px solid var(--hair); font-size: 12px; line-height: 1.7; color: var(--dim); }
     .mt-empty { margin-top: 10px; padding: 40px 16px; text-align: center; background: #fff; border: 1px dashed var(--hair2); border-radius: 12px; color: var(--muted); font-size: 14px; font-weight: 600; line-height: 1.7; }
     /* ===== v6: 카테고리 색 구분 제거 — 검정 테두리 + 투명 회색, 색은 상태(모집 중/할인/접속중)에만 ===== */
-    .mt-tab.on, .mt-tab.c-watch.on, .mt-tab.c-carpool.on, .mt-tab.c-ticket.on { background: rgba(17, 17, 17, .06); border-color: #111; color: #111; box-shadow: none; }
+    .mt-tab.on, .mt-tab.c-watch.on, .mt-tab.c-carpool.on, .mt-tab.c-ticket.on { background: rgba(17, 17, 17, .08); border-color: transparent; color: #111; box-shadow: none; }
     .mt-tab.on small, .mt-tab.c-watch.on small, .mt-tab.c-carpool.on small, .mt-tab.c-ticket.on small { color: #555; opacity: 1; background: rgba(0, 0, 0, .07); }
     .mt-badge.cat-watch, .mt-badge.cat-carpool, .mt-badge.cat-ticket { background: #ececf0; color: #222; box-shadow: none; }
-    .mt-badge.cat-carpool.kind-wish, .mt-badge.cat-ticket.kind-buy { background: #fff; color: #111; box-shadow: inset 0 0 0 1.5px #111; }
     .mt-card.is-mine.c-watch, .mt-card.is-mine.c-carpool, .mt-card.is-mine.c-ticket { background: #f0f0f3; border-color: #d4d4db; }
     .mt-hi.price b { color: #111; }
     .mt-b.blue { background: #fff; border-color: var(--hair2); color: var(--text); }
@@ -11895,6 +11892,20 @@
     .mt-form .mt-ch.on, .mt-form.c-watch .mt-ch.on, .mt-form.c-carpool .mt-ch.on, .mt-form.c-ticket .mt-ch.on { background: rgba(17, 17, 17, .06); border-color: #111; color: #111; box-shadow: inset 0 0 0 1px #111; }
     .mt-ch.on { background: rgba(17, 17, 17, .06); border-color: #111; color: #111; box-shadow: inset 0 0 0 1px #111; }
     .mt-f input:focus, .mt-f textarea:focus, .mt-sel:focus { border-color: #111; box-shadow: 0 0 0 3px rgba(0, 0, 0, .08); }
+    .mt-form .mt-ch.on, .mt-form.c-watch .mt-ch.on, .mt-form.c-carpool .mt-ch.on, .mt-form.c-ticket .mt-ch.on, .mt-ch.on { box-shadow: none; border-width: 1px; }
+    .mt-submit .mt-b.pri { background: #111; border-color: #111; color: #fff; }
+    .mt-submit .mt-b.pri:hover { background: #333; border-color: #333; filter: none; }
+    .mt-submit .mt-b.pri:disabled { background: #aaa; border-color: #aaa; }
+    .mt-note { white-space: normal; overflow: visible; text-overflow: clip; }
+    .mt-note > span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; line-height: 1.45; }
+    @media (max-width: 640px) {
+      .mt-main { display: contents; }
+      .mt-card-h { grid-column: 1 / -1; }
+      .mt-main > .mt-title, .mt-main > .mt-facts, .mt-main > .mt-tags { grid-column: 1; min-width: 0; }
+      .mt-side .mt-hi { grid-row: 2 / span 2; align-self: start; padding-top: 4px; }
+      .mt-main > .mt-note { grid-column: 1 / -1; }
+      .mt-side .mt-btns { grid-row: auto; }
+    }
 
     /* ── 모바일 ── */
     @media (max-width: 1023px) {
@@ -29210,7 +29221,7 @@
         <button type="button" title="모집 중만 보기" class="mt-fchip g${MT.onlyOpen ? ' on' : ''}" onclick="MT.onlyOpen=!MT.onlyOpen;mtRender()"><i></i><span class="mt-lb">모집 중만</span></button>
         <button type="button" title="내 글·내 신청만 보기" class="mt-fchip m${MT.mine ? ' on' : ''}" onclick="MT.mine=!MT.mine;mtRender()">👤<span class="mt-lb"> 내 글·신청</span></button>
       </div>
-      ${ended ? '' : `<button type="button" class="mt-b dark" onclick="mtOpenCreate()">+ 글쓰기</button>`}
+      ${ended ? '' : `<button type="button" class="mt-b dark" onclick="mtOpenCreate()">글쓰기</button>`}
     </div>
     ${MT.fOpen ? mtFPanel(f) : ''}
     ${loggedIn ? '' : `<div class="mt-login">글쓰기와 참여 신청은 카카오 로그인 후 이용할 수 있어요.</div>`}
@@ -29238,7 +29249,7 @@
         hi = `<div class="mt-hi"><small>카풀비 (1인)</small><b>${p.fare < 0 ? '협의' : p.fare ? mtN(p.fare) + '<i>원</i>' : '없음'}</b></div>`;
       } else {
         const pct = p.unit_price > 0 ? Math.round((1 - p.sell_price / p.unit_price) * 100) : 0;
-        facts = [...(p.tk_kind === '구매' ? [] : [`${esc(p.seat_zone)}구역 ${esc(p.seat_row)}열 ${esc(p.seat_num)}번`]), `<b>${p.sell_qty}장</b>${p.tk_kind === '구매' ? ' 구해요' : ''}`];
+        facts = [...(p.tk_kind === '구매' || !p.seat_zone ? [] : [`${esc(p.seat_zone)}구역 ${esc(p.seat_row)}열 ${esc(p.seat_num)}번`]), `<b>${p.sell_qty}장</b>${p.tk_kind === '구매' ? ' 구해요' : ''}`];
         hi = `<div class="mt-hi price"><small>${p.tk_kind === '구매' ? '희망가 · ' : ''}${p.sell_qty > 1 ? '총 ' + p.sell_qty + '장' : '1장'} · 장당 ${mtN(p.sell_price)}원</small><b>${mtN(p.sell_price * p.sell_qty)}<i>원</i></b><em class="${pct > 0 ? 'off' : ''}">${pct > 0 ? pct + '% 할인' : '정가'}</em></div>`;
       }
       const reqB = p.my_req === 'pending' ? '<span class="mt-badge wait">⏳ 승인 대기 중</span>' : p.my_req === 'approved' ? '<span class="mt-badge open">참여 확정</span>' : '';
@@ -29260,11 +29271,11 @@
       }
       return `<div class="mt-card c-${p.category} ${p.status}${p.mine ? ' is-mine' : ''}">
       <div class="mt-main">
-        <div class="mt-card-h"><span class="mt-badge cat-${p.category}${p.category === 'carpool' ? ' kind-' + (p.cp_kind === '모집' ? 'rec' : 'wish') : p.category === 'ticket' && p.tk_kind === '구매' ? ' kind-buy' : ''}">${c.ico} ${p.category === 'carpool' ? '카풀 ' + esc(p.cp_kind) : p.category === 'ticket' ? '티켓 ' + esc(p.tk_kind || '판매') : c.n}</span><span class="mt-badge ${st[1]}">${st[0]}</span>${p.mine ? '<span class="mt-badge mine">내 글</span>' : mtNick(p.author_nick)}${reqB}<span class="mt-ago">${mtAgo(p.created_at)}</span></div>
+        <div class="mt-card-h"><span class="mt-badge cat-${p.category}${p.category === 'carpool' ? ' kind-' + (p.cp_kind === '모집' ? 'rec' : 'wish') : p.category === 'ticket' && p.tk_kind === '구매' ? ' kind-buy' : ''}">${p.category === 'carpool' ? (p.cp_kind === '모집' ? '🚗' : '🙏') + ' 카풀 ' + esc(p.cp_kind) : p.category === 'ticket' ? (p.tk_kind === '구매' ? '🙋' : c.ico) + ' 티켓 ' + esc(p.tk_kind || '판매') : c.ico + ' ' + c.n}</span><span class="mt-badge ${st[1]}">${st[0]}</span>${p.mine ? '<span class="mt-badge mine">내 글</span>' : mtNick(p.author_nick)}${reqB}<span class="mt-ago">${mtAgo(p.created_at)}</span></div>
         <div class="mt-title">${esc(mtTitle(p))}</div>
         <div class="mt-facts">${facts.map(x => `<span>${x}</span>`).join('')}</div>
         ${tags.length ? `<div class="mt-tags">${tags.join('')}</div>` : ''}
-        ${p.note ? `<div class="mt-note" role="button" title="눌러서 전체 보기" onclick="mtNoteView(${p.id})">${esc(p.note)}</div>` : ''}
+        ${p.note ? `<div class="mt-note" role="button" title="눌러서 전체 보기" onclick="mtNoteView(${p.id})"><span>${esc(p.note)}</span></div>` : ''}
       </div>
       <div class="mt-side">${hi}<div class="mt-btns">${btns}</div></div></div>`;
     }
@@ -29350,6 +29361,7 @@
       const gender = D.gender || S.prof.gender || '', age = D.age_group || S.prof.age || '';
       const ck = (S.own && S.own.kind) || 'openkakao', cv = (S.own && S.own.value) || '';
       let f = edit ? '' : `<button type="button" class="mt-back" id="mt-back">← 종류 다시 고르기</button>`;
+      if (cat === 'carpool') f += `<div class="mt-f"><label>카풀 구분</label>${mtChoices('cpkind', [{ v: '모집', l: '🚗 카풀 모집 (차량 있음)' }, { v: '희망', l: '🙏 카풀 희망 (탑승 원함)' }], D.cp_kind || '')}</div>`;
       if (cat !== 'ticket') {
         f += `<div class="mt-f2"><div class="mt-f"><label>내 성별</label>${mtChoices('gender', ['남자', '여자'], gender)}</div>
           <div class="mt-f"><label>내 나이대</label>${mtChoices('age', MT_AGE, age)}</div></div>`;
@@ -29357,8 +29369,7 @@
       }
       if (cat === 'watch') f += `<div class="mt-f"><label>모집 인원</label>${mtNumChips('people', [1, 2, 3, 4, 5], D.people, 30, n => n + '명')}</div>`;
       if (cat === 'carpool') {
-        f += `<div class="mt-f"><label>구분</label>${mtChoices('cpkind', [{ v: '모집', l: '카풀 모집 (차량 있음)' }, { v: '희망', l: '카풀 희망 (탑승 원함)' }], D.cp_kind || '')}</div>
-        <div class="mt-f"><label>출발지 <small>상세 위치는 선택</small></label><select id="mt-origin" class="mt-sel wide"><option value="">지역 선택</option>${Object.entries(MT_REGIONS).map(([g, arr]) => `<optgroup label="${g}">${arr.map(a => `<option value="${esc(g === '그 외' ? a : g + ' ' + a)}">${esc(a)}</option>`).join('')}</optgroup>`).join('')}</select>
+        f += `<div class="mt-f"><label>출발지 <small>상세 위치는 선택</small></label><select id="mt-origin" class="mt-sel wide"><option value="">지역 선택</option>${Object.entries(MT_REGIONS).map(([g, arr]) => `<optgroup label="${g}">${arr.map(a => `<option value="${esc(g === '그 외' ? a : g + ' ' + a)}">${esc(a)}</option>`).join('')}</optgroup>`).join('')}</select>
           <input id="mt-od" type="text" maxlength="30" style="margin-top:8px" placeholder="상세 위치 (예: 강남역 1번 출구)" value="${esc(D.origin_detail || '')}"></div>
         <div class="mt-f"><label id="mt-plabel">${D.cp_kind === '희망' ? '탑승 인원' : '모집 인원 (빈 자리)'}</label>${mtNumChips('people', [1, 2, 3, 4], D.people, 8, n => n + '명')}</div>
         <div class="mt-f"><label>편도 / 왕복</label>${mtChoices('trip', ['편도', '왕복', '무관'], D.trip || '')}</div>
