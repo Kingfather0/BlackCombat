@@ -11266,6 +11266,10 @@
     body[data-route="tickets"] .card.tk-card > .tk-trend:has(+ .tk-hourly) > .tk-rev-note {
       display: none !important;
     }
+    /* PC에서는 일별 | 시간별이 좌우로 나란히 놓이므로, 세로 배치용 구분선·위 여백을 없애 두 차트의 위치를 맞춘다(모바일은 그대로). */
+    @media (min-width: 1024px) {
+      body[data-route="tickets"] .tk-dash-trends .tk-dash-col .card.tk-card > .tk-hourly { border-top: 0 !important; margin-top: 0 !important; padding-top: 0 !important; }
+    }
     .tk-dash-hist { margin-top: 22px; }
     .tk-dash-hist > .sec-title { margin: 0 !important; font-size: 15px; font-weight: 700; padding-bottom: 10px; min-height: 42px; align-items: center; }
     .tk-hist-tbl { width: 100%; border-collapse: collapse; }
@@ -14589,7 +14593,12 @@
       // 나머지 날들이 전부 바닥에 깔려 +3과 +6이 똑같아 보였다(신고 확인). 첫 막대는 항상 100%로 그리고,
       // 나머지는 "하루 판매량 중 최대"를 100%로 제곱근 스케일링해서 작은 차이도 보이게 한다.
       const nonStart = bars.filter(b => !b.isStart);
-      const maxPos = Math.max(1, ...nonStart.map(b => Math.max(0, b.delta)));
+      // 시작 이후 "판매가 늘어난 날"이 하나도 없으면(예: 시작 21,177석 → 다음날 -4석) 기준이 1석으로 잡혀
+      // 취소 막대가 시작 막대와 똑같은 크기로 그려졌다. 이 경우엔 시작 막대의 값을 판매 쪽 기준으로 쓴다.
+      const startBar = bars.find(b => b.isStart);
+      const maxPos = nonStart.some(b => b.delta > 0)
+        ? Math.max(1, ...nonStart.map(b => Math.max(0, b.delta)))
+        : Math.max(1, startBar ? startBar.delta : 1);
       const maxNeg = Math.max(0, ...nonStart.map(b => Math.max(0, -b.delta))); // 취소가 더 많았던 날의 최대 폭
       // 마이너스인 날이 하나라도 있으면 차트를 기준선 위(판매)/아래(취소·빨강) 두 구역으로 나눈다.
       // 구역 높이는 양/음 최대값의 제곱근 비율로 배분(최소 10%, 최대 50%) — 그래서 -1 같은 값은
