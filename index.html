@@ -15388,9 +15388,24 @@
       });
       return z._rows;
     }
+    // 휠체어석은 구매 대상이 아니므로 잔여석 찾기·구역 선택·좌석표 어디에서도 '매진'(회색) 처리한다.
+    // 구역 전체가 휠체어석이거나, 일반석 구역 안의 W열(W1, W2…) 좌석이 휠체어석이다.
+    function z17WcMask(z) {
+      if (z._wc !== undefined) return z._wc;
+      z._wc = null;
+      const codes = ((z.g && z.g.length) ? z.g : [z17GradeCode(z)]).filter(Boolean);
+      if (!codes.some(c => /휠체어/.test(Z17_GRADE_NAME[c] || ''))) return null;
+      const only = codes.every(c => /휠체어/.test(Z17_GRADE_NAME[c] || ''));
+      const mask = [];
+      z17Rows(z).forEach(r => r.seats.forEach(q => mask.push(only || /^W/i.test(String(q.col)))));
+      if (mask.some(Boolean)) z._wc = mask;
+      return z._wc;
+    }
     function z17Stat(z) {
-      const s = Z17.state && Z17.state.z && Z17.state.z[z.id];
+      let s = Z17.state && Z17.state.z && Z17.state.z[z.id];
       if (!s) return null;
+      const wc = z17WcMask(z);
+      if (wc) s = s.split('').map((c, i) => wc[i] ? '1' : c).join('');
       let free = 0, sold = 0, held = 0, na = 0;
       for (let i = 0; i < s.length; i++) { const c = s[i]; if (c === '0') free++; else if (c === '1') sold++; else if (c === 'h') held++; else na++; }
       return { s, free, sold, held, na, total: s.length };
@@ -15673,7 +15688,7 @@
       <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)"><span id="z17At"></span>약 20초 단위 자동 갱신</span></div>
       <div class="card">
         <button type="button" class="tk-row1-btn" onclick="z17OpenFront()">잔여석 바로 찾기 <span class="tk-row1-badge" id="z17Badge">불러오는 중…</span><span class="z17-holdbox" id="z17Hold" style="display:none"></span></button>
-        <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">잔여(컬러) · 매진(회색) · 선택 중(결제 대기) · 구역 누르면 좌석 배치 확인</div>
+        <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">잔여(컬러) · 매진(회색) · 선택 중(결제 대기) · 휠체어석 제외</div>
         <div id="z17-box"></div>
       </div>`;
     }
