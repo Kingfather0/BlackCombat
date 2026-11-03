@@ -29496,7 +29496,7 @@
         const b = q('mt-vfy');
         b.className = 'mt-b sm ' + (done ? 'okline' : 'gray');
         b.textContent = done ? '✓ 확인 완료' : (k === 'kakaoid' ? '카카오톡에서 검색해봤어요' : '열어서 확인');
-        q('mt-vhint').textContent = done ? '' : (k === 'openkakao' ? '링크가 열리는지 확인해야 진행할 수 있어요' : k === 'insta' ? '내 프로필이 열리는지 확인해야 진행할 수 있어요' : '카카오톡 ID 검색에서 나오는지 확인한 뒤 눌러주세요');
+        q('mt-vhint').textContent = done ? '' : (k === 'openkakao' ? '링크가 열리는지 확인해야 진행할 수 있어요' : k === 'insta' ? '내 프로필이 열리는지 확인해야 진행할 수 있어요' : '카카오톡 ID 검색에서 나오는지 확인한 뒤 눌러주세요 (자동 확인은 어려워요)');
       };
       root.querySelectorAll('.mt-chs[data-g="ckind"] .mt-ch').forEach(b => b.addEventListener('click', paint));
       q('mt-cval').addEventListener('input', paint);
