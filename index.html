@@ -11536,7 +11536,7 @@
     }
 
     /* ── 직관 · 카풀 · 티켓 양도 (#/meetup) ── 사이트 톤(흰 타일 + 헤어라인 + 앰버)에 맞춘 평평한 디자인 ── */
-    body[data-route="meetup"] .wrap { max-width: 820px; }
+    /* 쉐어 페이지는 다른 페이지와 같은 기본 가로폭(--v2-max)을 사용 */
     body[data-route="meetup"] h1.page::before { content: "Together"; }
     :root {
       --mt-vio: #6d3fc0; --mt-vio-t: #f0e9fb; --mt-vio-l: #dccdf5;
@@ -11633,6 +11633,11 @@
     .mt-ms-o.on { font-weight: 800; }
     .mt-br { display: none; }
     @media (max-width: 640px) { .mt-br { display: inline; } }
+    .mt-badge.cat-ticket.kind-buy { background: #fff; color: var(--mt-blue); box-shadow: inset 0 0 0 1.5px var(--mt-blue); }
+    .mt-note { cursor: pointer; }
+    .mt-note:hover { background: #ececf0; }
+    .mt-deals { margin: 6px 0; padding: 8px 10px; background: var(--bg2); border-radius: 8px; display: grid; gap: 4px; font-size: 13px; }
+    .mt-deal.ok { font-weight: 700; }
     .mt-ic { border: 0; background: none; padding: 4px 6px; font-size: 17px; line-height: 1; cursor: pointer; opacity: 1; border-radius: 6px; }
     .mt-ic:hover { opacity: 1; background: rgba(0,0,0,.06); }
     .mt-card.is-mine.c-watch { background: #f4eefc; border-color: #dccdf5; }
@@ -11809,7 +11814,7 @@
     .mt-hi small { display: block; font-size: 11.5px; color: var(--dim); font-weight: 600; }
     .mt-hi b { font-size: 20px; font-weight: 800; letter-spacing: -.03em; line-height: 1.25; }
     .mt-hi b i { font-style: normal; font-size: 12px; font-weight: 700; color: #777; margin-left: 2px; }
-    .mt-hi.price b { color: var(--mt-blue); }
+    .mt-hi.price b { color: #111; }
     .mt-hi em { display: inline-block; font-style: normal; margin-left: 6px; font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: #e9e9ee; color: #555; vertical-align: 3px; }
     .mt-hi em.off { background: #e5392f; color: #fff; }
     .mt-btns { justify-content: flex-end; }
@@ -11877,6 +11882,19 @@
     }
     .mt-foot-note { margin-top: 18px; padding: 12px 4px 0; border-top: 1px solid var(--hair); font-size: 12px; line-height: 1.7; color: var(--dim); }
     .mt-empty { margin-top: 10px; padding: 40px 16px; text-align: center; background: #fff; border: 1px dashed var(--hair2); border-radius: 12px; color: var(--muted); font-size: 14px; font-weight: 600; line-height: 1.7; }
+    /* ===== v6: 카테고리 색 구분 제거 — 검정 테두리 + 투명 회색, 색은 상태(모집 중/할인/접속중)에만 ===== */
+    .mt-tab.on, .mt-tab.c-watch.on, .mt-tab.c-carpool.on, .mt-tab.c-ticket.on { background: rgba(17, 17, 17, .06); border-color: #111; color: #111; box-shadow: none; }
+    .mt-tab.on small, .mt-tab.c-watch.on small, .mt-tab.c-carpool.on small, .mt-tab.c-ticket.on small { color: #555; opacity: 1; background: rgba(0, 0, 0, .07); }
+    .mt-badge.cat-watch, .mt-badge.cat-carpool, .mt-badge.cat-ticket { background: #ececf0; color: #222; box-shadow: none; }
+    .mt-badge.cat-carpool.kind-wish, .mt-badge.cat-ticket.kind-buy { background: #fff; color: #111; box-shadow: inset 0 0 0 1.5px #111; }
+    .mt-card.is-mine.c-watch, .mt-card.is-mine.c-carpool, .mt-card.is-mine.c-ticket { background: #f0f0f3; border-color: #d4d4db; }
+    .mt-hi.price b { color: #111; }
+    .mt-b.blue { background: #fff; border-color: var(--hair2); color: var(--text); }
+    .mt-ctype.c-watch i, .mt-ctype.c-carpool i, .mt-ctype.c-ticket i { background: #f0f0f3; }
+    .mt-ctype.c-watch:hover, .mt-ctype.c-carpool:hover, .mt-ctype.c-ticket:hover { border-color: #111; background: #f7f7f8; }
+    .mt-form .mt-ch.on, .mt-form.c-watch .mt-ch.on, .mt-form.c-carpool .mt-ch.on, .mt-form.c-ticket .mt-ch.on { background: rgba(17, 17, 17, .06); border-color: #111; color: #111; box-shadow: inset 0 0 0 1px #111; }
+    .mt-ch.on { background: rgba(17, 17, 17, .06); border-color: #111; color: #111; box-shadow: inset 0 0 0 1px #111; }
+    .mt-f input:focus, .mt-f textarea:focus, .mt-sel:focus { border-color: #111; box-shadow: 0 0 0 3px rgba(0, 0, 0, .08); }
 
     /* ── 모바일 ── */
     @media (max-width: 1023px) {
@@ -29062,7 +29080,7 @@
     function mtFSort(v) { mtF().sort = v; mtRender(); }
     function mtFReset() { MT.f[MT.cat] = {}; MT.fopen = ''; mtRender(); }
     document.addEventListener('click', e => { if (typeof MT !== 'undefined' && MT.fopen && !e.target.closest('.mt-ms')) { MT.fopen = ''; mtRender(); } });
-    function mtFCount(f) { return (f.ages || []).length + (f.gender ? 1 : 0) + (f.kind ? 1 : 0) + (f.origins || []).length + (f.trip ? 1 : 0) + (f.minleft ? 1 : 0) + (f.grades || []).length + (f.qty ? 1 : 0); }
+    function mtFCount(f) { return (f.ages || []).length + (f.gender ? 1 : 0) + (f.kind ? 1 : 0) + (f.origins || []).length + (f.trip ? 1 : 0) + (f.minleft ? 1 : 0) + (f.grades || []).length + (f.qty ? 1 : 0) + (f.tkkind ? 1 : 0); }
     function mtMatch(p, f) {
       if (p.category !== 'ticket') {
         if ((f.ages || []).length && (p.age_prefs || []).length && !p.age_prefs.some(a => f.ages.includes(a))) return false;
@@ -29077,6 +29095,7 @@
         if (f.trip && p.trip !== f.trip && p.trip !== '무관' && f.trip !== '무관') return false;
       }
       if (p.category === 'ticket') {
+        if (f.tkkind && (p.tk_kind || '판매') !== f.tkkind) return false;
         if ((f.grades || []).length && !f.grades.includes(p.grade)) return false;
         if (f.qty && (f.qty >= 4 ? p.sell_qty < 4 : p.sell_qty !== f.qty)) return false;
       }
@@ -29126,11 +29145,12 @@
         h += row('편도 / 왕복', ['편도', '왕복', '무관'].map(v => mtFChip(v, f.trip === v, `mtFS('trip','${v}')`)).join(''));
       }
       if (MT.cat === 'ticket') {
+        h += row('구분', ['판매', '구매'].map(v => mtFChip('티켓 ' + v, f.tkkind === v, `mtFS('tkkind','${v}')`)).join(''));
         let gs = Object.keys((MT.prices && MT.prices.map) || {});
         if (!gs.length) gs = Object.values(typeof Z17_GRADE_NAME !== 'undefined' ? Z17_GRADE_NAME : {});
         posts.forEach(p => { if (p.grade && !gs.includes(p.grade)) gs.push(p.grade); });
         h += row('좌석 등급', mtMSel('grades', '좌석 등급 선택', [['', gs]], f.grades || []));
-        h += row('양도 수량', [1, 2, 3, 4].map(n => mtFChip(n >= 4 ? '4장 이상' : n + '장', f.qty === n, `mtFS('qty',${n})`)).join(''));
+        h += row('티켓 수량', [1, 2, 3, 4].map(n => mtFChip(n >= 4 ? '4장 이상' : n + '장', f.qty === n, `mtFS('qty',${n})`)).join(''));
       }
       return `<div class="mt-fpanel">${h}<button type="button" class="mt-b gray sm" onclick="mtFReset()">필터 초기화</button></div>`;
     }
@@ -29193,11 +29213,15 @@
       ${ended ? '' : `<button type="button" class="mt-b dark" onclick="mtOpenCreate()">+ 글쓰기</button>`}
     </div>
     ${MT.fOpen ? mtFPanel(f) : ''}
-    ${loggedIn ? '' : `<div class="mt-login">글쓰기와 참여 신청은 카카오 로그인 후 이용할 수 있어요. 목록은 로그인 없이 편하게 구경하세요.</div>`}
+    ${loggedIn ? '' : `<div class="mt-login">글쓰기와 참여 신청은 카카오 로그인 후 이용할 수 있어요.</div>`}
     ${list.length ? list.map(mtCard).join('') : `<div class="mt-empty">${MT.mine ? '내 글이나 신청 내역이 아직 없어요.' : (MT.onlyOpen || nf) ? '조건에 맞는 글이 없어요.' : '아직 올라온 글이 없어요.<br>첫 글을 올려보세요!'}</div>`}
     <div class="mt-foot-note">${esc(MT_DISCLAIMER)}</div>`}`;
     }
     const mtPrefs = p => (p.age_prefs || []).slice().sort((x, y) => MT_AGE.indexOf(x) - MT_AGE.indexOf(y));
+    function mtNoteView(id) {
+      const p = MT.posts.find(x => x.id === id); if (!p) return;
+      mtModal('비고', `<div class="mt-form"><div style="white-space:pre-wrap;word-break:break-all;line-height:1.7;font-size:15px">${esc(p.note)}</div></div>`, 420);
+    }
     function mtCard(p) {
       const st = (p.category === 'ticket' && p.status === 'full') ? ['✓ 거래 진행 중', 'full'] : (MT_STATUS[p.status] || [p.status, 'closed']);
       const c = MT_CATS.find(x => x.k === p.category);
@@ -29214,8 +29238,8 @@
         hi = `<div class="mt-hi"><small>카풀비 (1인)</small><b>${p.fare < 0 ? '협의' : p.fare ? mtN(p.fare) + '<i>원</i>' : '없음'}</b></div>`;
       } else {
         const pct = p.unit_price > 0 ? Math.round((1 - p.sell_price / p.unit_price) * 100) : 0;
-        facts = [`${esc(p.seat_zone)}구역 ${esc(p.seat_row)}열 ${esc(p.seat_num)}번`, `<b>${p.sell_qty}장</b>`];
-        hi = `<div class="mt-hi price"><small>${p.sell_qty > 1 ? '총 ' + p.sell_qty + '장' : '1장'} · 장당 ${mtN(p.sell_price)}원</small><b>${mtN(p.sell_price * p.sell_qty)}<i>원</i></b><em class="${pct > 0 ? 'off' : ''}">${pct > 0 ? pct + '% 할인' : '정가'}</em></div>`;
+        facts = [...(p.tk_kind === '구매' ? [] : [`${esc(p.seat_zone)}구역 ${esc(p.seat_row)}열 ${esc(p.seat_num)}번`]), `<b>${p.sell_qty}장</b>${p.tk_kind === '구매' ? ' 구해요' : ''}`];
+        hi = `<div class="mt-hi price"><small>${p.tk_kind === '구매' ? '희망가 · ' : ''}${p.sell_qty > 1 ? '총 ' + p.sell_qty + '장' : '1장'} · 장당 ${mtN(p.sell_price)}원</small><b>${mtN(p.sell_price * p.sell_qty)}<i>원</i></b><em class="${pct > 0 ? 'off' : ''}">${pct > 0 ? pct + '% 할인' : '정가'}</em></div>`;
       }
       const reqB = p.my_req === 'pending' ? '<span class="mt-badge wait">⏳ 승인 대기 중</span>' : p.my_req === 'approved' ? '<span class="mt-badge open">참여 확정</span>' : '';
       const ev = mtCurEvent(), evEnded = !!(ev && ev.ended);
@@ -29236,11 +29260,11 @@
       }
       return `<div class="mt-card c-${p.category} ${p.status}${p.mine ? ' is-mine' : ''}">
       <div class="mt-main">
-        <div class="mt-card-h"><span class="mt-badge cat-${p.category}${p.category === 'carpool' ? ' kind-' + (p.cp_kind === '모집' ? 'rec' : 'wish') : ''}">${c.ico} ${p.category === 'carpool' ? '카풀 ' + esc(p.cp_kind) : c.n}</span><span class="mt-badge ${st[1]}">${st[0]}</span>${p.mine ? '<span class="mt-badge mine">내 글</span>' : mtNick(p.author_nick)}${reqB}<span class="mt-ago">${mtAgo(p.created_at)}</span></div>
+        <div class="mt-card-h"><span class="mt-badge cat-${p.category}${p.category === 'carpool' ? ' kind-' + (p.cp_kind === '모집' ? 'rec' : 'wish') : p.category === 'ticket' && p.tk_kind === '구매' ? ' kind-buy' : ''}">${c.ico} ${p.category === 'carpool' ? '카풀 ' + esc(p.cp_kind) : p.category === 'ticket' ? '티켓 ' + esc(p.tk_kind || '판매') : c.n}</span><span class="mt-badge ${st[1]}">${st[0]}</span>${p.mine ? '<span class="mt-badge mine">내 글</span>' : mtNick(p.author_nick)}${reqB}<span class="mt-ago">${mtAgo(p.created_at)}</span></div>
         <div class="mt-title">${esc(mtTitle(p))}</div>
         <div class="mt-facts">${facts.map(x => `<span>${x}</span>`).join('')}</div>
         ${tags.length ? `<div class="mt-tags">${tags.join('')}</div>` : ''}
-        ${p.note ? `<div class="mt-note">${esc(p.note)}</div>` : ''}
+        ${p.note ? `<div class="mt-note" role="button" title="눌러서 전체 보기" onclick="mtNoteView(${p.id})">${esc(p.note)}</div>` : ''}
       </div>
       <div class="mt-side">${hi}<div class="mt-btns">${btns}</div></div></div>`;
     }
@@ -29257,7 +29281,10 @@
       mtDrawType(S);
     }
     function mtDrawType(S) {
-      const used = MT.posts.filter(p => p.mine && ['open', 'full', 'hidden'].includes(p.status)).map(p => p.category);
+      const mineAct = MT.posts.filter(p => p.mine && ['open', 'full', 'hidden'].includes(p.status));
+      const used = mineAct.filter(p => p.category !== 'ticket').map(p => p.category);
+      if (['판매', '구매'].every(k => mineAct.some(p => p.category === 'ticket' && (p.tk_kind || '판매') === k))) used.push('ticket');
+      S.tkUsed = mineAct.filter(p => p.category === 'ticket').map(p => p.tk_kind || '판매');
       S.ov.querySelector('.modal-h b').textContent = '글쓰기';
       S.root.className = 'mt-form';
       S.root.innerHTML = `<div class="mt-hint" style="margin:0 0 10px">어떤 글을 올릴까요?</div><div class="mt-ctypes">${MT_CATS.map(c => {
@@ -29338,13 +29365,15 @@
         <div class="mt-f"><label>카풀비 (1인 기준)</label>${mtNumChips('fare', [0, -1], D.fare, 200000, n => n === 0 ? '없음' : '협의')}<div class="mt-hint">유류비·통행료 실비 분담 용도로만 사용해주세요.</div></div>`;
       }
       if (cat === 'ticket') {
-        f += `<div class="mt-f"><label>좌석 등급</label><select id="mt-grade" class="mt-sel wide"><option value="">선택해주세요</option>${gradeList.map(g => `<option value="${esc(g)}">${esc(g)}${noPrice ? '' : ' (' + mtN(S.prices[g]) + '원)'}</option>`).join('')}</select></div>
-        <div class="mt-f3"><div class="mt-f"><label>구역</label><input id="mt-zone" type="text" maxlength="8" placeholder="예: 109" value="${esc(D.seat_zone || '')}"></div>
+        const tkNow = edit ? (D.tk_kind || '판매') : ((S.tkUsed || []).includes('판매') ? '구매' : '판매');
+        f += `<div class="mt-f"><label>티켓 구분</label>${edit ? `<div class="mt-auto">티켓 ${tkNow}</div><input type="hidden" id="mt-tkfix" value="${tkNow}">` : mtChoices('tkkind', ['판매', '구매'].filter(k => !(S.tkUsed || []).includes(k)).map(k => ({ v: k, l: k === '판매' ? '🎟️ 티켓 판매 (양도)' : '🙋 티켓 구매 (구해요)' })), tkNow)}</div>
+        <div class="mt-f"><label>좌석 등급</label><select id="mt-grade" class="mt-sel wide"><option value="">선택해주세요</option>${gradeList.map(g => `<option value="${esc(g)}">${esc(g)}${noPrice ? '' : ' (' + mtN(S.prices[g]) + '원)'}</option>`).join('')}</select></div>
+        <div id="mt-seatbox" class="mt-f3"${(edit ? D.tk_kind : tkNow) === '구매' ? ' style="display:none"' : ''}><div class="mt-f"><label>구역</label><input id="mt-zone" type="text" maxlength="8" placeholder="예: 109" value="${esc(D.seat_zone || '')}"></div>
           <div class="mt-f"><label>열</label><input id="mt-row" type="text" maxlength="8" placeholder="예: K" value="${esc(D.seat_row || '')}"></div>
           <div class="mt-f"><label>번호</label><input id="mt-num" type="text" maxlength="12" placeholder="예: 1~2" value="${esc(D.seat_num || '')}"></div></div>
-        <div class="mt-f"><label>양도 수량</label>${mtNumChips('sellq', [1, 2, 3], D.sell_qty, 20, n => n + '장')}</div>
+        <div class="mt-f"><label id="mt-qlabel">티켓 수량</label>${mtNumChips('sellq', [1, 2, 3], D.sell_qty, 20, n => n + '장')}</div>
         ${noPrice ? `<div class="mt-f"><label>구매 금액 <small>장당 정가</small></label><input id="mt-unit" type="number" inputmode="numeric" placeholder="예: 99000" value="${D.unit_price || ''}"><div class="mt-hint">정가표를 불러오지 못했어요. 예매 내역의 장당 금액을 입력해주세요.</div></div>` : `<div class="mt-f"><label>구매 금액 <small>등급을 고르면 자동으로 채워져요</small></label><div id="mt-unitbox" class="mt-auto">등급을 선택해주세요</div></div>`}
-        <div class="mt-f"><label>양도 금액 <small>총액 · 정가 이하만 가능</small></label><input id="mt-sell" type="number" inputmode="numeric" placeholder="예: 270000" value="${D.sell_price == null ? '' : D.sell_price * D.sell_qty}">
+        <div class="mt-f"><label id="mt-slabel">${tkNow === '구매' ? '구매 희망 금액' : '양도 금액'} <small>총액 · 정가 이하만 가능</small></label><input id="mt-sell" type="number" inputmode="numeric" placeholder="예: 270000" value="${D.sell_price == null ? '' : D.sell_price * D.sell_qty}">
           <div class="mt-quick"><button type="button" data-d="0">정가</button><button type="button" data-d="10">10% 할인</button><button type="button" data-d="20">20% 할인</button><button type="button" data-d="30">30% 할인</button><span class="mt-disc"><input id="mt-disc" type="number" inputmode="numeric" min="0" max="100" placeholder="직접"><b>% 할인</b></span></div>
           <div id="mt-sumbox" class="mt-hint"></div></div>`;
       } else {
@@ -29363,6 +29392,10 @@
       mtBindChoices(root, (g, v) => {
         if (g === 'cpkind' && q('mt-plabel')) q('mt-plabel').textContent = v === '희망' ? '탑승 인원' : '모집 인원 (빈 자리)';
         if (g === 'sellq') upd();
+        if (g === 'tkkind') {
+          if (q('mt-seatbox')) q('mt-seatbox').style.display = v === '구매' ? 'none' : '';
+          if (q('mt-slabel')) q('mt-slabel').firstChild.textContent = (v === '구매' ? '구매 희망 금액' : '양도 금액') + ' ';
+        }
       });
       const ct = mtBindContact(root, S.own && S.own.value ? { kind: ck, value: cv } : null);
       let pct = null;
@@ -29378,7 +29411,7 @@
         if (tot && n) {
           if (tot % n) { t = `총액이 ${n}장으로 나누어떨어져야 해요 (장당 금액이 정수여야 해요)`; red = true; }
           else { t = `총 ${mtN(tot)}원 (장당 ${mtN(tot / n)}원)`; if (u && tot / n > u) { t += ' · 정가보다 비싸게는 올릴 수 없어요'; red = true; } }
-        } else if (tot) t = '양도 수량을 선택해주세요';
+        } else if (tot) t = '티켓 수량을 선택해주세요';
         sb2.textContent = t; sb2.style.color = red ? '#c93434' : '';
       }
       const noteEl = q('mt-note'); noteEl.oninput = () => { q('mt-cnt').textContent = noteEl.value.length; };
@@ -29388,12 +29421,12 @@
         if (q('mt-unit')) q('mt-unit').oninput = upd;
         root.querySelectorAll('.mt-quick button').forEach(b => b.onclick = () => {
           if (!unitNow()) { mtSetMsg(root, '먼저 좌석 등급(구매 금액)을 선택해주세요.'); return; }
-          if (!qtyNow()) { mtSetMsg(root, '먼저 양도 수량을 선택해주세요.'); return; }
+          if (!qtyNow()) { mtSetMsg(root, '먼저 티켓 수량을 선택해주세요.'); return; }
           pct = Number(b.dataset.d); q('mt-disc').value = ''; mtSetMsg(root, ''); upd();
         });
         q('mt-disc').oninput = () => {
           const v = q('mt-disc').value; if (v === '') { pct = null; return; }
-          if (!unitNow() || !qtyNow()) { mtSetMsg(root, '먼저 좌석 등급과 양도 수량을 선택해주세요.'); return; }
+          if (!unitNow() || !qtyNow()) { mtSetMsg(root, '먼저 좌석 등급과 티켓 수량을 선택해주세요.'); return; }
           const d = Number(v); if (d < 0 || d > 100) { mtSetMsg(root, '할인율은 0~100 사이로 입력해주세요.'); return; }
           mtSetMsg(root, ''); pct = d; upd();
         };
@@ -29423,15 +29456,17 @@
           if (p.fare === null) return mtSetMsg(root, '카풀비를 선택하거나 0~200,000원 사이로 입력해주세요.');
         }
         if (cat === 'ticket') {
+          p.tk_kind = q('mt-tkfix') ? q('mt-tkfix').value : (mtVal(root, 'tkkind') || '판매');
           p.grade = q('mt-grade').value; p.seat_zone = q('mt-zone').value.trim(); p.seat_row = q('mt-row').value.trim(); p.seat_num = q('mt-num').value.trim();
+          if (p.tk_kind === '구매') p.seat_zone = p.seat_row = p.seat_num = '';
           p.sell_qty = mtInt(mtVal(root, 'sellq'), 1, 20); p.unit_price = unitNow();
-          if (!p.grade || !p.seat_zone || !p.seat_row || !p.seat_num) return mtSetMsg(root, '좌석 등급과 구역·열·번호를 입력해주세요.');
-          if (!p.sell_qty) return mtSetMsg(root, '양도 수량을 선택하거나 1~20 사이로 입력해주세요.');
+          if (!p.grade || (p.tk_kind !== '구매' && (!p.seat_zone || !p.seat_row || !p.seat_num))) return mtSetMsg(root, p.tk_kind === '구매' ? '좌석 등급을 선택해주세요.' : '좌석 등급과 구역·열·번호를 입력해주세요.');
+          if (!p.sell_qty) return mtSetMsg(root, '티켓 수량을 선택하거나 1~20 사이로 입력해주세요.');
           const tot = Number(q('mt-sell').value || 0);
           if (!p.unit_price || !tot) return mtSetMsg(root, '금액을 입력해주세요.');
-          if (tot % p.sell_qty) return mtSetMsg(root, `양도 총액은 ${p.sell_qty}장으로 나누어떨어져야 해요.`);
+          if (tot % p.sell_qty) return mtSetMsg(root, `총액은 ${p.sell_qty}장으로 나누어떨어져야 해요.`);
           p.sell_price = tot / p.sell_qty;
-          if (p.sell_price > p.unit_price) return mtSetMsg(root, '양도 금액은 구매 금액(정가)을 넘을 수 없어요.');
+          if (p.sell_price > p.unit_price) return mtSetMsg(root, '금액은 정가를 넘을 수 없어요.');
         }
         const btn = q('mt-submit'); btn.disabled = true; btn.textContent = edit ? '저장 중…' : '등록 중…';
         try {
@@ -29639,13 +29674,21 @@
     ${reps.length ? reps.map(r => `<div class="card mt-adm"><b>글 #${r.post_id}</b> · ${esc(r.target)} <span class="mt-dim">신고자 ${esc(r.reporter)} · ${esc(r.reason)} · ${mtAgo(r.created_at)} · 글 상태 ${stl[r.post_status] || r.post_status}</span>
       <div><button type="button" class="btn xs" onclick="mtaResolve(${r.id})">처리 완료</button> <button type="button" class="btn xs" onclick="mtaStatus(${r.post_id},'hidden')">글 숨김</button> <button type="button" class="btn xs" onclick="mtaStatus(${r.post_id},'deleted')">글 삭제</button> <button type="button" class="btn xs" data-nick="${esc(r.target)}" onclick="mtaBan(this.dataset.nick)">이용 정지</button></div></div>`).join('') : '<div class="empty">대기 중인 신고가 없습니다.</div>'}
     <div class="sec-title">글 목록 (${posts.length})</div>
-    ${posts.length ? posts.map(p => `<div class="card mt-adm"><b>#${p.id}</b> <span class="mt-badge ${p.status === 'open' ? 'open' : 'closed'}">${stl[p.status] || p.status}</span> ${MT_CATS.find(c => c.k === p.category).n} · ${esc(p.author_nick)} ${p.reports ? `<span class="mt-dot">${p.reports}</span>` : ''}
+    ${posts.length ? posts.map(p => `<div class="card mt-adm"><b>#${p.id}</b> <span class="mt-badge ${p.status === 'open' ? 'open' : 'closed'}">${stl[p.status] || p.status}</span> ${MT_CATS.find(c => c.k === p.category).n}${p.category === 'ticket' ? ' ' + (p.tk_kind || '판매') : ''} · ${esc(p.author_nick)} ${p.reports ? `<span class="mt-dot">${p.reports}</span>` : ''}
       <div class="mt-dim">${esc(p.summary)}${p.note ? ' / ' + esc(p.note) : ''}</div><div class="mt-dim">연락 수단 ${esc(p.contact_kind)}: ${esc(p.contact_value)}</div>
+      ${mtaDeals(p)}
       <div><button type="button" class="btn xs" onclick="mtaStatus(${p.id},'open')">복구</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'hidden')">숨김</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'closed')">마감</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'deleted')">삭제</button> <button type="button" class="btn xs" data-nick="${esc(p.author_nick)}" onclick="mtaBan(this.dataset.nick)">이용 정지</button></div></div>`).join('') : '<div class="empty">글이 없습니다.</div>'}
     <div class="sec-title">이용 정지 (${bans.filter(b => b.active).length})</div>
     <div class="card"><div class="mt-f3"><input id="mta-bn" type="text" placeholder="닉네임"><select id="mta-bd" class="mt-sel"><option value="7">7일</option><option value="30">30일</option><option value="">영구</option></select><input id="mta-br" type="text" placeholder="사유"></div>
       <button type="button" class="btn small" onclick="mtaBan(document.getElementById('mta-bn').value)">정지 적용</button></div>
     ${bans.map(b => `<div class="card mt-adm"><b>${esc(b.nick)}</b> <span class="mt-dim">${b.until_at ? '~ ' + fmtDT(b.until_at) : '영구'} · ${esc(b.reason || '')} · ${b.active ? '정지 중' : '해제/만료'}</span> ${b.active ? `<button type="button" class="btn xs" onclick="mtaUnban(${b.id})">해제</button>` : ''}</div>`).join('')}`;
+    }
+    function mtaDeals(p) {
+      const d = p.deals || [];
+      if (!d.length) return '<div class="mt-dim">신청 내역 없음</div>';
+      const stn = { pending: '⏳ 대기', approved: '✅ 거래 확정', rejected: '거절', kicked: '추방', cancelled: '취소' };
+      const ck = { openkakao: '오픈카톡', kakaoid: '카카오ID', insta: '인스타' };
+      return `<div class="mt-deals">${d.map(r => `<div class="mt-deal${r.status === 'approved' ? ' ok' : ''}"><b>${esc(p.author_nick)}</b> ⇄ <b>${esc(r.nick)}</b> <span class="mt-badge ${r.status === 'approved' ? 'open' : 'closed'}">${stn[r.status] || r.status}</span> <span class="mt-dim">${r.party > 1 ? r.party + '명 · ' : ''}${mtAgo(r.created_at)}${r.contact_value ? ' · ' + (ck[r.contact_kind] || '') + ' ' + esc(r.contact_value) : ''}</span></div>`).join('')}</div>`;
     }
     async function mtaDo(fn, args, ok) {
       try { await mtRpc(fn, Object.assign({ p_pass: adminPass() }, args)); if (ok) mtToast(ok); } catch (e) { mtToast(mtErr(e)); }
