@@ -11623,6 +11623,16 @@
     .mt-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.12); border-color: #bfc4cc; }
     .mt-card:active { transform: translateY(0) scale(.985); box-shadow: 0 2px 6px rgba(0,0,0,.1); }
     .mt-card.is-mine:hover { border-color: #111; }
+    .mt-ms { position: relative; display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .mt-ms-b { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border: 1px solid var(--hair2); border-radius: 8px; background: #fff; color: #555; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+    .mt-ms-b.has { border-color: #111; color: #111; }
+    .mt-ms-b i { font-style: normal; font-size: 10px; color: #888; }
+    .mt-ms-x { border: 0; background: none; color: #888; font-size: 12px; text-decoration: underline; cursor: pointer; }
+    .mt-ms-l { position: absolute; left: 0; top: 36px; z-index: 30; width: min(320px, 86vw); max-height: 260px; overflow: auto; background: #fff; border: 1px solid var(--hair2); border-radius: 10px; box-shadow: 0 10px 28px rgba(0,0,0,.14); padding: 6px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .mt-ms-g { grid-column: 1 / -1; padding: 8px 8px 4px; font-size: 11px; font-weight: 800; color: #999; }
+    .mt-ms-o { display: flex; align-items: center; gap: 7px; padding: 7px 8px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+    .mt-ms-o:hover { background: var(--bg2); }
+    .mt-ms-o.on { font-weight: 800; }
     .mt-card.is-mine { border: 1.5px solid #111; background: #fbfbfc; }
     .mt-badge.mine { background: #111 !important; color: #fff !important; }
     .mt-card.closed, .mt-card.hidden { background: #f7f7f8; }
@@ -11802,10 +11812,16 @@
     .mt-card.closed > .mt-side, .mt-card.hidden > .mt-side { opacity: 1; }
     .mt-card.closed .mt-side .mt-hi, .mt-card.hidden .mt-side .mt-hi { opacity: .6; }
     @media (max-width: 640px) {
-      .mt-card { grid-template-columns: 1fr; }
-      .mt-side { align-items: flex-start; margin-top: 9px; }
-      .mt-hi { text-align: left; }
-      .mt-btns { justify-content: flex-start; }
+      .mt-card { grid-template-columns: minmax(0, 1fr) auto; gap: 0 10px; align-items: start; padding: 11px 12px; }
+      .mt-side { display: contents; }
+      .mt-side .mt-hi { grid-column: 2; grid-row: 1; text-align: right; align-self: center; }
+      .mt-side .mt-hi b { font-size: 18px; }
+      .mt-side .mt-btns { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; margin-top: 9px; }
+      .mt-actions { flex-wrap: nowrap !important; gap: 6px !important; }
+      .mt-actions .mt-filters { flex-wrap: nowrap !important; gap: 5px !important; min-width: 0; flex: 1; }
+      .mt-actions .mt-sel.sm { width: auto; min-width: 0; max-width: 92px; padding: 0 22px 0 8px; font-size: 12px; height: 32px; }
+      .mt-actions .mt-fchip { padding: 0 8px; font-size: 12px; height: 32px; white-space: nowrap; flex: none; }
+      .mt-actions > .mt-b { padding: 0 10px; height: 32px; font-size: 12.5px; white-space: nowrap; flex: none; }
     }
     .mt-nick { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 3px; background: #fff; border: 1px solid var(--hair2); border-radius: 999px; font-size: 12.5px; font-weight: 800; color: #111; box-shadow: 0 1px 0 rgba(0, 0, 0, .04); }
     .mt-nick i { width: 20px; height: 20px; border-radius: 50%; background: #111; color: #fff; font-style: normal; font-size: 11px; display: flex; align-items: center; justify-content: center; }
@@ -29025,7 +29041,8 @@
     function mtFT(k, v) { const f = mtF(); const a = f[k] || (f[k] = []); const i = a.indexOf(v); if (i >= 0) a.splice(i, 1); else a.push(v); mtRender(); }
     function mtFS(k, v) { const f = mtF(); f[k] = f[k] === v ? '' : v; mtRender(); }
     function mtFSort(v) { mtF().sort = v; mtRender(); }
-    function mtFReset() { MT.f[MT.cat] = {}; mtRender(); }
+    function mtFReset() { MT.f[MT.cat] = {}; MT.fopen = ''; mtRender(); }
+    document.addEventListener('click', e => { if (typeof MT !== 'undefined' && MT.fopen && !e.target.closest('.mt-ms')) { MT.fopen = ''; mtRender(); } });
     function mtFCount(f) { return (f.ages || []).length + (f.gender ? 1 : 0) + (f.kind ? 1 : 0) + (f.origins || []).length + (f.trip ? 1 : 0) + (f.minleft ? 1 : 0) + (f.grades || []).length + (f.qty ? 1 : 0); }
     function mtMatch(p, f) {
       if (p.category !== 'ticket') {
@@ -29038,7 +29055,7 @@
       if (p.category === 'carpool') {
         if (f.kind && p.cp_kind !== f.kind) return false;
         if ((f.origins || []).length && !f.origins.includes(p.origin)) return false;
-        if (f.trip && p.trip !== f.trip && p.trip !== '무관') return false;
+        if (f.trip && p.trip !== f.trip && p.trip !== '무관' && f.trip !== '무관') return false;
       }
       if (p.category === 'ticket') {
         if ((f.grades || []).length && !f.grades.includes(p.grade)) return false;
@@ -29062,6 +29079,17 @@
       carpool: [['new', '최근 등록순'], ['left', '남은 자리 많은순'], ['fareLow', '카풀비 낮은순'], ['fareHigh', '카풀비 높은순']],
       ticket: [['new', '최근 등록순'], ['priceLow', '양도 금액 낮은순'], ['priceHigh', '양도 금액 높은순']]
     };
+    function mtFOpen(k, e) { if (e) e.stopPropagation(); MT.fopen = MT.fopen === k ? '' : k; mtRender(); }
+    function mtMSel(k, ph, groups, sel) {
+      const open = MT.fopen === k;
+      const label = sel.length ? (sel.length <= 2 ? sel.join(', ') : sel.slice(0, 2).join(', ') + ' 외 ' + (sel.length - 2)) : ph;
+      let list = '';
+      groups.forEach(([g, arr]) => {
+        if (g) list += `<div class="mt-ms-g">${esc(g)}</div>`;
+        arr.forEach(a => { list += `<label class="mt-ms-o${sel.includes(a) ? ' on' : ''}"><input type="checkbox"${sel.includes(a) ? ' checked' : ''} onchange="mtFT('${k}','${esc(a)}')"><span>${esc(a)}</span></label>`; });
+      });
+      return `<div class="mt-ms"><button type="button" class="mt-ms-b${sel.length ? ' has' : ''}" onclick="mtFOpen('${k}',event)">${esc(label)}<i>${open ? '▴' : '▾'}</i></button>${open ? `<div class="mt-ms-l">${list}</div>` : ''}${sel.length ? `<button type="button" class="mt-ms-x" onclick="MT.f[MT.cat].${k}=[];mtRender()">선택 해제</button>` : ''}</div>`;
+    }
     function mtFChip(label, on, js) { return `<button type="button" class="mt-fchip${on ? ' on' : ''}" onclick="${js}">${esc(label)}</button>`; }
     function mtFPanel(f) {
       const posts = MT.posts.filter(p => p.category === MT.cat);
@@ -29069,18 +29097,20 @@
       let h = '';
       if (MT.cat !== 'ticket') {
         h += row('모집 연령대', MT_AGE.map(a => mtFChip(a, (f.ages || []).includes(a), `mtFT('ages','${a}')`)).join(''));
-        h += row('모집 성별', [['any', '무관'], ['m', '남자만'], ['f', '여자만']].map(([v, l]) => mtFChip(l, f.gender === v, `mtFS('gender','${v}')`)).join(''));
-        h += row('남은 자리', [1, 2, 3].map(n => mtFChip(n + '명 이상', f.minleft === n, `mtFS('minleft',${n})`)).join(''));
+        h += row('모집 성별', [['any', '무관'], ['m', '남자'], ['f', '여자']].map(([v, l]) => mtFChip(l, f.gender === v, `mtFS('gender','${v}')`)).join(''));
+        h += row(MT.cat === 'watch' ? '모집 인원' : '모집 인원 · 남은 자리', [1, 2, 3, 4].map(n => mtFChip(n >= 4 ? '4명 이상' : n + '명', f.minleft === n, `mtFS('minleft',${n})`)).join(''));
       }
       if (MT.cat === 'carpool') {
         h += row('구분', ['모집', '희망'].map(v => mtFChip('카풀 ' + v, f.kind === v, `mtFS('kind','${v}')`)).join(''));
         const os = Array.from(new Set(posts.map(p => p.origin))).sort();
-        h += row('출발지', os.length ? os.map(o => mtFChip(o, (f.origins || []).includes(o), `mtFT('origins','${esc(o)}')`)).join('') : '<span class="mt-dim">등록된 글이 없어요</span>');
-        h += row('편도 / 왕복', ['편도', '왕복'].map(v => mtFChip(v, f.trip === v, `mtFS('trip','${v}')`)).join(''));
+        h += row('출발지', mtMSel('origins', '지역 선택', Object.entries(MT_REGIONS).map(([g, arr]) => [g, arr]), f.origins || []));
+        h += row('편도 / 왕복', ['편도', '왕복', '무관'].map(v => mtFChip(v, f.trip === v, `mtFS('trip','${v}')`)).join(''));
       }
       if (MT.cat === 'ticket') {
-        const gs = Array.from(new Set(posts.map(p => p.grade)));
-        h += row('좌석 등급', gs.length ? gs.map(g => mtFChip(g, (f.grades || []).includes(g), `mtFT('grades','${esc(g)}')`)).join('') : '<span class="mt-dim">등록된 글이 없어요</span>');
+        let gs = Object.keys((MT.prices && MT.prices.map) || {});
+        if (!gs.length) gs = Object.values(typeof Z17_GRADE_NAME !== 'undefined' ? Z17_GRADE_NAME : {});
+        posts.forEach(p => { if (p.grade && !gs.includes(p.grade)) gs.push(p.grade); });
+        h += row('좌석 등급', mtMSel('grades', '좌석 등급 선택', [['', gs]], f.grades || []));
         h += row('양도 수량', [1, 2, 3, 4].map(n => mtFChip(n >= 4 ? '4장 이상' : n + '장', f.qty === n, `mtFS('qty',${n})`)).join(''));
       }
       return `<div class="mt-fpanel">${h}<button type="button" class="mt-b gray sm" onclick="mtFReset()">필터 초기화</button></div>`;
@@ -29139,7 +29169,7 @@
         <select class="mt-sel sm" onchange="mtFSort(this.value)">${MT_SORTS[MT.cat].map(([v, l]) => `<option value="${v}"${(f.sort || 'new') === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
         <button type="button" class="mt-fchip${MT.fOpen || nf ? ' on' : ''}" onclick="MT.fOpen=!MT.fOpen;mtRender()">필터${nf ? ' ' + nf : ''} ${MT.fOpen ? '▴' : '▾'}</button>
         <button type="button" class="mt-fchip g${MT.onlyOpen ? ' on' : ''}" onclick="MT.onlyOpen=!MT.onlyOpen;mtRender()"><i></i>모집 중만</button>
-        <button type="button" class="mt-fchip m${MT.mine ? ' on' : ''}" onclick="MT.mine=!MT.mine;mtRender()">👤 내 글 · 내 신청</button>
+        <button type="button" class="mt-fchip m${MT.mine ? ' on' : ''}" onclick="MT.mine=!MT.mine;mtRender()">👤 내 글·신청</button>
       </div>
       ${ended ? '' : `<button type="button" class="mt-b dark" onclick="mtOpenCreate()">+ 글쓰기</button>`}
     </div>
