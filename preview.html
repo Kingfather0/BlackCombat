@@ -11536,7 +11536,7 @@
       body[data-route="game"]:not([data-sub=""]) .wrap, body[data-route="admin"] .wrap, body[data-route="t"] .wrap { max-width: 860px; }
     }
 
-    /* ── 직관 · 카풀 · 티켓양도 (#/meetup) ── 사이트 톤(흰 타일 + 헤어라인 + 앰버)에 맞춘 평평한 디자인 ── */
+    /* ── 직관 · 카풀 · 티켓 양도 (#/meetup) ── 사이트 톤(흰 타일 + 헤어라인 + 앰버)에 맞춘 평평한 디자인 ── */
     body[data-route="meetup"] .wrap { max-width: 820px; }
     body[data-route="meetup"] h1.page::before { content: "Together"; }
     :root {
@@ -11729,6 +11729,86 @@
     .mt-confirm-a { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
     .mt-adm { padding: 12px 14px; margin-top: 8px; font-size: 13.5px; line-height: 1.6; }
     .mt-adm .btn.xs { height: 28px; padding: 0 9px; font-size: 12px; margin-top: 6px; }
+    .mt-b.blk { background: #fff1e4; border-color: #f5cfa6; color: #a4510a; }
+    .mt-b.blk:hover { background: #ffe6cf; }
+    .mt-foot-note { margin-top: 18px; padding: 12px 4px 0; border-top: 1px solid var(--hair); font-size: 12px; line-height: 1.7; color: var(--dim); }
+    .mt-empty { margin-top: 10px; padding: 40px 16px; text-align: center; background: #fff; border: 1px dashed var(--hair2); border-radius: 12px; color: var(--muted); font-size: 14px; font-weight: 600; line-height: 1.7; }
+
+    /* ===== v4: 트레일러 배경 배너 · 컴팩트 카드 · 필터 ===== */
+    body[data-route="meetup"] h1.page::before { content: "Share"; }
+    .mt-hero { position: relative; display: block; margin-top: 16px; padding: 0; min-height: 150px; border: none; border-radius: 14px; overflow: hidden;
+      background: linear-gradient(90deg, rgba(8, 10, 12, .9) 0%, rgba(8, 10, 12, .66) 52%, rgba(8, 10, 12, .3) 100%), url(meetup-hero.jpg) center 50% / cover no-repeat, #111; }
+    .mt-hero-in { padding: 24px 26px; }
+    .mt-hero-t { color: #fff; font-size: 21px; letter-spacing: -.03em; }
+    .mt-hero-s { color: rgba(255, 255, 255, .82); font-size: 13.5px; margin-top: 6px; }
+    .mt-gbtn { margin-top: 14px; height: 30px; padding: 0 13px; border: none; border-radius: 8px; background: #e9e9ee; color: #333; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .mt-gbtn:hover { background: #dcdce2; }
+    .mt-gpanel { display: none; margin-top: 10px; padding: 14px; background: #fff; border: 1px solid var(--hair); border-radius: 12px; }
+    .mt-gpanel.show { display: block; }
+    .mt-gpanel .mt-gcard { background: var(--bg); }
+    .mt-home { display: grid; grid-template-columns: 1fr auto; gap: 3px 16px; padding: 18px 20px; border: none; color: #fff; min-height: 96px;
+      background: linear-gradient(90deg, rgba(8, 10, 12, .92) 0%, rgba(8, 10, 12, .6) 60%, rgba(8, 10, 12, .35) 100%), url(meetup-hero.jpg) center 52% / cover no-repeat, #111; }
+    .mt-home:hover { background: linear-gradient(90deg, rgba(8, 10, 12, .86) 0%, rgba(8, 10, 12, .5) 60%, rgba(8, 10, 12, .25) 100%), url(meetup-hero.jpg) center 52% / cover no-repeat, #111; transform: none; box-shadow: none; }
+    .mt-home-t { color: #fff; font-size: 17px; display: flex; align-items: center; gap: 8px; }
+    .mt-home-t em { font-style: normal; font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: var(--amber); color: #2b1d00; }
+    .mt-home-t b { font-size: 10px; font-weight: 800; color: var(--amber); margin-left: -4px; }
+    .mt-home-s { grid-column: 1; color: rgba(255, 255, 255, .8); }
+    .mt-home-p { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+    .mt-home-p i:nth-child(n) { background: rgba(255, 255, 255, .14); color: #fff; border: 1px solid rgba(255, 255, 255, .28); }
+    @media (max-width: 760px) { .mt-home { grid-template-columns: 1fr; } .mt-home-p { grid-column: 1; grid-row: auto; margin-top: 8px; } }
+    .mt-tabs { grid-template-columns: repeat(3, 1fr); }
+    .mt-tab { flex-direction: row; justify-content: center; gap: 8px; padding: 11px 4px; font-size: 14.5px; }
+    .mt-tab small { background: rgba(0, 0, 0, .06); border-radius: 999px; padding: 0 7px; line-height: 18px; }
+    .mt-sel.sm { height: 32px; padding: 0 8px; font-size: 13px; }
+    .mt-fchip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 13px; font-weight: 700; }
+    .mt-fchip.g { background: #eaf7ee; border-color: #bfe6cd; color: #14803c; }
+    .mt-fchip.g i { width: 7px; height: 7px; border-radius: 50%; background: #1fb457; }
+    .mt-fchip.g.on { background: #14803c; border-color: #14803c; color: #fff; }
+    .mt-fchip.g.on i { background: #fff; }
+    .mt-fchip.m { background: #eef3fd; border-color: #c8dcf8; color: #1d5fd6; }
+    .mt-fchip.m.on { background: #1d5fd6; border-color: #1d5fd6; color: #fff; }
+    .mt-fpanel { margin: 0 0 10px; padding: 12px 14px; background: #fff; border: 1px solid var(--hair); border-radius: 12px; display: grid; gap: 10px; justify-items: start; }
+    .mt-fr { display: grid; grid-template-columns: 78px 1fr; gap: 8px; align-items: start; font-size: 12.5px; font-weight: 800; color: #444; width: 100%; }
+    .mt-fr > div { display: flex; flex-wrap: wrap; gap: 6px; }
+    .mt-b.dark { background: #111; border-color: #111; color: #fff; }
+    .mt-b.dark:hover { background: #000; }
+    .mt-b.okline { background: #fff; border-color: var(--mt-grn-l); color: var(--mt-grn); }
+    .mt-disc { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; }
+    .mt-disc input { width: 72px !important; padding: 5px 8px !important; }
+    .mt-disc b { font-size: 12.5px; }
+
+    /* 컴팩트 카드 */
+    .mt-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 18px; align-items: center; padding: 12px 16px 12px 19px; }
+    .mt-main { min-width: 0; }
+    .mt-card-h { margin-bottom: 5px; }
+    .mt-title { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mt-facts { display: flex; flex-wrap: wrap; font-size: 13px; color: #5b5b63; margin-top: 3px; line-height: 1.6; }
+    .mt-facts span + span::before { content: "·"; margin: 0 7px; color: #c3c3ca; }
+    .mt-facts b { color: #111; font-weight: 800; }
+    .mt-tags { margin: 6px 0 0; }
+    .mt-note { margin-top: 6px; padding: 5px 9px; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mt-side { display: flex; flex-direction: column; align-items: flex-end; gap: 9px; }
+    .mt-hi { text-align: right; }
+    .mt-hi small { display: block; font-size: 11.5px; color: var(--dim); font-weight: 600; }
+    .mt-hi b { font-size: 20px; font-weight: 800; letter-spacing: -.03em; line-height: 1.25; }
+    .mt-hi b i { font-style: normal; font-size: 12px; font-weight: 700; color: #777; margin-left: 2px; }
+    .mt-hi.price b { color: var(--mt-grn); }
+    .mt-hi em { display: inline-block; font-style: normal; margin-left: 6px; font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: #e9e9ee; color: #555; vertical-align: 3px; }
+    .mt-hi em.off { background: #e5392f; color: #fff; }
+    .mt-btns { justify-content: flex-end; }
+    .mt-card.closed > .mt-side, .mt-card.hidden > .mt-side { opacity: 1; }
+    .mt-card.closed .mt-side .mt-hi, .mt-card.hidden .mt-side .mt-hi { opacity: .6; }
+    @media (max-width: 640px) {
+      .mt-card { grid-template-columns: 1fr; }
+      .mt-side { align-items: flex-start; margin-top: 9px; }
+      .mt-hi { text-align: left; }
+      .mt-btns { justify-content: flex-start; }
+    }
+    .mt-nick { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 3px; background: #fff; border: 1px solid var(--hair2); border-radius: 999px; font-size: 12.5px; font-weight: 800; color: #111; box-shadow: 0 1px 0 rgba(0, 0, 0, .04); }
+    .mt-nick i { width: 20px; height: 20px; border-radius: 50%; background: #111; color: #fff; font-style: normal; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+    .mt-on { font-style: normal; font-size: 11px; font-weight: 800; color: #14803c; background: #e4f5ea; border-radius: 999px; padding: 0 7px; margin-left: 2px; display: inline-flex; align-items: center; gap: 4px; line-height: 17px; }
+    .mt-on::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #1fb457; }
+    .mt-on[hidden] { display: none; }
     .mt-b.blk { background: #fff1e4; border-color: #f5cfa6; color: #a4510a; }
     .mt-b.blk:hover { background: #ffe6cf; }
     .mt-foot-note { margin-top: 18px; padding: 12px 4px 0; border-top: 1px solid var(--hair); font-size: 12px; line-height: 1.7; color: var(--dim); }
@@ -12101,7 +12181,7 @@
         <a href="#/" data-nav="home">홈</a>
         <a href="#/videos" data-nav="videos">영상</a>
         <a href="#/tickets" data-nav="tickets">티켓</a>
-        <a href="#/meetup" data-nav="meetup">직관·카풀·양도<span class="nav-new">NEW</span></a>
+        <a href="#/meetup" data-nav="meetup">쉐어<span class="nav-new">NEW</span></a>
         <a href="#/jokbo" data-nav="fighters">선수</a>
         <a href="#/ranking" data-nav="ranking">격잘알</a>
         <a href="#/game" data-nav="game">게임</a>
@@ -12152,9 +12232,9 @@
       <div class="v2-box v2-box-links">
         <h3>바로가기</h3>
         <a class="mt-home" href="#/meetup">
-          <span class="mt-home-t">직관 · 카풀 · 티켓양도</span>
+          <span class="mt-home-t"><em>쉐어</em><b>NEW</b>직관 · 카풀 · 티켓 양도</span>
           <span class="mt-home-s">같이 갈 사람 구하고, 카풀 타고, 못 가게 된 티켓은 정가 이하로 양도해요</span>
-          <span class="mt-home-p"><i>직관</i><i>카풀</i><i>티켓양도</i></span>
+          <span class="mt-home-p"><i>👥 직관</i><i>🚗 카풀</i><i>🎟️ 티켓 양도</i></span>
         </a>
         <div class="v2-links">
           <a href="#/matches">경기<small>승부예측 투표·결과</small></a>
@@ -12821,6 +12901,7 @@
       if (countEl) countEl.textContent = Object.keys(__presenceState).length;
       const listEl = document.getElementById('visitorListBody');
       if (listEl && listEl.dataset.open === '1') renderVisitorList();
+      try { if (typeof mtPaintOnline === 'function') mtPaintOnline(); } catch (e) { }
     }
     function renderVisitorList() {
       const listEl = document.getElementById('visitorListBody');
@@ -28704,7 +28785,7 @@
     let resSel = {}; // 결과 입력 선택 상태 {tid:{mid:'A'|'B'|'X'}}
 
     /* =====================================================================
-       직관 · 카풀 · 티켓양도 (#/meetup) — 회원끼리 직관 동행 / 카풀 / 티켓 양도 게시판.
+       직관 · 카풀 · 티켓 양도 (#/meetup) — 회원끼리 직관 동행 / 카풀 / 티켓 양도 게시판.
        서버: scripts/meetup.sql (Supabase에서 한 번 실행). 모든 쓰기/읽기는 meetup_* RPC 경유,
        연락처는 서버가 '작성자가 승인한 사이'에만 내려준다. 글 작성/참여는 카카오 로그인 필수(서버도 강제).
        ===================================================================== */
@@ -28719,16 +28800,15 @@
       kakaoid: { n: '카카오ID', ph: '카카오톡 ID' },
       insta: { n: '인스타', ph: '인스타그램 아이디' }
     };
-    const MT_REPORT_REASONS = ['정가 초과', '외부결제 유도', '사기 의심', '욕설/비하', '부적절한 내용', '기타'];
+    const MT_REPORT_REASONS = ['외부결제 유도', '사기 의심', '욕설/비하', '부적절한 내용', '기타'];
     const MT_REGIONS = {
       '서울': ['강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구', '노원구', '도봉구', '동대문구', '동작구', '마포구', '서대문구', '서초구', '성동구', '성북구', '송파구', '양천구', '영등포구', '용산구', '은평구', '종로구', '중구', '중랑구'],
       '경기': ['수원시', '성남시', '고양시', '용인시', '부천시', '안산시', '안양시', '남양주시', '화성시', '평택시', '의정부시', '시흥시', '파주시', '김포시', '광명시', '하남시', '구리시', '군포시', '오산시', '이천시', '양주시', '광주시', '과천시', '의왕시'],
       '인천': ['중구', '동구', '미추홀구', '연수구', '남동구', '부평구', '계양구', '서구'],
       '그 외': ['부산', '대구', '대전', '광주', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주']
     };
-    
-    const MT_DISCLAIMER = '관리자는 개인 간 만남·동행·카풀·티켓 거래에 관여하지 않으며, 이로 인한 사고나 분쟁, 금전적 피해에 책임지지 않습니다. 모든 활동은 본인 책임하에 신중하게 진행해주세요.';
-    let MT = { events: [], ev: '', cat: 'all', mine: false, onlyOpen: false, posts: [], prices: null };
+        const MT_DISCLAIMER = '이 게시판은 회원끼리 직접 약속하고 거래하는 공간이에요. 관리자는 만남·동행·카풀·티켓 거래에 관여하지 않으며, 그로 인한 사고·분쟁·사기·금전 손실 등에 대해 어떠한 책임도 지지 않아요. 모든 만남과 거래는 본인 책임으로 신중하게 진행해주세요.';
+    let MT = { events: [], ev: '', cat: 'watch', mine: false, onlyOpen: false, posts: [], prices: null, f: {}, fOpen: false };
     /* 테스트 계정: preview.html 에서만 보이는 기능. 서버의 '테스트 모드'(어드민에서 켬)가 켜져 있을 때만 동작하고,
        카카오 로그인 없이 가상 계정(테스트-A 등)으로 글쓰기/신청/승인을 시험해볼 수 있다. 창(탭)마다 다른 계정 선택 가능. */
     const MT_TEST_UI = /preview\.html$/.test(location.pathname);
@@ -28877,7 +28957,7 @@
       const __g = __navGen;
       loading();
       try { MT.events = (await mtRpc('meetup_events_list')) || []; }
-      catch (e) { if (navStale(__g)) return; $app.innerHTML = `<h1 class="page">직관 · 카풀 · 티켓양도</h1><div class="empty">${esc(mtErr(e))}</div>`; return; }
+      catch (e) { if (navStale(__g)) return; $app.innerHTML = `<h1 class="page">직관 · 카풀 · 티켓 양도</h1><div class="empty">${esc(mtErr(e))}</div>`; return; }
       if (!MT.ev || !MT.events.some(e => e.event_key === MT.ev)) {
         const up = MT.events.filter(e => !e.ended).sort((a, b) => new Date(a.ends_at) - new Date(b.ends_at))[0];
         MT.ev = (up || MT.events[0] || {}).event_key || '';
@@ -28888,67 +28968,176 @@
       const gg = g == null ? __navGen : g;
       if (MT.ev) {
         try { MT.posts = (await mtRpc('meetup_list', { p_event_key: MT.ev })) || []; }
-        catch (e) { if (navStale(gg)) return; $app.innerHTML = `<h1 class="page">직관 · 카풀 · 티켓양도</h1><div class="empty">${esc(mtErr(e))}</div>`; return; }
+        catch (e) { if (navStale(gg)) return; $app.innerHTML = `<h1 class="page">직관 · 카풀 · 티켓 양도</h1><div class="empty">${esc(mtErr(e))}</div>`; return; }
       } else MT.posts = [];
       if (navStale(gg)) return;
       mtRender();
     }
+    /* 접속중 표시: 사이트의 접속자(presence) 목록에 그 닉네임이 있으면 접속중 */
+    function mtOnline(nick) {
+      try { return Object.values(__presenceState || {}).some(arr => (arr || []).some(m => m && m.nickname === nick)); } catch (e) { return false; }
+    }
+    function mtPaintOnline() { document.querySelectorAll('.mt-on[data-nick]').forEach(e => { e.hidden = !mtOnline(e.dataset.nick); }); }
+    function mtNick(nick) {
+      return `<span class="mt-nick"><i>${esc(String(nick).slice(0, 1))}</i>${esc(nick)}<em class="mt-on" data-nick="${esc(nick)}"${mtOnline(nick) ? '' : ' hidden'}>접속중</em></span>`;
+    }
+
+    /* 필터 / 정렬 (종류별로 따로 기억) */
+    const mtF = () => (MT.f[MT.cat] = MT.f[MT.cat] || {});
+    const mtLeft = p => Math.max(0, (p.capacity || 0) - (p.approved || 0));
+    function mtFT(k, v) { const f = mtF(); const a = f[k] || (f[k] = []); const i = a.indexOf(v); if (i >= 0) a.splice(i, 1); else a.push(v); mtRender(); }
+    function mtFS(k, v) { const f = mtF(); f[k] = f[k] === v ? '' : v; mtRender(); }
+    function mtFSort(v) { mtF().sort = v; mtRender(); }
+    function mtFReset() { MT.f[MT.cat] = {}; mtRender(); }
+    function mtFCount(f) { return (f.ages || []).length + (f.gender ? 1 : 0) + (f.kind ? 1 : 0) + (f.origins || []).length + (f.trip ? 1 : 0) + (f.minleft ? 1 : 0) + (f.grades || []).length + (f.qty ? 1 : 0); }
+    function mtMatch(p, f) {
+      if (p.category !== 'ticket') {
+        if ((f.ages || []).length && (p.age_prefs || []).length && !p.age_prefs.some(a => f.ages.includes(a))) return false;
+        if (f.gender === 'any' && p.gender_pref !== '무관') return false;
+        if (f.gender === 'm' && !(p.gender_pref === '동성만' && p.gender === '남자')) return false;
+        if (f.gender === 'f' && !(p.gender_pref === '동성만' && p.gender === '여자')) return false;
+        if (f.minleft && mtLeft(p) < f.minleft) return false;
+      }
+      if (p.category === 'carpool') {
+        if (f.kind && p.cp_kind !== f.kind) return false;
+        if ((f.origins || []).length && !f.origins.includes(p.origin)) return false;
+        if (f.trip && p.trip !== f.trip && p.trip !== '무관') return false;
+      }
+      if (p.category === 'ticket') {
+        if ((f.grades || []).length && !f.grades.includes(p.grade)) return false;
+        if (f.qty && (f.qty >= 4 ? p.sell_qty < 4 : p.sell_qty !== f.qty)) return false;
+      }
+      return true;
+    }
+    function mtSortList(list, f) {
+      const s = f.sort || 'new';
+      if (s === 'new') return list;
+      const key = {
+        left: p => -mtLeft(p),
+        fareLow: p => p.fare < 0 ? 1e9 : p.fare, fareHigh: p => p.fare < 0 ? 1 : -p.fare,
+        priceLow: p => p.sell_price * p.sell_qty, priceHigh: p => -(p.sell_price * p.sell_qty)
+      }[s];
+      const rank = p => p.status === 'open' ? 0 : p.status === 'full' ? 1 : 2;
+      return list.map((p, i) => [p, i]).sort((a, b) => rank(a[0]) - rank(b[0]) || key(a[0]) - key(b[0]) || a[1] - b[1]).map(x => x[0]);
+    }
+    const MT_SORTS = {
+      watch: [['new', '최근 등록순'], ['left', '남은 자리 많은순']],
+      carpool: [['new', '최근 등록순'], ['left', '남은 자리 많은순'], ['fareLow', '카풀비 낮은순'], ['fareHigh', '카풀비 높은순']],
+      ticket: [['new', '최근 등록순'], ['priceLow', '양도 금액 낮은순'], ['priceHigh', '양도 금액 높은순']]
+    };
+    function mtFChip(label, on, js) { return `<button type="button" class="mt-fchip${on ? ' on' : ''}" onclick="${js}">${esc(label)}</button>`; }
+    function mtFPanel(f) {
+      const posts = MT.posts.filter(p => p.category === MT.cat);
+      const row = (t, chips) => `<div class="mt-fr"><span>${t}</span><div>${chips}</div></div>`;
+      let h = '';
+      if (MT.cat !== 'ticket') {
+        h += row('모집 연령대', MT_AGE.map(a => mtFChip(a, (f.ages || []).includes(a), `mtFT('ages','${a}')`)).join(''));
+        h += row('모집 성별', [['any', '무관'], ['m', '남자만'], ['f', '여자만']].map(([v, l]) => mtFChip(l, f.gender === v, `mtFS('gender','${v}')`)).join(''));
+        h += row('남은 자리', [1, 2, 3].map(n => mtFChip(n + '명 이상', f.minleft === n, `mtFS('minleft',${n})`)).join(''));
+      }
+      if (MT.cat === 'carpool') {
+        h += row('구분', ['모집', '희망'].map(v => mtFChip('카풀 ' + v, f.kind === v, `mtFS('kind','${v}')`)).join(''));
+        const os = Array.from(new Set(posts.map(p => p.origin))).sort();
+        h += row('출발지', os.length ? os.map(o => mtFChip(o, (f.origins || []).includes(o), `mtFT('origins','${esc(o)}')`)).join('') : '<span class="mt-dim">등록된 글이 없어요</span>');
+        h += row('편도 / 왕복', ['편도', '왕복'].map(v => mtFChip(v, f.trip === v, `mtFS('trip','${v}')`)).join(''));
+      }
+      if (MT.cat === 'ticket') {
+        const gs = Array.from(new Set(posts.map(p => p.grade)));
+        h += row('좌석 등급', gs.length ? gs.map(g => mtFChip(g, (f.grades || []).includes(g), `mtFT('grades','${esc(g)}')`)).join('') : '<span class="mt-dim">등록된 글이 없어요</span>');
+        h += row('양도 수량', [1, 2, 3, 4].map(n => mtFChip(n >= 4 ? '4장 이상' : n + '장', f.qty === n, `mtFS('qty',${n})`)).join(''));
+      }
+      return `<div class="mt-fpanel">${h}<button type="button" class="mt-b gray sm" onclick="mtFReset()">필터 초기화</button></div>`;
+    }
+    function mtToggleGuide() {
+      const on = document.getElementById('mt-gpanel').classList.toggle('show');
+      document.getElementById('mt-gbtn').textContent = on ? '이용 안내 접기 ▴' : '이용 안내 보기 ▾';
+    }
+    function mtGuideHTML() {
+      return `<div class="mt-guide">
+      <div class="mt-gcard"><h4>이런 걸 올릴 수 있어요</h4>
+        <ul><li><b>직관</b> 같이 경기 보러 갈 사람 모으기</li><li><b>카풀</b> 같은 방향 사람끼리 차 나눠 타기 (모집/희망)</li><li><b>티켓 양도</b> 못 가게 된 티켓을 정가 이하로 넘기기</li></ul></div>
+      <div class="mt-gcard"><h4>이것만은 지켜주세요</h4>
+        <ul><li>양도 금액은 <b>정가 이하</b>로만 올릴 수 있어요. 웃돈과 프리미엄은 안 돼요.</li>
+        <li><b>계좌, 선입금, 링크</b> 같은 외부 결제 유도는 금지예요. 비고란에도 쓸 수 없어요.</li>
+        <li>경기마다 종류별로 진행 중인 글은 <b>1개</b>씩 올릴 수 있어요. 내용이 바뀌면 글을 수정하면 돼요.</li>
+        <li>카풀비는 기름값·통행료를 나누는 용도로만 사용해주세요.</li></ul></div>
+      <div class="mt-gcard"><h4>신청과 연락처</h4>
+        <ul><li>여러 글에 중복으로 신청할 수 있어요. 한 곳에서 승인되면 같은 경기·같은 종류의 다른 대기 신청은 자동으로 취소돼요.</li>
+        <li>연락처는 작성자가 승인한 뒤에만 서로 보여요. 승인 전에는 아무도 볼 수 없어요.</li>
+        <li>카풀과 동행은 처음 만나는 분과 하게 돼요. 출발지·시간·인원을 확인하고 가족이나 지인에게 알려두면 좋아요.</li>
+        <li>불편한 글이나 사람은 신고·차단으로 알려주세요.</li></ul></div>
+      <div class="mt-gcard"><h4>경기가 끝나면</h4>
+        <ul><li>글이 자동으로 마감되고, 지난 글로 남아 읽기만 할 수 있어요.</li></ul></div>
+      <div class="mt-warnbox">${esc(MT_DISCLAIMER)}</div></div>`;
+    }
     function mtRender() {
       const ev = mtCurEvent();
       const ended = !!(ev && ev.ended);
-      const cnt = k => MT.posts.filter(p => (k === 'all' || p.category === k) && p.status === 'open').length;
-      const list = MT.posts.filter(p => (MT.cat === 'all' || p.category === MT.cat) && (!MT.mine || p.mine || p.my_req) && (!MT.onlyOpen || p.status === 'open'));
+      const cnt = k => MT.posts.filter(p => p.category === k && p.status === 'open').length;
+      const f = mtF();
+      let list = MT.posts.filter(p => p.category === MT.cat && (!MT.mine || p.mine || p.my_req) && (!MT.onlyOpen || p.status === 'open') && mtMatch(p, f));
+      list = mtSortList(list, f);
+      const nf = mtFCount(f);
       const loggedIn = !!(MT_TEST_ID || (typeof gmMyNick !== 'undefined' && gmMyNick));
       const evSel = MT.events.length > 1
         ? `<select class="mt-sel" onchange="MT.ev=this.value;mtReload()">${MT.events.map(e => `<option value="${esc(e.event_key)}"${e.event_key === MT.ev ? ' selected' : ''}>${esc(e.title)}${e.ended ? ' (종료)' : ''}</option>`).join('')}</select>`
         : (ev ? `<b>${esc(ev.title)}</b>` : '');
       $app.innerHTML = `
-    <h1 class="page">직관 · 카풀 · 티켓양도</h1>
+    <h1 class="page">직관 · 카풀 · 티켓 양도</h1>
     <div class="mt-hero">
-      <div><div class="mt-hero-t">같이 가고, 같이 타고, 편하게 양도해요</div>
-      <div class="mt-hero-s">직관 동행, 카풀, 티켓 양도를 회원끼리 직접 약속해요. 연락처는 승인한 뒤에만 서로 공개돼요.</div></div>
-      <button type="button" class="mt-pill" onclick="mtGuide()">이용 안내</button>
+      <div class="mt-hero-in"><div class="mt-hero-t">같이 가고, 같이 타고, 편하게 양도해요</div>
+      <div class="mt-hero-s">직관 동행, 카풀, 티켓 양도를 회원끼리 직접 약속해요.<br>연락처는 승인한 뒤에만 서로 공개돼요.</div>
+      <button type="button" class="mt-gbtn" id="mt-gbtn" onclick="mtToggleGuide()">이용 안내 보기 ▾</button></div>
     </div>
+    <div class="mt-gpanel" id="mt-gpanel">${mtGuideHTML()}</div>
     ${MT_TEST_UI ? mtTestBar() : ''}
     ${!ev ? `<div class="mt-empty">등록된 경기가 없어요.</div>` : `
     <div class="mt-bar"><div class="mt-bar-l">${evSel}${ended ? ' <span class="mt-badge closed">경기 종료 · 지난 글 보기</span>' : ''}</div>
       <div class="mt-bar-r"><button type="button" class="mt-pill blk" onclick="mtBlocked()">🚫 차단 목록</button></div></div>
     <div class="mt-tabs">
-      ${[['all', '전체']].concat(MT_CATS.map(c => [c.k, c.n])).map(([k, n]) => `<button type="button" class="mt-tab c-${k}${MT.cat === k ? ' on' : ''}" onclick="MT.cat='${k}';mtRender()">${n}<small>${cnt(k)}</small></button>`).join('')}
+      ${MT_CATS.map(c => `<button type="button" class="mt-tab c-${c.k}${MT.cat === c.k ? ' on' : ''}" onclick="MT.cat='${c.k}';mtRender()"><span>${c.ico} ${c.n}</span><small>${cnt(c.k)}</small></button>`).join('')}
     </div>
     <div class="mt-actions">
-      <div class="mt-filters"><button type="button" class="mt-fchip${MT.onlyOpen ? ' on' : ''}" onclick="MT.onlyOpen=!MT.onlyOpen;mtRender()">모집 중만</button><button type="button" class="mt-fchip${MT.mine ? ' on' : ''}" onclick="MT.mine=!MT.mine;mtRender()">내 글 · 내 신청</button></div>
-      ${ended ? '' : `<button type="button" class="mt-b pri" onclick="mtOpenCreate()">+ 글쓰기</button>`}
+      <div class="mt-filters">
+        <select class="mt-sel sm" onchange="mtFSort(this.value)">${MT_SORTS[MT.cat].map(([v, l]) => `<option value="${v}"${(f.sort || 'new') === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
+        <button type="button" class="mt-fchip${MT.fOpen || nf ? ' on' : ''}" onclick="MT.fOpen=!MT.fOpen;mtRender()">필터${nf ? ' ' + nf : ''} ${MT.fOpen ? '▴' : '▾'}</button>
+        <button type="button" class="mt-fchip g${MT.onlyOpen ? ' on' : ''}" onclick="MT.onlyOpen=!MT.onlyOpen;mtRender()"><i></i>모집 중만</button>
+        <button type="button" class="mt-fchip m${MT.mine ? ' on' : ''}" onclick="MT.mine=!MT.mine;mtRender()">👤 내 글 · 내 신청</button>
+      </div>
+      ${ended ? '' : `<button type="button" class="mt-b dark" onclick="mtOpenCreate()">+ 글쓰기</button>`}
     </div>
+    ${MT.fOpen ? mtFPanel(f) : ''}
     ${loggedIn ? '' : `<div class="mt-login">글쓰기와 참여 신청은 카카오 로그인 후 이용할 수 있어요. 목록은 로그인 없이 편하게 구경하세요.</div>`}
-    ${list.length ? list.map(mtCard).join('') : `<div class="mt-empty">${MT.mine ? '내 글이나 신청 내역이 아직 없어요.' : MT.onlyOpen ? '모집 중인 글이 없어요.' : '아직 올라온 글이 없어요.<br>첫 글을 올려보세요!'}</div>`}
+    ${list.length ? list.map(mtCard).join('') : `<div class="mt-empty">${MT.mine ? '내 글이나 신청 내역이 아직 없어요.' : (MT.onlyOpen || nf) ? '조건에 맞는 글이 없어요.' : '아직 올라온 글이 없어요.<br>첫 글을 올려보세요!'}</div>`}
     <div class="mt-foot-note">${esc(MT_DISCLAIMER)}</div>`}`;
     }
     const mtPrefs = p => (p.age_prefs || []).slice().sort((x, y) => MT_AGE.indexOf(x) - MT_AGE.indexOf(y));
     function mtCard(p) {
       const st = (p.category === 'ticket' && p.status === 'full') ? ['✓ 거래 진행 중', 'full'] : (MT_STATUS[p.status] || [p.status, 'closed']);
-      const cat = MT_CATS.find(c => c.k === p.category).n;
+      const c = MT_CATS.find(x => x.k === p.category);
       const tags = [];
       if (p.gender) tags.push(`<span>${esc(p.gender)} · ${esc(p.age_group)}</span>`);
       if (p.gender_pref === '동성만') tags.push('<span class="hl">동성만 모집</span>');
       if (p.age_prefs && p.age_prefs.length) tags.push(`<span class="hl">${esc(mtPrefs(p).join('·'))} 모집</span>`);
-      let body = '';
+      let facts = '', hi = '';
       if (p.category === 'watch') {
-        const left = Math.max(0, p.people - p.approved);
-        body = `<div class="mt-kv"><div>내 인원<b>${p.my_people || 1}명</b></div><div>모집 인원<b>${p.people}명</b></div><div>참여 확정<b>${p.approved}명</b></div><div>남은 자리<b>${left}명</b></div></div>`;
+        facts = [`내 인원 <b>${p.my_people || 1}명</b>`, `모집 <b>${p.people}명</b>`, `확정 <b>${p.approved}명</b>`];
+        hi = `<div class="mt-hi"><small>남은 자리</small><b>${mtLeft(p)}<i>/${p.capacity}명</i></b></div>`;
       } else if (p.category === 'carpool') {
-        body = `<div class="mt-kv"><div>내 인원<b>${p.my_people || 1}명</b></div><div>구분<b>${esc(p.cp_kind)}</b></div><div>출발지<b>${esc(p.origin)}</b></div><div>방식<b>${esc(p.trip)}</b></div>
-          <div>${p.cp_kind === '모집' ? '빈 자리' : '탑승 인원'}<b>${p.people}명</b></div><div>카풀비 (1인)<b>${p.fare < 0 ? '협의' : p.fare ? mtN(p.fare) + '원' : '없음'}</b></div></div>`;
+        facts = [`<b>${esc(p.cp_kind)}</b>`, `<b>${esc(p.origin)}</b>${p.origin_detail ? ' ' + esc(p.origin_detail) : ''} 출발`, esc(p.trip === '무관' ? '편도·왕복 무관' : p.trip), `내 인원 <b>${p.my_people || 1}명</b>`, `${p.cp_kind === '모집' ? '빈 자리' : '탑승'} <b>${p.people}명</b>${p.cp_kind === '모집' ? ` (남은 ${mtLeft(p)})` : ''}`];
+        hi = `<div class="mt-hi"><small>카풀비 (1인)</small><b>${p.fare < 0 ? '협의' : p.fare ? mtN(p.fare) + '<i>원</i>' : '없음'}</b></div>`;
       } else {
         const pct = p.unit_price > 0 ? Math.round((1 - p.sell_price / p.unit_price) * 100) : 0;
-        body = `<div class="mt-kv"><div>좌석<b>${esc(p.grade)}</b></div><div>위치<b>${esc(p.seat_zone)}구역 ${esc(p.seat_row)}열 ${esc(p.seat_num)}번</b></div><div>양도 수량<b>${p.sell_qty}장</b></div></div>
-        <div class="mt-price"><span class="big">${mtN(p.sell_price)}원</span><s>정가 ${mtN(p.unit_price)}원</s><em>${pct > 0 ? pct + '% 저렴' : '정가'}</em><span class="sub">총 ${mtN(p.sell_price * p.sell_qty)}원 (${p.sell_qty}장)</span></div>`;
+        facts = [`<b>${esc(p.grade)}</b>`, `${esc(p.seat_zone)}구역 ${esc(p.seat_row)}열 ${esc(p.seat_num)}번`, `<b>${p.sell_qty}장</b>`];
+        hi = `<div class="mt-hi price"><small>${p.sell_qty > 1 ? '총 ' + p.sell_qty + '장' : '1장'} · 장당 ${mtN(p.sell_price)}원</small><b>${mtN(p.sell_price * p.sell_qty)}<i>원</i></b><em class="${pct > 0 ? 'off' : ''}">${pct > 0 ? pct + '% 할인' : '정가'}</em></div>`;
       }
       const reqB = p.my_req === 'pending' ? '<span class="mt-badge wait">⏳ 승인 대기 중</span>' : p.my_req === 'approved' ? '<span class="mt-badge open">참여 확정</span>' : '';
+      const ev = mtCurEvent(), evEnded = !!(ev && ev.ended);
       let btns = '';
       if (p.mine) {
         btns = `<button type="button" class="mt-b ok sm" onclick="mtManage(${p.id})">신청자 관리${p.pending ? `<span class="mt-dot">${p.pending}</span>` : ''}</button>`
           + (p.status === 'open' || p.status === 'full' ? `<button type="button" class="mt-b blue sm" onclick="mtEdit(${p.id})">수정</button><button type="button" class="mt-b gray sm" onclick="mtClosePost(${p.id},false)">마감</button>` : '')
+          + (p.status === 'closed' && !evEnded ? `<button type="button" class="mt-b warn sm" onclick="mtReopen(${p.id})">마감 취소</button>` : '')
           + `<button type="button" class="mt-b no sm" onclick="mtClosePost(${p.id},true)">삭제</button>`;
       } else {
         if (p.status === 'open' && (!p.my_req || p.my_req === 'cancelled')) btns += `<button type="button" class="mt-b pri sm" onclick="mtApply(${p.id})">참여 신청</button>`;
@@ -28960,32 +29149,14 @@
         btns += `<button type="button" class="mt-b no sm" onclick="mtReport(${p.id})">🚨 신고</button><button type="button" class="mt-b blk sm" data-nick="${esc(p.author_nick)}" onclick="mtBlock(this.dataset.nick)">🚫 차단</button>`;
       }
       return `<div class="mt-card c-${p.category} ${p.status}">
-      <div class="mt-card-h"><span class="mt-badge cat-${p.category}">${cat}</span><span class="mt-badge ${st[1]}">${st[0]}</span>${p.mine ? '<span class="mt-badge mine">내 글</span>' : ''}${reqB}
-        <span class="mt-ago">${mtAgo(p.created_at)}</span></div>
-      <div class="mt-title">${esc(mtTitle(p))}</div>
-      ${tags.length ? `<div class="mt-tags">${tags.join('')}</div>` : ''}
-      ${body}
-      ${p.note ? `<div class="mt-note">${esc(p.note)}</div>` : ''}
-      <div class="mt-foot"><span class="mt-who">${esc(p.author_nick)}</span><span class="mt-btns">${btns}</span></div></div>`;
-    }
-
-    /* ---------- 이용 안내 ---------- */
-    function mtGuide() {
-      mtModal('이용 안내', `<div class="mt-guide">
-      <div class="mt-gcard"><h4>이런 걸 올릴 수 있어요</h4>
-        <ul><li><b>직관</b> 같이 경기 보러 갈 사람 모으기</li><li><b>카풀</b> 같은 방향 사람끼리 차 나눠 타기 (모집/희망)</li><li><b>티켓 양도</b> 못 가게 된 티켓을 정가 이하로 넘기기</li></ul></div>
-      <div class="mt-gcard"><h4>이것만은 지켜주세요</h4>
-        <ul><li>양도 금액은 <b>정가 이하</b>로만 올릴 수 있어요. 웃돈과 프리미엄은 안 돼요.</li>
-        <li><b>계좌, 선입금, 링크</b> 같은 외부 결제 유도는 금지예요. 비고란에도 쓸 수 없어요.</li>
-        <li>경기마다 종류별로 진행 중인 글은 <b>1개</b>씩 올릴 수 있어요. 내용이 바뀌면 글을 수정하면 돼요.</li>
-        <li>카풀비는 기름값·통행료를 나누는 용도로만 사용해주세요.</li></ul></div>
-      <div class="mt-gcard"><h4>안전하게 즐기는 팁</h4>
-        <ul><li>연락처는 작성자가 승인한 뒤에만 서로 보여요. 승인 전에는 아무도 볼 수 없어요.</li>
-        <li>카풀과 동행은 처음 만나는 분과 하게 돼요. 출발지·시간·인원을 확인하고 가족이나 지인에게 알려두면 좋아요.</li>
-        <li>불편한 글이나 사람은 신고·차단으로 알려주세요.</li></ul></div>
-      <div class="mt-gcard"><h4>경기가 끝나면</h4>
-        <ul><li>글이 자동으로 마감되고, 지난 글로 남아 읽기만 할 수 있어요.</li></ul></div>
-      <div class="mt-warnbox">${esc(MT_DISCLAIMER)}</div></div>`, 560);
+      <div class="mt-main">
+        <div class="mt-card-h"><span class="mt-badge cat-${p.category}">${c.ico} ${c.n}</span><span class="mt-badge ${st[1]}">${st[0]}</span>${p.mine ? '<span class="mt-badge mine">내 글</span>' : mtNick(p.author_nick)}${reqB}<span class="mt-ago">${mtAgo(p.created_at)}</span></div>
+        <div class="mt-title">${esc(mtTitle(p))}</div>
+        <div class="mt-facts">${facts.map(x => `<span>${x}</span>`).join('')}</div>
+        ${tags.length ? `<div class="mt-tags">${tags.join('')}</div>` : ''}
+        ${p.note ? `<div class="mt-note">${esc(p.note)}</div>` : ''}
+      </div>
+      <div class="mt-side">${hi}<div class="mt-btns">${btns}</div></div></div>`;
     }
 
     /* ---------- 글쓰기 (1단계: 종류 고르기 → 2단계: 상세 입력) ---------- */
@@ -29019,6 +29190,42 @@
       const S = { ov, root: ov.querySelector('#mt-form'), prices, prof: mtLS('mt_prof') || {}, cat: p.category, edit: p, own };
       mtDrawForm(S);
     }
+    /* 연락 수단 입력칸: 종류 선택 + 값 + "열어서 확인". 열어서 확인(또는 카카오ID는 직접 확인 체크)을 해야 등록/신청 가능 */
+    function mtContactHTML2(label, small, kind, value, allowNone) {
+      const opts = Object.entries(MT_CONTACT).map(([k, v]) => ({ v: k, l: v.n })).concat(allowNone ? [{ v: 'none', l: '없음' }] : []);
+      return `<div class="mt-f"><label>${label} <small>${small}</small></label>${mtChoices('ckind', opts, kind)}
+        <input id="mt-cval" type="text" maxlength="120" style="margin-top:8px" placeholder="${esc(MT_CONTACT[kind] ? MT_CONTACT[kind].ph : '')}" autocomplete="off" value="${esc(value || '')}">
+        <div class="mt-vfy" id="mt-vrow"><button type="button" class="mt-b gray sm" id="mt-vfy">열어서 확인</button><span class="mt-hint" id="mt-vhint" style="margin:0"></span></div></div>`;
+    }
+    function mtBindContact(root, init) {
+      const q = id => root.querySelector('#' + id);
+      let ok = init && init.value ? init.kind + '|' + init.value : '';
+      const kind = () => mtVal(root, 'ckind');
+      const key = () => kind() + '|' + q('mt-cval').value.trim();
+      const paint = () => {
+        const k = kind(), none = k === 'none';
+        q('mt-cval').style.display = none ? 'none' : '';
+        q('mt-vrow').style.display = none ? 'none' : '';
+        if (none) return;
+        q('mt-cval').placeholder = MT_CONTACT[k].ph;
+        const done = ok === key() && q('mt-cval').value.trim() !== '';
+        const b = q('mt-vfy');
+        b.className = 'mt-b sm ' + (done ? 'okline' : 'gray');
+        b.textContent = done ? '✓ 확인 완료' : (k === 'kakaoid' ? '카카오톡에서 검색해봤어요' : '열어서 확인');
+        q('mt-vhint').textContent = done ? '' : (k === 'openkakao' ? '링크가 열리는지 확인해야 진행할 수 있어요' : k === 'insta' ? '내 프로필이 열리는지 확인해야 진행할 수 있어요' : '카카오톡 ID 검색에서 나오는지 확인한 뒤 눌러주세요 (자동 확인은 어려워요)');
+      };
+      root.querySelectorAll('.mt-chs[data-g="ckind"] .mt-ch').forEach(b => b.addEventListener('click', paint));
+      q('mt-cval').addEventListener('input', paint);
+      q('mt-vfy').onclick = () => {
+        const k = kind(), v = q('mt-cval').value.trim();
+        if (!mtValidContact(k, v)) return mtSetMsg(root, '연락 수단 형식을 먼저 확인해주세요. (' + MT_CONTACT[k].ph + ')');
+        mtSetMsg(root, '');
+        const url = mtContactUrl(k, v); if (url) window.open(url, '_blank', 'noopener,noreferrer');
+        ok = key(); paint();
+      };
+      paint();
+      return { kind, value: () => q('mt-cval').value.trim(), none: () => kind() === 'none', verified: () => kind() === 'none' || ok === key() };
+    }
     function mtDrawForm(S) {
       const root = S.root, D = S.edit || {}, cat = S.cat, edit = !!S.edit;
       const catName = MT_CATS.find(c => c.k === cat).n;
@@ -29028,19 +29235,20 @@
       const gradeList = noPrice ? Object.values(typeof Z17_GRADE_NAME !== 'undefined' ? Z17_GRADE_NAME : {}) : gradeKeys;
       if (D.grade && !gradeList.includes(D.grade)) gradeList.push(D.grade);
       const gender = D.gender || S.prof.gender || '', age = D.age_group || S.prof.age || '';
-      const ck = (S.own && S.own.kind) || S.prof.ckind || 'openkakao', cv = (S.own && S.own.value) || '';
+      const ck = (S.own && S.own.kind) || 'openkakao', cv = (S.own && S.own.value) || '';
       let f = edit ? '' : `<button type="button" class="mt-back" id="mt-back">← 종류 다시 고르기</button>`;
       if (cat !== 'ticket') {
         f += `<div class="mt-f2"><div class="mt-f"><label>내 성별</label>${mtChoices('gender', ['남자', '여자'], gender)}</div>
           <div class="mt-f"><label>내 나이대</label>${mtChoices('age', MT_AGE, age)}</div></div>`;
+        f += `<div class="mt-f"><label>내 인원 <small>나를 포함해 함께 가는 사람 수</small></label>${mtNumChips('mypeople', [1, 2, 3, 4], D.my_people || 1, 30, n => n + '명')}</div>`;
       }
-      if (cat === 'watch' || cat === 'carpool') f += `<div class="mt-f"><label>내 인원 <small>나를 포함해 함께 가는 사람 수</small></label>${mtNumChips('mypeople', [1, 2, 3, 4], D.my_people || 1, 30, n => n + '명')}</div>`;
       if (cat === 'watch') f += `<div class="mt-f"><label>모집 인원</label>${mtNumChips('people', [1, 2, 3, 4, 5], D.people, 30, n => n + '명')}</div>`;
       if (cat === 'carpool') {
         f += `<div class="mt-f"><label>구분</label>${mtChoices('cpkind', [{ v: '모집', l: '카풀 모집 (차량 있음)' }, { v: '희망', l: '카풀 희망 (탑승 원함)' }], D.cp_kind || '')}</div>
-        <div class="mt-f"><label>출발지</label><select id="mt-origin" class="mt-sel wide"><option value="">선택해주세요</option>${Object.entries(MT_REGIONS).map(([g, arr]) => `<optgroup label="${g}">${arr.map(a => `<option value="${esc(g === '그 외' ? a : g + ' ' + a)}">${esc(a)}</option>`).join('')}</optgroup>`).join('')}</select></div>
+        <div class="mt-f"><label>출발지 <small>상세 위치는 선택</small></label><select id="mt-origin" class="mt-sel wide"><option value="">지역 선택</option>${Object.entries(MT_REGIONS).map(([g, arr]) => `<optgroup label="${g}">${arr.map(a => `<option value="${esc(g === '그 외' ? a : g + ' ' + a)}">${esc(a)}</option>`).join('')}</optgroup>`).join('')}</select>
+          <input id="mt-od" type="text" maxlength="30" style="margin-top:8px" placeholder="상세 위치 (예: 판교역 1번 출구)" value="${esc(D.origin_detail || '')}"></div>
         <div class="mt-f"><label id="mt-plabel">${D.cp_kind === '희망' ? '탑승 인원' : '모집 인원 (빈 자리)'}</label>${mtNumChips('people', [1, 2, 3, 4], D.people, 8, n => n + '명')}</div>
-        <div class="mt-f"><label>편도 / 왕복 <small>상관없으면 ‘상관없음’</small></label>${mtChoices('trip', ['편도', '왕복', '상관없음'], D.trip || '')}</div>
+        <div class="mt-f"><label>편도 / 왕복</label>${mtChoices('trip', ['편도', '왕복', '무관'], D.trip || '')}</div>
         <div class="mt-f"><label>카풀비 (1인 기준)</label>${mtNumChips('fare', [0, -1], D.fare, 200000, n => n === 0 ? '없음' : '협의')}<div class="mt-hint">유류비·통행료 실비 분담 용도로만 사용해주세요.</div></div>`;
       }
       if (cat === 'ticket') {
@@ -29048,78 +29256,81 @@
         <div class="mt-f3"><div class="mt-f"><label>구역</label><input id="mt-zone" type="text" maxlength="8" placeholder="예: 109" value="${esc(D.seat_zone || '')}"></div>
           <div class="mt-f"><label>열</label><input id="mt-row" type="text" maxlength="8" placeholder="예: K" value="${esc(D.seat_row || '')}"></div>
           <div class="mt-f"><label>번호</label><input id="mt-num" type="text" maxlength="12" placeholder="예: 1~2" value="${esc(D.seat_num || '')}"></div></div>
-        ${noPrice ? `<div class="mt-f"><label>구매 금액 (장당, 정가)</label><input id="mt-unit" type="number" inputmode="numeric" placeholder="예: 99000" value="${D.unit_price || ''}"><div class="mt-hint">정가표를 불러오지 못했어요. 예매 내역의 장당 금액을 입력해주세요.</div></div>` : `<div class="mt-f"><label>구매 금액 <small>등급을 고르면 자동으로 채워져요</small></label><div id="mt-unitbox" class="mt-auto">등급을 선택해주세요</div></div>`}
         <div class="mt-f"><label>양도 수량</label>${mtNumChips('sellq', [1, 2, 3], D.sell_qty, 20, n => n + '장')}</div>
-        <div class="mt-f"><label>양도 금액 <small>장당 · 정가 이하만 가능</small></label><input id="mt-sell" type="number" inputmode="numeric" placeholder="예: 90000" value="${D.sell_price == null ? '' : D.sell_price}">
-          <div class="mt-quick"><button type="button" data-d="0">정가</button><button type="button" data-d="10">10% 할인</button><button type="button" data-d="20">20% 할인</button><button type="button" data-d="30">30% 할인</button></div>
+        ${noPrice ? `<div class="mt-f"><label>구매 금액 <small>장당 정가</small></label><input id="mt-unit" type="number" inputmode="numeric" placeholder="예: 99000" value="${D.unit_price || ''}"><div class="mt-hint">정가표를 불러오지 못했어요. 예매 내역의 장당 금액을 입력해주세요.</div></div>` : `<div class="mt-f"><label>구매 금액 <small>등급을 고르면 자동으로 채워져요</small></label><div id="mt-unitbox" class="mt-auto">등급을 선택해주세요</div></div>`}
+        <div class="mt-f"><label>양도 금액 <small>총액 · 정가 이하만 가능</small></label><input id="mt-sell" type="number" inputmode="numeric" placeholder="예: 270000" value="${D.sell_price == null ? '' : D.sell_price * D.sell_qty}">
+          <div class="mt-quick"><button type="button" data-d="0">정가</button><button type="button" data-d="10">10% 할인</button><button type="button" data-d="20">20% 할인</button><button type="button" data-d="30">30% 할인</button><span class="mt-disc"><input id="mt-disc" type="number" inputmode="numeric" min="0" max="100" placeholder="직접"><b>% 할인</b></span></div>
           <div id="mt-sumbox" class="mt-hint"></div></div>`;
       } else {
         f += `<div class="mt-f"><label>모집 연령대 <small>여러 개 선택 가능 · 선택 안 하면 전체</small></label>${mtChoices('agepref', MT_AGE, D.age_prefs || [], { multi: true })}</div>
         <div class="mt-f"><label>모집 성별</label>${mtChoices('genderpref', ['무관', '동성만'], D.gender_pref || '무관')}</div>`;
       }
-      f += `<div class="mt-f"><label>내 연락 수단 <small>승인한 사람에게만 공개돼요</small></label>${mtChoices('ckind', Object.entries(MT_CONTACT).map(([k, v]) => ({ v: k, l: v.n })), ck)}
-          <input id="mt-cval" type="text" maxlength="120" style="margin-top:8px" placeholder="${esc(MT_CONTACT[ck].ph)}" autocomplete="off" value="${esc(cv)}">
-          <div class="mt-vfy"><button type="button" class="mt-b sm" id="mt-vfy">열어서 확인</button><span class="mt-hint" id="mt-vhint" style="margin:0"></span></div></div>
-        <div class="mt-f"><label>비고 <small>최대 100자</small></label><textarea id="mt-note" maxlength="100" rows="2" placeholder="간단한 추가 내용만 적어주세요 (계좌, 링크, 연락처 입력 금지)">${esc(D.note || '')}</textarea><div class="mt-hint"><span id="mt-cnt">${(D.note || '').length}</span>/100</div></div>
+      f += mtContactHTML2('내 연락 수단', '승인한 사람에게만 공개돼요', ck, cv, false);
+      f += `<div class="mt-f"><label>비고 <small>최대 100자</small></label><textarea id="mt-note" maxlength="100" rows="2" placeholder="간단한 추가 내용만 적어주세요 (계좌, 링크, 연락처 입력 금지)">${esc(D.note || '')}</textarea><div class="mt-hint"><span id="mt-cnt">${(D.note || '').length}</span>/100</div></div>
         ${edit ? '' : `<label class="mt-agree"><input type="checkbox" id="mt-agree"> <span>${esc(MT_DISCLAIMER)} 정가 초과 판매와 외부 결제 유도 금지에 동의합니다.</span></label>`}
         <div class="mt-submit"><div class="mt-msg" style="display:none;margin-bottom:8px"></div><button type="button" class="mt-b pri lg wide" id="mt-submit">${edit ? '수정 저장' : '등록하기'}</button></div>`;
       root.innerHTML = f;
       const q = id => root.querySelector('#' + id);
       if (q('mt-origin')) q('mt-origin').value = D.origin || '';
       if (q('mt-grade')) q('mt-grade').value = D.grade || '';
-      const vhint = () => {
-        const k = mtVal(root, 'ckind');
-        q('mt-vfy').style.display = k === 'kakaoid' ? 'none' : '';
-        q('mt-vhint').textContent = k === 'openkakao' ? '내가 만든 1:1 오픈채팅 링크가 열리는지 확인해보세요' : k === 'insta' ? '내 인스타 프로필이 열리는지 확인해보세요' : '카카오톡의 ID 검색에서 내 ID가 검색되는지 확인해보세요';
-      };
       if (q('mt-back')) q('mt-back').onclick = () => mtDrawType(S);
       mtBindChoices(root, (g, v) => {
-        if (g === 'ckind') { q('mt-cval').placeholder = MT_CONTACT[v].ph; vhint(); }
         if (g === 'cpkind' && q('mt-plabel')) q('mt-plabel').textContent = v === '희망' ? '탑승 인원' : '모집 인원 (빈 자리)';
         if (g === 'sellq') upd();
       });
-      q('mt-vfy').onclick = () => {
-        const k = mtVal(root, 'ckind'), url = mtContactUrl(k, q('mt-cval').value);
-        if (!url) return mtSetMsg(root, '연락 수단 형식을 먼저 확인해주세요. (' + MT_CONTACT[k].ph + ')');
-        mtSetMsg(root, ''); window.open(url, '_blank', 'noopener,noreferrer');
-      };
-      vhint();
+      const ct = mtBindContact(root, S.own && S.own.value ? { kind: ck, value: cv } : null);
+      let pct = null;
       const unitNow = () => noPrice ? Number(q('mt-unit') && q('mt-unit').value || 0) : Number((S.prices || {})[q('mt-grade') ? q('mt-grade').value : ''] || 0);
+      const qtyNow = () => mtInt(mtVal(root, 'sellq'), 1, 20) || 0;
       function upd() {
         if (cat !== 'ticket') return;
-        const u = unitNow(), box = q('mt-unitbox');
-        if (box) box.textContent = u ? `장당 ${mtN(u)}원` : '등급을 선택해주세요';
-        const sp = Number(q('mt-sell').value || 0), sq = Number(mtVal(root, 'sellq') || 0), sb2 = q('mt-sumbox');
-        sb2.textContent = sp && sq ? `총 ${mtN(sp * sq)}원 (${sq}장)` + (u && sp > u ? ' · 정가보다 비싸게는 올릴 수 없어요' : '') : '';
-        sb2.style.color = (u && sp > u) ? '#c93434' : '';
+        const u = unitNow(), n = qtyNow(), box = q('mt-unitbox');
+        if (box) box.textContent = u ? `장당 ${mtN(u)}원` + (n ? ` · ${n}장 ${mtN(u * n)}원` : '') : '등급을 선택해주세요';
+        if (pct !== null && u && n) q('mt-sell').value = Math.floor(u * (100 - pct) / 100 / 100) * 100 * n;
+        const tot = Number(q('mt-sell').value || 0), sb2 = q('mt-sumbox');
+        let t = '', red = false;
+        if (tot && n) {
+          if (tot % n) { t = `총액이 ${n}장으로 나누어떨어져야 해요 (장당 금액이 정수여야 해요)`; red = true; }
+          else { t = `총 ${mtN(tot)}원 (장당 ${mtN(tot / n)}원)`; if (u && tot / n > u) { t += ' · 정가보다 비싸게는 올릴 수 없어요'; red = true; } }
+        } else if (tot) t = '양도 수량을 선택해주세요';
+        sb2.textContent = t; sb2.style.color = red ? '#c93434' : '';
       }
       const noteEl = q('mt-note'); noteEl.oninput = () => { q('mt-cnt').textContent = noteEl.value.length; };
       if (cat === 'ticket') {
-        q('mt-grade').onchange = upd; q('mt-sell').oninput = upd;
+        q('mt-grade').onchange = upd;
+        q('mt-sell').oninput = () => { pct = null; q('mt-disc').value = ''; upd(); };
         if (q('mt-unit')) q('mt-unit').oninput = upd;
         root.querySelectorAll('.mt-quick button').forEach(b => b.onclick = () => {
-          const u = unitNow(); if (!u) { mtSetMsg(root, '먼저 좌석 등급(구매 금액)을 선택해주세요.'); return; }
-          q('mt-sell').value = Math.floor(u * (100 - Number(b.dataset.d)) / 100 / 100) * 100; mtSetMsg(root, ''); upd();
+          if (!unitNow()) { mtSetMsg(root, '먼저 좌석 등급(구매 금액)을 선택해주세요.'); return; }
+          if (!qtyNow()) { mtSetMsg(root, '먼저 양도 수량을 선택해주세요.'); return; }
+          pct = Number(b.dataset.d); q('mt-disc').value = ''; mtSetMsg(root, ''); upd();
         });
+        q('mt-disc').oninput = () => {
+          const v = q('mt-disc').value; if (v === '') { pct = null; return; }
+          if (!unitNow() || !qtyNow()) { mtSetMsg(root, '먼저 좌석 등급과 양도 수량을 선택해주세요.'); return; }
+          const d = Number(v); if (d < 0 || d > 100) { mtSetMsg(root, '할인율은 0~100 사이로 입력해주세요.'); return; }
+          mtSetMsg(root, ''); pct = d; upd();
+        };
         upd();
       }
       q('mt-submit').onclick = async () => {
         const note = q('mt-note').value.trim();
         if (mtBadText(note)) return mtSetMsg(root, '비고에 금지된 표현(계좌/입금/링크/연락처/웃돈 등)이 있어요.');
-        const ckind = mtVal(root, 'ckind'), cval = q('mt-cval').value.trim();
+        const ckind = ct.kind(), cval = ct.value();
         if (!mtValidContact(ckind, cval)) return mtSetMsg(root, '연락 수단 형식을 확인해주세요. (' + MT_CONTACT[ckind].ph + ')');
+        if (!ct.verified()) return mtSetMsg(root, ckind === 'kakaoid' ? '카카오톡에서 내 ID가 검색되는지 확인하고 버튼을 눌러주세요.' : '"열어서 확인"으로 내 연락 수단이 열리는지 확인해주세요.');
         if (!edit && !q('mt-agree').checked) return mtSetMsg(root, '이용 안내와 면책 내용에 동의해주세요.');
         const p = { event_key: MT.ev, category: cat, note, contact_kind: ckind, contact_value: cval };
         let g = '', a = '';
         if (cat !== 'ticket') {
           g = mtVal(root, 'gender'); a = mtVal(root, 'age');
           if (!g || !a) return mtSetMsg(root, '내 성별과 나이대를 선택해주세요.');
-          p.gender = g; p.age_group = a; p.age_prefs = mtMulti(root, 'agepref');
-          p.my_people = mtInt(mtVal(root, 'mypeople'), 1, 30); if (!p.my_people) return mtSetMsg(root, '내 인원을 선택하거나 1~30 사이로 입력해주세요.'); p.gender_pref = mtVal(root, 'genderpref') || '무관';
+          p.gender = g; p.age_group = a; p.age_prefs = mtMulti(root, 'agepref'); p.gender_pref = mtVal(root, 'genderpref') || '무관';
+          p.my_people = mtInt(mtVal(root, 'mypeople'), 1, 30); if (!p.my_people) return mtSetMsg(root, '내 인원을 선택하거나 1~30 사이로 입력해주세요.');
         }
         if (cat === 'watch') { p.people = mtInt(mtVal(root, 'people'), 1, 30); if (!p.people) return mtSetMsg(root, '모집 인원을 선택하거나 1~30 사이로 입력해주세요.'); }
         if (cat === 'carpool') {
-          p.cp_kind = mtVal(root, 'cpkind'); p.trip = mtVal(root, 'trip'); p.origin = q('mt-origin').value;
+          p.cp_kind = mtVal(root, 'cpkind'); p.trip = mtVal(root, 'trip'); p.origin = q('mt-origin').value; p.origin_detail = q('mt-od').value.trim();
           p.people = mtInt(mtVal(root, 'people'), 1, 8); p.fare = mtVal(root, 'fare') === '-1' ? -1 : mtInt(mtVal(root, 'fare'), 0, 200000);
           if (!p.cp_kind || !p.trip || !p.origin) return mtSetMsg(root, '카풀 정보를 모두 선택해주세요.');
           if (!p.people) return mtSetMsg(root, '인원을 선택하거나 1~8 사이로 입력해주세요.');
@@ -29127,37 +29338,41 @@
         }
         if (cat === 'ticket') {
           p.grade = q('mt-grade').value; p.seat_zone = q('mt-zone').value.trim(); p.seat_row = q('mt-row').value.trim(); p.seat_num = q('mt-num').value.trim();
-          p.sell_qty = mtInt(mtVal(root, 'sellq'), 1, 20); p.unit_price = unitNow(); p.sell_price = q('mt-sell').value;
+          p.sell_qty = mtInt(mtVal(root, 'sellq'), 1, 20); p.unit_price = unitNow();
           if (!p.grade || !p.seat_zone || !p.seat_row || !p.seat_num) return mtSetMsg(root, '좌석 등급과 구역·열·번호를 입력해주세요.');
           if (!p.sell_qty) return mtSetMsg(root, '양도 수량을 선택하거나 1~20 사이로 입력해주세요.');
-          if (!p.unit_price || p.sell_price === '') return mtSetMsg(root, '금액을 입력해주세요.');
-          if (Number(p.sell_price) > Number(p.unit_price)) return mtSetMsg(root, '양도 금액은 구매 금액(정가)을 넘을 수 없어요.');
+          const tot = Number(q('mt-sell').value || 0);
+          if (!p.unit_price || !tot) return mtSetMsg(root, '금액을 입력해주세요.');
+          if (tot % p.sell_qty) return mtSetMsg(root, `양도 총액은 ${p.sell_qty}장으로 나누어떨어져야 해요.`);
+          p.sell_price = tot / p.sell_qty;
+          if (p.sell_price > p.unit_price) return mtSetMsg(root, '양도 금액은 구매 금액(정가)을 넘을 수 없어요.');
         }
         const btn = q('mt-submit'); btn.disabled = true; btn.textContent = edit ? '저장 중…' : '등록 중…';
         try {
           if (edit) await mtRpc('meetup_update_post', { p_id: D.id, p });
           else await mtRpc('meetup_create_post', { p, p_agreed: true });
-          mtLS('mt_prof', { gender: g || S.prof.gender, age: a || S.prof.age, ckind });
+          mtLS('mt_prof', { gender: g || S.prof.gender, age: a || S.prof.age });
           history.back(); mtToast(edit ? '글을 수정했어요.' : '글이 등록되었어요.'); setTimeout(mtReload, 120);
         } catch (e) { btn.disabled = false; btn.textContent = edit ? '수정 저장' : '등록하기'; mtSetMsg(root, mtErr(e)); }
       };
     }
 
-    /* ---------- 참여 신청 / 취소 ---------- */
+    /* ---------- 참여 신청 / 취소 / 마감 ---------- */
     function mtApply(id) {
       if (!mtAuth()) return;
       const p = MT.posts.find(x => x.id === id); if (!p) return;
       const prof = mtLS('mt_prof') || {};
       const isT = p.category === 'ticket';
+      const multi = p.category === 'watch' || (p.category === 'carpool' && p.cp_kind === '모집');
+      const left = mtLeft(p);
       const ov = mtModal('참여 신청', `<div class="mt-form c-${p.category}" id="mt-ap">
       <div class="mt-sum">${esc(mtTitle(p))}<br><span class="mt-dim">${esc(p.author_nick)}${p.gender ? ' · ' + esc(p.gender) + ' · ' + esc(p.age_group) : ''}${p.gender_pref === '동성만' ? ' · 동성만 모집' : ''}${p.age_prefs && p.age_prefs.length ? ' · ' + esc(mtPrefs(p).join('·')) + ' 모집' : ''}</span></div>
       ${isT ? '' : `<div class="mt-f2"><div class="mt-f"><label>내 성별</label>${mtChoices('gender', ['남자', '여자'], prof.gender)}</div>
         <div class="mt-f"><label>내 나이대</label>${mtChoices('age', MT_AGE, prof.age)}</div></div>`}
+      ${multi ? `<div class="mt-f"><label>신청 인원 <small>나를 포함 · 남은 자리 ${left}명</small></label>${mtNumChips('party', [1, 2, 3], 1, Math.max(left, 1), n => n + '명')}</div>` : ''}
       <div id="mt-apwarn"></div>
       <div class="mt-f"><label>한마디 <small>선택 · 최대 50자</small></label><input id="mt-msg" type="text" maxlength="50" placeholder="간단한 인사나 요청 사항"></div>
-      <div class="mt-f"><label>내 연락 수단 <small>선택 · 승인되면 작성자에게만 공개돼요</small></label>${mtChoices('ckind', Object.entries(MT_CONTACT).map(([k, v]) => ({ v: k, l: v.n })), prof.ckind || 'openkakao')}
-        <input id="mt-cval" type="text" maxlength="120" style="margin-top:8px" placeholder="${esc(MT_CONTACT[prof.ckind || 'openkakao'].ph)}" autocomplete="off">
-        <div class="mt-hint">비워두셔도 돼요. 승인되면 작성자의 연락처가 열리니까 내가 먼저 연락하면 됩니다.</div></div>
+      ${mtContactHTML2('내 연락 수단', '없음을 고르면 작성자 연락처만 받고 내가 먼저 연락해요', 'openkakao', '', true)}
       <label class="mt-agree"><input type="checkbox" id="mt-agree"> <span>${esc(MT_DISCLAIMER)} 이에 동의합니다.</span></label>
       <div class="mt-submit"><div class="mt-msg" style="display:none;margin-bottom:8px"></div><button type="button" class="mt-b pri lg wide" id="mt-submit">신청하기</button></div></div>`, 520);
       const root = ov.querySelector('#mt-ap');
@@ -29170,18 +29385,25 @@
         else if (a && p.age_prefs && p.age_prefs.length && !p.age_prefs.includes(a)) mtSetMsg(root, '작성자가 ' + mtPrefs(p).join(', ') + ' 연령대만 모집하는 글입니다.');
         else mtSetMsg(root, '');
       };
-      mtBindChoices(root, (g, v) => { if (g === 'ckind') root.querySelector('#mt-cval').placeholder = MT_CONTACT[v].ph; warn(); });
+      mtBindChoices(root, warn);
+      const ct = mtBindContact(root, null);
       warn();
       root.querySelector('#mt-submit').onclick = async () => {
-        const g = isT ? null : mtVal(root, 'gender'), a = isT ? null : mtVal(root, 'age'), ck = mtVal(root, 'ckind'), cv = root.querySelector('#mt-cval').value.trim(), msg = root.querySelector('#mt-msg').value.trim();
+        const g = isT ? null : mtVal(root, 'gender'), a = isT ? null : mtVal(root, 'age'), msg = root.querySelector('#mt-msg').value.trim();
         if (!isT && (!g || !a)) return mtSetMsg(root, '내 성별과 나이대를 선택해주세요.');
+        let party = 1;
+        if (multi) { party = mtInt(mtVal(root, 'party'), 1, 30); if (!party) return mtSetMsg(root, '신청 인원을 선택하거나 입력해주세요.'); if (party > left) return mtSetMsg(root, `남은 자리(${left}명)보다 많은 인원은 신청할 수 없어요.`); }
         if (mtBadText(msg)) return mtSetMsg(root, '한마디에 금지된 표현(계좌/입금/링크/연락처 등)이 있어요.');
-        if (cv && !mtValidContact(ck, cv)) return mtSetMsg(root, '연락 수단 형식을 확인해주세요. (' + MT_CONTACT[ck].ph + ')');
+        const none = ct.none(), ck = none ? '' : ct.kind(), cv = none ? '' : ct.value();
+        if (!none) {
+          if (!mtValidContact(ck, cv)) return mtSetMsg(root, '연락 수단 형식을 확인해주세요. (' + MT_CONTACT[ck].ph + ') 연락처를 남기지 않으려면 "없음"을 골라주세요.');
+          if (!ct.verified()) return mtSetMsg(root, ck === 'kakaoid' ? '카카오톡에서 내 ID가 검색되는지 확인하고 버튼을 눌러주세요.' : '"열어서 확인"으로 내 연락 수단이 열리는지 확인해주세요.');
+        }
         if (!root.querySelector('#mt-agree').checked) return mtSetMsg(root, '이용 안내와 면책 내용에 동의해주세요.');
         const btn = root.querySelector('#mt-submit'); btn.disabled = true; btn.textContent = '신청 중…';
         try {
-          await mtRpc('meetup_apply', { p_post_id: id, p_gender: g, p_age_group: a, p_message: msg, p_contact_kind: ck, p_contact_value: cv, p_agreed: true });
-          if (!isT) mtLS('mt_prof', { gender: g, age: a, ckind: ck }); else mtLS('mt_prof', Object.assign({}, prof, { ckind: ck }));
+          await mtRpc('meetup_apply', { p_post_id: id, p_gender: g, p_age_group: a, p_message: msg, p_contact_kind: ck, p_contact_value: cv, p_agreed: true, p_party: party });
+          if (!isT) mtLS('mt_prof', { gender: g, age: a });
           history.back(); mtToast('신청했어요. 작성자가 승인하면 연락처를 볼 수 있어요.'); setTimeout(mtReload, 120);
         } catch (e) { btn.disabled = false; btn.textContent = '신청하기'; mtSetMsg(root, mtErr(e)); }
       };
@@ -29193,10 +29415,14 @@
       }, true);
     }
     function mtClosePost(id, del) {
-      mtConfirm(del ? '글을 삭제할까요?' : '모집을 마감할까요?', del ? '삭제한 글은 목록에서 사라지고, 같은 종류의 새 글을 다시 쓸 수 있어요.' : '마감하면 더 이상 신청을 받지 않아요.', del ? '삭제' : '마감', async () => {
+      mtConfirm(del ? '글을 삭제할까요?' : '모집을 마감할까요?', del ? '삭제한 글은 목록에서 사라지고, 같은 종류의 새 글을 다시 쓸 수 있어요.' : '마감하면 더 이상 신청을 받지 않아요. 마감 취소로 다시 열 수 있어요.', del ? '삭제' : '마감', async () => {
         try { await mtRpc('meetup_close_post', { p_id: id, p_delete: !!del }); mtToast(del ? '삭제했어요.' : '마감했어요.'); } catch (e) { mtToast(mtErr(e)); }
         mtReload();
       }, !!del);
+    }
+    async function mtReopen(id) {
+      try { await mtRpc('meetup_reopen_post', { p_id: id }); mtToast('마감을 취소했어요. 다시 모집 중이에요.'); } catch (e) { mtToast(mtErr(e)); }
+      mtReload();
     }
 
     /* ---------- 연락처 / 신청자 관리 ---------- */
@@ -29239,7 +29465,7 @@
           + (cts.own && cts.own.value ? `<div class="mt-hint" style="margin:-4px 0 12px">승인하면 신청자에게 내 연락처(${esc((MT_CONTACT[cts.own.kind] || {}).n || '')})가 공개돼요.</div>` : '')
           + (reqs.length ? reqs.map(r => {
             const c = cmap[r.nick];
-            return `<div class="mt-req ${r.status}"><div class="mt-req-h"><b>${esc(r.nick)}</b>${r.gender ? ` <span class="mt-dim">${esc(r.gender)} · ${esc(r.age_group)}</span>` : ''} <span class="mt-badge ${cls[r.status] || 'closed'}">${lab[r.status] || r.status}</span><span class="mt-ago">${mtAgo(r.created_at)}</span></div>
+            return `<div class="mt-req ${r.status}"><div class="mt-req-h"><b>${esc(r.nick)}</b>${r.gender ? ` <span class="mt-dim">${esc(r.gender)} · ${esc(r.age_group)}</span>` : ''} <span class="mt-badge ${cls[r.status] || 'closed'}">${lab[r.status] || r.status}</span>${r.party > 1 ? ` <span class="mt-badge cat-watch">${r.party}명 신청</span>` : ''}<span class="mt-ago">${mtAgo(r.created_at)}</span></div>
             ${r.message ? `<div class="mt-note">${esc(r.message)}</div>` : ''}
             ${r.status === 'approved' ? (c && c.value ? `<div class="mt-contact">${mtContactHTML(c.kind, c.value)}</div>` : `<div class="mt-hint">연락처를 남기지 않은 신청자예요. 내 연락처가 공개됐으니 신청자가 먼저 연락할 거예요.</div>`) : ''}
             <div class="mt-req-b" data-id="${r.id}" data-nick="${esc(r.nick)}">
@@ -29302,13 +29528,13 @@
           MT.ev ? mtRpc('admin_meetup_posts', { p_pass: P, p_event_key: MT.ev }) : [],
           mtRpc('admin_meetup_reports', { p_pass: P, p_only_open: true }),
           mtRpc('admin_meetup_bans', { p_pass: P })]);
-      } catch (e) { if (navStale(__g)) return; $app.innerHTML = `<h1 class="page">직관 · 카풀 · 티켓양도 관리</h1><div class="empty">${esc(mtErr(e))}</div>`; return; }
+      } catch (e) { if (navStale(__g)) return; $app.innerHTML = `<h1 class="page">직관 · 카풀 · 티켓 양도 관리</h1><div class="empty">${esc(mtErr(e))}</div>`; return; }
       if (navStale(__g)) return;
       const ev = evs.find(e => e.event_key === MT.ev) || {};
       const stl = { open: '모집 중', full: '모집 완료', closed: '마감', hidden: '숨김', deleted: '삭제됨' };
       const toLocal = d => { if (!d) return ''; const t = new Date(new Date(d).getTime() + 9 * 3600000); return t.toISOString().slice(0, 16); };
       $app.innerHTML = `
-    <h1 class="page">직관 · 카풀 · 티켓양도 관리 <a href="#/admin" class="btn small ghost" style="text-decoration:none">관리자 홈</a></h1>
+    <h1 class="page">직관 · 카풀 · 티켓 양도 관리 <a href="#/admin" class="btn small ghost" style="text-decoration:none">관리자 홈</a></h1>
     <div class="sec-title">테스트 모드</div>
     <div class="card"><div class="mt-row">현재 <b>${cfg.test_mode ? '켜짐' : '꺼짐'}</b> <span class="mt-dim">켜져 있는 동안에만 테스트 페이지(preview.html)에서 가상 계정(테스트-A~D)으로 글쓰기·신청이 가능해요. 라이브 오픈 전에는 꼭 꺼주세요.</span></div>
       <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn small ${cfg.test_mode ? '' : 'primary'}" onclick="mtaTestMode(${cfg.test_mode ? 'false' : 'true'})">${cfg.test_mode ? '테스트 모드 끄기' : '테스트 모드 켜기'}</button>
@@ -29462,7 +29688,7 @@
       if (navStale(__g)) return; $app.innerHTML = `
     <h1 class="page">🛠️ 관리자
       <a href="#/admin/yttest" class="btn small ghost" style="text-decoration:none">🔗 경기 공식 링크 관리</a>
-      <a href="#/admin/meetup" class="btn small ghost" style="text-decoration:none">직관 · 카풀 · 티켓양도 관리</a>
+      <a href="#/admin/meetup" class="btn small ghost" style="text-decoration:none">직관 · 카풀 · 티켓 양도 관리</a>
       <button class="btn small ghost" onclick="sessionStorage.removeItem('fp_admin');route()" style="color:#c62828">로그아웃</button></h1>
     <div class="sec-title" style="margin-top:26px">📢 공지 관리</div>
     ${annNeedPatch ? '<div class="empty">⚠️ admin_save_data 함수가 아직 없어 공지 저장이 안 됩니다. (선수 랭킹 갱신 기능과 같은 함수를 씁니다 — 랭킹 갱신이 이미 되고 있다면 이 메시지는 무시해도 됩니다)</div>' : `
