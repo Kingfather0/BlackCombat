@@ -58,6 +58,17 @@ async function collectInPage({ SB, SB_KEY, PASS, needLayout, fast }) {
     if (!prev) { const sr = await fetch(SB + '/rest/v1/site_data?key=eq.tk_state_bc17&select=value', { headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY } }); const rr = sr.ok ? await sr.json() : []; prev = rr[0] && rr[0].value && rr[0].value.z; }
     if (prev && Object.keys(prev).length >= zones.length) { state = Object.assign({}, prev); targets = zones.filter(z => /[0h]/.test(prev[z.id] || '0')); }
   }
+  // 구역별 잔여 정보(zones/remains — 위에서 이미 매번 1번 호출하는 것)가 직전과 달라진 구역은 "빠른" 회차에서도
+  // 바로 다시 읽는다. 그러면 매진이던 구역에서 취소표가 나와도 다음 전체 읽기(약 1분)를 기다리지 않고 반영된다.
+  // 추가 요청은 "달라진 구역을 읽는 것"뿐이다. 응답에 매번 바뀌는 값(시각 등)이 섞여 한꺼번에 여러 구역이
+  // 달라졌다고 나오면 잡음으로 보고(2번 반복되면 기능을 끈다) 요청이 늘지 않게 막는다.
+  if (!window.__z17SigOff) {
+    const sigs = window.__z17Sig || (window.__z17Sig = {});
+    const changed = new Set();
+    list.forEach(z => { const sg = JSON.stringify(z); if (sigs[z.placeId] !== undefined && sigs[z.placeId] !== sg) changed.add(z.placeId); sigs[z.placeId] = sg; });
+    if (changed.size > 6) { window.__z17SigNoise = (window.__z17SigNoise || 0) + 1; if (window.__z17SigNoise >= 2) window.__z17SigOff = true; }
+    else if (changed.size && fast && targets !== zones) { const have = new Set(targets.map(z => z.id)); zones.forEach(z => { if (changed.has(z.id) && !have.has(z.id)) targets.push(z); }); }
+  }
   let free = 0, fail = 0;
   await pool(targets, 5, async z => {
     try {
