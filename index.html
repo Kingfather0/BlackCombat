@@ -900,7 +900,7 @@
     .tk-price-body, .tk-rev-body { margin-top: 10px; border: 0; border-radius: 10px; padding: 8px 14px 10px; background: var(--bg2, #f4f4f5); }
     .tk-pr-title { font-size: 12px; font-weight: 700; color: var(--dim); padding: 6px 0 4px; }
     .tk-pr-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid rgba(0, 0, 0, .07); font-size: 14px; }
-    .tk-pr-title + .tk-pr-row { border-top: 0; }
+    .tk-price-body .tk-pr-row:first-child { border-top: 0; }
     .tk-pr-n { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #222; }
     .tk-pr-n i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
     .tk-pr-v { font-size: 15px; font-weight: 800; letter-spacing: -.01em; color: #111; font-variant-numeric: tabular-nums; }
@@ -11782,7 +11782,7 @@
     .mt-home:hover { background: linear-gradient(90deg, rgba(8, 10, 12, .86) 0%, rgba(8, 10, 12, .5) 60%, rgba(8, 10, 12, .25) 100%), url(meetup-hero.jpg) center 52% / cover no-repeat, #111; transform: none; box-shadow: none; }
     .mt-home-t { color: #fff; font-size: 17px; display: flex; align-items: center; gap: 8px; }
     .mt-home-t em { font-style: normal; font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: var(--amber); color: #2b1d00; }
-    .mt-home-t b { font-size: 10px; font-weight: 800; color: var(--amber); margin-left: -4px; }
+    .mt-home-t b { font-size: 10px; font-weight: 800; color: var(--amber); margin-left: -2px; }
     .mt-home-s { grid-column: 1; color: rgba(255, 255, 255, .8); }
     .mt-home-p { grid-column: 2; grid-row: 1 / 3; align-self: center; }
     .mt-home-p i:nth-child(n) { background: rgba(255, 255, 255, .14); color: #fff; border: 1px solid rgba(255, 255, 255, .28); }
@@ -12374,7 +12374,7 @@
           <span class="hm-f-b"><span class="hm-fb" id="hmBadge">불러오는 중…</span><span class="hm-fh" id="hmHold" style="display:none"></span></span>
         </a>
         <a class="mt-home" href="#/meetup">
-          <span class="mt-home-t"><em>쉐어</em><b>NEW</b>직관 · 카풀 · 티켓 양도</span>
+          <span class="mt-home-t"><em>쉐어</em>직관 · 카풀 · 티켓 양도<b>NEW</b></span>
           <span class="mt-home-s">같이 갈 블붕이 구하고, 카풀 타고,<br class="mt-br"> 못 가게 된 티켓은 정가 이하로 양도해요</span>
           <span class="mt-home-p"><i>👥 직관</i><i>🚗 카풀</i><i>🎟️ 티켓 양도</i></span>
         </a>
@@ -15418,6 +15418,13 @@
       if (/^S/.test(z.n)) return Z17_SKY[z.n] || '018';
       return '';
     }
+    // 배경이 밝은 등급 색(노랑·연두·하늘 등)에서는 흰 글씨가 안 보이므로 검정 계열 글씨를 쓴다.
+    function z17Ink(c) {
+      const m = /^#([0-9a-f]{6})$/i.exec(String(c || '').trim());
+      if (!m) return '#fff';
+      const n = parseInt(m[1], 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+      return (r * 299 + g * 587 + b * 114) / 1000 >= 150 ? '#1d1d1f' : '#fff';
+    }
     function z17Color(z) {
       const m = TK_GRADE_COLORS_BY_EVENT[Z17_EVENT] || {};
       return m[Z17_GRADE_NAME[z17GradeCode(z)]] || '#8a93a6';
@@ -15456,9 +15463,22 @@
       if (!s) return null;
       const wc = z17WcMask(z);
       if (wc) s = s.split('').map((c, i) => wc[i] ? '1' : c).join('');
-      let free = 0, sold = 0, held = 0, na = 0;
-      for (let i = 0; i < s.length; i++) { const c = s[i]; if (c === '0') free++; else if (c === '1') sold++; else if (c === 'h') held++; else na++; }
-      return { s, free, sold, held, na, total: s.length };
+      let free = 0, sold = 0, held = 0, na = 0, uFree = 0, uHeld = 0;
+      const cont = z17ContMask(z);
+      for (let i = 0; i < s.length; i++) { const c = s[i]; if (c === '0') { free++; if (!cont[i]) uFree++; } else if (c === '1') sold++; else if (c === 'h') { held++; if (!cont[i]) uHeld++; } else na++; }
+      return { s, free, sold, held, na, total: s.length, uFree, uHeld };
+    }
+    // 2인석(테이블·커플석 등)은 29CM에서 1자리만 골라 결제하면 2자리가 함께 잡힌다.
+    // 좌석표에는 "11-12"와 "11-12(2)"처럼 두 칸으로 그려지므로, 뒤쪽 "(n)" 칸은 같은 구매 단위의
+    // 연장 좌석으로 보고 잔여석 찾기의 개수·목록에서는 한 번만 센다.
+    function z17ContMask(z) {
+      if (z._cont) return z._cont;
+      const m = [];
+      z17Rows(z).forEach(r => {
+        const cols = new Set(r.seats.map(q => String(q.col)));
+        r.seats.forEach(q => { const t = String(q.col).match(/^(.+)\(\d+\)$/); m.push(!!(t && cols.has(t[1]))); });
+      });
+      return (z._cont = m);
     }
     // 구역 → 도형: 29CM 구역 지도(1174x920) 윤곽을 그대로 옮긴 다각형
     const Z17_POLY = {"F216":"434,124 465,148 499,118 442,115","F201":"754,123 747,115 690,117 724,148","F215":"339,169 417,191 454,157 434,139 384,127","F202":"849,169 803,127 757,139 735,157 771,191","F118":"505,127 474,157 528,202 530,195","F102":"683,127 658,196 662,202 714,157","F119":"523,131 542,187 568,185 568,146 530,128","F101":"659,128 619,147 621,185 646,188 667,133","F117":"431,195 507,216 515,212 465,166","F103":"757,195 724,166 674,212 680,216","F214":"310,236 395,236 410,204 335,183","F203":"879,236 853,183 779,204 793,236","B05":"542,199 542,206 548,220 570,216 570,196 553,196","B01":"618,196 617,216 641,220 647,206 647,199 635,196","F116":"409,236 492,236 498,229 422,207","F104":"780,236 766,207 691,229 697,236","B04":"508,231 495,244 495,304 505,317 526,313 515,299 514,279 515,250 526,234","B02":"681,231 663,234 674,249 674,300 663,313 684,317 694,304 694,244","F213":"393,249 310,250 310,300 393,300","F115":"407,249 407,300 488,299 488,249","F105":"701,249 701,300 781,300 781,249","F204":"796,249 796,300 878,300 878,249","F212":"326,311 361,358 409,345 395,310","F114":"409,311 422,341 498,319 492,311","F106":"691,319 767,341 780,311 697,311","F205":"779,345 827,360 863,311 793,311","B03":"547,347 562,353 627,353 643,347 639,325 550,325","F107":"674,336 724,382 756,354 683,332","F113":"514,336 503,333 433,355 464,382","F112":"525,345 474,392 504,421 530,352","F108":"663,346 659,352 683,421 715,391","F211":"419,358 372,371 407,415 436,408 454,392","F206":"770,358 735,392 753,408 782,415 817,372","F111":"545,358 520,430 553,442 553,360","F109":"643,358 635,361 636,442 669,430","F110":"566,362 566,419 622,419 622,362","F210":"464,401 445,418 436,454 477,503 502,433","F207":"725,401 687,433 712,503 753,453 744,419","F209":"515,440 493,507 538,524 540,462 550,452","F208":"672,440 639,452 648,462 650,524 696,507","114":"215,252 210,319 265,306 264,301 241,281 239,272","113":"291,317 281,308 212,327 234,352","112":"296,323 238,357 252,376 310,343","111":"302,357 257,382 277,408 321,382","110":"326,388 283,414 304,441 348,416","109":"368,413 310,448 332,476 381,448 381,428","108":"381,457 338,482 362,512 382,500","101":"974,252 950,272 948,281 923,306 980,318","102":"898,317 955,352 976,327 908,308","103":"893,323 878,343 937,376 951,357","104":"887,357 868,381 912,408 931,382","105":"863,388 841,416 883,442 906,413","106":"821,413 808,427 808,446 857,476 879,448","107":"808,456 806,499 827,512 851,481","210":"198,327 193,398 201,407 220,397 225,388 240,379","201":"991,326 948,378 988,408 996,400","209":"252,392 206,412 225,439 268,414","202":"937,391 920,414 964,440 984,413 966,402 959,403","208":"275,420 232,445 252,473 272,462 293,444","203":"914,420 895,444 912,454 917,462 938,473 957,445","207":"302,455 257,479 279,508 323,482","204":"887,455 867,477 866,482 910,508 932,479","206":"352,513 328,488 285,516 294,526 312,518 325,532 330,533 334,526","205":"836,514 855,526 859,533 876,518 895,526 904,515 861,488","322":"174,435 156,447 156,449 180,477 199,464 179,438","321":"202,471 184,483 209,512 227,499 205,471","320":"231,505 213,518 238,549 244,553 261,541","319":"265,547 247,559 273,591 279,594 295,583","318":"299,589 282,600 307,630 310,631 326,621","317":"330,626 313,638 341,670 356,658","316":"359,665 344,676 366,701 369,701 383,689 383,686 364,666","315":"387,694 371,707 395,734 412,717","314":"400,738 457,769 468,749 418,722","313":"464,771 540,786 542,762 474,751","312":"549,763 547,786 591,786 588,763","301":"1015,435 1010,438 990,464 1008,478 1033,449 1033,447","302":"987,471 981,474 962,499 980,512 1004,484","303":"959,506 928,541 944,553 977,518","304":"923,547 894,583 911,594 942,559","305":"890,589 864,620 865,623 879,631 882,630 907,600","306":"860,627 851,634 833,658 848,670 876,638","307":"829,664 827,664 806,686 806,689 821,701 828,696 845,676","308":"802,694 777,717 794,734 818,707","309":"789,738 771,722 721,750 732,770","310":"725,773 715,751 647,763 649,786","311":"601,763 598,786 642,787 640,763","424":"148,452 124,467 142,553 181,530 180,526 198,513","423":"209,525 182,536 144,561 160,605 235,558","422":"240,564 164,611 184,654 266,597","421":"277,609 251,619 187,660 207,693 299,638","420":"304,643 211,699 235,733 306,691 327,672","419":"338,683 240,739 274,775 359,708","418":"366,712 281,779 315,811 373,756 372,751 386,737","417":"420,758 399,748 383,762 379,760 324,817 362,841","416":"429,762 368,846 409,868 451,776","415":"465,781 419,871 469,888 496,786","414":"503,788 476,889 530,899 538,818 533,811 534,793","413":"551,793 537,900 591,904 591,793","401":"1039,451 991,513 1046,553 1065,467","402":"979,525 954,558 1029,605 1043,560","403":"949,564 923,598 1005,654 1025,612","404":"913,608 890,638 982,693 1002,660","405":"885,643 862,672 880,689 952,733 977,700","406":"830,706 915,775 947,740 855,684","407":"823,712 801,737 874,812 909,779","408":"769,757 827,844 866,817 810,759 790,747","409":"761,762 738,777 780,868 820,846","410":"724,781 693,786 719,888 770,871 737,798","411":"686,788 653,793 659,900 712,889","412":"598,793 598,902 649,902 640,795","T07":"385,506 368,518 417,575 434,564","T06":"437,570 421,580 457,626 472,609","T05":"464,630 489,645 536,656 537,636 504,629 480,616","T04":"547,639 547,656 642,656 642,639","T03":"725,630 709,616 685,629 652,636 653,656 700,645","T02":"751,570 717,609 732,626 768,580","T01":"804,506 756,565 774,575 820,520","T17":"342,539 383,591 403,578 369,536 356,530","T16":"407,593 392,605 418,638 430,645 447,627 420,597","T15":"445,652 447,657 478,676 484,670 516,678 515,661 487,655 460,640","T11":"833,530 820,536 786,575 805,591 847,540","T12":"796,602 782,593 770,596 742,629 759,645 770,638 797,605","T13":"744,653 729,640 704,655 674,661 672,675 676,678 699,670 713,674","D07":"483,555 465,566 478,583 497,574","D06":"477,591 494,611 514,622 528,600 509,588 502,579","D05":"526,616 550,626 565,626 564,610 533,604","D04":"617,610 571,611 572,627 618,626","D03":"663,616 656,604 624,610 625,626 639,626","D02":"710,592 687,579 671,595 661,601 675,622 695,610","D01":"706,555 692,574 710,584 714,580 721,564","S16":"309,526 281,541 280,547 318,593 349,561 331,540 321,538","S15":"355,568 323,598 332,611 364,579","S14":"369,585 337,617 347,628 379,597","S13":"384,603 352,635 363,647 392,618","S12":"398,623 368,653 377,665 407,635","S11":"427,651 411,641 383,672 397,681","S10":"435,655 403,686 420,696 448,667 446,663","S09":"474,681 456,670 427,700 445,710","S01":"879,526 858,540 840,561 871,593 909,547 909,542","S02":"834,568 825,579 857,611 866,598","S03":"820,585 810,597 842,628 852,617","S04":"805,603 796,617 826,647 837,635","S05":"791,623 781,634 812,665 821,653","S06":"776,640 771,646 762,651 793,681 806,672 806,670","S07":"741,665 769,696 786,686 756,655","S08":"715,681 744,710 762,700 733,670"};
@@ -15523,7 +15543,7 @@
           const st = z17Stat(z), f = z17ZoneFill(z, st);
           const txt = !st ? '…' : (st.free > 0 ? `잔여 ${st.free}` : '매진');
           const off = f.cls === 'z17-off' || f.cls === 'z17-load';
-          return `<button type="button" class="z17-chip${off ? ' off' : ''}" style="${off ? '' : `background:${f.fill};color:#fff`}" onclick="z17OpenZone(${z.id})" title="${esc(z17TitleOf(z, st))}"><b>${esc(z.n)}</b><span>${txt}</span></button>`;
+          return `<button type="button" class="z17-chip${off ? ' off' : ''}" style="${off ? '' : `background:${f.fill};color:${z17Ink(f.fill)}`}" onclick="z17OpenZone(${z.id})" title="${esc(z17TitleOf(z, st))}"><b>${esc(z.n)}</b><span>${txt}</span></button>`;
         }).join('');
         return `<div class="z17-sp-title">${title}</div><div class="z17-chips">${chips}</div>`;
       }).join('');
@@ -15564,7 +15584,7 @@
       const hb = document.getElementById('hmHold');
       if (hb) {
         let held = 0;
-        if (Z17.layout && Z17.state && Z17.state.z) Z17.layout.zones.forEach(z => { const q = z17Stat(z); if (q) held += q.held; });
+        if (Z17.layout && Z17.state && Z17.state.z) Z17.layout.zones.forEach(z => { const q = z17Stat(z); if (q) held += q.uHeld; });
         hb.textContent = `결제 대기 ${held}석`;
         hb.style.display = (!Z17.err && Z17.state && held > 0) ? '' : 'none';
       }
@@ -15618,7 +15638,7 @@
         const hb = document.getElementById('z17Hold');
         if (hb) {
           let held = 0;
-          if (Z17.layout && Z17.state && Z17.state.z) Z17.layout.zones.forEach(z => { const q = z17Stat(z); if (q) held += q.held; }); // 휠체어석 제외
+          if (Z17.layout && Z17.state && Z17.state.z) Z17.layout.zones.forEach(z => { const q = z17Stat(z); if (q) held += q.uHeld; }); // 휠체어석 제외
           hb.textContent = `결제 대기 ${held}석`;
           z17SameSize(hb);
           hb.style.display = (!Z17.err && Z17.state && held > 0) ? '' : 'none';
@@ -15707,7 +15727,7 @@
       const chips = zs.map(({ z, st, part }) => {
         const on = st && st.free > 0, na = st && st.na === st.total;
         const txt = !st ? '…' : (on ? `잔여 ${st.free}` : '매진');
-        return `<button type="button" class="z17-chip${on ? '' : ' off'}" style="${on ? `background:${color};color:#fff` : ''}" onclick="z17OpenZone(${z.id})"><b>${esc(z.n)}</b><span>${txt}</span>${part ? '<span title="이 구역 안의 일부 좌석">*</span>' : ''}</button>`;
+        return `<button type="button" class="z17-chip${on ? '' : ' off'}" style="${on ? `background:${color};color:${z17Ink(color)}` : ''}" onclick="z17OpenZone(${z.id})"><b>${esc(z.n)}</b><span>${txt}</span>${part ? '<span title="이 구역 안의 일부 좌석">*</span>' : ''}</button>`;
       }).join('');
       const none = !zs.length ? '<div class="tk-live-zone-loading">이 등급은 구역 정보가 따로 없어요.<br>잔여 수는 아래 "판매 · 잔여 좌석"에서 확인하세요.</div>' : '';
       return `${head}<div class="tk-live-modal-sub">${free > 0 ? `잔여 <b>${free.toLocaleString()}석</b> · 잔여 있는 구역 ${open}개` : '잔여 없음'} · ${esc(z17AtText())}<br>구역을 누르면 좌석별 현황이 열립니다${zs.some(x => x.part) ? '<br>* 표시는 그 구역 안의 일부 좌석만 이 등급(잔여 수는 구역 전체)' : ''}</div>${none}<div class="z17-chips z17-scroll" style="padding-top:6px">${chips}</div>`;
@@ -15736,10 +15756,10 @@
       const out = [];
       Z17.layout.zones.forEach(z => {
         const st = z17Stat(z);
-        if (!st || st.free <= 0) return;
-        const seats = [];
-        z17Rows(z).forEach(r => r.seats.forEach((s, i) => { if (st.s[r.off + i] === '0') seats.push({ row: r.k, col: s.col }); }));
-        out.push({ z, free: st.free, held: st.held, seats });
+        if (!st || st.uFree <= 0) return;
+        const seats = [], cont = z17ContMask(z);
+        z17Rows(z).forEach(r => r.seats.forEach((s, i) => { if (st.s[r.off + i] === '0' && !cont[r.off + i]) seats.push({ row: r.k, col: s.col }); }));
+        out.push({ z, free: st.uFree, held: st.uHeld, seats });
       });
       out.sort((a, b) => (b.free - a.free) || String(a.z.n).localeCompare(String(b.z.n), 'ko', { numeric: true }));
       return out;
@@ -15748,21 +15768,22 @@
       const data = z17FreeData();
       const free = data.reduce((s, d) => s + d.free, 0);
       let held = 0;
-      if (Z17.layout && Z17.state && Z17.state.z) Z17.layout.zones.forEach(z => { const q = z17Stat(z); if (q) held += q.held; }); // 휠체어석 제외
+      if (Z17.layout && Z17.state && Z17.state.z) Z17.layout.zones.forEach(z => { const q = z17Stat(z); if (q) held += q.uHeld; }); // 휠체어석 제외
       const body = data.map(d => {
         const color = z17Color(d.z), MAX = 40;
-        const chips = d.seats.slice(0, MAX).map(q => `<button type="button" class="z17-fs" style="background:${color}" onclick="z17OpenZone(${d.z.id},'${esc(q.row)}','${esc(q.col)}',1)" title="누르면 이 좌석이 있는 구역 좌석표가 열립니다">${esc(q.row)}열 ${esc(q.col)}번</button>`).join('');
+        const chips = d.seats.slice(0, MAX).map(q => `<button type="button" class="z17-fs" style="background:${color};color:${z17Ink(color)}" onclick="z17OpenZone(${d.z.id},'${esc(q.row)}','${esc(q.col)}',1)" title="누르면 이 좌석이 있는 구역 좌석표가 열립니다">${esc(q.row)}열 ${esc(q.col)}번</button>`).join('');
         const more = d.seats.length > MAX ? `<span class="z17-fs-more">외 ${d.seats.length - MAX}석 · 구역을 눌러 전체 보기</span>` : '';
         return `<div class="z17-fz"><div class="z17-fz-h" onclick="z17OpenZone(${d.z.id},null,null,1)" title="${esc(d.z.n)} 구역 전체 좌석 보기"><b>${esc(d.z.n)}</b><span class="z17-fz-g" style="color:${color}">${esc(z17GradeLabel(d.z))}</span><span class="z17-fz-n">잔여 ${d.free}석${d.held ? ` · 선택 중 ${d.held}` : ''}</span></div><div class="z17-fz-seats">${chips}${more}</div></div>`;
       }).join('');
       // 결제 대기(선택 중) 좌석이 어느 구역·열·번호인지 (휠체어석 제외)
       const heldList = [];
       if (Z17.layout && Z17.state && Z17.state.z) Z17.layout.zones.forEach(z => {
-        const q = z17Stat(z); if (!q || !q.held) return;
-        z17Rows(z).forEach(r => r.seats.forEach((s, i) => { if (q.s[r.off + i] === 'h') heldList.push({ z, row: r.k, col: s.col }); }));
+        const q = z17Stat(z); if (!q || !q.uHeld) return;
+        const cont = z17ContMask(z);
+        z17Rows(z).forEach(r => r.seats.forEach((s, i) => { if (q.s[r.off + i] === 'h' && !cont[r.off + i]) heldList.push({ z, row: r.k, col: s.col }); }));
       });
       const HMAX = 30;
-      const heldHtml = heldList.length ? `<div class="z17-fz-seats" style="justify-content:flex-start">${heldList.slice(0, HMAX).map(q => `<button type="button" class="z17-fs" style="background:${z17Color(q.z)}" onclick="z17OpenZone(${q.z.id},'${esc(q.row)}','${esc(q.col)}',1)" title="결제 대기 중인 좌석 — 누르면 구역 좌석표가 열립니다">${esc(z17GradeLabel(q.z))}(${esc(q.z.n)} ${esc(q.row)}열 ${esc(q.col)}번)</button>`).join('')}${heldList.length > HMAX ? `<span class="z17-fs-more">외 ${heldList.length - HMAX}석</span>` : ''}</div>` : '';
+      const heldHtml = heldList.length ? `<div class="z17-fz-seats" style="justify-content:flex-start">${heldList.slice(0, HMAX).map(q => `<button type="button" class="z17-fs" style="background:${z17Color(q.z)};color:${z17Ink(z17Color(q.z))}" onclick="z17OpenZone(${q.z.id},'${esc(q.row)}','${esc(q.col)}',1)" title="결제 대기 중인 좌석 — 누르면 구역 좌석표가 열립니다">${esc(z17GradeLabel(q.z))}(${esc(q.z.n)} ${esc(q.row)}열 ${esc(q.col)}번)</button>`).join('')}${heldList.length > HMAX ? `<span class="z17-fs-more">외 ${heldList.length - HMAX}석</span>` : ''}</div>` : '';
       const empty = Z17.state ? `<div class="tk-live-zone-loading" style="text-align:left;padding-left:2px"><div>지금은 잔여석이 없어요.${held ? `<br>선택 중(결제 대기) 좌석 ${held}석이 있어 곧 풀릴 수 있어요.` : ''}</div>${heldHtml ? `<div style="margin-top:12px">${heldHtml}</div>` : ''}</div>` : '<div class="tk-live-zone-loading">불러오는 중…</div>';
       return `<div class="tk-live-modal-head"><b>잔여석 바로 찾기</b><span style="color:var(--dim);font-size:12px">잔여 좌석이 있는 구역</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>
         <div class="tk-row1-top"><span class="tk-row1-sum">${free > 0 ? `잔여 <b>${free}석</b> · ${data.length}개 구역` : '잔여 없음'}</span></div>
@@ -16874,7 +16895,7 @@
             <button type="button" class="btn xs tk-rev-btn" onclick="toggleTkRevenue(this)">💰 예상 매출 보기 ▾</button>
             ${priceRowsHTML ? '<button type="button" class="btn xs tk-price-btn" onclick="toggleTkPrices(this)">🎟️ 티켓 가격 보기 ▾</button>' : ''}
           </div>
-          ${priceRowsHTML ? `<div class="tk-price-body" style="display:none"><div class="tk-pr-title">등급별 티켓 가격</div>${priceRowsHTML}</div>` : ''}
+          ${priceRowsHTML ? `<div class="tk-price-body" style="display:none">${priceRowsHTML}</div>` : ''}
           <div class="tk-rev-body" style="display:none">
             ${twoTier ? `
             <div class="tk-rev-top"><span>💰 예상 매출(미분류 포함 시 상한)</span><span class="tk-rev-sum" style="font-size:15px;font-weight:800">${revSum.toLocaleString()}원</span></div>
