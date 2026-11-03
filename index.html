@@ -15614,7 +15614,7 @@
     function hmFinderBoot() {
       if (!document.getElementById('hmBadge') || document.body.dataset.route !== 'home') return;
       z17Load();
-      if (!window.__hmTimer) window.__hmTimer = setInterval(() => { if (document.body.dataset.route === 'home' && !document.hidden) z17Load(); }, 20000);
+      if (!window.__hmTimer) window.__hmTimer = setInterval(() => { if (document.body.dataset.route === 'home' && !document.hidden) z17Poll(); }, 5000);
     }
     window.addEventListener('load', () => setTimeout(hmFinderBoot, 300));
     window.addEventListener('hashchange', () => setTimeout(hmFinderBoot, 100));
@@ -15659,6 +15659,23 @@
       const modal = document.getElementById('z17-modal');
       if (modal && modal.style.display === 'flex') z17RefreshModal();
     }
+    // 5초마다 "마지막 수집 시각(at)"만 아주 작게 조회해서, 바뀐 게 있을 때만 전체 좌석 상태를 다시 받는다.
+    // (전체를 5초마다 받으면 트래픽이 커지므로) 조회가 실패하면 그냥 전체를 받아온다.
+    async function z17Poll() {
+      if (Z17.loading) return;
+      if (!Z17.state || !Z17.layout) return z17Load();
+      try {
+        const { data, error } = await sb.from('site_data').select('at:value->>at').eq('key', 'tk_state_bc17').single();
+        if (!error && data && data.at != null) {
+          Z17.pollBad = 0;
+          if (String(data.at) === String(Z17.state.at)) return;
+          return z17Load();
+        }
+      } catch (e) {}
+      // 가벼운 조회가 안 되는 환경이면 예전처럼 20초에 한 번만 전체를 받는다(트래픽 보호)
+      Z17.pollBad = (Z17.pollBad || 0) + 1;
+      if (Z17.pollBad % 4 === 1) return z17Load();
+    }
     async function z17Load(force) {
       if (Z17.loading) return;
       Z17.loading = true;
@@ -15676,8 +15693,8 @@
       if (!Z17.timer) {
         Z17.timer = setInterval(() => {
           if (!document.getElementById('z17-box')) { clearInterval(Z17.timer); Z17.timer = null; return; }
-          if (!document.hidden) z17Load();
-        }, 20000);
+          if (!document.hidden) z17Poll();
+        }, 5000);
       }
     }
     // ── 구역 상세 ──
