@@ -11849,7 +11849,7 @@
       .mt-actions .mt-fchip { padding: 0 8px; font-size: 12px; height: 32px; white-space: nowrap; flex: none; }
       .mt-actions > .mt-b { padding: 0 10px; height: 32px; font-size: 12.5px; white-space: nowrap; flex: none; }
     }
-    .mt-nick { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; background: #fff; border: 1px solid var(--hair2); border-radius: 999px; font-size: 12.5px; font-weight: 800; color: #111; box-shadow: 0 1px 0 rgba(0, 0, 0, .04); }
+    .mt-nick { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; background: var(--bg2); border: 0; border-radius: 999px; font-size: 12.5px; font-weight: 800; color: #111; box-shadow: none; }
     .mt-nick i { width: 20px; height: 20px; border-radius: 50%; background: #111; color: #fff; font-style: normal; font-size: 11px; display: flex; align-items: center; justify-content: center; }
     .mt-on { font-style: normal; font-size: 11px; font-weight: 800; color: #14803c; background: #e4f5ea; border-radius: 999px; padding: 0 7px; margin-left: 2px; display: inline-flex; align-items: center; gap: 4px; line-height: 17px; }
     .mt-on::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #1fb457; }
@@ -11896,6 +11896,9 @@
     .mt-empty { margin-top: 10px; padding: 40px 16px; text-align: center; background: #fff; border: 1px dashed var(--hair2); border-radius: 12px; color: var(--muted); font-size: 14px; font-weight: 600; line-height: 1.7; }
     /* ===== v6: 카테고리 색 구분 제거 — 검정 테두리 + 투명 회색, 색은 상태(모집 중/할인/접속중)에만 ===== */
     .mt-tab.on, .mt-tab.c-watch.on, .mt-tab.c-carpool.on, .mt-tab.c-ticket.on { background: #fff; border: 1px solid #111; color: #111; box-shadow: none; }
+    /* 선택 안 된 탭은 글씨를 연하게, 선택된 탭은 굵게(숫자 배지는 회색 유지) */
+    .mt-tab:not(.on) { color: #8e8e93; }
+    .mt-tab.on, .mt-tab.on b { font-weight: 800; }
     .mt-tab.on small, .mt-tab.c-watch.on small, .mt-tab.c-carpool.on small, .mt-tab.c-ticket.on small { color: #555; opacity: 1; background: rgba(0, 0, 0, .07); }
     .mt-badge.cat-watch, .mt-badge.cat-carpool, .mt-badge.cat-ticket { background: #ececf0; color: #222; box-shadow: none; }
     .mt-card.is-mine.c-watch, .mt-card.is-mine.c-carpool, .mt-card.is-mine.c-ticket { background: #f0f0f3; border-color: #d4d4db; }
