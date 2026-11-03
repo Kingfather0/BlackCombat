@@ -15738,8 +15738,8 @@
       const empty = Z17.state ? `<div class="tk-live-zone-loading" style="text-align:left;padding-left:2px"><div>지금은 잔여석이 없어요.${held ? `<br>선택 중(결제 대기) 좌석 ${held}석이 있어 곧 풀릴 수 있어요.` : ''}</div>${heldHtml ? `<div style="margin-top:12px">${heldHtml}</div>` : ''}</div>` : '<div class="tk-live-zone-loading">불러오는 중…</div>';
       return `<div class="tk-live-modal-head"><b>잔여석 바로 찾기</b><span style="color:var(--dim);font-size:12px">잔여 좌석이 있는 구역</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>
         <div class="tk-row1-top"><span class="tk-row1-sum">${free > 0 ? `잔여 <b>${free}석</b> · ${data.length}개 구역` : '잔여 없음'}</span></div>
-        <div class="tk-row1-note top">좌석을 누르면 그 구역 좌석표(해당 좌석 표시) · 좌석표에서 29CM 예매로 이동<br>※ ${esc(z17AtText())} · 약 20초 단위로 자동 갱신됩니다</div>
-        <div class="z17-scroll">${body || empty}</div>`;
+        <div class="tk-row1-note top">좌석을 누르면 그 구역 좌석표(해당 좌석 표시) · 좌석표에서 29CM 예매로 이동<br>※ ${esc(z17AtText())} · 실시간으로 자동 갱신됩니다</div>
+        <div class="z17-scroll">${body || empty}${body && heldHtml ? `<div class="z17-fz-h" style="cursor:default;margin-top:14px"><b style="color:#E91E8C">결제 대기 ${held}석</b><span class="z17-fz-n">곧 풀릴 수 있어요</span></div><div style="margin-top:6px">${heldHtml}</div>` : ''}</div>`;
     }
     function z17OpenFront() {
       const modal = z17EnsureModal();
@@ -15750,7 +15750,7 @@
     }
     function z17CardHTML() {
       return `
-      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)"><span id="z17At"></span>약 20초 단위 자동 갱신</span></div>
+      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)"><span id="z17At"></span>실시간 자동 갱신</span></div>
       <div class="card">
         <button type="button" class="tk-row1-btn" onclick="z17OpenFront()">잔여석 바로 찾기 <span class="tk-row1-badge" id="z17Badge">불러오는 중…</span><span class="z17-holdbox" id="z17Hold" style="display:none"></span></button>
         <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">잔여(컬러) · 매진(회색) · 선택 중(결제 대기) · 휠체어석 제외</div>
@@ -16936,7 +16936,7 @@
       // 구역별 실시간 좌석 현황 — 이 행사(BC_2026_0829)에서만, "전체 좌석"과 "잔여 좌석" 사이에 넣는다.
       const liveZonesEnabled = (eventKey === 'BC_2026_0829');
       const liveZonesHTML = liveZonesEnabled ? `
-      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">1분 단위 자동 갱신</span></div>
+      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">실시간 자동 갱신</span></div>
       <div class="card">
         <button type="button" class="tk-row1-btn" onclick="tkRow1OpenModal()">맨 앞열 바로 찾기 <span class="tk-row1-badge" id="tkRow1Badge">불러오는 중…</span></button>
         <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">매진(회색) 잔여(컬러) · 정확한 좌석은 29CM 확인 · 구역 선택 시 좌석 오픈</div>
