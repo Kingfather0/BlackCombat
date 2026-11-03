@@ -15190,7 +15190,7 @@
         body += `<div class="z17-row"><span class="tk-live-row-num">${esc(r.k)}열</span><span class="z17-row-seats" style="width:${maxX * 6 + 12}px">${seatsHtml}</span></div>`;
       });
       const extra = [st.held ? `선택 중 ${st.held}석` : '', ''].filter(Boolean).join(' · ');
-      return `${head}<div class="tk-live-modal-sub">잔여 ${st.free.toLocaleString()} / 전체 ${st.total.toLocaleString()}석${extra ? ' · ' + extra : ''} · ${esc(z17AtText())}</div><a class="z17-book" href="${Z17_TICKET_URL}" target="_blank" rel="noopener">29CM 예매 페이지로 이동 ↗</a><div class="z17-key"><span><i style="background:${color}"></i>잔여</span><span><i style="background:#dadde2"></i>매진</span><span title="다른 분이 장바구니·결제 중이라 잠시 잡혀 있는 좌석(취소되면 다시 잔여로 돌아옴)"><i style="background:#E91E8C"></i>선택 중(결제 대기)</span>${st.na ? '<span><i style="background:#f1f3f6;border:1px solid #d5d9e0"></i>판매 대상 아님</span>' : ''}<span>※ 잔여 좌석을 누르면 29CM 예매 페이지로 이동</span></div>
+      return `${head}<div class="tk-live-modal-sub">잔여 ${st.free.toLocaleString()} / 전체 ${st.total.toLocaleString()}석${extra ? ' · ' + extra : ''} · ${esc(z17AtText())}</div><a class="z17-book" href="${Z17_TICKET_URL}" target="_blank" rel="noopener">29CM 예매 페이지로 이동</a><div class="z17-key"><span><i style="background:${color}"></i>잔여</span><span><i style="background:#dadde2"></i>매진</span><span title="다른 분이 장바구니·결제 중이라 잠시 잡혀 있는 좌석(취소되면 다시 잔여로 돌아옴)"><i style="background:#E91E8C"></i>선택 중(결제 대기)</span>${st.na ? '<span><i style="background:#f1f3f6;border:1px solid #d5d9e0"></i>판매 대상 아님</span>' : ''}<span>※ 잔여 좌석을 누르면 29CM 예매 페이지로 이동</span></div>
         <div class="z17-front">▲ 무대 방향 (A열)</div><div class="tk-live-modal-rows z17-scroll">${body}</div>`;
     }
     function z17EnsureModal() {
