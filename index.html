@@ -11898,6 +11898,22 @@
     .mt-submit .mt-b.pri:disabled { background: #aaa; border-color: #aaa; }
     .mt-note { white-space: normal; overflow: visible; text-overflow: clip; }
     .mt-note > span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; line-height: 1.45; }
+    /* ===== 홈: 실시간 잔여석 배너(좌) + 쉐어 배너(우) 반반 ===== */
+    .hm-banners { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 4px 0 12px; }
+    .hm-banners .mt-home { margin: 0; grid-template-columns: 1fr; min-height: 128px; align-content: center; background: linear-gradient(90deg, #0b0c0e calc(100% - 238px), rgba(11, 12, 14, 0) calc(100% - 118px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #0b0c0e; }
+    .hm-banners .mt-home:hover { background: linear-gradient(90deg, #0b0c0e calc(100% - 238px), rgba(11, 12, 14, 0) calc(100% - 118px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #15171a; }
+    .hm-banners .mt-home-p { grid-column: 1; grid-row: auto; margin-top: 8px; }
+    .hm-finder { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 4px; min-height: 128px; padding: 18px 20px; border-radius: 10px; color: #fff; overflow: hidden; text-decoration: none; background: linear-gradient(90deg, rgba(8, 9, 11, .94) 0%, rgba(8, 9, 11, .72) 50%, rgba(8, 9, 11, .3) 100%), url(finder-hero.jpg) 80% 16% / cover no-repeat, #0b0c0e; transition: transform .15s, box-shadow .15s; }
+    .hm-finder:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, .25); }
+    .hm-finder:active { transform: translateY(0) scale(.99); }
+    .hm-f-t { font-size: 17px; font-weight: 800; letter-spacing: -.03em; }
+    .hm-f-s { font-size: 13px; color: rgba(255, 255, 255, .75); }
+    .hm-f-b { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .hm-fb, .hm-fh { box-sizing: border-box; display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 4px; font-size: 12px; font-weight: 700; line-height: 1; }
+    .hm-fb { background: rgba(255, 255, 255, .16); color: #fff; }
+    .hm-fb.has { background: #F2B32A; color: #1d1d1f; }
+    .hm-fh { background: #E91E8C; color: #fff; }
+    @media (max-width: 760px) { .hm-banners { grid-template-columns: 1fr; } }
     @media (max-width: 640px) {
       .mt-main { display: contents; }
       .mt-card-h { grid-column: 1 / -1; }
@@ -12324,11 +12340,18 @@
       </div>
       <div class="v2-box v2-box-links">
         <h3>바로가기</h3>
+        <div class="hm-banners">
+        <a class="hm-finder" id="hm-finder" href="#/tickets" onclick="return hmFinderGo(event)">
+          <span class="hm-f-t">실시간 잔여석 바로 찾기</span>
+          <span class="hm-f-s">29CM 예매 구역별 실시간 좌석 현황</span>
+          <span class="hm-f-b"><span class="hm-fb" id="hmBadge">불러오는 중…</span><span class="hm-fh" id="hmHold" style="display:none"></span></span>
+        </a>
         <a class="mt-home" href="#/meetup">
           <span class="mt-home-t"><em>쉐어</em><b>NEW</b>직관 · 카풀 · 티켓 양도</span>
           <span class="mt-home-s">같이 갈 블붕이 구하고, 카풀 타고,<br class="mt-br"> 못 가게 된 티켓은 정가 이하로 양도해요</span>
           <span class="mt-home-p"><i>👥 직관</i><i>🚗 카풀</i><i>🎟️ 티켓 양도</i></span>
         </a>
+        </div>
         <div class="v2-links">
           <a href="#/matches">경기<small>승부예측 투표·결과</small></a>
           <a href="#/videos">영상<small>업로드 예측 캘린더</small></a>
@@ -15505,7 +15528,39 @@
     function z17SameSize(el) {
       [['box-sizing', 'border-box'], ['display', 'inline-flex'], ['align-items', 'center'], ['justify-content', 'center'], ['height', '26px'], ['padding', '0 10px'], ['min-height', '26px'], ['max-height', '26px'], ['align-self', 'center'], ['position', 'static'], ['top', '0'], ['transform', 'none'], ['border', '0'], ['border-radius', '4px'], ['font-size', '12px'], ['font-weight', '700'], ['line-height', '1'], ['margin-top', '0'], ['margin-bottom', '0']].forEach(([k, v]) => el.style.setProperty(k, v, 'important'));
     }
+    // ── 홈 배너: 실시간 잔여석 요약(티켓 페이지와 같은 데이터) ──
+    function hmFinderPaint() {
+      const b = document.getElementById('hmBadge'); if (!b) return;
+      const d = z17FreeData(), remain = d.reduce((s, x) => s + x.free, 0);
+      b.textContent = Z17.err ? '준비 중' : !Z17.state ? '불러오는 중…' : (remain > 0 ? `잔여 ${remain}석` : '잔여 없음');
+      b.classList.toggle('has', !Z17.err && !!Z17.state && remain > 0);
+      const hb = document.getElementById('hmHold');
+      if (hb) {
+        let held = 0;
+        if (Z17.layout && Z17.state && Z17.state.z) Z17.layout.zones.forEach(z => { const q = z17Stat(z); if (q) held += q.held; });
+        hb.textContent = `결제 대기 ${held}석`;
+        hb.style.display = (!Z17.err && Z17.state && held > 0) ? '' : 'none';
+      }
+    }
+    function hmFinderGo(e) {
+      if (e) e.preventDefault();
+      window.__z17AutoOpen = true;
+      if (location.hash === '#/tickets') hmFinderOpen(); else location.hash = '#/tickets';
+      return false;
+    }
+    function hmFinderOpen() {
+      window.__z17AutoOpen = false;
+      setTimeout(() => { const bx = document.getElementById('z17-box'); if (bx) bx.scrollIntoView({ block: 'start' }); z17OpenFront(); }, 150);
+    }
+    function hmFinderBoot() {
+      if (!document.getElementById('hmBadge') || document.body.dataset.route !== 'home') return;
+      z17Load();
+      if (!window.__hmTimer) window.__hmTimer = setInterval(() => { if (document.body.dataset.route === 'home' && !document.hidden) z17Load(); }, 20000);
+    }
+    window.addEventListener('load', () => setTimeout(hmFinderBoot, 300));
+    window.addEventListener('hashchange', () => setTimeout(hmFinderBoot, 100));
     function z17Paint() {
+      hmFinderPaint();
       const box = document.getElementById('z17-box');
       if (!box) return;
       if (Z17.err && !Z17.layout) { box.innerHTML = '<div class="sub" style="padding:14px 4px;color:var(--dim)">구역별 좌석 데이터를 아직 준비 중입니다. 잠시 후 다시 확인해주세요.</div>'; return; }
@@ -16911,7 +16966,7 @@
       tkFitTotalLine();
       tkFitForecastLines();
       tkFitPies();
-      if (eventKey === Z17_EVENT) { z17Paint(); z17Load(); }
+      if (eventKey === Z17_EVENT) { z17Paint(); z17Load(); if (window.__z17AutoOpen) hmFinderOpen(); }
       if (liveZonesEnabled) { tkLoadLiveZoneSnapshot().then(() => { if (!navStale(__g)) tkLoadLiveSeatMap(); }); }
     }
 
