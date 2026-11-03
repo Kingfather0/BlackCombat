@@ -11622,7 +11622,6 @@
     .mt-card { cursor: pointer; transition: transform .15s, box-shadow .15s, border-color .15s; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
     .mt-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.12); border-color: #bfc4cc; }
     .mt-card:active { transform: translateY(0) scale(.985); box-shadow: 0 2px 6px rgba(0,0,0,.1); }
-    .mt-card.is-mine:hover { border-color: #111; }
     .mt-ms { position: relative; display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .mt-ms-b { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 12px; border: 1px solid var(--hair2); border-radius: 8px; background: #fff; color: #555; font-size: 12.5px; font-weight: 700; cursor: pointer; }
     .mt-ms-b.has { border-color: #111; color: #111; }
@@ -11633,7 +11632,13 @@
     .mt-ms-o { display: flex; align-items: center; gap: 7px; padding: 7px 8px; border-radius: 6px; font-size: 13px; cursor: pointer; }
     .mt-ms-o:hover { background: var(--bg2); }
     .mt-ms-o.on { font-weight: 800; }
-    .mt-card.is-mine { border: 1.5px solid #111; background: #fbfbfc; }
+    .mt-br { display: none; }
+    @media (max-width: 640px) { .mt-br { display: inline; } }
+    .mt-ic { border: 0; background: none; padding: 4px 6px; font-size: 17px; line-height: 1; cursor: pointer; opacity: .6; border-radius: 6px; }
+    .mt-ic:hover { opacity: 1; background: rgba(0,0,0,.06); }
+    .mt-card.is-mine.c-watch { background: #f4eefc; border-color: #dccdf5; }
+    .mt-card.is-mine.c-carpool { background: #eaf2fe; border-color: #c8dcf8; }
+    .mt-card.is-mine.c-ticket { background: #e9f7ee; border-color: #bfe6cd; }
     .mt-badge.mine { background: #111 !important; color: #fff !important; }
     .mt-card.closed, .mt-card.hidden { background: #f7f7f8; }
     .mt-card.closed > *:not(.mt-card-h), .mt-card.hidden > *:not(.mt-card-h) { opacity: .6; }
@@ -11819,11 +11824,15 @@
       .mt-side .mt-btns { grid-column: 1 / -1; grid-row: 2; justify-content: flex-start; margin-top: 9px; }
       .mt-actions { flex-wrap: nowrap !important; gap: 6px !important; }
       .mt-actions .mt-filters { flex-wrap: nowrap !important; gap: 5px !important; min-width: 0; flex: 1; }
-      .mt-actions .mt-sel.sm { width: auto; min-width: 0; max-width: 92px; padding: 0 22px 0 8px; font-size: 12px; height: 32px; }
+      .mt-actions .mt-sel.sm { width: auto; min-width: 100px; flex: none; padding: 0 22px 0 8px; font-size: 12px; height: 32px; }
+      .mt-actions .mt-lb { display: none; }
+      .mt-actions .mt-fchip { min-width: 38px; justify-content: center; }
+      .mt-side .mt-hi { padding-top: 14px; }
+      .mt-side { padding-top: 0; }
       .mt-actions .mt-fchip { padding: 0 8px; font-size: 12px; height: 32px; white-space: nowrap; flex: none; }
       .mt-actions > .mt-b { padding: 0 10px; height: 32px; font-size: 12.5px; white-space: nowrap; flex: none; }
     }
-    .mt-nick { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 3px; background: #fff; border: 1px solid var(--hair2); border-radius: 999px; font-size: 12.5px; font-weight: 800; color: #111; box-shadow: 0 1px 0 rgba(0, 0, 0, .04); }
+    .mt-nick { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; background: #fff; border: 1px solid var(--hair2); border-radius: 999px; font-size: 12.5px; font-weight: 800; color: #111; box-shadow: 0 1px 0 rgba(0, 0, 0, .04); }
     .mt-nick i { width: 20px; height: 20px; border-radius: 50%; background: #111; color: #fff; font-style: normal; font-size: 11px; display: flex; align-items: center; justify-content: center; }
     .mt-on { font-style: normal; font-size: 11px; font-weight: 800; color: #14803c; background: #e4f5ea; border-radius: 999px; padding: 0 7px; margin-left: 2px; display: inline-flex; align-items: center; gap: 4px; line-height: 17px; }
     .mt-on::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #1fb457; }
@@ -11835,13 +11844,18 @@
     .mt-fchip.g.on, .mt-fchip.m.on { background: #111; border-color: #111; color: #fff; }
     .mt-fchip.g.on i { background: #1fb457; }
     .mt-sel.sm { font-weight: 700; color: var(--muted); }
-    .mt-pill.blk { background: #fff; border-color: var(--hair2); color: var(--muted); }
-    .mt-pill.blk:hover { background: var(--bg2); color: var(--text); }
-    .mt-tab.on, .mt-tab.c-watch.on, .mt-tab.c-carpool.on, .mt-tab.c-ticket.on { background: #fff; border-color: #111; color: #111; }
-    .mt-tab.c-watch.on { box-shadow: inset 0 -3px 0 var(--mt-vio); }
-    .mt-tab.c-carpool.on { box-shadow: inset 0 -3px 0 var(--mt-blue); }
-    .mt-tab.c-ticket.on { box-shadow: inset 0 -3px 0 var(--mt-grn); }
-    .mt-tab.c-watch.on small, .mt-tab.c-carpool.on small, .mt-tab.c-ticket.on small { color: var(--muted); opacity: 1; }
+    .mt-gbtn { background: #cdd0d6; color: #222; }
+    .mt-gbtn:hover { background: #bfc3ca; }
+    .mt-tab:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.1); }
+    .mt-tab:active { transform: translateY(0) scale(.98); }
+    .mt-tab { transition: transform .15s, box-shadow .15s; }
+    .mt-fpanel .mt-b.gray { background: #e3e5e9; border-color: transparent; color: #444; }
+    .mt-ago { position: absolute; top: 12px; right: 14px; margin: 0; }
+    .mt-card-h { padding-right: 56px; }
+    .mt-side { padding-top: 12px; }
+    .mt-fr { grid-template-columns: 78px minmax(0, 1fr); }
+    .mt-ms { display: flex; flex-direction: column; align-items: flex-start; width: 100%; }
+    .mt-ms-l { position: static; width: 100%; margin-top: 6px; max-height: 240px; }
     .mt-b.blue, .mt-b.gray, .mt-b.warn { background: #fff; border-color: var(--hair2); color: var(--text); }
     .mt-b.blue:hover, .mt-b.gray:hover, .mt-b.warn:hover { background: var(--bg2); }
     .mt-b.no { background: #fff; border-color: #efc2c2; color: var(--mt-red); }
@@ -11854,9 +11868,7 @@
     .mt-tags span.hl { background: var(--bg2); color: #444; }
     .mt-badge.wait { background: #fff; color: var(--mt-amb-x); border: 1px solid var(--mt-amb-l); }
     .mt-badge.open { background: transparent; padding-left: 0; color: var(--mt-grn); }
-    .mt-badge.cat-watch, .mt-badge.cat-carpool, .mt-badge.cat-ticket { background: var(--bg2); color: #333; }
-    .mt-badge.cat-carpool.kind-rec { background: #111; color: #fff; }
-    .mt-badge.cat-carpool.kind-wish { background: #fff; color: #111; box-shadow: inset 0 0 0 1px #111; }
+    .mt-badge.cat-carpool.kind-wish { background: #fff; color: var(--mt-blue); box-shadow: inset 0 0 0 1.5px var(--mt-blue); }
     @media (min-width: 900px) {
       .mt-hero { min-height: 190px; background: linear-gradient(90deg, #0b0c0e calc(100% - 351px), rgba(11, 12, 14, 0) calc(100% - 250px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #0b0c0e; }
       .mt-hero-in { padding: 30px 30px; max-width: 60%; }
@@ -12286,7 +12298,7 @@
         <h3>바로가기</h3>
         <a class="mt-home" href="#/meetup">
           <span class="mt-home-t"><em>쉐어</em><b>NEW</b>직관 · 카풀 · 티켓 양도</span>
-          <span class="mt-home-s">같이 갈 블붕이 구하고, 카풀 타고, 못 가게 된 티켓은 정가 이하로 양도해요</span>
+          <span class="mt-home-s">같이 갈 블붕이 구하고, 카풀 타고,<br class="mt-br"> 못 가게 된 티켓은 정가 이하로 양도해요</span>
           <span class="mt-home-p"><i>👥 직관</i><i>🚗 카풀</i><i>🎟️ 티켓 양도</i></span>
         </a>
         <div class="v2-links">
@@ -28985,9 +28997,9 @@
 
     /* ---------- 데이터 ---------- */
     function mtTitle(p) {
-      if (p.category === 'watch') return `직관 같이 가실 분 (${p.people}명 모집)`;
-      if (p.category === 'carpool') return p.cp_kind === '모집' ? `카풀 모집 · ${p.origin} 출발` : `카풀 희망 · ${p.origin} 출발`;
-      return `티켓 양도 · ${p.grade} ${p.seat_zone}구역 ${p.seat_row}열 ${p.seat_num}번`;
+      if (p.category === 'watch') return `직관 ${p.people}명 모집`;
+      if (p.category === 'carpool') return `${p.origin} 출발`;
+      return `${p.grade}`;
     }
     const MT_STATUS = { open: ['모집 중', 'open'], full: ['✓ 모집 완료', 'full'], closed: ['마감', 'closed'], hidden: ['신고 누적으로 숨김 (관리자 확인 중)', 'hidden'] };
     function mtCurEvent() { return MT.events.find(e => e.event_key === MT.ev) || null; }
@@ -29032,7 +29044,7 @@
     }
     function mtPaintOnline() { document.querySelectorAll('.mt-on[data-nick]').forEach(e => { e.hidden = !mtOnline(e.dataset.nick); }); }
     function mtNick(nick) {
-      return `<span class="mt-nick"><i>${esc(String(nick).slice(0, 1))}</i>${esc(nick)}<em class="mt-on" data-nick="${esc(nick)}"${mtOnline(nick) ? '' : ' hidden'}>접속중</em></span>`;
+      return `<span class="mt-nick">${esc(nick)}<em class="mt-on" data-nick="${esc(nick)}"${mtOnline(nick) ? '' : ' hidden'}>접속중</em></span>`;
     }
 
     /* 필터 / 정렬 (종류별로 따로 기억) */
@@ -29086,7 +29098,7 @@
       let list = '';
       groups.forEach(([g, arr]) => {
         if (g) list += `<div class="mt-ms-g">${esc(g)}</div>`;
-        arr.forEach(a => { list += `<label class="mt-ms-o${sel.includes(a) ? ' on' : ''}"><input type="checkbox"${sel.includes(a) ? ' checked' : ''} onchange="mtFT('${k}','${esc(a)}')"><span>${esc(a)}</span></label>`; });
+        arr.forEach(it => { const a = Array.isArray(it) ? it[0] : it, l = Array.isArray(it) ? it[1] : it; list += `<label class="mt-ms-o${sel.includes(a) ? ' on' : ''}"><input type="checkbox"${sel.includes(a) ? ' checked' : ''} onchange="mtFT('${k}','${esc(a)}')"><span>${esc(l)}</span></label>`; });
       });
       return `<div class="mt-ms"><button type="button" class="mt-ms-b${sel.length ? ' has' : ''}" onclick="mtFOpen('${k}',event)">${esc(label)}<i>${open ? '▴' : '▾'}</i></button>${open ? `<div class="mt-ms-l">${list}</div>` : ''}${sel.length ? `<button type="button" class="mt-ms-x" onclick="MT.f[MT.cat].${k}=[];mtRender()">선택 해제</button>` : ''}</div>`;
     }
@@ -29103,7 +29115,7 @@
       if (MT.cat === 'carpool') {
         h += row('구분', ['모집', '희망'].map(v => mtFChip('카풀 ' + v, f.kind === v, `mtFS('kind','${v}')`)).join(''));
         const os = Array.from(new Set(posts.map(p => p.origin))).sort();
-        h += row('출발지', mtMSel('origins', '지역 선택', Object.entries(MT_REGIONS).map(([g, arr]) => [g, arr]), f.origins || []));
+        h += row('출발지', mtMSel('origins', '지역 선택', Object.entries(MT_REGIONS).map(([g, arr]) => [g, arr.map(a => [g === '그 외' ? a : g + ' ' + a, a])]), f.origins || []));
         h += row('편도 / 왕복', ['편도', '왕복', '무관'].map(v => mtFChip(v, f.trip === v, `mtFS('trip','${v}')`)).join(''));
       }
       if (MT.cat === 'ticket') {
@@ -29153,7 +29165,7 @@
     <h1 class="page">직관 · 카풀 · 티켓 양도</h1>
     <div class="mt-hero">
       <div class="mt-hero-in"><div class="mt-hero-t">같이 가고, 같이 타고, 편하게 양도해요</div>
-      <div class="mt-hero-s">직관 동행, 카풀, 티켓 양도를 블붕이끼리 직접 약속해요.<br>연락 수단은 승인한 뒤에만 서로 공개돼요.</div>
+      <div class="mt-hero-s">직관 동행, 카풀, 티켓 양도를 블붕이끼리 쉐어해요.<br>연락 수단은 승인한 뒤에만 서로 공개돼요.</div>
       <button type="button" class="mt-gbtn" id="mt-gbtn" onclick="mtToggleGuide()">이용 안내 보기 ▾</button></div>
     </div>
     <div class="mt-gpanel" id="mt-gpanel">${mtGuideHTML()}</div>
@@ -29168,8 +29180,8 @@
       <div class="mt-filters">
         <select class="mt-sel sm" onchange="mtFSort(this.value)">${MT_SORTS[MT.cat].map(([v, l]) => `<option value="${v}"${(f.sort || 'new') === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
         <button type="button" class="mt-fchip${MT.fOpen || nf ? ' on' : ''}" onclick="MT.fOpen=!MT.fOpen;mtRender()">필터${nf ? ' ' + nf : ''} ${MT.fOpen ? '▴' : '▾'}</button>
-        <button type="button" class="mt-fchip g${MT.onlyOpen ? ' on' : ''}" onclick="MT.onlyOpen=!MT.onlyOpen;mtRender()"><i></i>모집 중만</button>
-        <button type="button" class="mt-fchip m${MT.mine ? ' on' : ''}" onclick="MT.mine=!MT.mine;mtRender()">👤 내 글·신청</button>
+        <button type="button" title="모집 중만 보기" class="mt-fchip g${MT.onlyOpen ? ' on' : ''}" onclick="MT.onlyOpen=!MT.onlyOpen;mtRender()"><i></i><span class="mt-lb">모집 중만</span></button>
+        <button type="button" title="내 글·내 신청만 보기" class="mt-fchip m${MT.mine ? ' on' : ''}" onclick="MT.mine=!MT.mine;mtRender()">👤<span class="mt-lb"> 내 글·신청</span></button>
       </div>
       ${ended ? '' : `<button type="button" class="mt-b dark" onclick="mtOpenCreate()">+ 글쓰기</button>`}
     </div>
@@ -29191,11 +29203,11 @@
         facts = [`내 인원 <b>${p.my_people || 1}명</b>`, `모집 <b>${p.people}명</b>`, `확정 <b>${p.approved}명</b>`];
         hi = `<div class="mt-hi"><small>남은 자리</small><b>${mtLeft(p)}<i>/${p.capacity}명</i></b></div>`;
       } else if (p.category === 'carpool') {
-        facts = [`<b>${esc(p.cp_kind)}</b>`, `<b>${esc(p.origin)}</b>${p.origin_detail ? ' <b>' + esc(p.origin_detail) + '</b>' : ''} 출발`, esc(p.trip === '무관' ? '편도·왕복 무관' : p.trip), `내 인원 <b>${p.my_people || 1}명</b>`, `${p.cp_kind === '모집' ? '빈 자리' : '탑승'} <b>${p.people}명</b>${p.cp_kind === '모집' ? ` (남은 ${mtLeft(p)})` : ''}`];
+        facts = [...(p.origin_detail ? [`<b>${esc(p.origin_detail)}</b> 출발`] : []), esc(p.trip === '무관' ? '편도·왕복 무관' : p.trip), `내 인원 <b>${p.my_people || 1}명</b>`, `${p.cp_kind === '모집' ? '빈 자리' : '탑승'} <b>${p.people}명</b>${p.cp_kind === '모집' ? ` (남은 ${mtLeft(p)})` : ''}`];
         hi = `<div class="mt-hi"><small>카풀비 (1인)</small><b>${p.fare < 0 ? '협의' : p.fare ? mtN(p.fare) + '<i>원</i>' : '없음'}</b></div>`;
       } else {
         const pct = p.unit_price > 0 ? Math.round((1 - p.sell_price / p.unit_price) * 100) : 0;
-        facts = [`<b>${esc(p.grade)}</b>`, `${esc(p.seat_zone)}구역 ${esc(p.seat_row)}열 ${esc(p.seat_num)}번`, `<b>${p.sell_qty}장</b>`];
+        facts = [`${esc(p.seat_zone)}구역 ${esc(p.seat_row)}열 ${esc(p.seat_num)}번`, `<b>${p.sell_qty}장</b>`];
         hi = `<div class="mt-hi price"><small>${p.sell_qty > 1 ? '총 ' + p.sell_qty + '장' : '1장'} · 장당 ${mtN(p.sell_price)}원</small><b>${mtN(p.sell_price * p.sell_qty)}<i>원</i></b><em class="${pct > 0 ? 'off' : ''}">${pct > 0 ? pct + '% 할인' : '정가'}</em></div>`;
       }
       const reqB = p.my_req === 'pending' ? '<span class="mt-badge wait">⏳ 승인 대기 중</span>' : p.my_req === 'approved' ? '<span class="mt-badge open">참여 확정</span>' : '';
@@ -29213,7 +29225,7 @@
         if (p.my_req === 'rejected' || p.my_req === 'kicked') btns += `<span class="mt-doneNote">신청할 수 없는 글이에요</span>`;
         else if (p.status === 'full' && !p.my_req) btns += `<span class="mt-doneNote">모집이 완료됐어요</span>`;
         else if (p.status === 'closed' && !p.my_req) btns += `<span class="mt-doneNote">마감된 글이에요</span>`;
-        btns += `<button type="button" class="mt-b no sm" onclick="mtReport(${p.id})">🚨 신고</button><button type="button" class="mt-b blk sm" data-nick="${esc(p.author_nick)}" onclick="mtBlock(this.dataset.nick)">🚫 차단</button>`;
+        btns += `<button type="button" class="mt-ic" title="신고" aria-label="신고" onclick="mtReport(${p.id})">🚨</button><button type="button" class="mt-ic" title="차단" aria-label="차단" data-nick="${esc(p.author_nick)}" onclick="mtBlock(this.dataset.nick)">🚫</button>`;
       }
       return `<div class="mt-card c-${p.category} ${p.status}${p.mine ? ' is-mine' : ''}">
       <div class="mt-main">
