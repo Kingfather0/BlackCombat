@@ -3,7 +3,6 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="robots" content="noindex, nofollow">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <!-- 검색 노출(SEO): "블붕이"로 검색했을 때 나오도록 제목·설명에 사이트 이름과 주제를 담는다.
        화면에는 아무 영향 없음. 사이트 이름은 구글 검색 결과의 "사이트 이름" 표시(WebSite 구조화 데이터)에도 쓰인다. -->
@@ -895,6 +894,16 @@
     .tk-rev-body {
       margin-top: 8px
     }
+
+    .tk-rev-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+    body[data-route="tickets"] .tk-rev .tk-rev-btns button { margin-top: 12px; }
+    .tk-price-body, .tk-rev-body { margin-top: 10px; border: 0; border-radius: 10px; padding: 8px 14px 10px; background: var(--bg2, #f4f4f5); }
+    .tk-pr-title { font-size: 12px; font-weight: 700; color: var(--dim); padding: 6px 0 4px; }
+    .tk-pr-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid rgba(0, 0, 0, .07); font-size: 14px; }
+    .tk-price-body .tk-pr-row:first-child { border-top: 0; }
+    .tk-pr-n { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: #222; }
+    .tk-pr-n i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+    .tk-pr-v { font-size: 15px; font-weight: 800; letter-spacing: -.01em; color: #111; font-variant-numeric: tabular-nums; }
 
     .tk-trend {
       margin-top: 12px;
@@ -11257,6 +11266,10 @@
     body[data-route="tickets"] .card.tk-card > .tk-trend:has(+ .tk-hourly) > .tk-rev-note {
       display: none !important;
     }
+    /* PC에서는 일별 | 시간별이 좌우로 나란히 놓이므로, 세로 배치용 구분선·위 여백을 없애 두 차트의 위치를 맞춘다(모바일은 그대로). */
+    @media (min-width: 1024px) {
+      body[data-route="tickets"] .tk-dash-trends .tk-dash-col .card.tk-card > .tk-hourly { border-top: 0 !important; margin-top: 0 !important; padding-top: 0 !important; }
+    }
     .tk-dash-hist { margin-top: 22px; }
     .tk-dash-hist > .sec-title { margin: 0 !important; font-size: 15px; font-weight: 700; padding-bottom: 10px; min-height: 42px; align-items: center; }
     .tk-hist-tbl { width: 100%; border-collapse: collapse; }
@@ -11537,7 +11550,7 @@
     }
 
     /* ── 직관 · 카풀 · 티켓 양도 (#/meetup) ── 사이트 톤(흰 타일 + 헤어라인 + 앰버)에 맞춘 평평한 디자인 ── */
-    body[data-route="meetup"] .wrap { max-width: 820px; }
+    /* 쉐어 페이지는 다른 페이지와 같은 기본 가로폭(--v2-max)을 사용 */
     body[data-route="meetup"] h1.page::before { content: "Together"; }
     :root {
       --mt-vio: #6d3fc0; --mt-vio-t: #f0e9fb; --mt-vio-l: #dccdf5;
@@ -11587,8 +11600,8 @@
     .mt-tab.on { background: var(--mt-amb-t); border-color: var(--mt-amb); color: #3d2a00; }
     .mt-tab.on small { color: var(--mt-amb-x); }
     .mt-tab.c-watch.on { background: var(--mt-vio-t); border-color: var(--mt-vio); color: var(--mt-vio); }
-    .mt-tab.c-carpool.on { background: var(--mt-blue-t); border-color: var(--mt-blue); color: var(--mt-blue); }
-    .mt-tab.c-ticket.on { background: var(--mt-grn-t); border-color: var(--mt-grn); color: var(--mt-grn); }
+    .mt-tab.c-carpool.on { background: var(--mt-grn-t); border-color: var(--mt-grn); color: var(--mt-grn); }
+    .mt-tab.c-ticket.on { background: var(--mt-blue-t); border-color: var(--mt-blue); color: var(--mt-blue); }
     .mt-tab.c-watch.on small, .mt-tab.c-carpool.on small, .mt-tab.c-ticket.on small { color: inherit; opacity: .75; }
     .mt-actions { display: flex; justify-content: space-between; align-items: center; margin: 12px 0 10px; gap: 8px; flex-wrap: wrap; }
     .mt-filters { display: inline-flex; gap: 6px; flex-wrap: wrap; }
@@ -11634,11 +11647,15 @@
     .mt-ms-o.on { font-weight: 800; }
     .mt-br { display: none; }
     @media (max-width: 640px) { .mt-br { display: inline; } }
-    .mt-ic { border: 0; background: none; padding: 4px 6px; font-size: 17px; line-height: 1; cursor: pointer; opacity: .6; border-radius: 6px; }
+    .mt-note { cursor: pointer; }
+    .mt-note:hover { background: #ececf0; }
+    .mt-deals { margin: 6px 0; padding: 8px 10px; background: var(--bg2); border-radius: 8px; display: grid; gap: 4px; font-size: 13px; }
+    .mt-deal.ok { font-weight: 700; }
+    .mt-ic { border: 0; background: none; padding: 4px 6px; font-size: 17px; line-height: 1; cursor: pointer; opacity: 1; border-radius: 6px; }
     .mt-ic:hover { opacity: 1; background: rgba(0,0,0,.06); }
     .mt-card.is-mine.c-watch { background: #f4eefc; border-color: #dccdf5; }
-    .mt-card.is-mine.c-carpool { background: #eaf2fe; border-color: #c8dcf8; }
-    .mt-card.is-mine.c-ticket { background: #e9f7ee; border-color: #bfe6cd; }
+    .mt-card.is-mine.c-carpool { background: #e9f7ee; border-color: #bfe6cd; }
+    .mt-card.is-mine.c-ticket { background: #eaf2fe; border-color: #c8dcf8; }
     .mt-badge.mine { background: #111 !important; color: #fff !important; }
     .mt-card.closed, .mt-card.hidden { background: #f7f7f8; }
     .mt-card.closed > *:not(.mt-card-h), .mt-card.hidden > *:not(.mt-card-h) { opacity: .6; }
@@ -11647,8 +11664,8 @@
     .mt-ago { margin-left: auto; font-size: 12px; color: var(--dim); font-weight: 600; }
     .mt-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; background: var(--bg2); color: var(--muted); line-height: 1.4; }
     .mt-badge.cat-watch { background: var(--mt-vio-t); color: var(--mt-vio); }
-    .mt-badge.cat-carpool { background: var(--mt-blue-t); color: var(--mt-blue); }
-    .mt-badge.cat-ticket { background: var(--mt-grn-t); color: var(--mt-grn); }
+    .mt-badge.cat-carpool { background: var(--mt-grn-t); color: var(--mt-grn); }
+    .mt-badge.cat-ticket { background: var(--mt-blue-t); color: var(--mt-blue); }
     .mt-badge.open { background: var(--mt-grn-t); color: var(--mt-grn); }
     .mt-badge.open::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
     .mt-badge.full { background: #3a3f4a; color: #fff; }
@@ -11694,8 +11711,8 @@
     .mt-ch:hover { background: var(--bg); }
     .mt-ch.on { background: var(--mt-amb-t); border-color: var(--mt-amb); color: #3d2a00; box-shadow: inset 0 0 0 1px var(--mt-amb); }
     .mt-form.c-watch .mt-ch.on { background: var(--mt-vio-t); border-color: var(--mt-vio); color: var(--mt-vio); box-shadow: inset 0 0 0 1px var(--mt-vio); }
-    .mt-form.c-carpool .mt-ch.on { background: var(--mt-blue-t); border-color: var(--mt-blue); color: var(--mt-blue); box-shadow: inset 0 0 0 1px var(--mt-blue); }
-    .mt-form.c-ticket .mt-ch.on { background: var(--mt-grn-t); border-color: var(--mt-grn); color: var(--mt-grn); box-shadow: inset 0 0 0 1px var(--mt-grn); }
+    .mt-form.c-carpool .mt-ch.on { background: var(--mt-grn-t); border-color: var(--mt-grn); color: var(--mt-grn); box-shadow: inset 0 0 0 1px var(--mt-grn); }
+    .mt-form.c-ticket .mt-ch.on { background: var(--mt-blue-t); border-color: var(--mt-blue); color: var(--mt-blue); box-shadow: inset 0 0 0 1px var(--mt-blue); }
     .mt-ch:disabled { opacity: .35; cursor: not-allowed; }
     .mt-ch.multi.on::before { content: "✓ "; }
     .mt-cust { display: none; width: 96px !important; padding: 7px 10px !important; }
@@ -11710,6 +11727,7 @@
     .mt-msg { margin: 0 0 10px; padding: 9px 12px; border-radius: 8px; background: var(--mt-red-t); color: var(--mt-red); font-size: 13px; font-weight: 700; }
     .mt-sum { padding: 11px 13px; background: var(--bg); border-radius: 10px; font-size: 14px; font-weight: 800; margin-bottom: 14px; line-height: 1.55; }
     .mt-submit { position: sticky; bottom: -1px; margin: 0 -16px -14px; padding: 12px 16px 14px; background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 28%); }
+    .modal-h .mt-hback { margin: 0 8px 0 auto; padding: 5px 12px; border: none; background: color-mix(in srgb, var(--text) 8%, var(--bg2)); border-radius: 999px; font-size: 12.5px; font-weight: 700; color: var(--muted); cursor: pointer; font-family: inherit; }
     .mt-back { display: inline-flex; align-items: center; gap: 4px; margin-bottom: 12px; padding: 4px 10px 4px 6px; border: none; background: var(--bg2); border-radius: 999px; font-size: 12.5px; font-weight: 700; color: var(--muted); cursor: pointer; font-family: inherit; }
     .mt-ctypes { display: grid; gap: 10px; margin-top: 4px; }
     .mt-ctype { display: grid; grid-template-columns: 46px 1fr; gap: 0 14px; align-items: center; text-align: left; padding: 14px 16px; background: #fff; border: 1.5px solid var(--hair); border-radius: 12px; cursor: pointer; font-family: inherit; transition: border-color .15s, background .15s; }
@@ -11717,8 +11735,8 @@
     .mt-ctype b { font-size: 16px; font-weight: 800; letter-spacing: -.02em; }
     .mt-ctype span { font-size: 12.5px; color: var(--muted); font-weight: 500; }
     .mt-ctype.c-watch i { background: var(--mt-vio-t); } .mt-ctype.c-watch:hover { border-color: var(--mt-vio); background: #faf7ff; }
-    .mt-ctype.c-carpool i { background: var(--mt-blue-t); } .mt-ctype.c-carpool:hover { border-color: var(--mt-blue); background: #f7faff; }
-    .mt-ctype.c-ticket i { background: var(--mt-grn-t); } .mt-ctype.c-ticket:hover { border-color: var(--mt-grn); background: #f6fcf8; }
+    .mt-ctype.c-carpool i { background: var(--mt-grn-t); } .mt-ctype.c-carpool:hover { border-color: var(--mt-grn); background: #f6fcf8; }
+    .mt-ctype.c-ticket i { background: var(--mt-blue-t); } .mt-ctype.c-ticket:hover { border-color: var(--mt-blue); background: #f7faff; }
     .mt-ctype:disabled { opacity: .5; cursor: not-allowed; background: var(--bg); }
     .mt-ctype:disabled:hover { border-color: var(--hair); background: var(--bg); }
     .mt-ctype em { font-style: normal; color: var(--mt-red); font-weight: 700; }
@@ -11769,7 +11787,7 @@
     .mt-home:hover { background: linear-gradient(90deg, rgba(8, 10, 12, .86) 0%, rgba(8, 10, 12, .5) 60%, rgba(8, 10, 12, .25) 100%), url(meetup-hero.jpg) center 52% / cover no-repeat, #111; transform: none; box-shadow: none; }
     .mt-home-t { color: #fff; font-size: 17px; display: flex; align-items: center; gap: 8px; }
     .mt-home-t em { font-style: normal; font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: var(--amber); color: #2b1d00; }
-    .mt-home-t b { font-size: 10px; font-weight: 800; color: var(--amber); margin-left: -4px; }
+    .mt-home-t b { font-size: 10px; font-weight: 800; color: var(--amber); margin-left: -2px; }
     .mt-home-s { grid-column: 1; color: rgba(255, 255, 255, .8); }
     .mt-home-p { grid-column: 2; grid-row: 1 / 3; align-self: center; }
     .mt-home-p i:nth-child(n) { background: rgba(255, 255, 255, .14); color: #fff; border: 1px solid rgba(255, 255, 255, .28); }
@@ -11810,7 +11828,7 @@
     .mt-hi small { display: block; font-size: 11.5px; color: var(--dim); font-weight: 600; }
     .mt-hi b { font-size: 20px; font-weight: 800; letter-spacing: -.03em; line-height: 1.25; }
     .mt-hi b i { font-style: normal; font-size: 12px; font-weight: 700; color: #777; margin-left: 2px; }
-    .mt-hi.price b { color: var(--mt-grn); }
+    .mt-hi.price b { color: #111; }
     .mt-hi em { display: inline-block; font-style: normal; margin-left: 6px; font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: #e9e9ee; color: #555; vertical-align: 3px; }
     .mt-hi em.off { background: #e5392f; color: #fff; }
     .mt-btns { justify-content: flex-end; }
@@ -11832,7 +11850,7 @@
       .mt-actions .mt-fchip { padding: 0 8px; font-size: 12px; height: 32px; white-space: nowrap; flex: none; }
       .mt-actions > .mt-b { padding: 0 10px; height: 32px; font-size: 12.5px; white-space: nowrap; flex: none; }
     }
-    .mt-nick { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; background: #fff; border: 1px solid var(--hair2); border-radius: 999px; font-size: 12.5px; font-weight: 800; color: #111; box-shadow: 0 1px 0 rgba(0, 0, 0, .04); }
+    .mt-nick { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; background: none; border: 0; border-radius: 0; padding: 0; font-size: 12.5px; font-weight: 800; color: #111; box-shadow: none; }
     .mt-nick i { width: 20px; height: 20px; border-radius: 50%; background: #111; color: #fff; font-style: normal; font-size: 11px; display: flex; align-items: center; justify-content: center; }
     .mt-on { font-style: normal; font-size: 11px; font-weight: 800; color: #14803c; background: #e4f5ea; border-radius: 999px; padding: 0 7px; margin-left: 2px; display: inline-flex; align-items: center; gap: 4px; line-height: 17px; }
     .mt-on::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #1fb457; }
@@ -11868,7 +11886,6 @@
     .mt-tags span.hl { background: var(--bg2); color: #444; }
     .mt-badge.wait { background: #fff; color: var(--mt-amb-x); border: 1px solid var(--mt-amb-l); }
     .mt-badge.open { background: transparent; padding-left: 0; color: var(--mt-grn); }
-    .mt-badge.cat-carpool.kind-wish { background: #fff; color: var(--mt-blue); box-shadow: inset 0 0 0 1.5px var(--mt-blue); }
     @media (min-width: 900px) {
       .mt-hero { min-height: 190px; background: linear-gradient(90deg, #0b0c0e calc(100% - 351px), rgba(11, 12, 14, 0) calc(100% - 250px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #0b0c0e; }
       .mt-hero-in { padding: 30px 30px; max-width: 60%; }
@@ -11878,6 +11895,72 @@
     }
     .mt-foot-note { margin-top: 18px; padding: 12px 4px 0; border-top: 1px solid var(--hair); font-size: 12px; line-height: 1.7; color: var(--dim); }
     .mt-empty { margin-top: 10px; padding: 40px 16px; text-align: center; background: #fff; border: 1px dashed var(--hair2); border-radius: 12px; color: var(--muted); font-size: 14px; font-weight: 600; line-height: 1.7; }
+    /* ===== v6: 카테고리 색 구분 제거 — 검정 테두리 + 투명 회색, 색은 상태(모집 중/할인/접속중)에만 ===== */
+    .mt-tab.on, .mt-tab.c-watch.on, .mt-tab.c-carpool.on, .mt-tab.c-ticket.on { background: #fff; border: 1px solid #111; color: #111; box-shadow: none; }
+    /* 선택 안 된 탭은 글씨를 연하게, 선택된 탭은 굵게(숫자 배지는 회색 유지) */
+    .mt-card-h .mt-badge.closed { background: #111 !important; color: #fff !important; }
+    .mt-tab:not(.on) { color: #8e8e93; }
+    .mt-tab.on, .mt-tab.on b { font-weight: 800; }
+    .mt-tab.on small, .mt-tab.c-watch.on small, .mt-tab.c-carpool.on small, .mt-tab.c-ticket.on small { color: #555; opacity: 1; background: rgba(0, 0, 0, .07); }
+    .mt-badge.cat-watch, .mt-badge.cat-carpool, .mt-badge.cat-ticket { background: #ececf0; color: #222; box-shadow: none; }
+    .mt-card.is-mine.c-watch, .mt-card.is-mine.c-carpool, .mt-card.is-mine.c-ticket { background: #f0f0f3; border-color: #d4d4db; }
+    .mt-hi.price b { color: #111; }
+    .mt-b.blue { background: #fff; border-color: var(--hair2); color: var(--text); }
+    .mt-ctype.c-watch i, .mt-ctype.c-carpool i, .mt-ctype.c-ticket i { background: #f0f0f3; }
+    .mt-ctype.c-watch:hover, .mt-ctype.c-carpool:hover, .mt-ctype.c-ticket:hover { border-color: #111; background: #f7f7f8; }
+    .mt-form .mt-ch.on, .mt-form.c-watch .mt-ch.on, .mt-form.c-carpool .mt-ch.on, .mt-form.c-ticket .mt-ch.on { background: rgba(17, 17, 17, .06); border-color: #111; color: #111; box-shadow: inset 0 0 0 1px #111; }
+    .mt-ch.on { background: rgba(17, 17, 17, .06); border-color: #111; color: #111; box-shadow: inset 0 0 0 1px #111; }
+    .mt-f input:focus, .mt-f textarea:focus, .mt-sel:focus { border-color: #111; box-shadow: 0 0 0 3px rgba(0, 0, 0, .08); }
+    .mt-form .mt-ch.on, .mt-form.c-watch .mt-ch.on, .mt-form.c-carpool .mt-ch.on, .mt-form.c-ticket .mt-ch.on, .mt-ch.on { box-shadow: none; border-width: 1px; }
+    /* 글쓰기 팝업: 등록하기 버튼을 스크롤 영역 맨 아래에 붙인다(아래 여백 때문에 버튼 밑으로 폼이 비쳐 보이던 문제) */
+    .modal-b:has(.mt-submit) { padding-bottom: 0; }
+    .modal-b:has(.mt-submit) .mt-submit { bottom: 0; margin: 0 -14px; padding: 14px 14px calc(14px + env(safe-area-inset-bottom, 0px)); background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 22%); }
+    .mt-submit .mt-b.pri { background: #111; border-color: #111; color: #fff; }
+    .mt-submit .mt-b.pri:hover { background: #333; border-color: #333; filter: none; }
+    .mt-submit .mt-b.pri:disabled { background: #aaa; border-color: #aaa; }
+    .mt-note { white-space: normal; overflow: visible; text-overflow: clip; }
+    .mt-note > span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; line-height: 1.45; }
+    /* ===== 홈: 실시간 잔여석 배너(좌) + 쉐어 배너(우) 반반 ===== */
+    .hm-banners { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 4px 0 12px; }
+    .hm-banners .mt-home { margin: 0; grid-template-columns: 1fr; min-height: 128px; align-content: center; background: linear-gradient(90deg, #0b0c0e calc(100% - 238px), rgba(11, 12, 14, 0) calc(100% - 118px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #0b0c0e; }
+    .hm-banners .mt-home:hover { background: linear-gradient(90deg, #0b0c0e calc(100% - 238px), rgba(11, 12, 14, 0) calc(100% - 118px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #15171a; }
+    .hm-banners .mt-home-p { grid-column: 1; grid-row: auto; margin-top: 8px; }
+    .hm-finder { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 4px; min-height: 128px; padding: 18px 20px; border-radius: 10px; color: #fff; overflow: hidden; text-decoration: none; background: linear-gradient(90deg, rgba(8, 9, 11, .94) 0%, rgba(8, 9, 11, .72) 50%, rgba(8, 9, 11, .3) 100%), url(finder-hero.jpg) 82% 16px / auto 190% no-repeat, #0b0c0e; transition: transform .15s, box-shadow .15s; }
+    .hm-finder:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, .25); }
+    .hm-finder:active { transform: translateY(0) scale(.99); }
+    .hm-f-t { font-size: 17px; font-weight: 800; letter-spacing: -.03em; }
+    @media (min-width: 900px) {
+      #z17-modal .tk-live-modal-inner { max-width: 760px; padding: 24px 28px; max-height: 88vh; }
+      #z17-modal .tk-live-modal-head { font-size: 17px; gap: 10px; }
+      #z17-modal .tk-live-modal-head b { font-size: 19px; }
+      #z17-modal .z17-scroll { max-height: 66vh; }
+      #z17-modal .z17-fz { padding: 12px 14px; margin: 8px 0; }
+      #z17-modal .z17-fz-h b { font-size: 16px; } #z17-modal .z17-fz-g { font-size: 13px; } #z17-modal .z17-fz-n { font-size: 14px; }
+      #z17-modal .z17-fs { font-size: 13px; padding: 5px 10px; }
+      #z17-modal .tk-row1-top, #z17-modal .tk-live-modal-sub { font-size: 14px; }
+      #z17-modal .tk-row1-note { font-size: 12.5px; }
+      #z17-modal .z17-back { font-size: 13px; padding: 6px 12px; }
+      #z17-modal .tk-live-modal-close { width: 32px; height: 32px; font-size: 14px; }
+    }
+    .z17-back { border: 0; background: #eceef1; color: #555; border-radius: 6px; font-size: 12px; font-weight: 700; padding: 5px 9px; cursor: pointer; white-space: nowrap; font-family: inherit; }
+    .z17-back:hover { background: #e1e4e8; }
+    .hm-f-t { display: flex; align-items: center; gap: 8px; }
+    .hm-f-t em { font-style: normal; font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: #D91E2B; color: #fff; }
+    .hm-f-s { font-size: 13px; color: rgba(255, 255, 255, .75); }
+    .hm-f-b { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .hm-fb, .hm-fh { box-sizing: border-box; display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 4px; font-size: 12px; font-weight: 700; line-height: 1; }
+    .hm-fb { background: rgba(255, 255, 255, .16); color: #fff; }
+    .hm-fb.has { background: #F2B32A; color: #1d1d1f; }
+    .hm-fh { background: #E91E8C; color: #fff; }
+    @media (max-width: 760px) { .hm-banners { grid-template-columns: 1fr; } }
+    @media (max-width: 640px) {
+      .mt-main { display: contents; }
+      .mt-card-h { grid-column: 1 / -1; }
+      .mt-main > .mt-title, .mt-main > .mt-facts, .mt-main > .mt-tags { grid-column: 1; min-width: 0; }
+      .mt-side .mt-hi { grid-row: 2 / span 2; align-self: start; padding-top: 4px; }
+      .mt-main > .mt-note { grid-column: 1 / -1; }
+      .mt-side .mt-btns { grid-row: auto; }
+    }
 
     /* ── 모바일 ── */
     @media (max-width: 1023px) {
@@ -12234,6 +12317,101 @@
       }
     }
   </style>
+  <style id="fort-style">
+/* ── 글러브 포트리스 ── (기존 게임 CSS 뒤에 덮어쓰지 않고 .ga-fort / .gcard-fort / .ft-* 로만 한정) */
+.ga-fort { height: 540px; background: #8fd4ff; }
+@media (max-width: 480px) { .ga-fort { height: 520px; } }
+.ga-fort #gTitle { background: linear-gradient(180deg, rgba(70,150,220,.28), rgba(30,90,160,.62)); gap: 8px; }
+.ga-fort #gOver { gap: 8px; }
+.ga-fort .g-start { font-size: 24px; padding: 11px 30px; letter-spacing: 0; white-space: nowrap; }
+.ga-fort #ftNext, .ga-fort .ft-go { font-size: 22px; padding: 10px 26px; }
+.ft-faces { display: flex; align-items: flex-end; justify-content: center; gap: 4px; height: 96px; margin-bottom: 2px; }
+.ft-faces img { height: 92px; width: auto; filter: drop-shadow(0 4px 6px rgba(20,40,80,.4)); }
+.ft-faces img:nth-child(2) { height: 84px; }
+.ft-btn2 {
+  font-family: 'Jua','Pretendard Variable',Pretendard,sans-serif; font-size: 15px; font-weight: 800; cursor: pointer;
+  background: #fff; color: #2b3a55; border: 2px solid #fff; border-radius: 99px; padding: 9px 20px;
+  box-shadow: 0 4px 0 rgba(20,50,100,.35), 0 8px 16px rgba(20,50,100,.25);
+}
+.ft-btn2:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(20,50,100,.35); }
+
+/* 컨트롤 패널 */
+#ftCtl {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; box-sizing: border-box;
+  padding: 8px 10px 10px; background: rgba(255,255,255,.96); border-top: 3px solid #e6b73a;
+  display: flex; flex-direction: column; gap: 7px; cursor: default;
+  font-family: 'Jua','Pretendard Variable',Pretendard,sans-serif;
+}
+#ftCtl.off { opacity: .55; pointer-events: none; }
+.ft-r1 { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #5a3a10; min-height: 18px; }
+.ft-who { font-weight: 800; flex: 0 0 auto; }
+.ft-last { flex: 1; font-size: 11.5px; color: #8a94a6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ft-stamw { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: #8a94a6; flex: 0 0 auto; }
+.ft-stam { display: inline-block; width: 54px; height: 8px; border-radius: 4px; background: #e5e9f0; overflow: hidden; }
+.ft-stam b { display: block; height: 100%; width: 100%; background: #4b8dff; border-radius: 4px; transition: width .1s; }
+.ft-r2 { display: flex; align-items: center; gap: 8px; }
+.ft-b {
+  font-family: inherit; font-size: 15px; font-weight: 800; color: #2b3a55; cursor: pointer; touch-action: manipulation;
+  background: #f4f6fa; border: 2px solid #cfd6e3; border-radius: 10px; padding: 0 12px; height: 40px; min-width: 62px;
+  box-shadow: 0 3px 0 #cfd6e3; user-select: none; -webkit-user-select: none;
+}
+.ft-b:active { transform: translateY(2px); box-shadow: 0 1px 0 #cfd6e3; }
+.ft-b.sm { min-width: 40px; padding: 0 8px; font-size: 20px; line-height: 1; }
+.ft-angw { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.ft-val { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 48px; line-height: 1.05; }
+.ft-val small { font-size: 10.5px; color: #8a94a6; font-weight: 700; }
+.ft-val b { font-size: 20px; color: #2b3a55; }
+.ft-r3 { display: flex; align-items: center; gap: 10px; }
+.ft-powrap { flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ft-powrap small { font-size: 11px; color: #8a94a6; font-weight: 700; flex: 0 0 auto; }
+.ft-powrap b { font-size: 18px; color: #c4410f; min-width: 32px; text-align: right; flex: 0 0 auto; }
+.ft-powrap input[type=range] { flex: 1; min-width: 0; height: 34px; accent-color: #f2b32a; margin: 0; touch-action: pan-x; }
+.ft-fire { animation: none !important; font-size: 19px !important; padding: 9px 20px !important; min-width: 98px; letter-spacing: .02em; border-width: 3px !important; }
+
+/* 파이터 선택 */
+#ftSel {
+  position: absolute; inset: 0; z-index: 9; box-sizing: border-box; overflow-y: auto; padding: 12px 10px 14px;
+  background: linear-gradient(180deg, rgba(30,70,130,.72), rgba(20,50,100,.86)); color: #fff; text-align: center;
+  display: flex; flex-direction: column; gap: 9px; cursor: default;
+  font-family: 'Jua','Pretendard Variable',Pretendard,sans-serif;
+}
+.ft-sel-h { font-size: 21px; font-weight: 800; text-shadow: 0 2px 0 rgba(20,40,90,.6); }
+.ft-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.ft-card {
+  font-family: inherit; cursor: pointer; background: #fff; color: #1f2a44; border: 3px solid transparent; border-radius: 12px;
+  padding: 6px 4px 7px; display: flex; flex-direction: column; align-items: center; gap: 1px; box-shadow: 0 3px 0 rgba(0,0,0,.18);
+}
+.ft-card img { height: 66px; width: auto; max-width: 90%; object-fit: contain; }
+.ft-card b { font-size: 14px; margin-top: 2px; }
+.ft-card > span { font-size: 10.5px; color: #8a6a1c; font-weight: 700; margin-bottom: 3px; }
+.ft-card.on { border-color: #f2b32a; transform: scale(1.04); box-shadow: 0 0 0 3px rgba(242,179,42,.45), 0 4px 0 rgba(0,0,0,.2); }
+.ft-card.dis { opacity: .4; cursor: not-allowed; }
+.ft-sb { display: flex; align-items: center; gap: 4px; width: 100%; font-size: 9.5px; color: #6b7280; }
+.ft-sb span { width: 22px; text-align: right; flex: 0 0 auto; }
+.ft-sb i { flex: 1; height: 5px; border-radius: 3px; background: #e5e9f0; overflow: hidden; display: block; }
+.ft-sb i b { display: block; height: 100%; background: #f2b32a; border-radius: 3px; margin: 0; font-size: 0; }
+.ft-sel-d { background: rgba(255,255,255,.95); color: #1f2a44; border-radius: 12px; padding: 9px 12px; font-size: 12.5px; line-height: 1.5; min-height: 38px; display: flex; align-items: center; justify-content: center; }
+.ft-sel-d b { color: #c4410f; margin-right: 6px; }
+.ft-go { align-self: center; min-width: 150px; }
+.ft-go[disabled] { opacity: .55; animation: none !important; }
+
+/* 하단 특성 카드 */
+.ft-grow { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--hair, #eceff4); }
+.ft-grow:last-child { border-bottom: 0; }
+.ft-grow img { width: 44px; height: 58px; object-fit: contain; flex: 0 0 auto; }
+.ft-gb { min-width: 0; font-size: 12.5px; line-height: 1.5; }
+.ft-gb b { font-size: 14px; color: var(--text); }
+.ft-tag { font-size: 10.5px; font-weight: 700; color: #9a5f06; background: #fdf3d7; border-radius: 4px; padding: 1px 6px; margin-left: 4px; }
+.ft-gp { color: var(--muted); }
+.ft-gp b { font-size: 12.5px; color: #c4410f; margin-right: 3px; }
+.ft-gs { font-size: 11px; color: #8a94a6; }
+
+/* 게임 메뉴 카드 */
+.gcard-fort .gc-ico { background: linear-gradient(135deg, #7fd0ff, #3a8de0); }
+body[data-route="game"] .gcard-fort .gc-ico { background: #e4f3ff !important; }
+body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82%; height: 92%; }
+
+  </style>
 </head>
 
 <body>
@@ -12296,11 +12474,18 @@
       </div>
       <div class="v2-box v2-box-links">
         <h3>바로가기</h3>
+        <div class="hm-banners">
+        <a class="hm-finder" id="hm-finder" href="#/tickets" onclick="return hmFinderGo(event)">
+          <span class="hm-f-t"><em>티켓</em>실시간 잔여석 바로 찾기</span>
+          <span class="hm-f-s">29CM 예매 구역별 실시간 좌석 현황</span>
+          <span class="hm-f-b"><span class="hm-fb" id="hmBadge">불러오는 중…</span><span class="hm-fh" id="hmHold" style="display:none"></span></span>
+        </a>
         <a class="mt-home" href="#/meetup">
-          <span class="mt-home-t"><em>쉐어</em><b>NEW</b>직관 · 카풀 · 티켓 양도</span>
+          <span class="mt-home-t"><em>쉐어</em>직관 · 카풀 · 티켓 양도<b>NEW</b></span>
           <span class="mt-home-s">같이 갈 블붕이 구하고, 카풀 타고,<br class="mt-br"> 못 가게 된 티켓은 정가 이하로 양도해요</span>
           <span class="mt-home-p"><i>👥 직관</i><i>🚗 카풀</i><i>🎟️ 티켓 양도</i></span>
         </a>
+        </div>
         <div class="v2-links">
           <a href="#/matches">경기<small>승부예측 투표·결과</small></a>
           <a href="#/videos">영상<small>업로드 예측 캘린더</small></a>
@@ -12530,7 +12715,7 @@
       // 헷갈리지 않도록 사이트 상단 메뉴에 실제로 쓰는 단어(홈/티켓/랭킹/격잘알/게임)와 동일하게 표기한다.
       const seg = String(path || '').replace(/^#\//, '').split('/');
       if (seg[0] === 'game') {
-        const gameMap = { run: '게임 - 블랙 러닝', punch: '게임 - 블랙 펀칭', grow: '게임 - 블랙 점핑', battle: '게임 - 블랙 배틀', quiz: '게임 - 블랙 퀴즈' };
+        const gameMap = { run: '게임 - 블랙 러닝', punch: '게임 - 블랙 펀칭', grow: '게임 - 블랙 점핑', battle: '게임 - 블랙 배틀', quiz: '게임 - 블랙 퀴즈', fort: '게임 - 글러브 포트리스' };
         return gameMap[seg[1]] || '게임';
       }
       const map = {
@@ -13294,7 +13479,7 @@
       // 게임 화면(러닝/펀칭/점핑/배틀) 4개일 때만 헤더의 "🎮 게임 선택" 링크를 보여준다.
       // 게임 메뉴(#/game)나 홈/랭킹/격잘알 등 다른 페이지에서는 숨긴다.
       const headerGS = document.getElementById('headerGameSelectLink');
-      if (headerGS) headerGS.style.display = (seg[0] === 'game' && ['run', 'punch', 'grow', 'battle', 'quiz'].includes(seg[1])) ? '' : 'none';
+      if (headerGS) headerGS.style.display = (seg[0] === 'game' && ['run', 'punch', 'grow', 'battle', 'quiz', 'fort'].includes(seg[1])) ? '' : 'none';
       // 티켓 판매 현황 — 모든 방문자에게 공개.
       const navTickets = document.querySelector('[data-nav="tickets"]');
       if (navTickets) navTickets.style.display = '';
@@ -14511,7 +14696,12 @@
       // 나머지 날들이 전부 바닥에 깔려 +3과 +6이 똑같아 보였다(신고 확인). 첫 막대는 항상 100%로 그리고,
       // 나머지는 "하루 판매량 중 최대"를 100%로 제곱근 스케일링해서 작은 차이도 보이게 한다.
       const nonStart = bars.filter(b => !b.isStart);
-      const maxPos = Math.max(1, ...nonStart.map(b => Math.max(0, b.delta)));
+      // 시작 이후 "판매가 늘어난 날"이 하나도 없으면(예: 시작 21,177석 → 다음날 -4석) 기준이 1석으로 잡혀
+      // 취소 막대가 시작 막대와 똑같은 크기로 그려졌다. 이 경우엔 시작 막대의 값을 판매 쪽 기준으로 쓴다.
+      const startBar = bars.find(b => b.isStart);
+      const maxPos = nonStart.some(b => b.delta > 0)
+        ? Math.max(1, ...nonStart.map(b => Math.max(0, b.delta)))
+        : Math.max(1, startBar ? startBar.delta : 1);
       const maxNeg = Math.max(0, ...nonStart.map(b => Math.max(0, -b.delta))); // 취소가 더 많았던 날의 최대 폭
       // 마이너스인 날이 하나라도 있으면 차트를 기준선 위(판매)/아래(취소·빨강) 두 구역으로 나눈다.
       // 구역 높이는 양/음 최대값의 제곱근 비율로 배분(최소 10%, 최대 50%) — 그래서 -1 같은 값은
@@ -15340,6 +15530,13 @@
       if (/^S/.test(z.n)) return Z17_SKY[z.n] || '018';
       return '';
     }
+    // 배경이 밝은 등급 색(노랑·연두·하늘 등)에서는 흰 글씨가 안 보이므로 검정 계열 글씨를 쓴다.
+    function z17Ink(c) {
+      const m = /^#([0-9a-f]{6})$/i.exec(String(c || '').trim());
+      if (!m) return '#fff';
+      const n = parseInt(m[1], 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+      return (r * 299 + g * 587 + b * 114) / 1000 >= 150 ? '#1d1d1f' : '#fff';
+    }
     function z17Color(z) {
       const m = TK_GRADE_COLORS_BY_EVENT[Z17_EVENT] || {};
       return m[Z17_GRADE_NAME[z17GradeCode(z)]] || '#8a93a6';
@@ -15360,12 +15557,40 @@
       });
       return z._rows;
     }
+    // 휠체어석은 구매 대상이 아니므로 잔여석 찾기·구역 선택·좌석표 어디에서도 '매진'(회색) 처리한다.
+    // 구역 전체가 휠체어석이거나, 일반석 구역 안의 W열(W1, W2…) 좌석이 휠체어석이다.
+    function z17WcMask(z) {
+      if (z._wc !== undefined) return z._wc;
+      z._wc = null;
+      const codes = ((z.g && z.g.length) ? z.g : [z17GradeCode(z)]).filter(Boolean);
+      if (!codes.some(c => /휠체어/.test(Z17_GRADE_NAME[c] || ''))) return null;
+      const only = codes.every(c => /휠체어/.test(Z17_GRADE_NAME[c] || ''));
+      const mask = [];
+      z17Rows(z).forEach(r => r.seats.forEach(q => mask.push(only || /^W/i.test(String(q.col)))));
+      if (mask.some(Boolean)) z._wc = mask;
+      return z._wc;
+    }
     function z17Stat(z) {
-      const s = Z17.state && Z17.state.z && Z17.state.z[z.id];
+      let s = Z17.state && Z17.state.z && Z17.state.z[z.id];
       if (!s) return null;
-      let free = 0, sold = 0, held = 0, na = 0;
-      for (let i = 0; i < s.length; i++) { const c = s[i]; if (c === '0') free++; else if (c === '1') sold++; else if (c === 'h') held++; else na++; }
-      return { s, free, sold, held, na, total: s.length };
+      const wc = z17WcMask(z);
+      if (wc) s = s.split('').map((c, i) => wc[i] ? '1' : c).join('');
+      let free = 0, sold = 0, held = 0, na = 0, uFree = 0, uHeld = 0;
+      const cont = z17ContMask(z);
+      for (let i = 0; i < s.length; i++) { const c = s[i]; if (c === '0') { free++; if (!cont[i]) uFree++; } else if (c === '1') sold++; else if (c === 'h') { held++; if (!cont[i]) uHeld++; } else na++; }
+      return { s, free, sold, held, na, total: s.length, uFree, uHeld };
+    }
+    // 2인석(테이블·커플석 등)은 29CM에서 1자리만 골라 결제하면 2자리가 함께 잡힌다.
+    // 좌석표에는 "11-12"와 "11-12(2)"처럼 두 칸으로 그려지므로, 뒤쪽 "(n)" 칸은 같은 구매 단위의
+    // 연장 좌석으로 보고 잔여석 찾기의 개수·목록에서는 한 번만 센다.
+    function z17ContMask(z) {
+      if (z._cont) return z._cont;
+      const m = [];
+      z17Rows(z).forEach(r => {
+        const cols = new Set(r.seats.map(q => String(q.col)));
+        r.seats.forEach(q => { const t = String(q.col).match(/^(.+)\(\d+\)$/); m.push(!!(t && cols.has(t[1]))); });
+      });
+      return (z._cont = m);
     }
     // 구역 → 도형: 29CM 구역 지도(1174x920) 윤곽을 그대로 옮긴 다각형
     const Z17_POLY = {"F216":"434,124 465,148 499,118 442,115","F201":"754,123 747,115 690,117 724,148","F215":"339,169 417,191 454,157 434,139 384,127","F202":"849,169 803,127 757,139 735,157 771,191","F118":"505,127 474,157 528,202 530,195","F102":"683,127 658,196 662,202 714,157","F119":"523,131 542,187 568,185 568,146 530,128","F101":"659,128 619,147 621,185 646,188 667,133","F117":"431,195 507,216 515,212 465,166","F103":"757,195 724,166 674,212 680,216","F214":"310,236 395,236 410,204 335,183","F203":"879,236 853,183 779,204 793,236","B05":"542,199 542,206 548,220 570,216 570,196 553,196","B01":"618,196 617,216 641,220 647,206 647,199 635,196","F116":"409,236 492,236 498,229 422,207","F104":"780,236 766,207 691,229 697,236","B04":"508,231 495,244 495,304 505,317 526,313 515,299 514,279 515,250 526,234","B02":"681,231 663,234 674,249 674,300 663,313 684,317 694,304 694,244","F213":"393,249 310,250 310,300 393,300","F115":"407,249 407,300 488,299 488,249","F105":"701,249 701,300 781,300 781,249","F204":"796,249 796,300 878,300 878,249","F212":"326,311 361,358 409,345 395,310","F114":"409,311 422,341 498,319 492,311","F106":"691,319 767,341 780,311 697,311","F205":"779,345 827,360 863,311 793,311","B03":"547,347 562,353 627,353 643,347 639,325 550,325","F107":"674,336 724,382 756,354 683,332","F113":"514,336 503,333 433,355 464,382","F112":"525,345 474,392 504,421 530,352","F108":"663,346 659,352 683,421 715,391","F211":"419,358 372,371 407,415 436,408 454,392","F206":"770,358 735,392 753,408 782,415 817,372","F111":"545,358 520,430 553,442 553,360","F109":"643,358 635,361 636,442 669,430","F110":"566,362 566,419 622,419 622,362","F210":"464,401 445,418 436,454 477,503 502,433","F207":"725,401 687,433 712,503 753,453 744,419","F209":"515,440 493,507 538,524 540,462 550,452","F208":"672,440 639,452 648,462 650,524 696,507","114":"215,252 210,319 265,306 264,301 241,281 239,272","113":"291,317 281,308 212,327 234,352","112":"296,323 238,357 252,376 310,343","111":"302,357 257,382 277,408 321,382","110":"326,388 283,414 304,441 348,416","109":"368,413 310,448 332,476 381,448 381,428","108":"381,457 338,482 362,512 382,500","101":"974,252 950,272 948,281 923,306 980,318","102":"898,317 955,352 976,327 908,308","103":"893,323 878,343 937,376 951,357","104":"887,357 868,381 912,408 931,382","105":"863,388 841,416 883,442 906,413","106":"821,413 808,427 808,446 857,476 879,448","107":"808,456 806,499 827,512 851,481","210":"198,327 193,398 201,407 220,397 225,388 240,379","201":"991,326 948,378 988,408 996,400","209":"252,392 206,412 225,439 268,414","202":"937,391 920,414 964,440 984,413 966,402 959,403","208":"275,420 232,445 252,473 272,462 293,444","203":"914,420 895,444 912,454 917,462 938,473 957,445","207":"302,455 257,479 279,508 323,482","204":"887,455 867,477 866,482 910,508 932,479","206":"352,513 328,488 285,516 294,526 312,518 325,532 330,533 334,526","205":"836,514 855,526 859,533 876,518 895,526 904,515 861,488","322":"174,435 156,447 156,449 180,477 199,464 179,438","321":"202,471 184,483 209,512 227,499 205,471","320":"231,505 213,518 238,549 244,553 261,541","319":"265,547 247,559 273,591 279,594 295,583","318":"299,589 282,600 307,630 310,631 326,621","317":"330,626 313,638 341,670 356,658","316":"359,665 344,676 366,701 369,701 383,689 383,686 364,666","315":"387,694 371,707 395,734 412,717","314":"400,738 457,769 468,749 418,722","313":"464,771 540,786 542,762 474,751","312":"549,763 547,786 591,786 588,763","301":"1015,435 1010,438 990,464 1008,478 1033,449 1033,447","302":"987,471 981,474 962,499 980,512 1004,484","303":"959,506 928,541 944,553 977,518","304":"923,547 894,583 911,594 942,559","305":"890,589 864,620 865,623 879,631 882,630 907,600","306":"860,627 851,634 833,658 848,670 876,638","307":"829,664 827,664 806,686 806,689 821,701 828,696 845,676","308":"802,694 777,717 794,734 818,707","309":"789,738 771,722 721,750 732,770","310":"725,773 715,751 647,763 649,786","311":"601,763 598,786 642,787 640,763","424":"148,452 124,467 142,553 181,530 180,526 198,513","423":"209,525 182,536 144,561 160,605 235,558","422":"240,564 164,611 184,654 266,597","421":"277,609 251,619 187,660 207,693 299,638","420":"304,643 211,699 235,733 306,691 327,672","419":"338,683 240,739 274,775 359,708","418":"366,712 281,779 315,811 373,756 372,751 386,737","417":"420,758 399,748 383,762 379,760 324,817 362,841","416":"429,762 368,846 409,868 451,776","415":"465,781 419,871 469,888 496,786","414":"503,788 476,889 530,899 538,818 533,811 534,793","413":"551,793 537,900 591,904 591,793","401":"1039,451 991,513 1046,553 1065,467","402":"979,525 954,558 1029,605 1043,560","403":"949,564 923,598 1005,654 1025,612","404":"913,608 890,638 982,693 1002,660","405":"885,643 862,672 880,689 952,733 977,700","406":"830,706 915,775 947,740 855,684","407":"823,712 801,737 874,812 909,779","408":"769,757 827,844 866,817 810,759 790,747","409":"761,762 738,777 780,868 820,846","410":"724,781 693,786 719,888 770,871 737,798","411":"686,788 653,793 659,900 712,889","412":"598,793 598,902 649,902 640,795","T07":"385,506 368,518 417,575 434,564","T06":"437,570 421,580 457,626 472,609","T05":"464,630 489,645 536,656 537,636 504,629 480,616","T04":"547,639 547,656 642,656 642,639","T03":"725,630 709,616 685,629 652,636 653,656 700,645","T02":"751,570 717,609 732,626 768,580","T01":"804,506 756,565 774,575 820,520","T17":"342,539 383,591 403,578 369,536 356,530","T16":"407,593 392,605 418,638 430,645 447,627 420,597","T15":"445,652 447,657 478,676 484,670 516,678 515,661 487,655 460,640","T11":"833,530 820,536 786,575 805,591 847,540","T12":"796,602 782,593 770,596 742,629 759,645 770,638 797,605","T13":"744,653 729,640 704,655 674,661 672,675 676,678 699,670 713,674","D07":"483,555 465,566 478,583 497,574","D06":"477,591 494,611 514,622 528,600 509,588 502,579","D05":"526,616 550,626 565,626 564,610 533,604","D04":"617,610 571,611 572,627 618,626","D03":"663,616 656,604 624,610 625,626 639,626","D02":"710,592 687,579 671,595 661,601 675,622 695,610","D01":"706,555 692,574 710,584 714,580 721,564","S16":"309,526 281,541 280,547 318,593 349,561 331,540 321,538","S15":"355,568 323,598 332,611 364,579","S14":"369,585 337,617 347,628 379,597","S13":"384,603 352,635 363,647 392,618","S12":"398,623 368,653 377,665 407,635","S11":"427,651 411,641 383,672 397,681","S10":"435,655 403,686 420,696 448,667 446,663","S09":"474,681 456,670 427,700 445,710","S01":"879,526 858,540 840,561 871,593 909,547 909,542","S02":"834,568 825,579 857,611 866,598","S03":"820,585 810,597 842,628 852,617","S04":"805,603 796,617 826,647 837,635","S05":"791,623 781,634 812,665 821,653","S06":"776,640 771,646 762,651 793,681 806,672 806,670","S07":"741,665 769,696 786,686 756,655","S08":"715,681 744,710 762,700 733,670"};
@@ -15430,7 +15655,7 @@
           const st = z17Stat(z), f = z17ZoneFill(z, st);
           const txt = !st ? '…' : (st.free > 0 ? `잔여 ${st.free}` : '매진');
           const off = f.cls === 'z17-off' || f.cls === 'z17-load';
-          return `<button type="button" class="z17-chip${off ? ' off' : ''}" style="${off ? '' : `background:${f.fill};color:#fff`}" onclick="z17OpenZone(${z.id})" title="${esc(z17TitleOf(z, st))}"><b>${esc(z.n)}</b><span>${txt}</span></button>`;
+          return `<button type="button" class="z17-chip${off ? ' off' : ''}" style="${off ? '' : `background:${f.fill};color:${z17Ink(f.fill)}`}" onclick="z17OpenZone(${z.id})" title="${esc(z17TitleOf(z, st))}"><b>${esc(z.n)}</b><span>${txt}</span></button>`;
         }).join('');
         return `<div class="z17-sp-title">${title}</div><div class="z17-chips">${chips}</div>`;
       }).join('');
@@ -15462,7 +15687,39 @@
     function z17SameSize(el) {
       [['box-sizing', 'border-box'], ['display', 'inline-flex'], ['align-items', 'center'], ['justify-content', 'center'], ['height', '26px'], ['padding', '0 10px'], ['min-height', '26px'], ['max-height', '26px'], ['align-self', 'center'], ['position', 'static'], ['top', '0'], ['transform', 'none'], ['border', '0'], ['border-radius', '4px'], ['font-size', '12px'], ['font-weight', '700'], ['line-height', '1'], ['margin-top', '0'], ['margin-bottom', '0']].forEach(([k, v]) => el.style.setProperty(k, v, 'important'));
     }
+    // ── 홈 배너: 실시간 잔여석 요약(티켓 페이지와 같은 데이터) ──
+    function hmFinderPaint() {
+      const b = document.getElementById('hmBadge'); if (!b) return;
+      const d = z17FreeData(), remain = d.reduce((s, x) => s + x.free, 0);
+      b.textContent = Z17.err ? '준비 중' : !Z17.state ? '불러오는 중…' : (remain > 0 ? `잔여 ${remain}석` : '잔여 없음');
+      b.classList.toggle('has', !Z17.err && !!Z17.state && remain > 0);
+      const hb = document.getElementById('hmHold');
+      if (hb) {
+        let held = 0;
+        if (Z17.layout && Z17.state && Z17.state.z) Z17.layout.zones.forEach(z => { const q = z17Stat(z); if (q) held += q.uHeld; });
+        hb.textContent = `결제 대기 ${held}석`;
+        hb.style.display = (!Z17.err && Z17.state && held > 0) ? '' : 'none';
+      }
+    }
+    function hmFinderGo(e) {
+      if (e) e.preventDefault();
+      window.__z17AutoOpen = true;
+      if (location.hash === '#/tickets') hmFinderOpen(); else location.hash = '#/tickets';
+      return false;
+    }
+    function hmFinderOpen() {
+      window.__z17AutoOpen = false;
+      setTimeout(() => { z17OpenFront(); }, 150);
+    }
+    function hmFinderBoot() {
+      if (!document.getElementById('hmBadge') || document.body.dataset.route !== 'home') return;
+      z17Load();
+      if (!window.__hmTimer) window.__hmTimer = setInterval(() => { if (document.body.dataset.route === 'home' && !document.hidden) z17Poll(); }, 5000);
+    }
+    window.addEventListener('load', () => setTimeout(hmFinderBoot, 300));
+    window.addEventListener('hashchange', () => setTimeout(hmFinderBoot, 100));
     function z17Paint() {
+      hmFinderPaint();
       const box = document.getElementById('z17-box');
       if (!box) return;
       if (Z17.err && !Z17.layout) { box.innerHTML = '<div class="sub" style="padding:14px 4px;color:var(--dim)">구역별 좌석 데이터를 아직 준비 중입니다. 잠시 후 다시 확인해주세요.</div>'; return; }
@@ -15493,7 +15750,7 @@
         const hb = document.getElementById('z17Hold');
         if (hb) {
           let held = 0;
-          if (Z17.state && Z17.state.z) Object.keys(Z17.state.z).forEach(k => { held += (Z17.state.z[k].match(/h/g) || []).length; });
+          if (Z17.layout && Z17.state && Z17.state.z) Z17.layout.zones.forEach(z => { const q = z17Stat(z); if (q) held += q.uHeld; }); // 휠체어석 제외
           hb.textContent = `결제 대기 ${held}석`;
           z17SameSize(hb);
           hb.style.display = (!Z17.err && Z17.state && held > 0) ? '' : 'none';
@@ -15501,6 +15758,23 @@
       }
       const modal = document.getElementById('z17-modal');
       if (modal && modal.style.display === 'flex') z17RefreshModal();
+    }
+    // 5초마다 "마지막 수집 시각(at)"만 아주 작게 조회해서, 바뀐 게 있을 때만 전체 좌석 상태를 다시 받는다.
+    // (전체를 5초마다 받으면 트래픽이 커지므로) 조회가 실패하면 그냥 전체를 받아온다.
+    async function z17Poll() {
+      if (Z17.loading) return;
+      if (!Z17.state || !Z17.layout) return z17Load();
+      try {
+        const { data, error } = await sb.from('site_data').select('at:value->>at').eq('key', 'tk_state_bc17').single();
+        if (!error && data && data.at != null) {
+          Z17.pollBad = 0;
+          if (String(data.at) === String(Z17.state.at)) return;
+          return z17Load();
+        }
+      } catch (e) {}
+      // 가벼운 조회가 안 되는 환경이면 예전처럼 20초에 한 번만 전체를 받는다(트래픽 보호)
+      Z17.pollBad = (Z17.pollBad || 0) + 1;
+      if (Z17.pollBad % 4 === 1) return z17Load();
     }
     async function z17Load(force) {
       if (Z17.loading) return;
@@ -15519,8 +15793,8 @@
       if (!Z17.timer) {
         Z17.timer = setInterval(() => {
           if (!document.getElementById('z17-box')) { clearInterval(Z17.timer); Z17.timer = null; return; }
-          if (!document.hidden) z17Load();
-        }, 20000);
+          if (!document.hidden) z17Poll();
+        }, 5000);
       }
     }
     // ── 구역 상세 ──
@@ -15532,7 +15806,9 @@
       const z = Z17.layout.zones.find(q => q.id === id);
       if (!z) return '';
       const st = z17Stat(z), color = z17Color(z);
-      const head = `<div class="tk-live-modal-head"><b>${esc(z.n)}</b><span style="color:${color}">${esc(z17GradeLabel(z))}</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>`;
+      const zm = document.getElementById('z17-modal');
+      const back = zm && zm.dataset.from === 'front' ? '<button type="button" class="z17-back" onclick="z17OpenFront()">뒤로가기</button>' : '';
+      const head = `<div class="tk-live-modal-head">${back}<b>${esc(z.n)}</b><span style="color:${color}">${esc(z17GradeLabel(z))}</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>`;
       if (!st) return `${head}<div class="tk-live-zone-loading">불러오는 중…</div>`;
       let prevY = null, body = '';
       z17Rows(z).forEach(r => {
@@ -15557,10 +15833,11 @@
       }
       return modal;
     }
-    function z17OpenZone(id, hr, hc) {
+    function z17OpenZone(id, hr, hc, fromFront) {
       if (!Z17.layout) return;
       const modal = z17EnsureModal();
       modal.dataset.mode = 'zone'; modal.dataset.id = id;
+      if (fromFront) modal.dataset.from = 'front'; else delete modal.dataset.from;
       if (hr != null) { modal.dataset.hr = hr; modal.dataset.hc = hc; } else { delete modal.dataset.hr; delete modal.dataset.hc; }
       modal.innerHTML = `<div class="tk-live-modal-inner">${z17ZoneModalHTML(id, modal.dataset.hr, modal.dataset.hc)}</div>`;
       modal.style.display = 'flex';
@@ -15579,7 +15856,7 @@
       const chips = zs.map(({ z, st, part }) => {
         const on = st && st.free > 0, na = st && st.na === st.total;
         const txt = !st ? '…' : (on ? `잔여 ${st.free}` : '매진');
-        return `<button type="button" class="z17-chip${on ? '' : ' off'}" style="${on ? `background:${color};color:#fff` : ''}" onclick="z17OpenZone(${z.id})"><b>${esc(z.n)}</b><span>${txt}</span>${part ? '<span title="이 구역 안의 일부 좌석">*</span>' : ''}</button>`;
+        return `<button type="button" class="z17-chip${on ? '' : ' off'}" style="${on ? `background:${color};color:${z17Ink(color)}` : ''}" onclick="z17OpenZone(${z.id})"><b>${esc(z.n)}</b><span>${txt}</span>${part ? '<span title="이 구역 안의 일부 좌석">*</span>' : ''}</button>`;
       }).join('');
       const none = !zs.length ? '<div class="tk-live-zone-loading">이 등급은 구역 정보가 따로 없어요.<br>잔여 수는 아래 "판매 · 잔여 좌석"에서 확인하세요.</div>' : '';
       return `${head}<div class="tk-live-modal-sub">${free > 0 ? `잔여 <b>${free.toLocaleString()}석</b> · 잔여 있는 구역 ${open}개` : '잔여 없음'} · ${esc(z17AtText())}<br>구역을 누르면 좌석별 현황이 열립니다${zs.some(x => x.part) ? '<br>* 표시는 그 구역 안의 일부 좌석만 이 등급(잔여 수는 구역 전체)' : ''}</div>${none}<div class="z17-chips z17-scroll" style="padding-top:6px">${chips}</div>`;
@@ -15608,10 +15885,10 @@
       const out = [];
       Z17.layout.zones.forEach(z => {
         const st = z17Stat(z);
-        if (!st || st.free <= 0) return;
-        const seats = [];
-        z17Rows(z).forEach(r => r.seats.forEach((s, i) => { if (st.s[r.off + i] === '0') seats.push({ row: r.k, col: s.col }); }));
-        out.push({ z, free: st.free, held: st.held, seats });
+        if (!st || st.uFree <= 0) return;
+        const seats = [], cont = z17ContMask(z);
+        z17Rows(z).forEach(r => r.seats.forEach((s, i) => { if (st.s[r.off + i] === '0' && !cont[r.off + i]) seats.push({ row: r.k, col: s.col }); }));
+        out.push({ z, free: st.uFree, held: st.uHeld, seats });
       });
       out.sort((a, b) => (b.free - a.free) || String(a.z.n).localeCompare(String(b.z.n), 'ko', { numeric: true }));
       return out;
@@ -15620,18 +15897,27 @@
       const data = z17FreeData();
       const free = data.reduce((s, d) => s + d.free, 0);
       let held = 0;
-      if (Z17.state && Z17.state.z) Object.keys(Z17.state.z).forEach(k => { held += (Z17.state.z[k].match(/h/g) || []).length; });
+      if (Z17.layout && Z17.state && Z17.state.z) Z17.layout.zones.forEach(z => { const q = z17Stat(z); if (q) held += q.uHeld; }); // 휠체어석 제외
       const body = data.map(d => {
-        const color = z17Color(d.z), MAX = 40;
-        const chips = d.seats.slice(0, MAX).map(q => `<button type="button" class="z17-fs" style="background:${color}" onclick="z17OpenZone(${d.z.id},'${esc(q.row)}','${esc(q.col)}')" title="누르면 이 좌석이 있는 구역 좌석표가 열립니다">${esc(q.row)}열 ${esc(q.col)}번</button>`).join('');
+        const color = z17Color(d.z), MAX = Infinity;
+        const chips = d.seats.slice(0, MAX).map(q => `<button type="button" class="z17-fs" style="background:${color};color:${z17Ink(color)}" onclick="z17OpenZone(${d.z.id},'${esc(q.row)}','${esc(q.col)}',1)" title="누르면 이 좌석이 있는 구역 좌석표가 열립니다">${esc(q.row)}열 ${esc(q.col)}번</button>`).join('');
         const more = d.seats.length > MAX ? `<span class="z17-fs-more">외 ${d.seats.length - MAX}석 · 구역을 눌러 전체 보기</span>` : '';
-        return `<div class="z17-fz"><div class="z17-fz-h" onclick="z17OpenZone(${d.z.id})" title="${esc(d.z.n)} 구역 전체 좌석 보기"><b>${esc(d.z.n)}</b><span class="z17-fz-g" style="color:${color}">${esc(z17GradeLabel(d.z))}</span><span class="z17-fz-n">잔여 ${d.free}석${d.held ? ` · 선택 중 ${d.held}` : ''}</span></div><div class="z17-fz-seats">${chips}${more}</div></div>`;
+        return `<div class="z17-fz"><div class="z17-fz-h" onclick="z17OpenZone(${d.z.id},null,null,1)" title="${esc(d.z.n)} 구역 전체 좌석 보기"><b>${esc(d.z.n)}</b><span class="z17-fz-g" style="color:${color}">${esc(z17GradeLabel(d.z))}</span><span class="z17-fz-n">잔여 ${d.free}석${d.held ? ` · 선택 중 ${d.held}` : ''}</span></div><div class="z17-fz-seats">${chips}${more}</div></div>`;
       }).join('');
-      const empty = Z17.state ? `<div class="tk-live-zone-loading">지금은 잔여석이 없어요.${held ? `<br>선택 중(결제 대기) 좌석 ${held}석이 있어 곧 풀릴 수 있어요.` : ''}<br>약 20초 단위로 자동 갱신됩니다.</div>` : '<div class="tk-live-zone-loading">불러오는 중…</div>';
+      // 결제 대기(선택 중) 좌석이 어느 구역·열·번호인지 (휠체어석 제외)
+      const heldList = [];
+      if (Z17.layout && Z17.state && Z17.state.z) Z17.layout.zones.forEach(z => {
+        const q = z17Stat(z); if (!q || !q.uHeld) return;
+        const cont = z17ContMask(z);
+        z17Rows(z).forEach(r => r.seats.forEach((s, i) => { if (q.s[r.off + i] === 'h' && !cont[r.off + i]) heldList.push({ z, row: r.k, col: s.col }); }));
+      });
+      const HMAX = Infinity; // 결제 대기 좌석은 전부 보여준다(목록은 스크롤)
+      const heldHtml = heldList.length ? `<div class="z17-fz-seats" style="justify-content:flex-start">${heldList.slice(0, HMAX).map(q => `<button type="button" class="z17-fs" style="background:${z17Color(q.z)};color:${z17Ink(z17Color(q.z))}" onclick="z17OpenZone(${q.z.id},'${esc(q.row)}','${esc(q.col)}',1)" title="결제 대기 중인 좌석 — 누르면 구역 좌석표가 열립니다">${esc(z17GradeLabel(q.z))}(${esc(q.z.n)} ${esc(q.row)}열 ${esc(q.col)}번)</button>`).join('')}${heldList.length > HMAX ? `<span class="z17-fs-more">외 ${heldList.length - HMAX}석</span>` : ''}</div>` : '';
+      const empty = Z17.state ? `<div class="tk-live-zone-loading" style="text-align:left;padding-left:2px"><div>지금은 잔여석이 없어요.${held ? `<br>선택 중(결제 대기) 좌석 ${held}석이 있어 곧 풀릴 수 있어요.` : ''}</div>${heldHtml ? `<div style="margin-top:12px">${heldHtml}</div>` : ''}</div>` : '<div class="tk-live-zone-loading">불러오는 중…</div>';
       return `<div class="tk-live-modal-head"><b>잔여석 바로 찾기</b><span style="color:var(--dim);font-size:12px">잔여 좌석이 있는 구역</span><button type="button" class="tk-live-modal-close" onclick="z17CloseModal()">✕</button></div>
         <div class="tk-row1-top"><span class="tk-row1-sum">${free > 0 ? `잔여 <b>${free}석</b> · ${data.length}개 구역` : '잔여 없음'}</span></div>
-        <div class="tk-row1-note top">좌석을 누르면 그 구역 좌석표(해당 좌석 표시) · 좌석표에서 29CM 예매로 이동<br>※ ${esc(z17AtText())} · 약 20초 단위로 자동 갱신됩니다</div>
-        <div class="z17-scroll">${body || empty}</div>`;
+        <div class="tk-row1-note top">좌석을 누르면 그 구역 좌석표(해당 좌석 표시) · 좌석표에서 29CM 예매로 이동<br>※ ${esc(z17AtText())} · 실시간으로 자동 갱신됩니다</div>
+        <div class="z17-scroll">${body || empty}${body && heldHtml ? `<div class="z17-fz-h" style="cursor:default;margin-top:14px"><b>결제 대기 ${held}석</b><span class="z17-fz-n">곧 풀릴 수 있어요</span></div><div style="margin-top:6px">${heldHtml}</div>` : ''}</div>`;
     }
     function z17OpenFront() {
       const modal = z17EnsureModal();
@@ -15642,10 +15928,10 @@
     }
     function z17CardHTML() {
       return `
-      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)"><span id="z17At"></span>약 20초 단위 자동 갱신</span></div>
+      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)"><span id="z17At"></span>실시간 자동 갱신</span></div>
       <div class="card">
         <button type="button" class="tk-row1-btn" onclick="z17OpenFront()">잔여석 바로 찾기 <span class="tk-row1-badge" id="z17Badge">불러오는 중…</span><span class="z17-holdbox" id="z17Hold" style="display:none"></span></button>
-        <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">잔여(컬러) · 매진(회색) · 선택 중(결제 대기) · 구역 누르면 좌석 배치 확인</div>
+        <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">잔여(컬러) · 매진(회색) · 선택 중(결제 대기) · 휠체어석 제외</div>
         <div id="z17-box"></div>
       </div>`;
     }
@@ -15760,11 +16046,24 @@
     }
     /* 예상 매출 접기/펼치기 (당첨 선물 배너의 "지급 방식 예시 보기"와 같은 방식) */
     function toggleTkRevenue(btn) {
-      const box = btn.parentElement.querySelector('.tk-rev-body');
+      const wrap = btn.closest('.tk-rev'); if (!wrap) return;
+      const box = wrap.querySelector('.tk-rev-body');
       if (!box) return;
       const open = box.style.display !== 'none';
+      const pb = wrap.querySelector('.tk-price-body'), pbtn = wrap.querySelector('.tk-price-btn');
+      if (!open && pb) { pb.style.display = 'none'; if (pbtn) pbtn.textContent = '🎟️ 티켓 가격 보기 ▾'; }
       box.style.display = open ? 'none' : '';
       btn.textContent = open ? '💰 예상 매출 보기 ▾' : '💰 예상 매출 접기 ▴';
+    }
+    function toggleTkPrices(btn) {
+      const wrap = btn.closest('.tk-rev'); if (!wrap) return;
+      const box = wrap.querySelector('.tk-price-body');
+      if (!box) return;
+      const open = box.style.display !== 'none';
+      const rb = wrap.querySelector('.tk-rev-body'), rbtn = wrap.querySelector('.tk-rev-btn');
+      if (!open && rb) { rb.style.display = 'none'; if (rbtn) rbtn.textContent = '💰 예상 매출 보기 ▾'; }
+      box.style.display = open ? 'none' : '';
+      btn.textContent = open ? '🎟️ 티켓 가격 보기 ▾' : '🎟️ 티켓 가격 접기 ▴';
     }
     /* 수동 갱신 — 5분 자동 스케줄을 기다리지 않고, 예매 사이트의 잔여석을 즉석 조회해
        화면만 갱신한다. (기록으로 저장되지는 않는다 — 히스토리는 자동 기록이 계속 담당) */
@@ -16714,9 +17013,18 @@
           });
           if (revRows.length) {
             const twoTier = TK_UNCLASSIFIED_HOLDS && holdSeats > 0;
+            const priceKeys = sortGradeKeysByPrice(Object.keys(gradePrices).filter(k => typeof gradePrices[k] === 'number' && gradePrices[k] > 0), gradePrices);
+            const priceRowsHTML = priceKeys.map(k => {
+              const dot = (gradeColors && (gradeColors[k] || gradeColors[String(k).replace(/석$/, '')])) || '#8a93a6';
+              return `<div class="tk-pr-row"><span class="tk-pr-n"><i style="background:${dot}"></i>${esc(k)}${/석$/.test(k) ? '' : '석'}</span><b class="tk-pr-v">${gradePrices[k].toLocaleString()}원</b></div>`;
+            }).join('');
             revenueHTML = `
         <div class="tk-rev">
-          <button type="button" class="btn xs" onclick="toggleTkRevenue(this)">💰 예상 매출 보기 ▾</button>
+          <div class="tk-rev-btns">
+            <button type="button" class="btn xs tk-rev-btn" onclick="toggleTkRevenue(this)">💰 예상 매출 보기 ▾</button>
+            ${priceRowsHTML ? '<button type="button" class="btn xs tk-price-btn" onclick="toggleTkPrices(this)">🎟️ 티켓 가격 보기 ▾</button>' : ''}
+          </div>
+          ${priceRowsHTML ? `<div class="tk-price-body" style="display:none">${priceRowsHTML}</div>` : ''}
           <div class="tk-rev-body" style="display:none">
             ${twoTier ? `
             <div class="tk-rev-top"><span>💰 예상 매출(미분류 포함 시 상한)</span><span class="tk-rev-sum" style="font-size:15px;font-weight:800">${revSum.toLocaleString()}원</span></div>
@@ -16828,7 +17136,7 @@
       // 구역별 실시간 좌석 현황 — 이 행사(BC_2026_0829)에서만, "전체 좌석"과 "잔여 좌석" 사이에 넣는다.
       const liveZonesEnabled = (eventKey === 'BC_2026_0829');
       const liveZonesHTML = liveZonesEnabled ? `
-      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">1분 단위 자동 갱신</span></div>
+      <div class="sec-title" style="justify-content:space-between"><span>구역별 실시간 좌석</span><span style="font-size:11px;font-weight:400;color:var(--dim)">실시간 자동 갱신</span></div>
       <div class="card">
         <button type="button" class="tk-row1-btn" onclick="tkRow1OpenModal()">맨 앞열 바로 찾기 <span class="tk-row1-badge" id="tkRow1Badge">불러오는 중…</span></button>
         <div class="sub" style="margin-bottom:8px;font-size:11px;color:var(--dim)">매진(회색) 잔여(컬러) · 정확한 좌석은 29CM 확인 · 구역 선택 시 좌석 오픈</div>
@@ -16860,7 +17168,7 @@
       tkFitTotalLine();
       tkFitForecastLines();
       tkFitPies();
-      if (eventKey === Z17_EVENT) { z17Paint(); z17Load(); }
+      if (eventKey === Z17_EVENT) { z17Paint(); z17Load(); if (window.__z17AutoOpen) hmFinderOpen(); }
       if (liveZonesEnabled) { tkLoadLiveZoneSnapshot().then(() => { if (!navStale(__g)) tkLoadLiveSeatMap(); }); }
     }
 
@@ -18922,7 +19230,8 @@
     function gmMiniGameIsPlaying() {
       return (typeof G !== 'undefined' && G.mode === 'play')
         || (typeof R !== 'undefined' && R.mode === 'play')
-        || (typeof J !== 'undefined' && J.mode === 'play');
+        || (typeof J !== 'undefined' && J.mode === 'play')
+        || (typeof FT !== 'undefined' && FT.active && gmCurGame === 'fort');
     }
     // 7.0: 게임 화면(블랙 러닝/펀칭/점핑/배틀) 도중에만 헤더의 접속자 수 줄 오른쪽 끝에 뜨는
     // "🎮 게임 선택" 링크. 예전에는 각 게임 화면 제목 바에 개별로 있었는데, 게임 화면 바로 위
@@ -19167,7 +19476,7 @@
       lo.onclick = async e => { e.stopPropagation(); history.back(); await gmLogout(); gmKakaoLogin(); };
       setTimeout(() => { try { input.focus(); } catch (e) { } }, 50);
     }
-    function gmClear() { gmTimers.forEach(clearTimeout); gmTimers = []; if (G.raf) { cancelAnimationFrame(G.raf); G.raf = 0; } if (gmCurGame === 'battle' && typeof gmBattleLeave === 'function') gmBattleLeave(); }
+    function gmClear() { gmTimers.forEach(clearTimeout); gmTimers = []; if (typeof FT !== 'undefined' && FT) { FT.active = false; FT.aiTween = null; } if (G.raf) { cancelAnimationFrame(G.raf); G.raf = 0; } if (gmCurGame === 'battle' && typeof gmBattleLeave === 'function') gmBattleLeave(); }
     function gmDelay(fn, ms) { gmTimers.push(setTimeout(fn, ms)); }
     function gmFast() { return !!window.__TEST_SB; }
     function gmResetLeft() {
@@ -19558,6 +19867,7 @@
       if (sub === 'grow') return viewGameJump();
       if (sub === 'battle') return viewGameBattle();
       if (sub === 'quiz') return viewGameQuiz();
+      if (sub === 'fort') return viewGameFort();
       return viewGameMenu();
     }
     function viewGameMenu() {
@@ -19580,6 +19890,16 @@
   ${card('#/game/run', 'run', '블랙 러닝', '점프·더블점프로 장애물을 뚫고 달려라!', 'gTopRun', 'run')}
   ${card('#/game/punch', 'punch', '블랙 펀칭', '타이밍에 딱 맞춰 최강 펀치 10방!', 'gTopPunch', 'punch')}
   ${card('#/game/grow', 'jump', '블랙 점핑', '발판을 통통 밟고 하늘 끝까지!', 'gTopGrow', 'grow')}
+  <a class="gcard gcard-fort" href="#/game/fort">
+    <span class="gc-new">NEW</span>
+    <div class="gc-ico"><img src="${ftArtSrc('tusin')}" alt=""></div>
+    <div class="gc-b">
+      <b>글러브 포트리스</b>
+      <span>각도·파워·바람을 읽고 글러브를 날려라! 6인 6색 턴제 포격전</span>
+      <span class="gc-top" id="gTopFort">불러오는 중…</span>
+    </div>
+    <span class="gc-go">PLAY</span>
+  </a>
   <a class="gcard gcard-battle" href="#/game/battle">
     <div class="gc-ico">${bbCycleHtml('icon')}</div>
     <div class="gc-b">
@@ -19594,6 +19914,7 @@
       loadMenuBattleRecord();
       loadMenuQuizTop();
       loadMenuHotBadge();
+      ftMenuTop();
     }
     // 🔥 HOT 배지 — "직전 24시간(롤링) 실제 플레이 유저 수 1위 → 동점 시 고유 방문자 →
     // 방문수 → 무기록 시 최근 7일 폴백" 기준으로 1위 게임 카드에 자동으로 붙는다(2026-08-21 확정).
@@ -19641,6 +19962,1003 @@
         el.textContent = '랭킹 준비 중';
       }
     }
+
+    /* ── [글러브 포트리스] 엔진 + 화면 (2026-11-04 추가, preview) ── */
+/* ═══════════════════════════════════════════════════════════════════════
+   글러브 포트리스 — 게임 엔진 (화면/DOM과 무관한 순수 로직)
+   · 브라우저에서는 전역 FortEngine, Node에서는 module.exports 로 쓰인다.
+   · 같은 엔진으로 밸런스 시뮬레이션(AI끼리 수천 판)을 돌려 승률을 검증한다.
+   ═══════════════════════════════════════════════════════════════════════ */
+var FortEngine = (function () {
+  'use strict';
+
+  var W = 600, H = 340;           // 월드 크기(논리 좌표)
+  var GRAV = 300;                 // 중력
+  var WIND_ACC = 32;              // 바람 1.0 일 때 가로 가속도
+  var VMAX = 470;                 // 파워 100% 기본 탄속
+  var BODY_R = 23;                // 캐릭터 피격 반경
+  var BODY_CY = 33;               // 발바닥에서 몸 중심까지 높이
+  var DT = 1 / 60;
+  var MAXSTEP = 1200;
+
+  /* ── 캐릭터 6인: 강점 하나 + 약점 하나 (완전 상위호환이 없게) ──
+     hp 체력 · dmg 기본 데미지 · rad 폭발 반경 · spd 탄속 배율 · wind 바람 민감도 · move 이동력
+     passive: rage(분노) / ko(주먹 KO) / combo(2연타) / shield(방패) / null */
+  var CHARS = {
+    tusin: {
+      id: 'tusin', name: '투신', tag: '정석 포격수',
+      hp: 100, dmg: 31, rad: 32, spd: 1.0, wind: 1.0, move: 70, passive: 'rage',
+      pTitle: '순둥이의 분노', pDesc: '체력 40% 이하가 되면 데미지 +30%, 폭발 범위 +4',
+      taunt: '내가 화나기 전에 끝내자🔥',
+    },
+    wumawang: {
+      id: 'wumawang', name: '우마왕', tag: '한 방 KO',
+      hp: 88, dmg: 31, rad: 24, spd: 1.0, wind: 1.0, move: 70, passive: 'ko',
+      pTitle: '주먹 KO', pDesc: '글러브에 직접 맞히면 데미지 1.6배 (대신 범위가 좁아요)',
+      taunt: '가드 올려, 그래도 깨진다👊',
+    },
+    godfather: {
+      id: 'godfather', name: 'gotfather', tag: '2연타 변칙',
+      hp: 96, dmg: 32, rad: 28, spd: 1.0, wind: 1.0, move: 70, passive: 'combo',
+      pTitle: '말빨 2연타', pDesc: '글러브 2개를 동시에 던져요 (각 82% 데미지). 둘 다 맞으면 대박!',
+      taunt: '내가 만든 판에서 내가 지는 그림은 없어👑',
+    },
+    kingkong: {
+      id: 'kingkong', name: '킹콩', tag: '묵직한 탱커',
+      hp: 106, dmg: 29, rad: 32, spd: 0.88, wind: 1.15, move: 40, passive: null,
+      pTitle: '하바스 2.0', pDesc: '체력과 폭발 범위가 압도적! 대신 탄이 느리고 이동이 둔해요',
+      taunt: '실려 나갈 준비 됐냐?☠️',
+    },
+    sirasony: {
+      id: 'sirasony', name: '시라소니', tag: '빠른 기동형',
+      hp: 116, dmg: 35, rad: 29, spd: 1.1, wind: 0.6, move: 125, passive: null,
+      pTitle: '무패의 발놀림', pDesc: '이동력이 가장 높고 바람을 덜 타요. 대신 체력과 화력이 낮아요',
+      taunt: '덤비는 건 좋은데, 수준부터 맞춰라😑',
+    },
+    captainkorea: {
+      id: 'captainkorea', name: '캡틴 코리아', tag: '태극 방패',
+      hp: 100, dmg: 29, rad: 28, spd: 1.0, wind: 1.0, move: 100, passive: 'shield',
+      pTitle: '태극 방패', pDesc: '받는 데미지 20% 감소 · 이동력 좋음. 대신 한 방이 약해요',
+      taunt: '햄버거 먹고 와도 너는 잡겠다🍔',
+    },
+  };
+  var ORDER = ['tusin', 'wumawang', 'godfather', 'kingkong', 'sirasony', 'captainkorea'];
+
+  /* 시드 난수 (밸런스 시뮬레이션 재현용) */
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+
+  /* ── 지형 생성: 사인파 몇 개 + 가운데 능선. 양쪽 시작 지점은 평평하게 ── */
+  function genTerrain(rng) {
+    var top = new Float32Array(W);
+    var base = H * 0.68;
+    var a1 = 16 + rng() * 22, a2 = 8 + rng() * 14, a3 = 3 + rng() * 6;
+    var p1 = rng() * 6.283, p2 = rng() * 6.283, p3 = rng() * 6.283;
+    var f1 = 0.009 + rng() * 0.006, f2 = 0.022 + rng() * 0.01, f3 = 0.055 + rng() * 0.03;
+    var ridgeH = rng() * 62, ridgeW = 55 + rng() * 55, ridgeX = W / 2 + (rng() - 0.5) * 120;
+    for (var x = 0; x < W; x++) {
+      var h = a1 * Math.sin(x * f1 + p1) + a2 * Math.sin(x * f2 + p2) + a3 * Math.sin(x * f3 + p3);
+      var d = (x - ridgeX) / ridgeW;
+      h += ridgeH * Math.exp(-d * d);
+      var edge = Math.min(x, W - 1 - x);
+      var w = clamp((edge - 20) / 95, 0, 1); w = w * w * (3 - 2 * w);
+      var y = base - h * w;
+      top[x] = clamp(y, 110, H - 45);
+    }
+    // 가볍게 평활화(뾰족한 톱니 방지)
+    for (var pass = 0; pass < 2; pass++) {
+      for (var i = 1; i < W - 1; i++) top[i] = (top[i - 1] + top[i] * 2 + top[i + 1]) / 4;
+    }
+    return top;
+  }
+  function surfaceY(top, x) {
+    if (x <= 0) return top[0];
+    if (x >= W - 1) return top[W - 1];
+    var i = x | 0, f = x - i;
+    return top[i] * (1 - f) + top[i + 1] * f;
+  }
+
+  /* ── 새 게임 ── */
+  function newGame(opts) {
+    var rng = opts.rng || Math.random;
+    var top = genTerrain(rng);
+    function mk(id, x, face) {
+      var c = CHARS[id];
+      return {
+        id: id, x: x, y: surfaceY(top, x), hp: c.hp, maxHp: c.hp,
+        stam: c.move, ang: face > 0 ? 50 : 130, pow: 60, face: face, dead: false,
+      };
+    }
+    var xa = 55 + rng() * 55, xb = W - 55 - rng() * 55;
+    var st = {
+      top: top, p: [mk(opts.a, xa, 1), mk(opts.b, xb, -1)],
+      turn: opts.first || 0, wind: (rng() - 0.5) * 1.6, over: false, winner: -1,
+      shots: 0, lastImpact: [null, null], rng: rng,
+    };
+    return st;
+  }
+
+  function effective(p) {
+    var c = CHARS[p.id], e = { dmg: c.dmg, rad: c.rad, direct: 1, take: 1, spd: c.spd, wind: c.wind, n: 1, spread: 0 };
+    if (c.passive === 'rage' && p.hp / p.maxHp <= 0.4) { e.dmg *= 1.3; e.rad += 4; }
+    if (c.passive === 'ko') e.direct = 1.4;
+    if (c.passive === 'combo') { e.n = 2; e.dmg *= 0.82; e.rad -= 0; e.spread = 2.8; }
+    if (c.passive === 'shield') e.take = 0.8;
+    return e;
+  }
+  function takeMul(p) { return CHARS[p.id].passive === 'shield' ? 0.8 : 1; }
+
+  /* ── 이동: 한 번에 1칸. 급경사(절벽)는 못 올라가고 상대 캐릭터를 통과할 수 없다 ── */
+  function moveStep(st, pi, dir) {
+    var p = st.p[pi], o = st.p[1 - pi];
+    if (p.stam < 1 || st.over) return false;
+    var nx = p.x + dir;
+    if (nx < 8 || nx > W - 8) return false;
+    if (Math.abs(nx - o.x) < 34) return false;
+    var ny = surfaceY(st.top, nx);
+    if (p.y - ny > 3.2) return false;        // 너무 가파른 오르막
+    p.x = nx; p.y = ny; p.stam -= 1; p.face = dir;
+    return true;
+  }
+  function settle(st) {
+    for (var i = 0; i < 2; i++) { var p = st.p[i]; p.y = surfaceY(st.top, p.x); }
+  }
+
+  /* ── 탄도 계산 (상태를 바꾸지 않음). rec=true 면 경로 좌표를 기록한다 ── */
+  function trace(st, pi, ang, pow, rec, angOff) {
+    var p = st.p[pi], e = effective(p);
+    var a = (ang + (angOff || 0)) * Math.PI / 180;
+    var v0 = VMAX * e.spd * (pow / 100);
+    var x = p.x + Math.cos(a) * 18, y = p.y - BODY_CY - 4 - Math.sin(a) * 18;
+    var vx = Math.cos(a) * v0, vy = -Math.sin(a) * v0;
+    var ax = WIND_ACC * st.wind * e.wind;
+    var path = rec ? [[x, y]] : null;
+    var res = null;
+    for (var s = 1; s <= MAXSTEP; s++) {
+      vx += ax * DT; vy += GRAV * DT;
+      x += vx * DT; y += vy * DT;
+      if (rec && (s % 1 === 0)) path.push([x, y]);
+      if (x < -30 || x > W + 30 || y > H + 60) { res = { type: 'out', x: x, y: y, steps: s }; break; }
+      if (x >= 0 && x < W && y >= surfaceY(st.top, x)) { res = { type: 'ground', x: x, y: surfaceY(st.top, x), steps: s }; break; }
+      var hit = -1;
+      for (var i = 0; i < 2; i++) {
+        if (i === pi && s < 24) continue;          // 발사 직후엔 자기 몸에 안 맞음
+        var c = st.p[i], dx = x - c.x, dy = y - (c.y - BODY_CY);
+        if (dx * dx + dy * dy < (BODY_R + 3) * (BODY_R + 3)) { hit = i; break; }
+      }
+      if (hit >= 0) { res = { type: 'char', x: x, y: y, idx: hit, steps: s }; break; }
+    }
+    if (!res) res = { type: 'out', x: x, y: y, steps: MAXSTEP };
+    res.by = pi; res.path = path;
+    return res;
+  }
+
+  /* 발사: 투사체(들)의 궤적을 미리 계산해 돌려준다. 화면은 이 경로를 따라 애니메이션한 뒤 resolve 를 부른다 */
+  function fire(st, pi, ang, pow) {
+    var e = effective(st.p[pi]);
+    var shots = [];
+    for (var k = 0; k < e.n; k++) {
+      var off = e.n === 1 ? 0 : (k === 0 ? -e.spread : e.spread);
+      var r = trace(st, pi, ang, pow, true, off);
+      r.dmg = e.dmg; r.rad = e.rad; r.direct = e.direct; r.k = k;
+      shots.push(r);
+    }
+    st.p[pi].ang = ang; st.p[pi].pow = pow;
+    st.shots++;
+    return shots;
+  }
+
+  function carve(top, cx, cy, r) {
+    var x0 = Math.max(0, Math.floor(cx - r)), x1 = Math.min(W - 1, Math.ceil(cx + r));
+    for (var x = x0; x <= x1; x++) {
+      var dx = x - cx, s = Math.sqrt(Math.max(0, r * r - dx * dx));
+      var bottom = cy + s;
+      if (top[x] < bottom) top[x] = Math.min(bottom, H - 12);
+    }
+  }
+
+  /* 착탄 처리: 지형 파괴 + 데미지. 이벤트 목록을 돌려준다 */
+  function resolve(st, shot) {
+    var att = st.p[shot.by], evs = [];
+    if (shot.type !== 'out') {
+      for (var i = 0; i < 2; i++) {
+        var c = st.p[i];
+        if (c.dead) continue;
+        var dist = Math.hypot(shot.x - c.x, shot.y - (c.y - BODY_CY));
+        var d = Math.max(0, dist - BODY_R);
+        if (d >= shot.rad) continue;
+        var f = 1 - 0.65 * (d / shot.rad);
+        var dm = shot.dmg * f;
+        if (shot.type === 'char' && shot.idx === i) dm *= shot.direct;
+        dm *= takeMul(c);
+        if (i === shot.by) dm *= 0.6;
+        dm = Math.max(1, Math.round(dm));
+        c.hp = Math.max(0, c.hp - dm);
+        evs.push({ idx: i, dmg: dm, direct: shot.type === 'char' && shot.idx === i, ko: c.hp <= 0 });
+        if (c.hp <= 0) c.dead = true;
+      }
+      carve(st.top, shot.x, shot.y, shot.rad * 0.92);
+      settle(st);
+      st.lastImpact[shot.by] = { x: shot.x, y: shot.y };
+    }
+    if (st.p[0].dead || st.p[1].dead) {
+      st.over = true;
+      st.winner = st.p[0].dead && st.p[1].dead ? (1 - st.turn) : (st.p[0].dead ? 1 : 0);
+    }
+    return evs;
+  }
+
+  function endTurn(st) {
+    if (st.over) return;
+    st.turn = 1 - st.turn;
+    var p = st.p[st.turn];
+    p.stam = CHARS[p.id].move;
+    st.wind = clamp(st.wind + (st.rng() - 0.5) * 1.1, -1, 1);
+    // 상대 쪽을 보게 (이동하지 않았다면)
+    var o = st.p[1 - st.turn];
+    p.face = o.x >= p.x ? 1 : -1;
+  }
+
+  /* ── AI: 후보 (각도, 파워)를 전부 시뮬레이션해 가장 가까이 떨어지는 조합을 고른다 ── */
+  function gauss(rng) {
+    var u = 0, v = 0; while (u === 0) u = rng(); while (v === 0) v = rng();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+  function bestShot(st, pi, aStep, pStep) {
+    var p = st.p[pi], o = st.p[1 - pi];
+    var tx = o.x, ty = o.y - BODY_CY;
+    var right = o.x >= p.x;
+    var a0 = right ? 8 : 92, a1 = right ? 88 : 172;
+    var best = null;
+    for (var a = a0; a <= a1; a += aStep) {
+      for (var pw = 20; pw <= 100; pw += pStep) {
+        var r = trace(st, pi, a, pw, false, 0);
+        if (r.type === 'out') continue;
+        var err = Math.hypot(r.x - tx, r.y - ty);
+        if (r.type === 'char' && r.idx !== pi) err = 0;
+        if (r.type === 'char' && r.idx === pi) continue;
+        if (!best || err < best.err) best = { ang: a, pow: pw, err: err };
+      }
+    }
+    return best;
+  }
+  /* skill 0~1. 값이 클수록 오차가 작다. 반환: { move:{dir,steps}|null, ang, pow } */
+  function aiPlan(st, pi, skill, quick) {
+    var rng = st.rng, p = st.p[pi];
+    var plan = { dir: 0, steps: 0 };
+    // 직전에 상대 탄이 내 근처에 떨어졌으면 자리를 옮긴다 (이동력 스탯이 의미를 가지도록)
+    var li = st.lastImpact[1 - pi];
+    if (li && Math.hypot(li.x - p.x, li.y - p.y) < 75 && p.stam > 8) {
+      var dir = p.x >= li.x ? 1 : -1;
+      if (p.x < 70) dir = 1; if (p.x > W - 70) dir = -1;
+      plan.dir = dir; plan.steps = Math.min(p.stam, 18 + Math.floor(rng() * 28));
+    }
+    plan.skill = skill; plan.quick = !!quick;
+    return plan;
+  }
+  function aiAim(st, pi, skill, quick) {
+    var rng = st.rng;
+    var b = bestShot(st, pi, quick ? 4 : 2, quick ? 5 : 2);
+    if (!b) return { ang: st.p[pi].ang, pow: 70 };
+    var sa = 6.5 - 5.8 * skill, sp = 9 - 8.0 * skill;
+    return {
+      ang: clamp(b.ang + gauss(rng) * sa, 3, 177),
+      pow: clamp(b.pow + gauss(rng) * sp, 12, 100),
+    };
+  }
+
+  return {
+    W: W, H: H, GRAV: GRAV, BODY_R: BODY_R, BODY_CY: BODY_CY, VMAX: VMAX, DT: DT,
+    CHARS: CHARS, ORDER: ORDER,
+    mulberry32: mulberry32, genTerrain: genTerrain, surfaceY: surfaceY,
+    newGame: newGame, effective: effective, moveStep: moveStep, settle: settle,
+    trace: trace, fire: fire, resolve: resolve, endTurn: endTurn,
+    aiPlan: aiPlan, aiAim: aiAim, bestShot: bestShot,
+  };
+})();
+if (typeof module !== 'undefined') module.exports = FortEngine;
+
+/* ══════════════════════════════════════════════════════════════════════
+   게임 6: 글러브 포트리스 (GLOVE FORTRESS)
+
+   "각도와 파워를 맞춰 글러브를 날리는 턴제 포격전 — 바람을 읽고 땅을 파서 KO!"
+
+   · 엔진(FortEngine)은 DOM과 무관한 순수 로직이라 위쪽 별도 블록에 있고, 이 아래는 화면/조작/AI 연출만 담당한다.
+   · 점수 서버(Supabase)에는 아직 연결하지 않았다 — 기록(최고 연승)은 이 기기 localStorage 에만 저장한다.
+   ══════════════════════════════════════════════════════════════════════ */
+var FT = {
+  active: false, phase: 'title', mode: 'ai', stage: 1, streak: 0, skill: .3,
+  sel: [null, null], selSlot: 0, pick: null, lastOpp: null,
+  st: null, demo: null, vis: [{ x: 0, y: 0, hit: 0 }, { x: 0, y: 0, hit: 0 }],
+  flying: [], parts: [], pops: [], booms: [], shake: 0, t: 0, bubble: null,
+  human: true, last: [null, null], dragging: false, drag: null, aiTween: null,
+  sc: 1, ox: 0, oy: 0, keyFn: null, rec: null,
+};
+const FT_STORE = 'ft_v1';
+function ftLoad() {
+  try { const o = JSON.parse(localStorage.getItem(FT_STORE) || '{}'); return { best: +o.best || 0, wins: +o.wins || 0, games: +o.games || 0 }; }
+  catch (e) { return { best: 0, wins: 0, games: 0 }; }
+}
+function ftSave(o) { try { localStorage.setItem(FT_STORE, JSON.stringify(o)); } catch (e) { } }
+function ftClamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+function ftArtSrc(id) { return (typeof GM_ART_SRC !== 'undefined' && GM_ART_SRC[id]) || ''; }
+
+/* 게임 메뉴 카드 아래 "내 최고 기록" 줄 */
+function ftMenuTop() {
+  const el = document.getElementById('gTopFort'); if (!el) return;
+  const r = ftLoad();
+  el.innerHTML = r.best > 0 ? `내 최고 <b>${r.best}연승</b> · 누적 ${r.wins}승` : '아직 기록 없음 — 첫 연승에 도전!';
+}
+
+function ftOpenRules() {
+  const ov = document.createElement('div');
+  ov.className = 'modal-ov';
+  ov.innerHTML = `<div class="modal" style="max-width:420px">
+    <div class="modal-h"><span><b>📖 글러브 포트리스 설명서</b></span><button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-b"><div style="font-size:12.5px;line-height:1.8;color:var(--muted)">
+      <b style="color:var(--text)">목표</b> 번갈아 글러브를 던져 상대 체력을 0으로 만들면 KO 승리!<br>
+      <b style="color:var(--text)">조작</b> 화면을 드래그하면 방향이 각도, 당긴 거리가 파워가 돼요. 아래 버튼과 슬라이더로 미세 조정하고 <b style="color:var(--text)">발사</b>!<br>
+      <b style="color:var(--text)">PC</b> 방향키 좌우 = 이동 · 상하 = 각도(Shift 누르면 5도씩) · W/S = 파워 · 스페이스 = 발사<br>
+      <b style="color:var(--text)">바람</b> 매 턴 바뀌어요. 바람 쪽으로 글러브가 밀려요.<br>
+      <b style="color:var(--text)">땅</b> 글러브가 터지면 땅이 파여요. 이동력만큼 걸어서 자리를 옮길 수 있어요.<br>
+      <b style="color:var(--text)">직격</b> 글러브가 몸에 직접 맞으면 폭발 중심 데미지! 내 폭발에 내가 맞으면 60%만 아파요.<br>
+      <b style="color:var(--text)">AI 대전</b> 이길수록 상대가 강해지고, 5스테이지마다 체력 +25% 챔피언전이 열려요.<br>
+      <b style="color:var(--text)">밸런스</b> 6명 모두 강점과 약점이 있어요. 상성과 지형을 살려 보세요.
+    </div></div></div>`;
+  ov.onclick = e => { if (e.target === ov) history.back(); };
+  pushModal(ov);
+}
+
+function viewGameFort() {
+  const __g = __navGen;
+  gmToken++; gmClear(); gmCurGame = 'fort';
+  G.mode = 'fortpage'; G.parts = [];
+  Object.assign(FT, { active: false, phase: 'title', st: null, flying: [], parts: [], pops: [], booms: [], bubble: null, aiTween: null, dragging: false, drag: null, mode: 'ai', stage: 1, streak: 0, sel: [null, null], pick: null, shake: 0 });
+  FT.demo = FortEngine.newGame({ a: 'tusin', b: 'kingkong', rng: FortEngine.mulberry32(20261104) });
+  FT.vis = FT.demo.p.map(p => ({ x: p.x, y: p.y, hit: 0 }));
+  FT.rec = ftLoad();
+  if (navStale(__g)) return;
+  const faces = ['tusin', 'kingkong', 'captainkorea'].map(id => `<img src="${ftArtSrc(id)}" alt="">`).join('');
+  $app.innerHTML = `
+  <h1 class="page" style="gap:6px">🥊 글러브 포트리스 <button class="bb-rules-btn-top" id="ftRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button></h1>
+  <div id="gArea" class="ga-fort">
+    <canvas id="gCanvas"></canvas>
+    <div class="ghud"><div id="gHearts"></div><div id="gStageTag"></div><div id="gScore"></div></div>
+    <div id="gBanner"></div>
+    <div id="gPops"></div>
+    <button class="g-mute" id="gMute">${gmMuted ? '🔇' : '🔊'}</button>
+    <button class="g-full" id="gFull">⛶</button>
+    <div id="ftCtl" style="display:none">
+      <div class="ft-r1"><span class="ft-who" id="ftWho"></span><span class="ft-last" id="ftLast"></span>
+        <span class="ft-stamw">이동력<i class="ft-stam"><b id="ftStam"></b></i></span></div>
+      <div class="ft-r2">
+        <button class="ft-b" id="ftML" type="button">왼쪽</button>
+        <button class="ft-b" id="ftMR" type="button">오른쪽</button>
+        <div class="ft-angw"><button class="ft-b sm" id="ftAm" type="button">−</button>
+          <div class="ft-val"><small>각도</small><b id="ftAng">45</b></div>
+          <button class="ft-b sm" id="ftAp" type="button">+</button></div>
+      </div>
+      <div class="ft-r3">
+        <div class="ft-powrap"><small>파워</small><input type="range" id="ftPow" min="10" max="100" step="1" value="60"><b id="ftPowV">60</b></div>
+        <button class="g-start ft-fire" id="ftFire" type="button">발사!</button>
+      </div>
+    </div>
+    <div id="gTitle">
+      <div class="ft-faces">${faces}</div>
+      <div class="gt-name">글러브 포트리스</div>
+      <div class="gt-sub">GLOVE FORTRESS</div>
+      <div class="gt-desc">각도와 파워를 맞춰 <b>글러브</b>를 날려라!<br>바람을 읽고 땅을 파서 <b>KO</b> 시켜라!</div>
+      <button class="g-start g-en" id="ftStartAi" type="button">AI 대전 시작</button>
+      <button class="ft-btn2" id="ftStartPvp" type="button">친구와 2인 대결</button>
+      <div class="gt-hint">AI를 이길수록 연승! · 한 화면에서 둘이서도 OK</div>
+    </div>
+    <div id="ftSel" style="display:none"></div>
+    <div id="gOver" style="display:none"></div>
+  </div>
+  <div class="card" id="ftRec"></div>
+  <div class="sec-title">🧑‍🎤 출전 파이터 특성</div>
+  <div class="card" id="ftGuide"></div>`;
+  ftRenderRec(); ftRenderGuide();
+  const rb = document.getElementById('ftRulesBtn');
+  rb.onpointerdown = e => e.stopPropagation();
+  rb.onclick = e => { e.stopPropagation(); ftOpenRules(); };
+  gmBindMute();
+  gmCanvasInit();
+  ftHud();
+  ftBindUI();
+  const tok = gmToken;
+  window.addEventListener('resize', () => { if (tok === gmToken && document.getElementById('gCanvas')) gmCanvasInit(); }, { passive: true });
+  ftLoop();
+}
+
+function ftRenderRec() {
+  const el = document.getElementById('ftRec'); if (!el) return;
+  const r = FT.rec = ftLoad();
+  el.innerHTML = `<div style="font-weight:800;margin-bottom:4px">🏅 내 기록</div>
+    <div style="font-size:13.5px;color:var(--muted);line-height:1.7">최고 <b style="color:var(--text)">${r.best}연승</b> · 누적 승리 <b style="color:var(--text)">${r.wins}</b> · 총 ${r.games}판<br><span style="font-size:11.5px">기록은 이 기기에 저장돼요.</span></div>`;
+}
+function ftStatBars(c) {
+  const bar = (label, v, max) => `<div class="ft-sb"><span>${label}</span><i><b style="width:${Math.round(ftClamp(v / max, .08, 1) * 100)}%"></b></i></div>`;
+  return bar('체력', c.hp, 125) + bar('화력', c.dmg * (c.passive === 'combo' ? 1.7 : 1), 40) + bar('범위', c.rad, 40) + bar('기동', c.move, 125);
+}
+function ftRenderGuide() {
+  const el = document.getElementById('ftGuide'); if (!el) return;
+  el.innerHTML = FortEngine.ORDER.map(id => {
+    const c = FortEngine.CHARS[id];
+    return `<div class="ft-grow"><img src="${ftArtSrc(id)}" alt="">
+      <div class="ft-gb"><div><b>${esc(c.name)}</b> <span class="ft-tag">${esc(c.tag)}</span></div>
+      <div class="ft-gp"><b>${esc(c.pTitle)}</b> ${esc(c.pDesc)}</div>
+      <div class="ft-gs">체력 ${c.hp} · 데미지 ${c.dmg} · 범위 ${c.rad} · 이동 ${c.move}</div></div></div>`;
+  }).join('');
+}
+
+/* ── 화면 상단 HUD ── */
+function ftHud() {
+  const hh = document.getElementById('gHearts'), s = document.getElementById('gScore');
+  if (!hh || !s) return;
+  if (FT.st && FT.mode === 'ai') { hh.textContent = `STAGE ${FT.stage}`; s.innerHTML = `${FT.streak}<span>연승</span>`; }
+  else if (FT.st) { hh.textContent = '2인 대결'; s.innerHTML = ''; }
+  else { hh.textContent = ''; s.innerHTML = ''; }
+}
+
+/* ── 버튼/입력 바인딩 ── */
+function ftHold(btn, fn) {
+  let tm = 0, iv = 0;
+  const stop = () => { clearTimeout(tm); clearInterval(iv); tm = 0; iv = 0; };
+  btn.addEventListener('pointerdown', e => {
+    e.preventDefault(); e.stopPropagation(); stop();
+    fn(); tm = setTimeout(() => { iv = setInterval(fn, 55); }, 260);
+    try { btn.setPointerCapture(e.pointerId); } catch (err) { }
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => btn.addEventListener(ev, stop));
+}
+function ftCanAct() { return !!FT.st && FT.phase === 'aim' && FT.human && !FT.st.over && !FT.aiTween; }
+function ftAdj(dAng, dPow) {
+  if (!ftCanAct()) return;
+  const p = FT.st.p[FT.st.turn];
+  p.ang = ftClamp(p.ang + dAng, 0, 180);
+  p.pow = ftClamp(p.pow + dPow, 10, 100);
+  ftSyncCtl();
+}
+function ftMove(dir) {
+  if (!ftCanAct()) return;
+  if (FortEngine.moveStep(FT.st, FT.st.turn, dir)) ftSyncCtl();
+}
+function ftBindUI() {
+  const $ = id => document.getElementById(id);
+  const tok = gmToken;
+  const guard = fn => () => { if (tok === gmToken) fn(); };
+  ftHold($('ftML'), guard(() => ftMove(-1)));
+  ftHold($('ftMR'), guard(() => ftMove(1)));
+  ftHold($('ftAm'), guard(() => ftAdj(-1, 0)));
+  ftHold($('ftAp'), guard(() => ftAdj(1, 0)));
+  const pw = $('ftPow');
+  pw.oninput = () => { if (!ftCanAct()) { ftSyncCtl(); return; } FT.st.p[FT.st.turn].pow = +pw.value; ftSyncCtl(); };
+  const fb = $('ftFire');
+  fb.onpointerdown = e => e.stopPropagation();
+  fb.onclick = e => { e.stopPropagation(); if (ftCanAct()) ftFire(); };
+  $('ftStartAi').onclick = e => { e.stopPropagation(); gmCtx(); FT.mode = 'ai'; FT.stage = 1; FT.streak = 0; ftShowSelect(0); };
+  $('ftStartPvp').onclick = e => { e.stopPropagation(); gmCtx(); FT.mode = 'pvp'; FT.stage = 1; FT.streak = 0; ftShowSelect(0); };
+  // 화면 드래그로 조준
+  const cv = $('gCanvas');
+  const aimFrom = e => {
+    if (!ftCanAct()) return;
+    const r = cv.getBoundingClientRect();
+    const px = (e.clientX - r.left - FT.ox) / FT.sc, py = (e.clientY - r.top - FT.oy) / FT.sc;
+    const p = FT.st.p[FT.st.turn];
+    const dx = px - p.x, dy = (p.y - FortEngine.BODY_CY) - py;
+    let ang = Math.atan2(dy, dx) * 180 / Math.PI;
+    if (ang < 0) ang = dx >= 0 ? 0 : 180;
+    p.ang = ftClamp(ang, 0, 180);
+    p.pow = ftClamp(Math.hypot(dx, dy) / 1.25, 10, 100);
+    FT.drag = { x: px, y: py };
+    ftSyncCtl();
+  };
+  cv.addEventListener('pointerdown', e => { if (!ftCanAct()) return; FT.dragging = true; try { cv.setPointerCapture(e.pointerId); } catch (err) { } aimFrom(e); });
+  cv.addEventListener('pointermove', e => { if (FT.dragging) aimFrom(e); });
+  const endDrag = () => { FT.dragging = false; FT.drag = null; };
+  cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+  // 키보드
+  if (FT.keyFn) document.removeEventListener('keydown', FT.keyFn);
+  FT.keyFn = e => {
+    if (tok !== gmToken || gmCurGame !== 'fort') { document.removeEventListener('keydown', FT.keyFn); return; }
+    if (!ftCanAct()) return;
+    const k = e.key, big = e.shiftKey ? 5 : 1;
+    let used = true;
+    if (k === 'ArrowLeft' || k === 'a' || k === 'A') ftMove(-1);
+    else if (k === 'ArrowRight' || k === 'd' || k === 'D') ftMove(1);
+    else if (k === 'ArrowUp') ftAdj(big, 0);
+    else if (k === 'ArrowDown') ftAdj(-big, 0);
+    else if (k === 'w' || k === 'W') ftAdj(0, big);
+    else if (k === 's' || k === 'S') ftAdj(0, -big);
+    else if (k === ' ' || k === 'Enter') { if (!e.repeat) ftFire(); }
+    else used = false;
+    if (used) e.preventDefault();
+  };
+  document.addEventListener('keydown', FT.keyFn);
+}
+
+/* 컨트롤 패널 표시값 동기화 */
+function ftSyncCtl() {
+  const ctl = document.getElementById('ftCtl'); if (!ctl) return;
+  const st = FT.st; if (!st) return;
+  const pi = st.turn, p = st.p[pi], c = FortEngine.CHARS[p.id];
+  ctl.classList.toggle('off', !(FT.phase === 'aim' && FT.human));
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('ftAng', Math.round(p.ang));
+  set('ftPowV', Math.round(p.pow));
+  const pw = document.getElementById('ftPow'); if (pw && +pw.value !== Math.round(p.pow)) pw.value = Math.round(p.pow);
+  const sb = document.getElementById('ftStam'); if (sb) sb.style.width = Math.round(100 * p.stam / c.move) + '%';
+  set('ftWho', FT.mode === 'ai' ? (pi === 0 ? `내 차례 · ${c.name}` : `상대 차례 · ${c.name}`) : `P${pi + 1} 차례 · ${c.name}`);
+  const l = FT.last[pi];
+  set('ftLast', l ? `직전 ${l.ang}도 · 파워 ${l.pow}` : '');
+}
+
+/* ── 파이터 선택 ── */
+function ftShowSelect(slot) {
+  FT.phase = 'sel'; FT.selSlot = slot; FT.pick = null;
+  const t = document.getElementById('gTitle'); if (t) t.style.display = 'none';
+  const o = document.getElementById('ftSel'); if (!o) return;
+  o.style.display = '';
+  const head = FT.mode === 'pvp' ? `P${slot + 1} 파이터 선택` : '내 파이터 선택';
+  o.innerHTML = `<div class="ft-sel-h">${head}</div>
+    <div class="ft-grid">${FortEngine.ORDER.map(id => {
+    const c = FortEngine.CHARS[id];
+    const dis = FT.mode === 'pvp' && slot === 1 && FT.sel[0] === id;
+    return `<button type="button" class="ft-card${dis ? ' dis' : ''}" data-id="${id}"><img src="${ftArtSrc(id)}" alt="">
+        <b>${esc(c.name)}</b><span>${esc(c.tag)}</span>${ftStatBars(c)}</button>`;
+  }).join('')}</div>
+    <div class="ft-sel-d" id="ftSelD">파이터를 눌러 특성을 확인하세요</div>
+    <button class="g-start ft-go" id="ftGo" type="button" disabled>출전!</button>`;
+  o.querySelectorAll('.ft-card').forEach(b => {
+    b.onclick = e => {
+      e.stopPropagation();
+      if (b.classList.contains('dis')) return;
+      FT.pick = b.dataset.id;
+      o.querySelectorAll('.ft-card').forEach(x => x.classList.toggle('on', x === b));
+      const c = FortEngine.CHARS[FT.pick];
+      document.getElementById('ftSelD').innerHTML = `<b>${esc(c.pTitle)}</b> ${esc(c.pDesc)}`;
+      document.getElementById('ftGo').disabled = false;
+      gmSnd('ding');
+    };
+  });
+  const go = document.getElementById('ftGo');
+  go.onpointerdown = e => e.stopPropagation();
+  go.onclick = e => {
+    e.stopPropagation(); if (!FT.pick) return;
+    FT.sel[slot] = FT.pick;
+    if (FT.mode === 'pvp' && slot === 0) { ftShowSelect(1); return; }
+    o.style.display = 'none';
+    ftStartMatch();
+  };
+}
+
+/* ── 대결 시작 ── */
+function ftStartMatch() {
+  const E = FortEngine;
+  const a = FT.sel[0];
+  let b;
+  if (FT.mode === 'ai') {
+    const pool = E.ORDER.filter(i => i !== a && i !== FT.lastOpp);
+    b = pool[Math.floor(Math.random() * pool.length)]; FT.lastOpp = b;
+  } else b = FT.sel[1];
+  const st = E.newGame({ a, b, first: FT.mode === 'pvp' ? (Math.random() < .5 ? 0 : 1) : 0, rng: Math.random });
+  const champ = FT.mode === 'ai' && FT.stage % 5 === 0;
+  if (champ) { st.p[1].maxHp = st.p[1].hp = Math.round(st.p[1].hp * 1.25); }
+  FT.skill = FT.mode === 'ai' ? ftClamp(.28 + .085 * (FT.stage - 1), .28, .9) : .6;
+  FT.st = st; FT.vis = st.p.map(p => ({ x: p.x, y: p.y, hit: 0 }));
+  FT.flying = []; FT.parts = []; FT.pops = []; FT.booms = []; FT.last = [null, null]; FT.aiTween = null;
+  FT.active = true; FT.shake = 0;
+  bbArmLeaveGuard();
+  const g = document.getElementById('gOver'); if (g) g.style.display = 'none';
+  const ctl = document.getElementById('ftCtl'); if (ctl) ctl.style.display = '';
+  gmCanvasInit();
+  gmSnd('bell');
+  const oc = E.CHARS[b];
+  if (FT.mode === 'ai') {
+    gmBanner(`<div class="gb-round" style="font-size:${champ ? 30 : 34}px">${champ ? '챔피언전! ' : ''}STAGE ${FT.stage}<br><span style="font-size:18px">vs ${esc(oc.name)}</span></div>`, 1500);
+    FT.bubble = { idx: 1, txt: oc.taunt, until: FT.t + 3.4 };
+  } else {
+    gmBanner(`<div class="gb-round" style="font-size:30px">${esc(E.CHARS[a].name)} vs ${esc(oc.name)}</div>`, 1400);
+  }
+  ftHud();
+  const tok = gmToken;
+  gmDelay(() => { if (tok === gmToken) ftBeginTurn(); }, 900);
+  FT.phase = 'intro';
+  ftSyncCtl();
+}
+
+function ftBeginTurn() {
+  const st = FT.st; if (!st || st.over) return;
+  FT.phase = 'aim';
+  const pi = st.turn;
+  FT.human = FT.mode === 'pvp' || pi === 0;
+  ftSyncCtl();
+  if (!FT.human) ftAiTurn();
+}
+
+function ftAiTurn() {
+  const E = FortEngine, tok = gmToken, st = FT.st, pi = st.turn;
+  gmDelay(() => {
+    if (tok !== gmToken || st !== FT.st || st.over) return;
+    const plan = E.aiPlan(st, pi, FT.skill, false);
+    let steps = plan.steps;
+    const doMove = () => {
+      if (tok !== gmToken || st !== FT.st || st.over) return;
+      if (steps > 0 && E.moveStep(st, pi, plan.dir)) { steps--; ftSyncCtl(); gmDelay(doMove, 22); return; }
+      const a = E.aiAim(st, pi, FT.skill, false), p = st.p[pi];
+      FT.aiTween = { a0: p.ang, a1: a.ang, p0: p.pow, p1: a.pow, t0: performance.now(), dur: 700 };
+    };
+    doMove();
+  }, 800);
+}
+
+function ftFire() {
+  const st = FT.st; if (!st || FT.phase !== 'aim') return;
+  const E = FortEngine, pi = st.turn, p = st.p[pi];
+  FT.phase = 'fly';
+  FT.last[pi] = { ang: Math.round(p.ang), pow: Math.round(p.pow) };
+  const shots = E.fire(st, pi, p.ang, p.pow);
+  FT.flying = shots.map(s => ({ s, t: 0, done: false }));
+  FT.vis[pi].hit = 0;
+  FT.shake = Math.max(FT.shake, 2);
+  gmCtx(); gmSnd('swish');
+  ftSyncCtl();
+}
+
+function ftBoom(x, y, r, big) {
+  FT.booms.push({ x, y, r, t: 0 });
+  const n = big ? 26 : 18;
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, v = 60 + Math.random() * (big ? 260 : 190);
+    FT.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 90, life: .7 + Math.random() * .5, sz: 1.5 + Math.random() * 2.6, c: i % 3 === 0 ? '#ffd76e' : (i % 3 === 1 ? '#8b5a2b' : '#c98c4b') });
+  }
+}
+function ftPop(x, y, txt, c, size) { FT.pops.push({ x, y, txt, c: c || '#e0332a', size: size || 18, t: 0 }); }
+
+function ftLand() {
+  const E = FortEngine, st = FT.st, tok = gmToken;
+  FT.phase = 'boom';
+  let koBy = false, anyHit = false, direct = false;
+  FT.flying.forEach(f => {
+    const s = f.s, evs = E.resolve(st, s);
+    if (s.type === 'out') { ftPop(ftClamp(s.x, 40, E.W - 40), 70, '빗나감', '#6b7280', 16); return; }
+    ftBoom(s.x, s.y, s.rad, s.rad >= 34);
+    evs.forEach(ev => {
+      anyHit = true; if (ev.direct) direct = true; if (ev.ko) koBy = true;
+      const p = st.p[ev.idx];
+      FT.vis[ev.idx].hit = .45;
+      ftPop(p.x + (Math.random() - .5) * 16, p.y - 78, (ev.direct ? '직격! ' : '') + '-' + ev.dmg, ev.direct ? '#d11a2a' : '#e0332a', ev.direct ? 22 : 18);
+    });
+    FT.shake = Math.max(FT.shake, Math.min(14, s.rad / 3));
+  });
+  FT.flying = [];
+  if (direct) { gmSnd('perfect'); gmVib([60, 40, 90]); }
+  else if (anyHit) { gmSnd('good'); gmVib(40); }
+  else gmSnd('weak');
+  ftSyncCtl();
+  if (st.over) {
+    gmSnd('crash'); gmVib([120, 60, 160]);
+    gmBanner(`<div class="gb-round" style="font-size:52px">K.O.!</div>`, 1300);
+    gmDelay(() => { if (tok === gmToken) ftOver(); }, 1500);
+    return;
+  }
+  gmDelay(() => {
+    if (tok !== gmToken || st !== FT.st) return;
+    E.endTurn(st); ftBeginTurn();
+  }, 950);
+}
+
+function ftOver() {
+  const st = FT.st, E = FortEngine; if (!st) return;
+  FT.phase = 'over'; FT.active = false; bbDisarmLeaveGuard();
+  const ctl = document.getElementById('ftCtl'); if (ctl) ctl.style.display = 'none';
+  const ov = document.getElementById('gOver'); if (!ov) return;
+  const w = st.winner, rec = ftLoad();
+  rec.games++;
+  let html;
+  if (FT.mode === 'ai') {
+    const oc = E.CHARS[st.p[1].id];
+    if (w === 0) {
+      FT.streak++; rec.wins++; rec.best = Math.max(rec.best, FT.streak);
+      html = `<div class="go-ko">KO 승리! 🏆</div>
+        <div class="go-score">${FT.streak}<span>연승</span></div>
+        <div class="go-cmp">STAGE ${FT.stage} 클리어 — ${esc(oc.name)} 격파</div>
+        <div class="go-grade">${FT.streak >= rec.best && FT.streak > 1 ? '🔥 최고 기록 경신 중!' : '다음 상대는 더 강해져요'}</div>
+        <button class="g-start" id="ftNext" type="button">다음 상대</button>
+        <button class="ft-btn2" id="ftChange" type="button">파이터 변경</button>`;
+      gmSnd('cheer');
+    } else {
+      html = `<div class="go-ko">KO패…</div>
+        <div class="go-score">${FT.streak}<span>연승</span></div>
+        <div class="go-cmp">${esc(oc.name)}에게 패배 (STAGE ${FT.stage})</div>
+        <div class="go-grade">최고 기록 ${rec.best}연승</div>
+        <button class="g-start" id="ftNext" type="button">다시 도전</button>
+        <button class="ft-btn2" id="ftChange" type="button">파이터 변경</button>`;
+      gmSnd('over');
+    }
+  } else {
+    const wc = E.CHARS[st.p[w].id];
+    html = `<div class="go-ko">P${w + 1} 승리!</div>
+      <div class="go-score" style="font-size:34px">${esc(wc.name)}</div>
+      <div class="go-cmp">${esc(wc.taunt)}</div>
+      <button class="g-start" id="ftNext" type="button">한 판 더!</button>
+      <button class="ft-btn2" id="ftChange" type="button">파이터 변경</button>`;
+    gmSnd('cheer');
+  }
+  ftSave(rec); FT.rec = rec;
+  ov.style.display = ''; ov.innerHTML = html;
+  ftRenderRec(); ftHud();
+  const nx = document.getElementById('ftNext'), ch = document.getElementById('ftChange');
+  nx.onpointerdown = e => e.stopPropagation();
+  ch.onpointerdown = e => e.stopPropagation();
+  nx.onclick = e => {
+    e.stopPropagation();
+    if (FT.mode === 'ai') { if (w === 0) FT.stage++; else { FT.stage = 1; FT.streak = 0; } }
+    ov.style.display = 'none'; ftStartMatch();
+  };
+  ch.onclick = e => {
+    e.stopPropagation();
+    if (FT.mode === 'ai' && w !== 0) { FT.stage = 1; FT.streak = 0; }
+    ov.style.display = 'none'; FT.sel = [null, null]; ftShowSelect(0);
+  };
+}
+
+/* ── 프레임 루프 ── */
+function ftLoop() {
+  const tok = gmToken;
+  let last = performance.now();
+  function frame() {
+    if (tok !== gmToken) return;
+    const cv = document.getElementById('gCanvas');
+    if (!cv) { G.raf = 0; return; }
+    const now = performance.now();
+    const dt = Math.min(50, now - last) / 1000; last = now;
+    gmCanvasHeal();
+    try { ftUpdate(dt, now); ftDraw(); } catch (e) { try { console.error(e); } catch (e2) { } }
+    G.raf = requestAnimationFrame(frame);
+  }
+  G.raf = requestAnimationFrame(frame);
+}
+
+function ftUpdate(dt, now) {
+  const E = FortEngine, st = FT.st || FT.demo; FT.t += dt;
+  if (!st) return;
+  // 캐릭터 시각 위치 보간 (땅이 파이면 천천히 내려앉는다)
+  st.p.forEach((p, i) => {
+    const v = FT.vis[i]; if (!v) return;
+    v.x += (p.x - v.x) * Math.min(1, dt * 16);
+    if (v.y < p.y) v.y = Math.min(p.y, v.y + 480 * dt); else v.y = Math.max(p.y, v.y - 480 * dt);
+    if (v.hit > 0) v.hit = Math.max(0, v.hit - dt);
+  });
+  // AI 조준 연출
+  const tw = FT.aiTween;
+  if (tw && FT.st) {
+    const p = FT.st.p[FT.st.turn];
+    const k = Math.min(1, (now - tw.t0) / tw.dur), e2 = 1 - Math.pow(1 - k, 3);
+    p.ang = tw.a0 + (tw.a1 - tw.a0) * e2; p.pow = tw.p0 + (tw.p1 - tw.p0) * e2;
+    ftSyncCtl();
+    if (k >= 1) { FT.aiTween = null; gmDelay(() => { if (FT.st === st && FT.phase === 'aim') ftFire(); }, 250); }
+  }
+  // 비행
+  if (FT.phase === 'fly') {
+    let all = true;
+    FT.flying.forEach(f => {
+      f.t += dt;
+      if (Math.floor(f.t / E.DT) >= f.s.path.length - 1) f.done = true;
+      if (!f.done) all = false;
+    });
+    if (all && FT.flying.length) ftLand();
+  }
+  for (let i = FT.parts.length - 1; i >= 0; i--) {
+    const q = FT.parts[i]; q.life -= dt;
+    if (q.life <= 0) { FT.parts.splice(i, 1); continue; }
+    q.vy += 520 * dt; q.x += q.vx * dt; q.y += q.vy * dt;
+  }
+  for (let i = FT.pops.length - 1; i >= 0; i--) { const q = FT.pops[i]; q.t += dt; if (q.t > 1.2) FT.pops.splice(i, 1); }
+  for (let i = FT.booms.length - 1; i >= 0; i--) { const q = FT.booms[i]; q.t += dt; if (q.t > .5) FT.booms.splice(i, 1); }
+  if (FT.bubble && FT.t > FT.bubble.until) FT.bubble = null;
+}
+
+function ftLayout() {
+  const E = FortEngine, ctl = document.getElementById('ftCtl');
+  const ctlH = (ctl && ctl.style.display !== 'none') ? ctl.offsetHeight : 0;
+  const hudH = 40;
+  const availH = Math.max(120, G.h - ctlH - hudH);
+  const sc = Math.min(G.w / E.W, availH / E.H);
+  FT.sc = sc; FT.ox = (G.w - E.W * sc) / 2; FT.oy = hudH + (availH - E.H * sc) / 2;
+}
+
+function ftRR(ctx, x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+
+/* 글러브 투사체 (이모지는 기기마다 모양이 달라 직접 그린다) */
+function ftGlove(ctx, k) {
+  ctx.lineWidth = 2; ctx.strokeStyle = '#7a1010';
+  ctx.fillStyle = '#fff'; ftRR(ctx, -4 * k - 6 * k, -5 * k, 8 * k, 10 * k, 2 * k); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#e0332a'; ctx.beginPath(); ctx.ellipse(2 * k, 0, 9 * k, 8 * k, 0, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#f26a5e'; ctx.beginPath(); ctx.ellipse(4 * k, -3 * k, 4 * k, 2.6 * k, -.3, 0, 7); ctx.fill();
+  ctx.fillStyle = '#c42a22'; ctx.beginPath(); ctx.ellipse(1 * k, 6 * k, 5 * k, 3 * k, 0, 0, 7); ctx.fill(); ctx.stroke();
+}
+
+function ftDraw() {
+  const E = FortEngine, ctx = G.ctx, w = G.w, h = G.h, st = FT.st || FT.demo;
+  if (!ctx || !st || !w || !h) return;
+  ftLayout();
+  const sc = FT.sc, ox = FT.ox, oy = FT.oy, t = FT.t;
+  const X = x => ox + x * sc, Y = y => oy + y * sc;
+  ctx.save();
+  if (FT.shake > .3) { ctx.translate((Math.random() - .5) * FT.shake * sc, (Math.random() - .5) * FT.shake * sc); FT.shake *= .88; } else FT.shake = 0;
+  // 하늘
+  const sky = ctx.createLinearGradient(0, 0, 0, h);
+  sky.addColorStop(0, '#5fb6ff'); sky.addColorStop(.55, '#b5e2ff'); sky.addColorStop(1, '#e8f6ff');
+  ctx.fillStyle = sky; ctx.fillRect(-20, -20, w + 40, h + 40);
+  // 해
+  ctx.fillStyle = 'rgba(255,244,190,.95)'; ctx.beginPath(); ctx.arc(w - 58, 70, 24, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(255,244,190,.35)'; ctx.beginPath(); ctx.arc(w - 58, 70, 38, 0, 7); ctx.fill();
+  // 구름
+  ctx.fillStyle = 'rgba(255,255,255,.85)';
+  for (let i = 0; i < 4; i++) {
+    const cx = ((t * (6 + i * 3) + i * 170) % (w + 160)) - 80, cy = 60 + i * 26 + (i % 2) * 14;
+    ctx.beginPath(); ctx.ellipse(cx, cy, 34, 11, 0, 0, 7); ctx.ellipse(cx + 20, cy - 7, 22, 10, 0, 0, 7); ctx.ellipse(cx - 20, cy - 4, 20, 9, 0, 0, 7); ctx.fill();
+  }
+  // 먼 산
+  ctx.fillStyle = 'rgba(120,175,210,.45)'; ctx.beginPath(); ctx.moveTo(0, h);
+  for (let x = 0; x <= w; x += 8) ctx.lineTo(x, Y(E.H * .56) + Math.sin(x * .012) * 20 * sc + Math.sin(x * .031 + 1) * 8 * sc);
+  ctx.lineTo(w, h); ctx.closePath(); ctx.fill();
+  // 지형
+  const top = st.top, Wd = E.W;
+  const path = () => {
+    ctx.beginPath(); ctx.moveTo(-10, Y(top[0]));
+    for (let x = 0; x < Wd; x += 2) ctx.lineTo(X(x), Y(top[x]));
+    ctx.lineTo(X(Wd - 1), Y(top[Wd - 1])); ctx.lineTo(w + 10, Y(top[Wd - 1]));
+  };
+  path(); ctx.lineTo(w + 10, h + 10); ctx.lineTo(-10, h + 10); ctx.closePath();
+  const dirt = ctx.createLinearGradient(0, Y(E.H * .4), 0, h);
+  dirt.addColorStop(0, '#9a6a36'); dirt.addColorStop(1, '#5a3a1c');
+  ctx.fillStyle = dirt; ctx.fill();
+  path(); ctx.lineWidth = Math.max(4, 7 * sc); ctx.lineJoin = 'round'; ctx.strokeStyle = '#4fae3f'; ctx.stroke();
+  path(); ctx.lineWidth = Math.max(1.5, 2.4 * sc); ctx.strokeStyle = '#8be06a'; ctx.stroke();
+  // 캐릭터
+  st.p.forEach((p, i) => {
+    if (FT.st && p.dead && FT.phase === 'over') {
+      ftDrawChar(ctx, p, FT.vis[i], false, X, Y, sc, true, false);
+    } else ftDrawChar(ctx, p, FT.vis[i], !!FT.st && FT.st.turn === i && !FT.st.over && (FT.phase === 'aim' || FT.phase === 'fly'), X, Y, sc, false, !FT.st);
+  });
+  // 조준 보조선
+  if (FT.st && FT.phase === 'aim' && FT.human) {
+    const pi = FT.st.turn, p = FT.st.p[pi];
+    const r = E.trace(FT.st, pi, p.ang, p.pow, true, 0);
+    ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.strokeStyle = 'rgba(60,90,140,.55)'; ctx.lineWidth = 1;
+    const n = Math.min(r.path.length, 26);
+    for (let k = 2; k < n; k += 3) {
+      ctx.beginPath(); ctx.arc(X(r.path[k][0]), Y(r.path[k][1]), Math.max(1.8, 2.6 * sc), 0, 7); ctx.fill(); ctx.stroke();
+    }
+    const l = FT.st.lastImpact[pi];
+    if (l) {
+      ctx.strokeStyle = 'rgba(224,51,42,.75)'; ctx.lineWidth = 2;
+      const lx = X(l.x), ly = Y(l.y), s = 5 * sc + 2;
+      ctx.beginPath(); ctx.moveTo(lx - s, ly - s); ctx.lineTo(lx + s, ly + s); ctx.moveTo(lx + s, ly - s); ctx.lineTo(lx - s, ly + s); ctx.stroke();
+    }
+    if (FT.dragging && FT.drag) {
+      ctx.setLineDash([5, 5]); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(X(p.x), Y(p.y - E.BODY_CY)); ctx.lineTo(X(FT.drag.x), Y(FT.drag.y)); ctx.stroke(); ctx.setLineDash([]);
+    }
+  }
+  // 비행 중인 글러브
+  if (FT.phase === 'fly') {
+    FT.flying.forEach(f => {
+      const idx = Math.min(f.s.path.length - 1, Math.floor(f.t / E.DT));
+      const pos = f.s.path[idx];
+      for (let k = 1; k <= 12; k++) {
+        const q = f.s.path[Math.max(0, idx - k * 2)];
+        ctx.fillStyle = `rgba(255,255,255,${.55 - k * .04})`;
+        ctx.beginPath(); ctx.arc(X(q[0]), Y(q[1]), Math.max(1.5, (4.2 - k * .25) * sc), 0, 7); ctx.fill();
+      }
+      ctx.save(); ctx.translate(X(pos[0]), Y(pos[1])); ctx.rotate(f.t * 9);
+      ftGlove(ctx, Math.max(1, sc * 1.25)); ctx.restore();
+    });
+  }
+  // 폭발
+  FT.booms.forEach(b => {
+    const k = b.t / .5, r = b.r * sc * (.35 + k * .9);
+    const g = ctx.createRadialGradient(X(b.x), Y(b.y), 0, X(b.x), Y(b.y), r);
+    g.addColorStop(0, `rgba(255,250,200,${.95 * (1 - k)})`); g.addColorStop(.5, `rgba(255,170,50,${.75 * (1 - k)})`); g.addColorStop(1, 'rgba(255,90,20,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X(b.x), Y(b.y), r, 0, 7); ctx.fill();
+    ctx.strokeStyle = `rgba(255,255,255,${.7 * (1 - k)})`; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(X(b.x), Y(b.y), r * 1.05, 0, 7); ctx.stroke();
+  });
+  FT.parts.forEach(q => {
+    ctx.globalAlpha = ftClamp(q.life * 1.6, 0, 1); ctx.fillStyle = q.c;
+    ctx.beginPath(); ctx.arc(X(q.x), Y(q.y), Math.max(1.2, q.sz * sc), 0, 7); ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+  // 데미지 팝업
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  FT.pops.forEach(q => {
+    const k = q.t / 1.2; ctx.globalAlpha = k < .7 ? 1 : 1 - (k - .7) / .3;
+    ctx.font = `800 ${Math.max(14, q.size * (sc * .6 + .55))}px Jua, Pretendard, sans-serif`;
+    ctx.lineWidth = 4; ctx.strokeStyle = '#fff'; ctx.strokeText(q.txt, X(q.x), Y(q.y) - q.t * 36 * sc - 4);
+    ctx.fillStyle = q.c; ctx.fillText(q.txt, X(q.x), Y(q.y) - q.t * 36 * sc - 4);
+  });
+  ctx.globalAlpha = 1;
+  // 도발 말풍선
+  if (FT.bubble && FT.st) {
+    const p = FT.st.p[FT.bubble.idx], v = FT.vis[FT.bubble.idx];
+    ctx.font = `700 ${Math.max(11, 12 * (sc * .5 + .6))}px Jua, Pretendard, sans-serif`;
+    const tw = ctx.measureText(FT.bubble.txt).width + 18, bx = ftClamp(X(v.x) - tw / 2, 6, w - tw - 6), by = Y(v.y) - 130 * sc - 30;
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = '#1f2a44'; ctx.lineWidth = 2;
+    ftRR(ctx, bx, by, tw, 26, 10); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#1f2a44'; ctx.fillText(FT.bubble.txt, bx + tw / 2, by + 13.5);
+  }
+  // 바람 표시 (상단 가운데)
+  if (FT.st) ftDrawWind(ctx, w, FT.st.wind);
+  ctx.restore();
+}
+
+function ftDrawWind(ctx, w, wind) {
+  const cx = w / 2, cy = 21, bw = 118, bh = 26;
+  ctx.fillStyle = 'rgba(255,255,255,.92)'; ftRR(ctx, cx - bw / 2, cy - bh / 2, bw, bh, 13); ctx.fill();
+  ctx.strokeStyle = '#7fa8f8'; ctx.lineWidth = 2; ftRR(ctx, cx - bw / 2, cy - bh / 2, bw, bh, 13); ctx.stroke();
+  const val = Math.abs(wind) * 10, dir = wind >= 0 ? 1 : -1;
+  ctx.font = '800 13px Jua, Pretendard, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#5a3a10';
+  ctx.fillText(`바람 ${val.toFixed(1)}`, cx - (val < .4 ? 0 : dir * 14), cy + .5);
+  if (val >= .4) {
+    ctx.strokeStyle = '#4b8dff'; ctx.lineWidth = 2.2; ctx.lineCap = 'round';
+    for (let i = 0; i < 3; i++) {
+      const base = cx + dir * 38, ph = ((FT.t * 40 * (.5 + val / 10) + i * 8) % 24) - 12;
+      const sx = base + dir * ph, len = 4 + val * .9;
+      ctx.globalAlpha = 1 - Math.abs(ph) / 14;
+      ctx.beginPath(); ctx.moveTo(sx - dir * len, cy - 5 + i * 5); ctx.lineTo(sx, cy - 5 + i * 5); ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+}
+
+function ftDrawChar(ctx, p, v, active, X, Y, sc, down, noBar) {
+  const E = FortEngine, c = E.CHARS[p.id], sx = X(v.x), sy = Y(v.y);
+  const hH = 78 * sc;
+  ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(sx, sy + 1, 20 * sc, 5 * sc, 0, 0, 7); ctx.fill();
+  const img = gmArtImg(p.id);
+  const bob = active ? Math.sin(FT.t * 6) * 2 * sc : 0, shk = v.hit > 0 ? (Math.random() - .5) * 7 * sc : 0;
+  ctx.save();
+  if (down) { ctx.translate(sx, sy); ctx.rotate(1.2); ctx.translate(-sx, -sy); ctx.globalAlpha = .75; }
+  if (img && img.naturalWidth) {
+    const dw = hH * img.naturalWidth / img.naturalHeight;
+    ctx.drawImage(img, sx - dw / 2 + shk, sy - hH + 3 * sc - bob, dw, hH);
+    if (v.hit > 0) { ctx.globalAlpha = .35 * (v.hit / .45); ctx.fillStyle = '#ff2a2a'; ctx.fillRect(sx - dw / 2 + shk, sy - hH + 3 * sc - bob, dw, hH); ctx.globalAlpha = 1; }
+  } else {
+    ctx.fillStyle = '#334'; ctx.beginPath(); ctx.arc(sx, sy - 28 * sc, 18 * sc, 0, 7); ctx.fill();
+  }
+  ctx.restore();
+  if (noBar) return;
+  // 체력 바 + 이름
+  const bw = 60 * sc + 8, bh = Math.max(6, 7 * sc), bx = sx - bw / 2, by = sy - hH - 12 * sc;
+  ctx.fillStyle = 'rgba(0,0,0,.55)'; ftRR(ctx, bx - 1.5, by - 1.5, bw + 3, bh + 3, 4); ctx.fill();
+  const r = ftClamp(p.hp / p.maxHp, 0, 1);
+  ctx.fillStyle = r > .5 ? '#3ecf5a' : r > .25 ? '#f2b32a' : '#e0332a';
+  if (r > 0) { ftRR(ctx, bx, by, bw * r, bh, 3); ctx.fill(); }
+  ctx.font = `800 ${Math.max(10, 11 * (sc * .5 + .55))}px Jua, Pretendard, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.strokeText(`${c.name}  ${p.hp}`, sx, by - 3);
+  ctx.fillStyle = '#1f2a44'; ctx.fillText(`${c.name}  ${p.hp}`, sx, by - 3);
+  if (active) {
+    const my = by - 22 * (sc * .5 + .5) + Math.sin(FT.t * 7) * 2.5;
+    ctx.fillStyle = '#f2b32a'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(sx - 6, my - 7); ctx.lineTo(sx + 6, my - 7); ctx.lineTo(sx, my + 1); ctx.closePath(); ctx.stroke(); ctx.fill();
+  }
+}
 
     /* ══════════════════════════════════════════════════════════════════════
        게임 5: 블랙 퀴즈 (BLACK QUIZ)
@@ -28873,7 +30191,7 @@
       '그 외': ['부산', '대구', '대전', '광주', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주']
     };
         const MT_DISCLAIMER = '이 게시판은 블붕이끼리 직접 약속하고 거래하는 공간이에요. 관리자는 만남·동행·카풀·티켓 거래에 관여하지 않으며, 그로 인한 사고·분쟁·사기·금전 손실 등에 대해 어떠한 책임도 지지 않아요. 모든 만남과 거래는 본인 책임으로 신중하게 진행해주세요.';
-    let MT = { events: [], ev: '', cat: 'watch', mine: false, onlyOpen: false, posts: [], prices: null, f: {}, fOpen: false };
+    let MT = { events: [], ev: '', cat: 'ticket', mine: false, onlyOpen: false, posts: [], prices: null, f: {}, fOpen: false };
     /* 테스트 계정: preview.html 에서만 보이는 기능. 서버의 '테스트 모드'(어드민에서 켬)가 켜져 있을 때만 동작하고,
        카카오 로그인 없이 가상 계정(테스트-A 등)으로 글쓰기/신청/승인을 시험해볼 수 있다. 창(탭)마다 다른 계정 선택 가능. */
     const MT_TEST_UI = /preview\.html$/.test(location.pathname);
@@ -28955,7 +30273,8 @@
     function mtChoices(g, opts, sel, o) {
       o = o || {};
       const selArr = Array.isArray(sel) ? sel.map(String) : [String(sel == null ? '' : sel)];
-      return `<div class="mt-chs" data-g="${g}"${o.multi ? ' data-multi="1"' : ''}>` + opts.map(x => {
+      const allB = o.all ? `<button type="button" class="mt-ch multi all${selArr.filter(Boolean).length ? '' : ' on'}" data-v="__all">${esc(o.all)}</button>` : '';
+      return `<div class="mt-chs" data-g="${g}"${o.multi ? ' data-multi="1"' : ''}>` + allB + opts.map(x => {
         const v = typeof x === 'object' ? x.v : x, l = typeof x === 'object' ? x.l : x;
         return `<button type="button" class="mt-ch${o.multi ? ' multi' : ''}${selArr.includes(String(v)) ? ' on' : ''}" data-v="${esc(v)}">${esc(l)}</button>`;
       }).join('') + '</div>';
@@ -28973,7 +30292,15 @@
         grp.querySelectorAll('.mt-ch').forEach(b => {
           b.onclick = () => {
             if (b.disabled) return;
-            if (multi) b.classList.toggle('on');
+            if (multi) {
+              // "전체" 버튼이 있는 묶음: 전체를 누르면 나머지 해제, 다른 걸 누르면 전체 해제, 아무것도 없으면 전체로 돌아감
+              const allBtn = grp.querySelector('.mt-ch.all');
+              if (allBtn && b === allBtn) { grp.querySelectorAll('.mt-ch').forEach(x => x.classList.remove('on')); b.classList.add('on'); }
+              else {
+                b.classList.toggle('on');
+                if (allBtn) { allBtn.classList.remove('on'); if (!grp.querySelector('.mt-ch.on')) allBtn.classList.add('on'); }
+              }
+            }
             else {
               grp.querySelectorAll('.mt-ch').forEach(x => x.classList.remove('on'));
               b.classList.add('on');
@@ -28991,7 +30318,7 @@
       if (b.dataset.v === '__c') { const c = grp.querySelector('.mt-cust'); return c ? c.value.trim() : ''; }
       return b.dataset.v;
     };
-    const mtMulti = (root, g) => Array.from(root.querySelectorAll(`.mt-chs[data-g="${g}"] .mt-ch.on`)).map(b => b.dataset.v);
+    const mtMulti = (root, g) => Array.from(root.querySelectorAll(`.mt-chs[data-g="${g}"] .mt-ch.on`)).map(b => b.dataset.v).filter(v => v !== '__all');
     function mtInt(v, min, max) { if (v === '' || v == null || !/^\d+$/.test(String(v))) return null; const n = Number(v); return n >= min && n <= max ? n : null; }
     function mtSetMsg(root, t) { const m = root.querySelector('.mt-msg'); if (m) { m.textContent = t || ''; m.style.display = t ? 'block' : 'none'; if (t) m.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }
 
@@ -29050,18 +30377,26 @@
     /* 필터 / 정렬 (종류별로 따로 기억) */
     const mtF = () => (MT.f[MT.cat] = MT.f[MT.cat] || {});
     const mtLeft = p => Math.max(0, (p.capacity || 0) - (p.approved || 0));
-    function mtFT(k, v) { const f = mtF(); const a = f[k] || (f[k] = []); const i = a.indexOf(v); if (i >= 0) a.splice(i, 1); else a.push(v); mtRender(); }
+    function mtKeep(fn) {
+      const y = window.scrollY, l = document.querySelector('.mt-ms-l'), lt = l ? l.scrollTop : 0;
+      const de = document.documentElement, prev = de.style.scrollBehavior; de.style.scrollBehavior = 'auto';
+      const h = $app.offsetHeight; $app.style.minHeight = h + 'px';
+      fn();
+      const l2 = document.querySelector('.mt-ms-l'); if (l2) l2.scrollTop = lt;
+      window.scrollTo(0, y); $app.style.minHeight = ''; de.style.scrollBehavior = prev;
+    }
+    function mtFT(k, v) { const f = mtF(); const a = f[k] || (f[k] = []); const i = a.indexOf(v); if (i >= 0) a.splice(i, 1); else a.push(v); mtKeep(mtRender); }
     function mtFS(k, v) { const f = mtF(); f[k] = f[k] === v ? '' : v; mtRender(); }
     function mtFSort(v) { mtF().sort = v; mtRender(); }
     function mtFReset() { MT.f[MT.cat] = {}; MT.fopen = ''; mtRender(); }
     document.addEventListener('click', e => { if (typeof MT !== 'undefined' && MT.fopen && !e.target.closest('.mt-ms')) { MT.fopen = ''; mtRender(); } });
-    function mtFCount(f) { return (f.ages || []).length + (f.gender ? 1 : 0) + (f.kind ? 1 : 0) + (f.origins || []).length + (f.trip ? 1 : 0) + (f.minleft ? 1 : 0) + (f.grades || []).length + (f.qty ? 1 : 0); }
+    function mtFCount(f) { return (f.ages || []).length + (f.gender ? 1 : 0) + (f.kind ? 1 : 0) + (f.origins || []).length + (f.trip ? 1 : 0) + (f.minleft ? 1 : 0) + (f.grades || []).length + (f.qty ? 1 : 0) + (f.tkkind ? 1 : 0); }
     function mtMatch(p, f) {
       if (p.category !== 'ticket') {
         if ((f.ages || []).length && (p.age_prefs || []).length && !p.age_prefs.some(a => f.ages.includes(a))) return false;
         if (f.gender === 'any' && p.gender_pref !== '무관') return false;
-        if (f.gender === 'm' && !(p.gender_pref === '동성만' && p.gender === '남자')) return false;
-        if (f.gender === 'f' && !(p.gender_pref === '동성만' && p.gender === '여자')) return false;
+        if (f.gender === 'm' && !(p.gender_pref === '남자' || (p.gender_pref === '동성만' && p.gender === '남자'))) return false;
+        if (f.gender === 'f' && !(p.gender_pref === '여자' || (p.gender_pref === '동성만' && p.gender === '여자'))) return false;
         if (f.minleft && mtLeft(p) < f.minleft) return false;
       }
       if (p.category === 'carpool') {
@@ -29070,6 +30405,7 @@
         if (f.trip && p.trip !== f.trip && p.trip !== '무관' && f.trip !== '무관') return false;
       }
       if (p.category === 'ticket') {
+        if (f.tkkind && (p.tk_kind || '판매') !== f.tkkind) return false;
         if ((f.grades || []).length && !f.grades.includes(p.grade)) return false;
         if (f.qty && (f.qty >= 4 ? p.sell_qty < 4 : p.sell_qty !== f.qty)) return false;
       }
@@ -29091,7 +30427,7 @@
       carpool: [['new', '최근 등록순'], ['left', '남은 자리 많은순'], ['fareLow', '카풀비 낮은순'], ['fareHigh', '카풀비 높은순']],
       ticket: [['new', '최근 등록순'], ['priceLow', '양도 금액 낮은순'], ['priceHigh', '양도 금액 높은순']]
     };
-    function mtFOpen(k, e) { if (e) e.stopPropagation(); MT.fopen = MT.fopen === k ? '' : k; mtRender(); }
+    function mtFOpen(k, e) { if (e) e.stopPropagation(); MT.fopen = MT.fopen === k ? '' : k; mtKeep(mtRender); }
     function mtMSel(k, ph, groups, sel) {
       const open = MT.fopen === k;
       const label = sel.length ? (sel.length <= 2 ? sel.join(', ') : sel.slice(0, 2).join(', ') + ' 외 ' + (sel.length - 2)) : ph;
@@ -29119,11 +30455,12 @@
         h += row('편도 / 왕복', ['편도', '왕복', '무관'].map(v => mtFChip(v, f.trip === v, `mtFS('trip','${v}')`)).join(''));
       }
       if (MT.cat === 'ticket') {
+        h += row('구분', ['판매', '구매'].map(v => mtFChip('티켓 ' + v, f.tkkind === v, `mtFS('tkkind','${v}')`)).join(''));
         let gs = Object.keys((MT.prices && MT.prices.map) || {});
         if (!gs.length) gs = Object.values(typeof Z17_GRADE_NAME !== 'undefined' ? Z17_GRADE_NAME : {});
         posts.forEach(p => { if (p.grade && !gs.includes(p.grade)) gs.push(p.grade); });
         h += row('좌석 등급', mtMSel('grades', '좌석 등급 선택', [['', gs]], f.grades || []));
-        h += row('양도 수량', [1, 2, 3, 4].map(n => mtFChip(n >= 4 ? '4장 이상' : n + '장', f.qty === n, `mtFS('qty',${n})`)).join(''));
+        h += row('티켓 수량', [1, 2, 3, 4].map(n => mtFChip(n >= 4 ? '4장 이상' : n + '장', f.qty === n, `mtFS('qty',${n})`)).join(''));
       }
       return `<div class="mt-fpanel">${h}<button type="button" class="mt-b gray sm" onclick="mtFReset()">필터 초기화</button></div>`;
     }
@@ -29137,7 +30474,7 @@
         <ul><li><b>직관</b> 같이 경기 보러 갈 사람 모으기</li><li><b>카풀</b> 같은 방향 사람끼리 차 나눠 타기 (모집/희망)</li><li><b>티켓 양도</b> 못 가게 된 티켓을 정가 이하로 넘기기</li></ul></div>
       <div class="mt-gcard"><h4>이것만은 지켜주세요</h4>
         <ul><li>양도 금액은 <b>정가 이하</b>로만 올릴 수 있어요. 웃돈과 프리미엄은 안 돼요.</li>
-        <li><b>계좌, 선입금, 링크</b> 같은 외부 결제 유도는 금지예요. 비고란에도 쓸 수 없어요.</li>
+        <li><b>계좌, 선입금, 링크</b> 같은 외부 결제 유도는 금지예요. 내용란에도 쓸 수 없어요.</li>
         <li>경기마다 종류별로 진행 중인 글은 <b>1개</b>씩 올릴 수 있어요. 내용이 바뀌면 글을 수정하면 돼요.</li>
         <li>카풀비는 기름값·통행료를 나누는 용도로만 사용해주세요.</li></ul></div>
       <div class="mt-gcard"><h4>신청과 연락 수단</h4>
@@ -29183,20 +30520,25 @@
         <button type="button" title="모집 중만 보기" class="mt-fchip g${MT.onlyOpen ? ' on' : ''}" onclick="MT.onlyOpen=!MT.onlyOpen;mtRender()"><i></i><span class="mt-lb">모집 중만</span></button>
         <button type="button" title="내 글·내 신청만 보기" class="mt-fchip m${MT.mine ? ' on' : ''}" onclick="MT.mine=!MT.mine;mtRender()">👤<span class="mt-lb"> 내 글·신청</span></button>
       </div>
-      ${ended ? '' : `<button type="button" class="mt-b dark" onclick="mtOpenCreate()">+ 글쓰기</button>`}
+      ${ended ? '' : `<button type="button" class="mt-b dark" onclick="mtOpenCreate()">글쓰기</button>`}
     </div>
     ${MT.fOpen ? mtFPanel(f) : ''}
-    ${loggedIn ? '' : `<div class="mt-login">글쓰기와 참여 신청은 카카오 로그인 후 이용할 수 있어요. 목록은 로그인 없이 편하게 구경하세요.</div>`}
+    ${loggedIn ? '' : `<div class="mt-login">글쓰기와 참여 신청은 카카오 로그인 후 이용할 수 있어요.</div>`}
     ${list.length ? list.map(mtCard).join('') : `<div class="mt-empty">${MT.mine ? '내 글이나 신청 내역이 아직 없어요.' : (MT.onlyOpen || nf) ? '조건에 맞는 글이 없어요.' : '아직 올라온 글이 없어요.<br>첫 글을 올려보세요!'}</div>`}
     <div class="mt-foot-note">${esc(MT_DISCLAIMER)}</div>`}`;
     }
     const mtPrefs = p => (p.age_prefs || []).slice().sort((x, y) => MT_AGE.indexOf(x) - MT_AGE.indexOf(y));
+    function mtNoteView(id) {
+      const p = MT.posts.find(x => x.id === id); if (!p) return;
+      mtModal('내용', `<div class="mt-form"><div style="white-space:pre-wrap;word-break:break-all;line-height:1.7;font-size:15px">${esc(p.note)}</div></div>`, 420);
+    }
     function mtCard(p) {
       const st = (p.category === 'ticket' && p.status === 'full') ? ['✓ 거래 진행 중', 'full'] : (MT_STATUS[p.status] || [p.status, 'closed']);
       const c = MT_CATS.find(x => x.k === p.category);
       const tags = [];
       if (p.gender) tags.push(`<span>${esc(p.gender)} · ${esc(p.age_group)}</span>`);
       if (p.gender_pref === '동성만') tags.push('<span class="hl">동성만 모집</span>');
+      else if (p.gender_pref === '남자' || p.gender_pref === '여자') tags.push(`<span class="hl">${p.gender_pref}만 모집</span>`);
       if (p.age_prefs && p.age_prefs.length) tags.push(`<span class="hl">${esc(mtPrefs(p).join('·'))} 모집</span>`);
       let facts = '', hi = '';
       if (p.category === 'watch') {
@@ -29207,8 +30549,8 @@
         hi = `<div class="mt-hi"><small>카풀비 (1인)</small><b>${p.fare < 0 ? '협의' : p.fare ? mtN(p.fare) + '<i>원</i>' : '없음'}</b></div>`;
       } else {
         const pct = p.unit_price > 0 ? Math.round((1 - p.sell_price / p.unit_price) * 100) : 0;
-        facts = [`${esc(p.seat_zone)}구역 ${esc(p.seat_row)}열 ${esc(p.seat_num)}번`, `<b>${p.sell_qty}장</b>`];
-        hi = `<div class="mt-hi price"><small>${p.sell_qty > 1 ? '총 ' + p.sell_qty + '장' : '1장'} · 장당 ${mtN(p.sell_price)}원</small><b>${mtN(p.sell_price * p.sell_qty)}<i>원</i></b><em class="${pct > 0 ? 'off' : ''}">${pct > 0 ? pct + '% 할인' : '정가'}</em></div>`;
+        facts = [...(p.tk_kind === '구매' || !p.seat_zone ? [] : [`${esc(p.seat_zone)}구역 ${esc(p.seat_row)}열 ${esc(p.seat_num)}번`]), `<b>${p.sell_qty}장</b>${p.tk_kind === '구매' ? ' 구해요' : ''}`];
+        hi = `<div class="mt-hi price"><small>${p.tk_kind === '구매' ? '희망가 · ' : ''}${p.sell_qty > 1 ? '총 ' + p.sell_qty + '장' : '1장'} · 장당 ${mtN(p.sell_price)}원</small><b>${mtN(p.sell_price * p.sell_qty)}<i>원</i></b><em class="${pct > 0 ? 'off' : ''}">${pct > 0 ? pct + '% 할인' : '정가'}</em></div>`;
       }
       const reqB = p.my_req === 'pending' ? '<span class="mt-badge wait">⏳ 승인 대기 중</span>' : p.my_req === 'approved' ? '<span class="mt-badge open">참여 확정</span>' : '';
       const ev = mtCurEvent(), evEnded = !!(ev && ev.ended);
@@ -29229,11 +30571,11 @@
       }
       return `<div class="mt-card c-${p.category} ${p.status}${p.mine ? ' is-mine' : ''}">
       <div class="mt-main">
-        <div class="mt-card-h"><span class="mt-badge cat-${p.category}${p.category === 'carpool' ? ' kind-' + (p.cp_kind === '모집' ? 'rec' : 'wish') : ''}">${c.ico} ${p.category === 'carpool' ? '카풀 ' + esc(p.cp_kind) : c.n}</span><span class="mt-badge ${st[1]}">${st[0]}</span>${p.mine ? '<span class="mt-badge mine">내 글</span>' : mtNick(p.author_nick)}${reqB}<span class="mt-ago">${mtAgo(p.created_at)}</span></div>
+        <div class="mt-card-h"><span class="mt-badge cat-${p.category}${p.category === 'carpool' ? ' kind-' + (p.cp_kind === '모집' ? 'rec' : 'wish') : p.category === 'ticket' && p.tk_kind === '구매' ? ' kind-buy' : ''}">${p.category === 'carpool' ? (p.cp_kind === '모집' ? '🚗' : '🙏') + ' 카풀 ' + esc(p.cp_kind) : p.category === 'ticket' ? (p.tk_kind === '구매' ? '🙋' : c.ico) + ' 티켓 ' + esc(p.tk_kind || '판매') : c.ico + ' ' + c.n}</span>${p.status === 'open' ? '' : `<span class="mt-badge ${st[1]}">${st[0]}</span>`}${p.mine ? '<span class="mt-badge mine">내 글</span>' : mtNick(p.author_nick)}${reqB}<span class="mt-ago">${mtAgo(p.created_at)}</span></div>
         <div class="mt-title">${esc(mtTitle(p))}</div>
         <div class="mt-facts">${facts.map(x => `<span>${x}</span>`).join('')}</div>
         ${tags.length ? `<div class="mt-tags">${tags.join('')}</div>` : ''}
-        ${p.note ? `<div class="mt-note">${esc(p.note)}</div>` : ''}
+        ${p.note ? `<div class="mt-note" role="button" title="눌러서 전체 보기" onclick="mtNoteView(${p.id})"><span>${esc(p.note)}</span></div>` : ''}
       </div>
       <div class="mt-side">${hi}<div class="mt-btns">${btns}</div></div></div>`;
     }
@@ -29250,8 +30592,12 @@
       mtDrawType(S);
     }
     function mtDrawType(S) {
-      const used = MT.posts.filter(p => p.mine && ['open', 'full', 'hidden'].includes(p.status)).map(p => p.category);
+      const mineAct = MT.posts.filter(p => p.mine && ['open', 'full', 'hidden'].includes(p.status));
+      const used = mineAct.filter(p => p.category !== 'ticket').map(p => p.category);
+      if (['판매', '구매'].every(k => mineAct.some(p => p.category === 'ticket' && (p.tk_kind || '판매') === k))) used.push('ticket');
+      S.tkUsed = mineAct.filter(p => p.category === 'ticket').map(p => p.tk_kind || '판매');
       S.ov.querySelector('.modal-h b').textContent = '글쓰기';
+      { const hb = S.ov.querySelector('.modal-h .mt-hback'); if (hb) hb.remove(); }
       S.root.className = 'mt-form';
       S.root.innerHTML = `<div class="mt-hint" style="margin:0 0 10px">어떤 글을 올릴까요?</div><div class="mt-ctypes">${MT_CATS.map(c => {
         const u = used.includes(c.k);
@@ -29291,7 +30637,7 @@
         const b = q('mt-vfy');
         b.className = 'mt-b sm ' + (done ? 'okline' : 'gray');
         b.textContent = done ? '✓ 확인 완료' : (k === 'kakaoid' ? '카카오톡에서 검색해봤어요' : '열어서 확인');
-        q('mt-vhint').textContent = done ? '' : (k === 'openkakao' ? '링크가 열리는지 확인해야 진행할 수 있어요' : k === 'insta' ? '내 프로필이 열리는지 확인해야 진행할 수 있어요' : '카카오톡 ID 검색에서 나오는지 확인한 뒤 눌러주세요 (자동 확인은 어려워요)');
+        q('mt-vhint').textContent = done ? '' : (k === 'openkakao' ? '링크가 열리는지 확인해야 진행할 수 있어요' : k === 'insta' ? '내 프로필이 열리는지 확인해야 진행할 수 있어요' : '카카오톡 ID 검색에서 나오는지 확인한 뒤 눌러주세요');
       };
       root.querySelectorAll('.mt-chs[data-g="ckind"] .mt-ch').forEach(b => b.addEventListener('click', paint));
       q('mt-cval').addEventListener('input', paint);
@@ -29315,7 +30661,10 @@
       if (D.grade && !gradeList.includes(D.grade)) gradeList.push(D.grade);
       const gender = D.gender || S.prof.gender || '', age = D.age_group || S.prof.age || '';
       const ck = (S.own && S.own.kind) || 'openkakao', cv = (S.own && S.own.value) || '';
-      let f = edit ? '' : `<button type="button" class="mt-back" id="mt-back">← 종류 다시 고르기</button>`;
+      let f = '';
+      { const h = S.ov.querySelector('.modal-h'), old = h.querySelector('.mt-hback'); if (old) old.remove();
+        if (!edit) { const bb = document.createElement('button'); bb.type = 'button'; bb.className = 'mt-hback'; bb.textContent = '뒤로가기'; bb.onclick = () => mtDrawType(S); h.insertBefore(bb, h.querySelector('.modal-x')); } }
+      if (cat === 'carpool') f += `<div class="mt-f"><label>카풀 구분</label>${mtChoices('cpkind', [{ v: '모집', l: '🚗 카풀 모집 (차량 있음)' }, { v: '희망', l: '🙏 카풀 희망 (탑승 원함)' }], D.cp_kind || '')}</div>`;
       if (cat !== 'ticket') {
         f += `<div class="mt-f2"><div class="mt-f"><label>내 성별</label>${mtChoices('gender', ['남자', '여자'], gender)}</div>
           <div class="mt-f"><label>내 나이대</label>${mtChoices('age', MT_AGE, age)}</div></div>`;
@@ -29323,39 +30672,43 @@
       }
       if (cat === 'watch') f += `<div class="mt-f"><label>모집 인원</label>${mtNumChips('people', [1, 2, 3, 4, 5], D.people, 30, n => n + '명')}</div>`;
       if (cat === 'carpool') {
-        f += `<div class="mt-f"><label>구분</label>${mtChoices('cpkind', [{ v: '모집', l: '카풀 모집 (차량 있음)' }, { v: '희망', l: '카풀 희망 (탑승 원함)' }], D.cp_kind || '')}</div>
-        <div class="mt-f"><label>출발지 <small>상세 위치는 선택</small></label><select id="mt-origin" class="mt-sel wide"><option value="">지역 선택</option>${Object.entries(MT_REGIONS).map(([g, arr]) => `<optgroup label="${g}">${arr.map(a => `<option value="${esc(g === '그 외' ? a : g + ' ' + a)}">${esc(a)}</option>`).join('')}</optgroup>`).join('')}</select>
+        f += `<div class="mt-f"><label>출발지 <small>상세 위치는 선택</small></label><select id="mt-origin" class="mt-sel wide"><option value="">지역 선택</option>${Object.entries(MT_REGIONS).map(([g, arr]) => `<optgroup label="${g}">${arr.map(a => `<option value="${esc(g === '그 외' ? a : g + ' ' + a)}">${esc(a)}</option>`).join('')}</optgroup>`).join('')}</select>
           <input id="mt-od" type="text" maxlength="30" style="margin-top:8px" placeholder="상세 위치 (예: 강남역 1번 출구)" value="${esc(D.origin_detail || '')}"></div>
         <div class="mt-f"><label id="mt-plabel">${D.cp_kind === '희망' ? '탑승 인원' : '모집 인원 (빈 자리)'}</label>${mtNumChips('people', [1, 2, 3, 4], D.people, 8, n => n + '명')}</div>
         <div class="mt-f"><label>편도 / 왕복</label>${mtChoices('trip', ['편도', '왕복', '무관'], D.trip || '')}</div>
         <div class="mt-f"><label>카풀비 (1인 기준)</label>${mtNumChips('fare', [0, -1], D.fare, 200000, n => n === 0 ? '없음' : '협의')}<div class="mt-hint">유류비·통행료 실비 분담 용도로만 사용해주세요.</div></div>`;
       }
       if (cat === 'ticket') {
-        f += `<div class="mt-f"><label>좌석 등급</label><select id="mt-grade" class="mt-sel wide"><option value="">선택해주세요</option>${gradeList.map(g => `<option value="${esc(g)}">${esc(g)}${noPrice ? '' : ' (' + mtN(S.prices[g]) + '원)'}</option>`).join('')}</select></div>
-        <div class="mt-f3"><div class="mt-f"><label>구역</label><input id="mt-zone" type="text" maxlength="8" placeholder="예: 109" value="${esc(D.seat_zone || '')}"></div>
+        const tkNow = edit ? (D.tk_kind || '판매') : ((S.tkUsed || []).includes('판매') ? '구매' : '판매');
+        f += `<div class="mt-f"><label>티켓 구분</label>${edit ? `<div class="mt-auto">티켓 ${tkNow}</div><input type="hidden" id="mt-tkfix" value="${tkNow}">` : mtChoices('tkkind', ['판매', '구매'].filter(k => !(S.tkUsed || []).includes(k)).map(k => ({ v: k, l: k === '판매' ? '🎟️ 티켓 판매 (팔아요)' : '🙋 티켓 구매 (구해요)' })), tkNow)}</div>
+        <div class="mt-f"><label>좌석 등급</label><select id="mt-grade" class="mt-sel wide"><option value="">선택해주세요</option>${gradeList.map(g => `<option value="${esc(g)}">${esc(g)}${noPrice ? '' : ' (' + mtN(S.prices[g]) + '원)'}</option>`).join('')}</select></div>
+        <div id="mt-seatbox" class="mt-f3"${(edit ? D.tk_kind : tkNow) === '구매' ? ' style="display:none"' : ''}><div class="mt-f"><label>구역</label><input id="mt-zone" type="text" maxlength="8" placeholder="예: 109" value="${esc(D.seat_zone || '')}"></div>
           <div class="mt-f"><label>열</label><input id="mt-row" type="text" maxlength="8" placeholder="예: K" value="${esc(D.seat_row || '')}"></div>
           <div class="mt-f"><label>번호</label><input id="mt-num" type="text" maxlength="12" placeholder="예: 1~2" value="${esc(D.seat_num || '')}"></div></div>
-        <div class="mt-f"><label>양도 수량</label>${mtNumChips('sellq', [1, 2, 3], D.sell_qty, 20, n => n + '장')}</div>
+        <div class="mt-f"><label id="mt-qlabel">티켓 수량</label>${mtNumChips('sellq', [1, 2, 3], D.sell_qty, 20, n => n + '장')}</div>
         ${noPrice ? `<div class="mt-f"><label>구매 금액 <small>장당 정가</small></label><input id="mt-unit" type="number" inputmode="numeric" placeholder="예: 99000" value="${D.unit_price || ''}"><div class="mt-hint">정가표를 불러오지 못했어요. 예매 내역의 장당 금액을 입력해주세요.</div></div>` : `<div class="mt-f"><label>구매 금액 <small>등급을 고르면 자동으로 채워져요</small></label><div id="mt-unitbox" class="mt-auto">등급을 선택해주세요</div></div>`}
-        <div class="mt-f"><label>양도 금액 <small>총액 · 정가 이하만 가능</small></label><input id="mt-sell" type="number" inputmode="numeric" placeholder="예: 270000" value="${D.sell_price == null ? '' : D.sell_price * D.sell_qty}">
+        <div class="mt-f"><label id="mt-slabel">${tkNow === '구매' ? '구매 희망 금액' : '양도 금액'} <small>총액 · 정가 이하만 가능</small></label><input id="mt-sell" type="number" inputmode="numeric" placeholder="예: 270000" value="${D.sell_price == null ? '' : D.sell_price * D.sell_qty}">
           <div class="mt-quick"><button type="button" data-d="0">정가</button><button type="button" data-d="10">10% 할인</button><button type="button" data-d="20">20% 할인</button><button type="button" data-d="30">30% 할인</button><span class="mt-disc"><input id="mt-disc" type="number" inputmode="numeric" min="0" max="100" placeholder="직접"><b>% 할인</b></span></div>
           <div id="mt-sumbox" class="mt-hint"></div></div>`;
       } else {
-        f += `<div class="mt-f"><label>모집 연령대 <small>여러 개 선택 가능 · 선택 안 하면 전체</small></label>${mtChoices('agepref', MT_AGE, D.age_prefs || [], { multi: true })}</div>
-        <div class="mt-f"><label>모집 성별</label>${mtChoices('genderpref', ['무관', '동성만'], D.gender_pref || '무관')}</div>`;
+        f += `<div class="mt-f"><label>모집 연령대 <small>여러 개 선택 가능</small></label>${mtChoices('agepref', MT_AGE, D.age_prefs || [], { multi: true, all: '전체' })}</div>
+        <div class="mt-f"><label>모집 성별</label>${mtChoices('genderpref', ['무관', '남자', '여자'], D.gender_pref === '동성만' ? (D.gender || '무관') : (D.gender_pref || '무관'))}</div>`;
       }
       f += mtContactHTML2('내 연락 수단', '승인한 사람에게만 공개돼요', ck, cv, false);
-      f += `<div class="mt-f"><label>비고 <small>최대 100자</small></label><textarea id="mt-note" maxlength="100" rows="2" placeholder="간단한 추가 내용만 적어주세요 (계좌, 링크, 연락 수단 입력 금지)">${esc(D.note || '')}</textarea><div class="mt-hint"><span id="mt-cnt">${(D.note || '').length}</span>/100</div></div>
+      f += `<div class="mt-f"><label>내용 <small>최대 100자</small></label><textarea id="mt-note" maxlength="100" rows="2" placeholder="간단한 추가 내용만 적어주세요 (계좌, 링크, 연락 수단 입력 금지)">${esc(D.note || '')}</textarea><div class="mt-hint"><span id="mt-cnt">${(D.note || '').length}</span>/100</div></div>
         ${edit ? '' : `<label class="mt-agree"><input type="checkbox" id="mt-agree"> <span>${esc(MT_DISCLAIMER)} 정가 초과 판매와 외부 결제 유도 금지에 동의합니다.</span></label>`}
         <div class="mt-submit"><div class="mt-msg" style="display:none;margin-bottom:8px"></div><button type="button" class="mt-b pri lg wide" id="mt-submit">${edit ? '수정 저장' : '등록하기'}</button></div>`;
       root.innerHTML = f;
       const q = id => root.querySelector('#' + id);
       if (q('mt-origin')) q('mt-origin').value = D.origin || '';
       if (q('mt-grade')) q('mt-grade').value = D.grade || '';
-      if (q('mt-back')) q('mt-back').onclick = () => mtDrawType(S);
       mtBindChoices(root, (g, v) => {
         if (g === 'cpkind' && q('mt-plabel')) q('mt-plabel').textContent = v === '희망' ? '탑승 인원' : '모집 인원 (빈 자리)';
         if (g === 'sellq') upd();
+        if (g === 'tkkind') {
+          if (q('mt-seatbox')) q('mt-seatbox').style.display = v === '구매' ? 'none' : '';
+          if (q('mt-slabel')) q('mt-slabel').firstChild.textContent = (v === '구매' ? '구매 희망 금액' : '양도 금액') + ' ';
+        }
       });
       const ct = mtBindContact(root, S.own && S.own.value ? { kind: ck, value: cv } : null);
       let pct = null;
@@ -29371,7 +30724,7 @@
         if (tot && n) {
           if (tot % n) { t = `총액이 ${n}장으로 나누어떨어져야 해요 (장당 금액이 정수여야 해요)`; red = true; }
           else { t = `총 ${mtN(tot)}원 (장당 ${mtN(tot / n)}원)`; if (u && tot / n > u) { t += ' · 정가보다 비싸게는 올릴 수 없어요'; red = true; } }
-        } else if (tot) t = '양도 수량을 선택해주세요';
+        } else if (tot) t = '티켓 수량을 선택해주세요';
         sb2.textContent = t; sb2.style.color = red ? '#c93434' : '';
       }
       const noteEl = q('mt-note'); noteEl.oninput = () => { q('mt-cnt').textContent = noteEl.value.length; };
@@ -29381,12 +30734,12 @@
         if (q('mt-unit')) q('mt-unit').oninput = upd;
         root.querySelectorAll('.mt-quick button').forEach(b => b.onclick = () => {
           if (!unitNow()) { mtSetMsg(root, '먼저 좌석 등급(구매 금액)을 선택해주세요.'); return; }
-          if (!qtyNow()) { mtSetMsg(root, '먼저 양도 수량을 선택해주세요.'); return; }
+          if (!qtyNow()) { mtSetMsg(root, '먼저 티켓 수량을 선택해주세요.'); return; }
           pct = Number(b.dataset.d); q('mt-disc').value = ''; mtSetMsg(root, ''); upd();
         });
         q('mt-disc').oninput = () => {
           const v = q('mt-disc').value; if (v === '') { pct = null; return; }
-          if (!unitNow() || !qtyNow()) { mtSetMsg(root, '먼저 좌석 등급과 양도 수량을 선택해주세요.'); return; }
+          if (!unitNow() || !qtyNow()) { mtSetMsg(root, '먼저 좌석 등급과 티켓 수량을 선택해주세요.'); return; }
           const d = Number(v); if (d < 0 || d > 100) { mtSetMsg(root, '할인율은 0~100 사이로 입력해주세요.'); return; }
           mtSetMsg(root, ''); pct = d; upd();
         };
@@ -29394,7 +30747,7 @@
       }
       q('mt-submit').onclick = async () => {
         const note = q('mt-note').value.trim();
-        if (mtBadText(note)) return mtSetMsg(root, '비고에 금지된 표현(계좌/입금/링크/연락 수단/웃돈 등)이 있어요.');
+        if (mtBadText(note)) return mtSetMsg(root, '내용에 금지된 표현(계좌/입금/링크/연락 수단/웃돈 등)이 있어요.');
         const ckind = ct.kind(), cval = ct.value();
         if (!mtValidContact(ckind, cval)) return mtSetMsg(root, '연락 수단 형식을 확인해주세요. (' + MT_CONTACT[ckind].ph + ')');
         if (!ct.verified()) return mtSetMsg(root, ckind === 'kakaoid' ? '카카오톡에서 내 ID가 검색되는지 확인하고 버튼을 눌러주세요.' : '"열어서 확인"으로 내 연락 수단이 열리는지 확인해주세요.');
@@ -29416,15 +30769,17 @@
           if (p.fare === null) return mtSetMsg(root, '카풀비를 선택하거나 0~200,000원 사이로 입력해주세요.');
         }
         if (cat === 'ticket') {
+          p.tk_kind = q('mt-tkfix') ? q('mt-tkfix').value : (mtVal(root, 'tkkind') || '판매');
           p.grade = q('mt-grade').value; p.seat_zone = q('mt-zone').value.trim(); p.seat_row = q('mt-row').value.trim(); p.seat_num = q('mt-num').value.trim();
+          if (p.tk_kind === '구매') p.seat_zone = p.seat_row = p.seat_num = '';
           p.sell_qty = mtInt(mtVal(root, 'sellq'), 1, 20); p.unit_price = unitNow();
-          if (!p.grade || !p.seat_zone || !p.seat_row || !p.seat_num) return mtSetMsg(root, '좌석 등급과 구역·열·번호를 입력해주세요.');
-          if (!p.sell_qty) return mtSetMsg(root, '양도 수량을 선택하거나 1~20 사이로 입력해주세요.');
+          if (!p.grade || (p.tk_kind !== '구매' && (!p.seat_zone || !p.seat_row || !p.seat_num))) return mtSetMsg(root, p.tk_kind === '구매' ? '좌석 등급을 선택해주세요.' : '좌석 등급과 구역·열·번호를 입력해주세요.');
+          if (!p.sell_qty) return mtSetMsg(root, '티켓 수량을 선택하거나 1~20 사이로 입력해주세요.');
           const tot = Number(q('mt-sell').value || 0);
           if (!p.unit_price || !tot) return mtSetMsg(root, '금액을 입력해주세요.');
-          if (tot % p.sell_qty) return mtSetMsg(root, `양도 총액은 ${p.sell_qty}장으로 나누어떨어져야 해요.`);
+          if (tot % p.sell_qty) return mtSetMsg(root, `총액은 ${p.sell_qty}장으로 나누어떨어져야 해요.`);
           p.sell_price = tot / p.sell_qty;
-          if (p.sell_price > p.unit_price) return mtSetMsg(root, '양도 금액은 구매 금액(정가)을 넘을 수 없어요.');
+          if (p.sell_price > p.unit_price) return mtSetMsg(root, '금액은 정가를 넘을 수 없어요.');
         }
         const btn = q('mt-submit'); btn.disabled = true; btn.textContent = edit ? '저장 중…' : '등록 중…';
         try {
@@ -29445,7 +30800,7 @@
       const multi = p.category === 'watch' || (p.category === 'carpool' && p.cp_kind === '모집');
       const left = mtLeft(p);
       const ov = mtModal('참여 신청', `<div class="mt-form c-${p.category}" id="mt-ap">
-      <div class="mt-sum">${esc(mtTitle(p))}<br><span class="mt-dim">${esc(p.author_nick)}${p.gender ? ' · ' + esc(p.gender) + ' · ' + esc(p.age_group) : ''}${p.gender_pref === '동성만' ? ' · 동성만 모집' : ''}${p.age_prefs && p.age_prefs.length ? ' · ' + esc(mtPrefs(p).join('·')) + ' 모집' : ''}</span></div>
+      <div class="mt-sum">${esc(mtTitle(p))}<br><span class="mt-dim">${esc(p.author_nick)}${p.gender ? ' · ' + esc(p.gender) + ' · ' + esc(p.age_group) : ''}${p.gender_pref === '동성만' ? ' · 동성만 모집' : p.gender_pref === '남자' || p.gender_pref === '여자' ? ' · ' + p.gender_pref + '만 모집' : ''}${p.age_prefs && p.age_prefs.length ? ' · ' + esc(mtPrefs(p).join('·')) + ' 모집' : ''}</span></div>
       ${isT ? '' : `<div class="mt-f2"><div class="mt-f"><label>내 성별</label>${mtChoices('gender', ['남자', '여자'], prof.gender)}</div>
         <div class="mt-f"><label>내 나이대</label>${mtChoices('age', MT_AGE, prof.age)}</div></div>`}
       ${multi ? `<div class="mt-f"><label>신청 인원 <small>나를 포함 · 남은 자리 ${left}명</small></label>${mtNumChips('party', [1, 2, 3], 1, Math.max(left, 1), n => n + '명')}</div>` : ''}
@@ -29461,6 +30816,7 @@
         if (a && (a === '10대') !== (p.age_group === '10대')) w += '상대방과 성인/미성년 구분이 달라요. 만나기 전에 충분히 확인해주세요. ';
         document.getElementById('mt-apwarn').innerHTML = w ? `<div class="mt-warn" style="margin:0 0 12px">${w}</div>` : '';
         if (g && p.gender_pref === '동성만' && g !== p.gender) mtSetMsg(root, '작성자가 동성만 모집하는 글입니다.');
+        else if (g && (p.gender_pref === '남자' || p.gender_pref === '여자') && g !== p.gender_pref) mtSetMsg(root, '작성자가 ' + p.gender_pref + '만 모집하는 글입니다.');
         else if (a && p.age_prefs && p.age_prefs.length && !p.age_prefs.includes(a)) mtSetMsg(root, '작성자가 ' + mtPrefs(p).join(', ') + ' 연령대만 모집하는 글입니다.');
         else mtSetMsg(root, '');
       };
@@ -29632,13 +30988,21 @@
     ${reps.length ? reps.map(r => `<div class="card mt-adm"><b>글 #${r.post_id}</b> · ${esc(r.target)} <span class="mt-dim">신고자 ${esc(r.reporter)} · ${esc(r.reason)} · ${mtAgo(r.created_at)} · 글 상태 ${stl[r.post_status] || r.post_status}</span>
       <div><button type="button" class="btn xs" onclick="mtaResolve(${r.id})">처리 완료</button> <button type="button" class="btn xs" onclick="mtaStatus(${r.post_id},'hidden')">글 숨김</button> <button type="button" class="btn xs" onclick="mtaStatus(${r.post_id},'deleted')">글 삭제</button> <button type="button" class="btn xs" data-nick="${esc(r.target)}" onclick="mtaBan(this.dataset.nick)">이용 정지</button></div></div>`).join('') : '<div class="empty">대기 중인 신고가 없습니다.</div>'}
     <div class="sec-title">글 목록 (${posts.length})</div>
-    ${posts.length ? posts.map(p => `<div class="card mt-adm"><b>#${p.id}</b> <span class="mt-badge ${p.status === 'open' ? 'open' : 'closed'}">${stl[p.status] || p.status}</span> ${MT_CATS.find(c => c.k === p.category).n} · ${esc(p.author_nick)} ${p.reports ? `<span class="mt-dot">${p.reports}</span>` : ''}
+    ${posts.length ? posts.map(p => `<div class="card mt-adm"><b>#${p.id}</b> <span class="mt-badge ${p.status === 'open' ? 'open' : 'closed'}">${stl[p.status] || p.status}</span> ${MT_CATS.find(c => c.k === p.category).n}${p.category === 'ticket' ? ' ' + (p.tk_kind || '판매') : ''} · ${esc(p.author_nick)} ${p.reports ? `<span class="mt-dot">${p.reports}</span>` : ''}
       <div class="mt-dim">${esc(p.summary)}${p.note ? ' / ' + esc(p.note) : ''}</div><div class="mt-dim">연락 수단 ${esc(p.contact_kind)}: ${esc(p.contact_value)}</div>
-      <div><button type="button" class="btn xs" onclick="mtaStatus(${p.id},'open')">복구</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'hidden')">숨김</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'closed')">마감</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'deleted')">삭제</button> <button type="button" class="btn xs" data-nick="${esc(p.author_nick)}" onclick="mtaBan(this.dataset.nick)">이용 정지</button></div></div>`).join('') : '<div class="empty">글이 없습니다.</div>'}
+      ${mtaDeals(p)}
+      <div>${p.category === 'ticket' && (p.tk_kind || '판매') === '판매' ? `<button type="button" class="btn xs" onclick="mtaToBuy(${p.id})">구매 글로 변경</button> ` : ''}<button type="button" class="btn xs" onclick="mtaStatus(${p.id},'open')">복구</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'hidden')">숨김</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'closed')">마감</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'deleted')">삭제</button> <button type="button" class="btn xs" data-nick="${esc(p.author_nick)}" onclick="mtaBan(this.dataset.nick)">이용 정지</button></div></div>`).join('') : '<div class="empty">글이 없습니다.</div>'}
     <div class="sec-title">이용 정지 (${bans.filter(b => b.active).length})</div>
     <div class="card"><div class="mt-f3"><input id="mta-bn" type="text" placeholder="닉네임"><select id="mta-bd" class="mt-sel"><option value="7">7일</option><option value="30">30일</option><option value="">영구</option></select><input id="mta-br" type="text" placeholder="사유"></div>
       <button type="button" class="btn small" onclick="mtaBan(document.getElementById('mta-bn').value)">정지 적용</button></div>
     ${bans.map(b => `<div class="card mt-adm"><b>${esc(b.nick)}</b> <span class="mt-dim">${b.until_at ? '~ ' + fmtDT(b.until_at) : '영구'} · ${esc(b.reason || '')} · ${b.active ? '정지 중' : '해제/만료'}</span> ${b.active ? `<button type="button" class="btn xs" onclick="mtaUnban(${b.id})">해제</button>` : ''}</div>`).join('')}`;
+    }
+    function mtaDeals(p) {
+      const d = p.deals || [];
+      if (!d.length) return '<div class="mt-dim">신청 내역 없음</div>';
+      const stn = { pending: '⏳ 대기', approved: '✅ 거래 확정', rejected: '거절', kicked: '추방', cancelled: '취소' };
+      const ck = { openkakao: '오픈카톡', kakaoid: '카카오ID', insta: '인스타' };
+      return `<div class="mt-deals">${d.map(r => `<div class="mt-deal${r.status === 'approved' ? ' ok' : ''}"><b>${esc(p.author_nick)}</b> ⇄ <b>${esc(r.nick)}</b> <span class="mt-badge ${r.status === 'approved' ? 'open' : 'closed'}">${stn[r.status] || r.status}</span> <span class="mt-dim">${r.party > 1 ? r.party + '명 · ' : ''}${mtAgo(r.created_at)}${r.contact_value ? ' · ' + (ck[r.contact_kind] || '') + ' ' + esc(r.contact_value) : ''}</span></div>`).join('')}</div>`;
     }
     async function mtaDo(fn, args, ok) {
       try { await mtRpc(fn, Object.assign({ p_pass: adminPass() }, args)); if (ok) mtToast(ok); } catch (e) { mtToast(mtErr(e)); }
@@ -29647,6 +31011,7 @@
     const mtaTestMode = on => mtaDo('admin_meetup_set_test_mode', { p_on: on }, on ? '테스트 모드를 켰습니다.' : '테스트 모드를 껐습니다.');
     function mtaClearTest() { mtConfirm('테스트 데이터를 모두 삭제할까요?', '테스트 계정(테스트-A~)이 만든 글, 신청, 신고, 차단, 정지 기록이 지워집니다. 실제 회원 데이터는 그대로예요.', '삭제', () => mtaDo('admin_meetup_clear_test', {}, '테스트 데이터를 삭제했습니다.')); }
     const mtaResolve = id => mtaDo('admin_meetup_resolve_report', { p_id: id }, '처리했습니다.');
+    const mtaToBuy = id => mtConfirm('구매 글로 변경할까요?', '티켓 판매 글이 티켓 구매 글로 바뀌고 좌석 정보(구역·열·번호)는 지워집니다. 희망 금액은 그대로 유지됩니다.', '변경', () => mtaDo('admin_meetup_set_tk_kind', { p_id: id, p_kind: '구매' }, '구매 글로 변경했습니다.'));
     const mtaStatus = (id, s) => mtaDo('admin_meetup_set_status', { p_id: id, p_status: s }, '변경했습니다.');
     const mtaUnban = id => mtaDo('admin_meetup_unban', { p_ban_id: id }, '해제했습니다.');
     function mtaBan(nick) {
@@ -31470,14 +32835,6 @@
         app.querySelectorAll('.tk-dash-info .sub, .tk-dash-info div').forEach(function (n) { n.childNodes.forEach(function (c) { if (c.nodeType === 3 && c.nodeValue.indexOf('\u{1F4CD}') >= 0) c.nodeValue = c.nodeValue.replace(/\u{1F4CD}\s*/gu, ''); }); });
         // 급감 알림 목록은 차트의 ⚡ 점(툴팁)으로 충분 — 목록은 숨김
         app.querySelectorAll('.tk-rev-note[style*="b45309"]').forEach(function (n) { n.style.display = 'none'; });
-        // 예상 매출: 마우스오버로 펼침
-        var revBox = app.querySelector('.tk-rev');
-        if (revBox && !revBox.dataset.hover) {
-          revBox.dataset.hover = '1';
-          revBox.addEventListener('mouseenter', function () { if (window.__v2Touch) return; var bd = revBox.querySelector('.tk-rev-body'), bt = revBox.querySelector('button'); if (bd && bt && bd.style.display === 'none') bt.click(); });
-          revBox.addEventListener('mouseleave', function () { if (window.__v2Touch) return; var bd = revBox.querySelector('.tk-rev-body'), bt = revBox.querySelector('button'); if (bd && bt && bd.style.display !== 'none') bt.click(); });
-          document.addEventListener('pointerdown', function (e) { if (!document.body.contains(revBox) || e.target.closest('.tk-rev')) return; var bd = revBox.querySelector('.tk-rev-body'), bt = revBox.querySelector('button'); if (bd && bt && bd.style.display !== 'none') bt.click(); }, true);
-        }
         // 매진 예측: "빠듯"은 노랑 대신 주황 이모지(전석 매진의 옅은 앰버와 구분)
         app.querySelectorAll('.tk-fc-line b').forEach(function (b) { if (/매진은 빠듯/.test(b.textContent)) b.textContent = b.textContent.replace('\u{1F7E1}', '\u{1F7E0}'); });
         // 판매 추이(시간별): 10분 기록에서 시간대별 판매량을 집계해 일별 차트 옆에 그린다 (날짜 선택 가능)
