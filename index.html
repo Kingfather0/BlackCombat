@@ -29561,7 +29561,7 @@
       }
       if (cat === 'ticket') {
         const tkNow = edit ? (D.tk_kind || '판매') : ((S.tkUsed || []).includes('판매') ? '구매' : '판매');
-        f += `<div class="mt-f"><label>티켓 구분</label>${edit ? `<div class="mt-auto">티켓 ${tkNow}</div><input type="hidden" id="mt-tkfix" value="${tkNow}">` : mtChoices('tkkind', ['판매', '구매'].filter(k => !(S.tkUsed || []).includes(k)).map(k => ({ v: k, l: k === '판매' ? '🎟️ 티켓 판매 (양도)' : '🙋 티켓 구매 (구해요)' })), tkNow)}</div>
+        f += `<div class="mt-f"><label>티켓 구분</label>${edit ? `<div class="mt-auto">티켓 ${tkNow}</div><input type="hidden" id="mt-tkfix" value="${tkNow}">` : mtChoices('tkkind', ['판매', '구매'].filter(k => !(S.tkUsed || []).includes(k)).map(k => ({ v: k, l: k === '판매' ? '🎟️ 티켓 판매 (팔아요)' : '🙋 티켓 구매 (구해요)' })), tkNow)}</div>
         <div class="mt-f"><label>좌석 등급</label><select id="mt-grade" class="mt-sel wide"><option value="">선택해주세요</option>${gradeList.map(g => `<option value="${esc(g)}">${esc(g)}${noPrice ? '' : ' (' + mtN(S.prices[g]) + '원)'}</option>`).join('')}</select></div>
         <div id="mt-seatbox" class="mt-f3"${(edit ? D.tk_kind : tkNow) === '구매' ? ' style="display:none"' : ''}><div class="mt-f"><label>구역</label><input id="mt-zone" type="text" maxlength="8" placeholder="예: 109" value="${esc(D.seat_zone || '')}"></div>
           <div class="mt-f"><label>열</label><input id="mt-row" type="text" maxlength="8" placeholder="예: K" value="${esc(D.seat_row || '')}"></div>
