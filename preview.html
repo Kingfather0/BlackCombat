@@ -12318,82 +12318,107 @@
     }
   </style>
   <style id="fort-style">
-/* ── 글러브 포트리스 ── (기존 게임 CSS 뒤에 덮어쓰지 않고 .ga-fort / .gcard-fort / .ft-* 로만 한정) */
-.ga-fort { height: 540px; background: #8fd4ff; }
-@media (max-width: 480px) { .ga-fort { height: 520px; } }
-.ga-fort #gTitle { background: linear-gradient(180deg, rgba(70,150,220,.28), rgba(30,90,160,.62)); gap: 8px; }
-.ga-fort #gOver { gap: 8px; }
+/* ── 블랙 케이지 ── (.ga-fort / .gcard-fort / .ft-* 로만 한정) */
+#gArea.ga-fort { height: 540px; background: #0b0b10; }
+@media (max-width: 480px) { #gArea.ga-fort { height: 440px; }
+  .ga-fort .ft-sb { display: none; }
+  .ft-card img { height: 62px; } }
+.ga-fort #gTitle { background: linear-gradient(180deg, rgba(8,8,12,.55), rgba(8,8,12,.88)); gap: 8px; color: #fff; }
+.ga-fort #gTitle .gt-name { color: #f2c94c; text-shadow: 0 3px 0 #5a3a05, 0 0 18px rgba(242,201,76,.35); letter-spacing: .04em; }
+.ga-fort #gTitle .gt-sub { color: #e0332a; font-weight: 800; letter-spacing: .5em; font-size: 12px; margin-top: -4px; }
+.ga-fort #gTitle .gt-desc { color: #e7e9ef; line-height: 1.6; }
+.ga-fort #gTitle .gt-desc b { color: #f2c94c; }
+.ga-fort #gTitle .gt-hint { color: #8d93a3; }
+.ga-fort #gOver { gap: 8px; background: rgba(6,6,9,.84); color: #fff; }
+.ga-fort #gOver .go-ko { color: #f2c94c; }
 .ga-fort .g-start { font-size: 24px; padding: 11px 30px; letter-spacing: 0; white-space: nowrap; }
-.ga-fort #ftNext, .ga-fort .ft-go { font-size: 22px; padding: 10px 26px; }
+.ga-fort #ftNext, .ga-fort .ft-go { font-size: 21px; padding: 8px 24px; }
 .ft-faces { display: flex; align-items: flex-end; justify-content: center; gap: 4px; height: 96px; margin-bottom: 2px; }
-.ft-faces img { height: 92px; width: auto; filter: drop-shadow(0 4px 6px rgba(20,40,80,.4)); }
+.ft-faces img { height: 92px; width: auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,.7)); }
 .ft-faces img:nth-child(2) { height: 84px; }
 .ft-btn2 {
   font-family: 'Jua','Pretendard Variable',Pretendard,sans-serif; font-size: 15px; font-weight: 800; cursor: pointer;
-  background: #fff; color: #2b3a55; border: 2px solid #fff; border-radius: 99px; padding: 9px 20px;
-  box-shadow: 0 4px 0 rgba(20,50,100,.35), 0 8px 16px rgba(20,50,100,.25);
+  background: transparent; color: #f2c94c; border: 2px solid #f2c94c; border-radius: 99px; padding: 9px 20px;
+  box-shadow: 0 4px 0 rgba(90,58,5,.8);
 }
-.ft-btn2:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(20,50,100,.35); }
+.ft-btn2:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(90,58,5,.8); }
 
 /* 컨트롤 패널 */
 #ftCtl {
   position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; box-sizing: border-box;
-  padding: 8px 10px 10px; background: rgba(255,255,255,.96); border-top: 3px solid #e6b73a;
-  display: flex; flex-direction: column; gap: 7px; cursor: default;
+  padding: 8px 10px 10px; background: rgba(14,14,19,.97); border-top: 3px solid #f2c94c;
+  display: flex; flex-direction: column; gap: 7px; cursor: default; color: #e7e9ef;
   font-family: 'Jua','Pretendard Variable',Pretendard,sans-serif;
 }
 #ftCtl.off { opacity: .55; pointer-events: none; }
-.ft-r1 { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #5a3a10; min-height: 18px; }
+.ft-r1 { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #f2c94c; min-height: 18px; }
 .ft-who { font-weight: 800; flex: 0 0 auto; }
-.ft-last { flex: 1; font-size: 11.5px; color: #8a94a6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ft-stamw { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: #8a94a6; flex: 0 0 auto; }
-.ft-stam { display: inline-block; width: 54px; height: 8px; border-radius: 4px; background: #e5e9f0; overflow: hidden; }
+.ft-last { flex: 1; font-size: 11.5px; color: #8d93a3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ft-stamw { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: #8d93a3; flex: 0 0 auto; }
+.ft-stam { display: inline-block; width: 54px; height: 8px; border-radius: 4px; background: #2a2d38; overflow: hidden; }
 .ft-stam b { display: block; height: 100%; width: 100%; background: #4b8dff; border-radius: 4px; transition: width .1s; }
 .ft-r2 { display: flex; align-items: center; gap: 8px; }
 .ft-b {
-  font-family: inherit; font-size: 15px; font-weight: 800; color: #2b3a55; cursor: pointer; touch-action: manipulation;
-  background: #f4f6fa; border: 2px solid #cfd6e3; border-radius: 10px; padding: 0 12px; height: 40px; min-width: 62px;
-  box-shadow: 0 3px 0 #cfd6e3; user-select: none; -webkit-user-select: none;
+  font-family: inherit; font-size: 15px; font-weight: 800; color: #e7e9ef; cursor: pointer; touch-action: manipulation;
+  background: #232632; border: 2px solid #3a3f50; border-radius: 10px; padding: 0 12px; height: 40px; min-width: 62px;
+  box-shadow: 0 3px 0 #3a3f50; user-select: none; -webkit-user-select: none;
 }
-.ft-b:active { transform: translateY(2px); box-shadow: 0 1px 0 #cfd6e3; }
+.ft-b:active { transform: translateY(2px); box-shadow: 0 1px 0 #3a3f50; }
 .ft-b.sm { min-width: 40px; padding: 0 8px; font-size: 20px; line-height: 1; }
 .ft-angw { margin-left: auto; display: flex; align-items: center; gap: 6px; }
 .ft-val { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 48px; line-height: 1.05; }
-.ft-val small { font-size: 10.5px; color: #8a94a6; font-weight: 700; }
-.ft-val b { font-size: 20px; color: #2b3a55; }
+.ft-val small { font-size: 10.5px; color: #8d93a3; font-weight: 700; }
+.ft-val b { font-size: 20px; color: #fff; }
+
+/* 타이밍 게이지 */
 .ft-r3 { display: flex; align-items: center; gap: 10px; }
-.ft-powrap { flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
-.ft-powrap small { font-size: 11px; color: #8a94a6; font-weight: 700; flex: 0 0 auto; }
-.ft-powrap b { font-size: 18px; color: #c4410f; min-width: 32px; text-align: right; flex: 0 0 auto; }
-.ft-powrap input[type=range] { flex: 1; min-width: 0; height: 34px; accent-color: #f2b32a; margin: 0; touch-action: pan-x; }
-.ft-fire { animation: none !important; font-size: 19px !important; padding: 9px 20px !important; min-width: 98px; letter-spacing: .02em; border-width: 3px !important; }
+.ft-gauge {
+  position: relative; flex: 1; min-width: 0; height: 40px; border-radius: 10px; overflow: hidden;
+  background: linear-gradient(90deg, #3ecf5a 0%, #a6d640 35%, #f2b32a 60%, #ff7a2f 82%, #e0332a 100%);
+  border: 2px solid #3a3f50; box-sizing: border-box;
+}
+.ft-gauge s { position: absolute; top: 0; right: 0; bottom: 0; width: 100%; background: rgba(10,10,14,.82); text-decoration: none; }
+.ft-gauge u {
+  position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(255,255,255,.55); text-decoration: none;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.35); display: none;
+}
+.ft-gauge u::before { content: ''; position: absolute; top: -1px; left: -3px; width: 8px; height: 8px; background: rgba(255,255,255,.8); clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.ft-gauge b { position: absolute; top: -2px; bottom: -2px; width: 4px; background: #fff; box-shadow: 0 0 8px #fff; display: none; }
+.ft-gauge span {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none;
+  font-size: 15px; font-weight: 800; color: #fff; text-shadow: 0 2px 3px rgba(0,0,0,.9), 0 0 3px #000; white-space: nowrap;
+}
+#ftCtl.gauge .ft-gauge { border-color: #fff; box-shadow: 0 0 14px rgba(255,255,255,.45); }
+.ft-fire { animation: none !important; font-size: 19px !important; padding: 9px 18px !important; min-width: 100px; letter-spacing: .02em; border-width: 3px !important; touch-action: manipulation; }
+.ft-fire.now { background: #fff !important; color: #c4261d !important; animation: ftPulse .3s steps(1) infinite alternate !important; }
+@keyframes ftPulse { from { background: #fff; } to { background: #ffd24a; } }
 
 /* 파이터 선택 */
 #ftSel {
-  position: absolute; inset: 0; z-index: 9; box-sizing: border-box; overflow-y: auto; padding: 12px 10px 14px;
-  background: linear-gradient(180deg, rgba(30,70,130,.72), rgba(20,50,100,.86)); color: #fff; text-align: center;
+  position: absolute; inset: 0; z-index: 9; box-sizing: border-box; overflow: hidden; padding: 10px 10px 12px;
+  background: linear-gradient(180deg, rgba(8,8,12,.88), rgba(8,8,12,.96)); color: #fff; text-align: center;
   display: flex; flex-direction: column; gap: 9px; cursor: default;
   font-family: 'Jua','Pretendard Variable',Pretendard,sans-serif;
 }
-.ft-sel-h { font-size: 21px; font-weight: 800; text-shadow: 0 2px 0 rgba(20,40,90,.6); }
-.ft-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.ft-sel-h { font-size: 21px; font-weight: 800; color: #f2c94c; text-shadow: 0 2px 0 #5a3a05; }
+.ft-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; flex: 1 1 auto; min-height: 0; overflow-y: auto; align-content: start; padding: 3px; }
 .ft-card {
-  font-family: inherit; cursor: pointer; background: #fff; color: #1f2a44; border: 3px solid transparent; border-radius: 12px;
-  padding: 6px 4px 7px; display: flex; flex-direction: column; align-items: center; gap: 1px; box-shadow: 0 3px 0 rgba(0,0,0,.18);
+  font-family: inherit; cursor: pointer; background: #1a1c25; color: #fff; border: 3px solid #2e3240; border-radius: 12px;
+  padding: 5px 4px 6px; display: flex; flex-direction: column; align-items: center; gap: 0; box-shadow: 0 3px 0 rgba(0,0,0,.5);
 }
-.ft-card img { height: 66px; width: auto; max-width: 90%; object-fit: contain; }
-.ft-card b { font-size: 14px; margin-top: 2px; }
-.ft-card > span { font-size: 10.5px; color: #8a6a1c; font-weight: 700; margin-bottom: 3px; }
-.ft-card.on { border-color: #f2b32a; transform: scale(1.04); box-shadow: 0 0 0 3px rgba(242,179,42,.45), 0 4px 0 rgba(0,0,0,.2); }
-.ft-card.dis { opacity: .4; cursor: not-allowed; }
-.ft-sb { display: flex; align-items: center; gap: 4px; width: 100%; font-size: 9.5px; color: #6b7280; }
+.ft-card img { height: 48px; width: auto; max-width: 90%; object-fit: contain; }
+.ft-card b { font-size: 13px; margin-top: 1px; }
+.ft-card > span { font-size: 10.5px; color: #f2c94c; font-weight: 700; margin-bottom: 2px; }
+.ft-card.on { border-color: #f2c94c; transform: scale(1.04); box-shadow: 0 0 0 3px rgba(242,201,76,.35), 0 4px 0 rgba(0,0,0,.5); background: #262417; }
+.ft-card.dis { opacity: .35; cursor: not-allowed; }
+.ft-sb { display: flex; align-items: center; gap: 4px; width: 100%; font-size: 9px; line-height: 1.15; color: #8d93a3; }
 .ft-sb span { width: 22px; text-align: right; flex: 0 0 auto; }
-.ft-sb i { flex: 1; height: 5px; border-radius: 3px; background: #e5e9f0; overflow: hidden; display: block; }
-.ft-sb i b { display: block; height: 100%; background: #f2b32a; border-radius: 3px; margin: 0; font-size: 0; }
-.ft-sel-d { background: rgba(255,255,255,.95); color: #1f2a44; border-radius: 12px; padding: 9px 12px; font-size: 12.5px; line-height: 1.5; min-height: 38px; display: flex; align-items: center; justify-content: center; }
-.ft-sel-d b { color: #c4410f; margin-right: 6px; }
-.ft-go { align-self: center; min-width: 150px; }
-.ft-go[disabled] { opacity: .55; animation: none !important; }
+.ft-sb i { flex: 1; height: 4px; border-radius: 3px; background: #2e3240; overflow: hidden; display: block; }
+.ft-sb i b { display: block; height: 100%; background: #f2c94c; border-radius: 3px; margin: 0; font-size: 0; }
+.ft-sel-d { flex: 0 0 auto; background: #1a1c25; border: 1px solid #2e3240; color: #e7e9ef; border-radius: 12px; padding: 7px 12px; font-size: 12px; line-height: 1.45; min-height: 34px; display: flex; align-items: center; justify-content: center; }
+.ft-sel-d b { color: #f2c94c; }
+.ft-go { align-self: center; min-width: 150px; flex: 0 0 auto; }
+.ft-go[disabled] { opacity: .5; animation: none !important; }
 
 /* 하단 특성 카드 */
 .ft-grow { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--hair, #eceff4); }
@@ -12402,13 +12427,14 @@
 .ft-gb { min-width: 0; font-size: 12.5px; line-height: 1.5; }
 .ft-gb b { font-size: 14px; color: var(--text); }
 .ft-tag { font-size: 10.5px; font-weight: 700; color: #9a5f06; background: #fdf3d7; border-radius: 4px; padding: 1px 6px; margin-left: 4px; }
+.ft-gw { font-size: 12px; font-weight: 800; color: #c4261d; }
 .ft-gp { color: var(--muted); }
 .ft-gp b { font-size: 12.5px; color: #c4410f; margin-right: 3px; }
 .ft-gs { font-size: 11px; color: #8a94a6; }
 
 /* 게임 메뉴 카드 */
-.gcard-fort .gc-ico { background: linear-gradient(135deg, #7fd0ff, #3a8de0); }
-body[data-route="game"] .gcard-fort .gc-ico { background: #e4f3ff !important; }
+.gcard-fort .gc-ico { background: linear-gradient(135deg, #2a2a33, #0b0b10); }
+body[data-route="game"] .gcard-fort .gc-ico { background: #17171d !important; }
 body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82%; height: 92%; }
 
   </style>
@@ -12715,7 +12741,7 @@ body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82
       // 헷갈리지 않도록 사이트 상단 메뉴에 실제로 쓰는 단어(홈/티켓/랭킹/격잘알/게임)와 동일하게 표기한다.
       const seg = String(path || '').replace(/^#\//, '').split('/');
       if (seg[0] === 'game') {
-        const gameMap = { run: '게임 - 블랙 러닝', punch: '게임 - 블랙 펀칭', grow: '게임 - 블랙 점핑', battle: '게임 - 블랙 배틀', quiz: '게임 - 블랙 퀴즈', fort: '게임 - 글러브 포트리스' };
+        const gameMap = { run: '게임 - 블랙 러닝', punch: '게임 - 블랙 펀칭', grow: '게임 - 블랙 점핑', battle: '게임 - 블랙 배틀', quiz: '게임 - 블랙 퀴즈', fort: '게임 - 블랙 케이지' };
         return gameMap[seg[1]] || '게임';
       }
       const map = {
@@ -19894,8 +19920,8 @@ body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82
     <span class="gc-new">NEW</span>
     <div class="gc-ico"><img src="${ftArtSrc('tusin')}" alt=""></div>
     <div class="gc-b">
-      <b>글러브 포트리스</b>
-      <span>각도·파워·바람을 읽고 글러브를 날려라! 6인 6색 턴제 포격전</span>
+      <b>블랙 케이지</b>
+      <span>선수마다 다른 무기를 던져라! 타이밍 게이지로 KO 노리는 케이지 포격전</span>
       <span class="gc-top" id="gTopFort">불러오는 중…</span>
     </div>
     <span class="gc-go">PLAY</span>
@@ -19963,62 +19989,66 @@ body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82
       }
     }
 
-    /* ── [글러브 포트리스] 엔진 + 화면 (2026-11-04 추가, preview) ── */
+    /* ── [블랙 케이지] 엔진 + 화면 (2026-11-04 추가, preview) ── */
 /* ═══════════════════════════════════════════════════════════════════════
-   글러브 포트리스 — 게임 엔진 (화면/DOM과 무관한 순수 로직)
+   블랙 케이지 — 게임 엔진 (화면/DOM과 무관한 순수 로직)
    · 브라우저에서는 전역 FortEngine, Node에서는 module.exports 로 쓰인다.
    · 같은 엔진으로 밸런스 시뮬레이션(AI끼리 수천 판)을 돌려 승률을 검증한다.
+   · 선수마다 던지는 무기(proj)의 물리가 다르다: 속도/중력/바람 민감도/튕김/갈라짐/폭발 범위
+   · 케이지 벽(좌우)에는 한 번 튕긴다.
    ═══════════════════════════════════════════════════════════════════════ */
 var FortEngine = (function () {
   'use strict';
 
   var W = 600, H = 340;           // 월드 크기(논리 좌표)
-  var GRAV = 300;                 // 중력
+  var GRAV = 300;                 // 기본 중력
   var WIND_ACC = 32;              // 바람 1.0 일 때 가로 가속도
   var VMAX = 470;                 // 파워 100% 기본 탄속
   var BODY_R = 23;                // 캐릭터 피격 반경
   var BODY_CY = 33;               // 발바닥에서 몸 중심까지 높이
   var DT = 1 / 60;
-  var MAXSTEP = 1200;
+  var MAXSTEP = 1500;
+  var BASE = H * 0.72;            // 케이지 바닥 높이
 
-  /* ── 캐릭터 6인: 강점 하나 + 약점 하나 (완전 상위호환이 없게) ──
-     hp 체력 · dmg 기본 데미지 · rad 폭발 반경 · spd 탄속 배율 · wind 바람 민감도 · move 이동력
-     passive: rage(분노) / ko(주먹 KO) / combo(2연타) / shield(방패) / null */
+  /* ── 캐릭터 6인: 선수마다 던지는 무기와 물리가 다르다 ──
+     proj.kind  무기 종류(화면 그림도 달라진다)
+     dmg 데미지 · rad 폭발 반경 · spd 탄속 배율 · gmul 중력 배율 · wmul 바람 민감도
+     bounce 땅에서 튕기는 횟수 · split 정점에서 갈라지는 개수 · direct 직격 배율 · carve 땅 파임 배율 */
   var CHARS = {
     tusin: {
-      id: 'tusin', name: '투신', tag: '정석 포격수',
-      hp: 100, dmg: 31, rad: 32, spd: 1.0, wind: 1.0, move: 70, passive: 'rage',
-      pTitle: '순둥이의 분노', pDesc: '체력 40% 이하가 되면 데미지 +30%, 폭발 범위 +4',
+      id: 'tusin', name: '투신', tag: '정석 포격수', hp: 100, move: 70, take: 1, passive: 'rage',
+      proj: { kind: 'glove', label: '정권 글러브', dmg: 29, rad: 32, spd: 1.0, gmul: 1.0, wmul: 1.0, direct: 1, carve: 1 },
+      pTitle: '순둥이의 분노', pDesc: '가장 정직한 글러브. 체력 40% 이하가 되면 데미지 +30%, 폭발 범위 +4',
       taunt: '내가 화나기 전에 끝내자🔥',
     },
     wumawang: {
-      id: 'wumawang', name: '우마왕', tag: '한 방 KO',
-      hp: 88, dmg: 31, rad: 24, spd: 1.0, wind: 1.0, move: 70, passive: 'ko',
-      pTitle: '주먹 KO', pDesc: '글러브에 직접 맞히면 데미지 1.6배 (대신 범위가 좁아요)',
+      id: 'wumawang', name: '우마왕', tag: '한 방 KO', hp: 90, move: 70, take: 1, passive: null,
+      proj: { kind: 'staff', label: '여의봉', dmg: 32, rad: 22, spd: 1.25, gmul: 1.6, wmul: 0.8, direct: 1.45, carve: 0.8 },
+      pTitle: '여의봉 일격', pDesc: '빠르게 꽂히는 여의봉! 직격하면 데미지 1.45배. 대신 폭발 범위가 아주 좁아요',
       taunt: '가드 올려, 그래도 깨진다👊',
     },
     godfather: {
-      id: 'godfather', name: 'gotfather', tag: '2연타 변칙',
-      hp: 96, dmg: 32, rad: 28, spd: 1.0, wind: 1.0, move: 70, passive: 'combo',
-      pTitle: '말빨 2연타', pDesc: '글러브 2개를 동시에 던져요 (각 82% 데미지). 둘 다 맞으면 대박!',
+      id: 'godfather', name: 'gotfather', tag: '판 벌이기', hp: 96, move: 70, take: 1, passive: null,
+      proj: { kind: 'cash', label: '파이트머니 뭉치', dmg: 36, rad: 26, spd: 0.9, gmul: 0.8, wmul: 1.5, direct: 1, carve: 0.8, split: 3, splitMul: 0.7, splitSpread: 72 },
+      pTitle: '판 벌이기', pDesc: '던진 돈다발이 정점에서 3갈래로 흩어져요. 넓게 깔지만 한 장당 데미지는 낮고 바람에 팔랑거려요',
       taunt: '내가 만든 판에서 내가 지는 그림은 없어👑',
     },
     kingkong: {
-      id: 'kingkong', name: '킹콩', tag: '묵직한 탱커',
-      hp: 106, dmg: 29, rad: 32, spd: 0.88, wind: 1.15, move: 40, passive: null,
-      pTitle: '하바스 2.0', pDesc: '체력과 폭발 범위가 압도적! 대신 탄이 느리고 이동이 둔해요',
+      id: 'kingkong', name: '킹콩', tag: '묵직한 탱커', hp: 98, move: 40, take: 1, passive: null,
+      proj: { kind: 'plate', label: '바벨 원판', dmg: 28, rad: 38, spd: 0.95, gmul: 1.1, wmul: 0.6, direct: 1, carve: 1.35 },
+      pTitle: '하바스 2.0', pDesc: '묵직한 바벨 원판! 폭발이 크고 땅을 크게 파요. 대신 사거리가 짧고 이동이 둔해요',
       taunt: '실려 나갈 준비 됐냐?☠️',
     },
     sirasony: {
-      id: 'sirasony', name: '시라소니', tag: '빠른 기동형',
-      hp: 116, dmg: 35, rad: 29, spd: 1.1, wind: 0.6, move: 125, passive: null,
-      pTitle: '무패의 발놀림', pDesc: '이동력이 가장 높고 바람을 덜 타요. 대신 체력과 화력이 낮아요',
+      id: 'sirasony', name: '시라소니', tag: '빠른 기동형', hp: 100, move: 125, take: 1, passive: null,
+      proj: { kind: 'shuriken', label: '수리검', dmg: 31, rad: 22, spd: 1.2, gmul: 1.5, wmul: 0.4, direct: 1.2, carve: 0.7 },
+      pTitle: '무패의 발놀림', pDesc: '바람을 거의 안 타는 빠른 수리검 + 이동력 최고. 대신 폭발 범위가 좁아요',
       taunt: '덤비는 건 좋은데, 수준부터 맞춰라😑',
     },
     captainkorea: {
-      id: 'captainkorea', name: '캡틴 코리아', tag: '태극 방패',
-      hp: 100, dmg: 29, rad: 28, spd: 1.0, wind: 1.0, move: 100, passive: 'shield',
-      pTitle: '태극 방패', pDesc: '받는 데미지 20% 감소 · 이동력 좋음. 대신 한 방이 약해요',
+      id: 'captainkorea', name: '캡틴 코리아', tag: '방패 반사', hp: 108, move: 100, take: 0.8, passive: null,
+      proj: { kind: 'shield', label: '태극 방패', dmg: 36, rad: 32, spd: 1.0, gmul: 1.0, wmul: 0.9, direct: 1, carve: 1, bounce: 1 },
+      pTitle: '방패 반사', pDesc: '땅에 한 번 튕긴 뒤 터지는 방패! 받는 데미지 20% 감소. 대신 한 방이 약해요',
       taunt: '햄버거 먹고 와도 너는 잡겠다🍔',
     },
   };
@@ -20034,28 +20064,33 @@ var FortEngine = (function () {
     };
   }
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function sstep(t) { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); }
 
-  /* ── 지형 생성: 사인파 몇 개 + 가운데 능선. 양쪽 시작 지점은 평평하게 ── */
+  /* ── 케이지 바닥 생성: 평평한 매트 + 가운데 장애물(매트 더미/철제 박스) + 작은 언덕 ── */
   function genTerrain(rng) {
-    var top = new Float32Array(W);
-    var base = H * 0.68;
-    var a1 = 16 + rng() * 22, a2 = 8 + rng() * 14, a3 = 3 + rng() * 6;
-    var p1 = rng() * 6.283, p2 = rng() * 6.283, p3 = rng() * 6.283;
-    var f1 = 0.009 + rng() * 0.006, f2 = 0.022 + rng() * 0.01, f3 = 0.055 + rng() * 0.03;
-    var ridgeH = rng() * 62, ridgeW = 55 + rng() * 55, ridgeX = W / 2 + (rng() - 0.5) * 120;
-    for (var x = 0; x < W; x++) {
-      var h = a1 * Math.sin(x * f1 + p1) + a2 * Math.sin(x * f2 + p2) + a3 * Math.sin(x * f3 + p3);
-      var d = (x - ridgeX) / ridgeW;
-      h += ridgeH * Math.exp(-d * d);
-      var edge = Math.min(x, W - 1 - x);
-      var w = clamp((edge - 20) / 95, 0, 1); w = w * w * (3 - 2 * w);
-      var y = base - h * w;
-      top[x] = clamp(y, 110, H - 45);
+    var top = new Float32Array(W), x;
+    var wrink = 2 + rng() * 3, wp = rng() * 6.28;
+    for (x = 0; x < W; x++) top[x] = BASE + wrink * Math.sin(x * 0.03 + wp);
+    // 가운데 장애물 (윗면이 평평하고 옆면이 가파른 블록)
+    var cx = W / 2 + (rng() - 0.5) * 110, half = 26 + rng() * 34, hgt = 48 + rng() * 70, edge = 10 + rng() * 10;
+    for (x = 0; x < W; x++) {
+      var d = Math.abs(x - cx);
+      var k = 1 - sstep((d - half) / edge);
+      top[x] -= hgt * k;
     }
-    // 가볍게 평활화(뾰족한 톱니 방지)
-    for (var pass = 0; pass < 2; pass++) {
-      for (var i = 1; i < W - 1; i++) top[i] = (top[i - 1] + top[i] * 2 + top[i + 1]) / 4;
+    // 한쪽에 낮은 둔덕 (50% 확률로 하나 더)
+    if (rng() < 0.6) {
+      var side = rng() < 0.5 ? -1 : 1;
+      var bx = cx + side * (120 + rng() * 60), bh = 22 + rng() * 26, bw = 28 + rng() * 22;
+      for (x = 0; x < W; x++) { var dd = (x - bx) / bw; top[x] -= bh * Math.exp(-dd * dd * 1.6); }
     }
+    // 양쪽 시작 지점은 평평하게
+    for (x = 0; x < W; x++) {
+      var e = Math.min(x, W - 1 - x), w = sstep((e - 35) / 55);
+      top[x] = BASE + (top[x] - BASE) * w;
+      top[x] = clamp(top[x], 90, H - 40);
+    }
+    for (var pass = 0; pass < 1; pass++) for (var i = 1; i < W - 1; i++) top[i] = (top[i - 1] + top[i] * 2 + top[i + 1]) / 4;
     return top;
   }
   function surfaceY(top, x) {
@@ -20076,26 +20111,26 @@ var FortEngine = (function () {
         stam: c.move, ang: face > 0 ? 50 : 130, pow: 60, face: face, dead: false,
       };
     }
-    var xa = 55 + rng() * 55, xb = W - 55 - rng() * 55;
-    var st = {
+    var xa = 55 + rng() * 45, xb = W - 55 - rng() * 45;
+    return {
       top: top, p: [mk(opts.a, xa, 1), mk(opts.b, xb, -1)],
       turn: opts.first || 0, wind: (rng() - 0.5) * 1.6, over: false, winner: -1,
       shots: 0, lastImpact: [null, null], rng: rng,
     };
-    return st;
   }
 
   function effective(p) {
-    var c = CHARS[p.id], e = { dmg: c.dmg, rad: c.rad, direct: 1, take: 1, spd: c.spd, wind: c.wind, n: 1, spread: 0 };
+    var c = CHARS[p.id], pr = c.proj;
+    var e = {
+      kind: pr.kind, dmg: pr.dmg, rad: pr.rad, spd: pr.spd, gmul: pr.gmul, wmul: pr.wmul,
+      bounce: pr.bounce || 0, split: pr.split || 0, splitMul: pr.splitMul || 1, splitSpread: pr.splitSpread || 0,
+      direct: pr.direct || 1, carve: pr.carve || 1,
+    };
     if (c.passive === 'rage' && p.hp / p.maxHp <= 0.4) { e.dmg *= 1.3; e.rad += 4; }
-    if (c.passive === 'ko') e.direct = 1.4;
-    if (c.passive === 'combo') { e.n = 2; e.dmg *= 0.82; e.rad -= 0; e.spread = 2.8; }
-    if (c.passive === 'shield') e.take = 0.8;
     return e;
   }
-  function takeMul(p) { return CHARS[p.id].passive === 'shield' ? 0.8 : 1; }
 
-  /* ── 이동: 한 번에 1칸. 급경사(절벽)는 못 올라가고 상대 캐릭터를 통과할 수 없다 ── */
+  /* ── 이동: 한 번에 1칸. 급경사는 못 올라가고 상대 캐릭터를 통과할 수 없다 ── */
   function moveStep(st, pi, dir) {
     var p = st.p[pi], o = st.p[1 - pi];
     if (p.stam < 1 || st.over) return false;
@@ -20103,7 +20138,7 @@ var FortEngine = (function () {
     if (nx < 8 || nx > W - 8) return false;
     if (Math.abs(nx - o.x) < 34) return false;
     var ny = surfaceY(st.top, nx);
-    if (p.y - ny > 3.2) return false;        // 너무 가파른 오르막
+    if (p.y - ny > 3.2) return false;
     p.x = nx; p.y = ny; p.stam -= 1; p.face = dir;
     return true;
   }
@@ -20111,48 +20146,91 @@ var FortEngine = (function () {
     for (var i = 0; i < 2; i++) { var p = st.p[i]; p.y = surfaceY(st.top, p.x); }
   }
 
-  /* ── 탄도 계산 (상태를 바꾸지 않음). rec=true 면 경로 좌표를 기록한다 ── */
-  function trace(st, pi, ang, pow, rec, angOff) {
-    var p = st.p[pi], e = effective(p);
-    var a = (ang + (angOff || 0)) * Math.PI / 180;
-    var v0 = VMAX * e.spd * (pow / 100);
-    var x = p.x + Math.cos(a) * 18, y = p.y - BODY_CY - 4 - Math.sin(a) * 18;
-    var vx = Math.cos(a) * v0, vy = -Math.sin(a) * v0;
-    var ax = WIND_ACC * st.wind * e.wind;
-    var path = rec ? [[x, y]] : null;
-    var res = null;
-    for (var s = 1; s <= MAXSTEP; s++) {
-      vx += ax * DT; vy += GRAV * DT;
-      x += vx * DT; y += vy * DT;
-      if (rec && (s % 1 === 0)) path.push([x, y]);
-      if (x < -30 || x > W + 30 || y > H + 60) { res = { type: 'out', x: x, y: y, steps: s }; break; }
-      if (x >= 0 && x < W && y >= surfaceY(st.top, x)) { res = { type: 'ground', x: x, y: surfaceY(st.top, x), steps: s }; break; }
+  /* ── 한 발(또는 갈라진 한 갈래)의 비행. 결과 배열을 돌려준다 ──
+     바닥 충돌: 튕김이 남았으면 반사, 아니면 폭발 · 케이지 벽: 한 번 반사, 두 번째엔 폭발
+     정점(상승→하강 전환)에서 split 이 있으면 여러 갈래로 갈라진다 */
+  function flight(st, pi, S, rec, prefix) {
+    var e = S.e, x = S.x, y = S.y, vx = S.vx, vy = S.vy;
+    var ax = WIND_ACC * st.wind * e.wmul, gg = GRAV * e.gmul;
+    var bounces = S.bounces || 0, wb = S.wb || 0;
+    var path = rec ? (prefix ? prefix.slice() : [[x, y]]) : null;
+    var res = null, s;
+    for (s = (S.s || 0) + 1; s <= MAXSTEP; s++) {
+      var pvy = vy;
+      vx += ax * DT; vy += gg * DT; x += vx * DT; y += vy * DT;
+      // 케이지 벽
+      if (x < 0 || x > W) {
+        if (wb < 1) { wb++; x = x < 0 ? -x : 2 * W - x; vx = -vx * 0.6; }
+        else { res = { type: 'wall', x: clamp(x, 0, W), y: y, steps: s }; if (rec) path.push([res.x, y]); break; }
+      }
+      if (rec) path.push([x, y]);
+      if (y > H + 60 || y < -420) { res = { type: 'out', x: x, y: y, steps: s }; break; }
+      // 바닥
+      if (x >= 0 && x < W) {
+        var sy = surfaceY(st.top, x);
+        if (y >= sy) {
+          if (bounces < e.bounce) {
+            bounces++;
+            var sl = (surfaceY(st.top, x + 2) - surfaceY(st.top, x - 2)) / 4;
+            var nl = Math.sqrt(sl * sl + 1), nx = sl / nl, ny = -1 / nl;
+            var dot = vx * nx + vy * ny;
+            vx = (vx - 2 * dot * nx) * 0.62; vy = (vy - 2 * dot * ny) * 0.62;
+            y = sy - 3;
+            if (rec) path.push([x, y]);
+            if (Math.hypot(vx, vy) < 40) { res = { type: 'ground', x: x, y: sy, steps: s }; break; }
+            continue;
+          }
+          res = { type: 'ground', x: x, y: sy, steps: s }; break;
+        }
+      }
+      // 캐릭터 직격
       var hit = -1;
       for (var i = 0; i < 2; i++) {
-        if (i === pi && s < 24) continue;          // 발사 직후엔 자기 몸에 안 맞음
+        if (i === pi && s < 24) continue;
         var c = st.p[i], dx = x - c.x, dy = y - (c.y - BODY_CY);
         if (dx * dx + dy * dy < (BODY_R + 3) * (BODY_R + 3)) { hit = i; break; }
       }
       if (hit >= 0) { res = { type: 'char', x: x, y: y, idx: hit, steps: s }; break; }
+      // 정점에서 갈라짐
+      if (e.split > 0 && !S.splitDone && pvy < 0 && vy >= 0) {
+        var out = [];
+        for (var k = 0; k < e.split; k++) {
+          var off = (k - (e.split - 1) / 2) * e.splitSpread;
+          var rs = flight(st, pi, { x: x, y: y, vx: vx + off, vy: vy, e: e, bounces: bounces, wb: wb, splitDone: true, s: s }, rec, path);
+          for (var m = 0; m < rs.length; m++) { rs[m].child = true; out.push(rs[m]); }
+        }
+        return out;
+      }
     }
     if (!res) res = { type: 'out', x: x, y: y, steps: MAXSTEP };
     res.by = pi; res.path = path;
-    return res;
+    return [res];
+  }
+
+  /* 탄도 계산 (상태를 바꾸지 않음). rec=true 면 경로 좌표를 기록한다 */
+  function trace(st, pi, ang, pow, rec) {
+    var p = st.p[pi], e = effective(p);
+    var a = ang * Math.PI / 180, v0 = VMAX * e.spd * (pow / 100);
+    var S = {
+      x: p.x + Math.cos(a) * 18, y: p.y - BODY_CY - 4 - Math.sin(a) * 18,
+      vx: Math.cos(a) * v0, vy: -Math.sin(a) * v0, e: e,
+    };
+    return flight(st, pi, S, rec, null);
   }
 
   /* 발사: 투사체(들)의 궤적을 미리 계산해 돌려준다. 화면은 이 경로를 따라 애니메이션한 뒤 resolve 를 부른다 */
   function fire(st, pi, ang, pow) {
-    var e = effective(st.p[pi]);
-    var shots = [];
-    for (var k = 0; k < e.n; k++) {
-      var off = e.n === 1 ? 0 : (k === 0 ? -e.spread : e.spread);
-      var r = trace(st, pi, ang, pow, true, off);
-      r.dmg = e.dmg; r.rad = e.rad; r.direct = e.direct; r.k = k;
-      shots.push(r);
+    var p = st.p[pi], e = effective(p);
+    var rs = trace(st, pi, ang, pow, true);
+    for (var k = 0; k < rs.length; k++) {
+      var r = rs[k];
+      r.by = pi; r.kind = e.kind;
+      r.dmg = e.dmg * (r.child ? e.splitMul : 1);
+      r.rad = e.rad; r.direct = e.direct; r.carve = e.carve;
     }
-    st.p[pi].ang = ang; st.p[pi].pow = pow;
+    p.ang = ang; p.pow = pow;
     st.shots++;
-    return shots;
+    return rs;
   }
 
   function carve(top, cx, cy, r) {
@@ -20166,7 +20244,7 @@ var FortEngine = (function () {
 
   /* 착탄 처리: 지형 파괴 + 데미지. 이벤트 목록을 돌려준다 */
   function resolve(st, shot) {
-    var att = st.p[shot.by], evs = [];
+    var evs = [];
     if (shot.type !== 'out') {
       for (var i = 0; i < 2; i++) {
         var c = st.p[i];
@@ -20177,14 +20255,14 @@ var FortEngine = (function () {
         var f = 1 - 0.65 * (d / shot.rad);
         var dm = shot.dmg * f;
         if (shot.type === 'char' && shot.idx === i) dm *= shot.direct;
-        dm *= takeMul(c);
+        dm *= CHARS[c.id].take;
         if (i === shot.by) dm *= 0.6;
         dm = Math.max(1, Math.round(dm));
         c.hp = Math.max(0, c.hp - dm);
         evs.push({ idx: i, dmg: dm, direct: shot.type === 'char' && shot.idx === i, ko: c.hp <= 0 });
         if (c.hp <= 0) c.dead = true;
       }
-      carve(st.top, shot.x, shot.y, shot.rad * 0.92);
+      carve(st.top, shot.x, shot.y, shot.rad * 0.92 * (shot.carve || 1));
       settle(st);
       st.lastImpact[shot.by] = { x: shot.x, y: shot.y };
     }
@@ -20201,7 +20279,6 @@ var FortEngine = (function () {
     var p = st.p[st.turn];
     p.stam = CHARS[p.id].move;
     st.wind = clamp(st.wind + (st.rng() - 0.5) * 1.1, -1, 1);
-    // 상대 쪽을 보게 (이동하지 않았다면)
     var o = st.p[1 - st.turn];
     p.face = o.x >= p.x ? 1 : -1;
   }
@@ -20219,21 +20296,24 @@ var FortEngine = (function () {
     var best = null;
     for (var a = a0; a <= a1; a += aStep) {
       for (var pw = 20; pw <= 100; pw += pStep) {
-        var r = trace(st, pi, a, pw, false, 0);
-        if (r.type === 'out') continue;
-        var err = Math.hypot(r.x - tx, r.y - ty);
-        if (r.type === 'char' && r.idx !== pi) err = 0;
-        if (r.type === 'char' && r.idx === pi) continue;
+        var rs = trace(st, pi, a, pw, false);
+        var err = 1e9, selfHit = false;
+        for (var k = 0; k < rs.length; k++) {
+          var r = rs[k];
+          if (r.type === 'char' && r.idx === pi) { selfHit = true; break; }
+          var er = (r.type === 'out') ? 1e9 : Math.hypot(r.x - tx, r.y - ty);
+          if (r.type === 'char') er = 0;
+          if (er < err) err = er;
+        }
+        if (selfHit || err >= 1e9) continue;
         if (!best || err < best.err) best = { ang: a, pow: pw, err: err };
       }
     }
     return best;
   }
-  /* skill 0~1. 값이 클수록 오차가 작다. 반환: { move:{dir,steps}|null, ang, pow } */
   function aiPlan(st, pi, skill, quick) {
     var rng = st.rng, p = st.p[pi];
     var plan = { dir: 0, steps: 0 };
-    // 직전에 상대 탄이 내 근처에 떨어졌으면 자리를 옮긴다 (이동력 스탯이 의미를 가지도록)
     var li = st.lastImpact[1 - pi];
     if (li && Math.hypot(li.x - p.x, li.y - p.y) < 75 && p.stam > 8) {
       var dir = p.x >= li.x ? 1 : -1;
@@ -20255,7 +20335,7 @@ var FortEngine = (function () {
   }
 
   return {
-    W: W, H: H, GRAV: GRAV, BODY_R: BODY_R, BODY_CY: BODY_CY, VMAX: VMAX, DT: DT,
+    W: W, H: H, BASE: BASE, GRAV: GRAV, BODY_R: BODY_R, BODY_CY: BODY_CY, VMAX: VMAX, DT: DT,
     CHARS: CHARS, ORDER: ORDER,
     mulberry32: mulberry32, genTerrain: genTerrain, surfaceY: surfaceY,
     newGame: newGame, effective: effective, moveStep: moveStep, settle: settle,
@@ -20266,19 +20346,20 @@ var FortEngine = (function () {
 if (typeof module !== 'undefined') module.exports = FortEngine;
 
 /* ══════════════════════════════════════════════════════════════════════
-   게임 6: 글러브 포트리스 (GLOVE FORTRESS)
+   게임 6: 블랙 케이지 (BLACK CAGE)
 
-   "각도와 파워를 맞춰 글러브를 날리는 턴제 포격전 — 바람을 읽고 땅을 파서 KO!"
+   "블랙컴뱃 케이지 안에서 선수마다 다른 무기를 던져 KO — 파워는 매번 타이밍 게이지를 직접 멈춰서!"
 
    · 엔진(FortEngine)은 DOM과 무관한 순수 로직이라 위쪽 별도 블록에 있고, 이 아래는 화면/조작/AI 연출만 담당한다.
+   · 배경은 사이트에 이미 내장된 블랙컴뱃 케이지 경기장 이미지(GM_ART_SRC.battleCage)를 그대로 쓴다.
    · 점수 서버(Supabase)에는 아직 연결하지 않았다 — 기록(최고 연승)은 이 기기 localStorage 에만 저장한다.
    ══════════════════════════════════════════════════════════════════════ */
 var FT = {
   active: false, phase: 'title', mode: 'ai', stage: 1, streak: 0, skill: .3,
   sel: [null, null], selSlot: 0, pick: null, lastOpp: null,
   st: null, demo: null, vis: [{ x: 0, y: 0, hit: 0 }, { x: 0, y: 0, hit: 0 }],
-  flying: [], parts: [], pops: [], booms: [], shake: 0, t: 0, bubble: null,
-  human: true, last: [null, null], dragging: false, drag: null, aiTween: null,
+  flying: [], parts: [], pops: [], booms: [], shake: 0, t: 0, bubble: null, flash: 0,
+  human: true, last: [null, null], dragging: false, drag: null, aiTween: null, g: null, lastPow: 0,
   sc: 1, ox: 0, oy: 0, keyFn: null, rec: null,
 };
 const FT_STORE = 'ft_v1';
@@ -20301,16 +20382,18 @@ function ftOpenRules() {
   const ov = document.createElement('div');
   ov.className = 'modal-ov';
   ov.innerHTML = `<div class="modal" style="max-width:420px">
-    <div class="modal-h"><span><b>📖 글러브 포트리스 설명서</b></span><button class="modal-x" onclick="history.back()">✕</button></div>
+    <div class="modal-h"><span><b>📖 블랙 케이지 설명서</b></span><button class="modal-x" onclick="history.back()">✕</button></div>
     <div class="modal-b"><div style="font-size:12.5px;line-height:1.8;color:var(--muted)">
-      <b style="color:var(--text)">목표</b> 번갈아 글러브를 던져 상대 체력을 0으로 만들면 KO 승리!<br>
-      <b style="color:var(--text)">조작</b> 화면을 드래그하면 방향이 각도, 당긴 거리가 파워가 돼요. 아래 버튼과 슬라이더로 미세 조정하고 <b style="color:var(--text)">발사</b>!<br>
-      <b style="color:var(--text)">PC</b> 방향키 좌우 = 이동 · 상하 = 각도(Shift 누르면 5도씩) · W/S = 파워 · 스페이스 = 발사<br>
-      <b style="color:var(--text)">바람</b> 매 턴 바뀌어요. 바람 쪽으로 글러브가 밀려요.<br>
-      <b style="color:var(--text)">땅</b> 글러브가 터지면 땅이 파여요. 이동력만큼 걸어서 자리를 옮길 수 있어요.<br>
-      <b style="color:var(--text)">직격</b> 글러브가 몸에 직접 맞으면 폭발 중심 데미지! 내 폭발에 내가 맞으면 60%만 아파요.<br>
-      <b style="color:var(--text)">AI 대전</b> 이길수록 상대가 강해지고, 5스테이지마다 체력 +25% 챔피언전이 열려요.<br>
-      <b style="color:var(--text)">밸런스</b> 6명 모두 강점과 약점이 있어요. 상성과 지형을 살려 보세요.
+      <b style="color:var(--text)">목표</b> 번갈아 무기를 던져 상대 체력을 0으로 만들면 KO 승리!<br>
+      <b style="color:var(--text)">무기</b> 선수마다 던지는 물건이 달라요. 속도·궤적·바람·폭발 범위가 전부 달라서 같은 각도로 던져도 결과가 달라요.<br>
+      <b style="color:var(--text)">각도</b> 화면을 드래그하면 방향이 각도가 돼요. 각도 버튼으로 미세 조정!<br>
+      <b style="color:var(--text)">파워</b> <b style="color:var(--text)">발사</b>를 누르면 게이지가 오르락내리락! 원하는 위치에서 <b style="color:var(--text)">다시 한 번 눌러(화면 아무 데나 OK)</b> 멈추면 그 세기로 날아가요. 매번 직접 맞춰야 해요.<br>
+      <b style="color:var(--text)">PC</b> 방향키 좌우 = 이동 · 상하 = 각도 · 스페이스 = 게이지 시작/멈춤<br>
+      <b style="color:var(--text)">케이지 벽</b> 양쪽 벽에 한 번 튕겨요. 터지기 전에 두 번째로 벽에 닿으면 그 자리에서 터져요.<br>
+      <b style="color:var(--text)">바람</b> 매 턴 바뀌어요. 가벼운 무기일수록 바람을 많이 타요.<br>
+      <b style="color:var(--text)">땅</b> 터지면 바닥이 파여요. 이동력만큼 걸어서 자리를 옮길 수 있어요.<br>
+      <b style="color:var(--text)">직격</b> 몸에 직접 맞으면 폭발 중심 데미지! 내 폭발에 내가 맞으면 60%만 아파요.<br>
+      <b style="color:var(--text)">AI 대전</b> 이길수록 상대가 강해지고 게이지도 빨라져요. 5스테이지마다 체력 +25% 챔피언전!
     </div></div></div>`;
   ov.onclick = e => { if (e.target === ov) history.back(); };
   pushModal(ov);
@@ -20320,14 +20403,14 @@ function viewGameFort() {
   const __g = __navGen;
   gmToken++; gmClear(); gmCurGame = 'fort';
   G.mode = 'fortpage'; G.parts = [];
-  Object.assign(FT, { active: false, phase: 'title', st: null, flying: [], parts: [], pops: [], booms: [], bubble: null, aiTween: null, dragging: false, drag: null, mode: 'ai', stage: 1, streak: 0, sel: [null, null], pick: null, shake: 0 });
+  Object.assign(FT, { active: false, phase: 'title', st: null, flying: [], parts: [], pops: [], booms: [], bubble: null, aiTween: null, dragging: false, drag: null, g: null, mode: 'ai', stage: 1, streak: 0, sel: [null, null], pick: null, shake: 0, flash: 0 });
   FT.demo = FortEngine.newGame({ a: 'tusin', b: 'kingkong', rng: FortEngine.mulberry32(20261104) });
   FT.vis = FT.demo.p.map(p => ({ x: p.x, y: p.y, hit: 0 }));
   FT.rec = ftLoad();
   if (navStale(__g)) return;
   const faces = ['tusin', 'kingkong', 'captainkorea'].map(id => `<img src="${ftArtSrc(id)}" alt="">`).join('');
   $app.innerHTML = `
-  <h1 class="page" style="gap:6px">🥊 글러브 포트리스 <button class="bb-rules-btn-top" id="ftRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button></h1>
+  <h1 class="page" style="gap:6px">🥊 블랙 케이지 <button class="bb-rules-btn-top" id="ftRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button></h1>
   <div id="gArea" class="ga-fort">
     <canvas id="gCanvas"></canvas>
     <div class="ghud"><div id="gHearts"></div><div id="gStageTag"></div><div id="gScore"></div></div>
@@ -20346,15 +20429,15 @@ function viewGameFort() {
           <button class="ft-b sm" id="ftAp" type="button">+</button></div>
       </div>
       <div class="ft-r3">
-        <div class="ft-powrap"><small>파워</small><input type="range" id="ftPow" min="10" max="100" step="1" value="60"><b id="ftPowV">60</b></div>
+        <div class="ft-gauge" id="ftGauge"><s id="ftGmask"></s><u id="ftGlast"></u><b id="ftGmark"></b><span id="ftGv"></span></div>
         <button class="g-start ft-fire" id="ftFire" type="button">발사!</button>
       </div>
     </div>
     <div id="gTitle">
       <div class="ft-faces">${faces}</div>
-      <div class="gt-name">글러브 포트리스</div>
-      <div class="gt-sub">GLOVE FORTRESS</div>
-      <div class="gt-desc">각도와 파워를 맞춰 <b>글러브</b>를 날려라!<br>바람을 읽고 땅을 파서 <b>KO</b> 시켜라!</div>
+      <div class="gt-name">블랙 케이지</div>
+      <div class="gt-sub">BLACK CAGE</div>
+      <div class="gt-desc">선수마다 <b>다른 무기</b>를 던져라!<br>게이지 타이밍을 직접 맞춰 <b>KO</b> 시켜라!</div>
       <button class="g-start g-en" id="ftStartAi" type="button">AI 대전 시작</button>
       <button class="ft-btn2" id="ftStartPvp" type="button">친구와 2인 대결</button>
       <div class="gt-hint">AI를 이길수록 연승! · 한 화면에서 둘이서도 OK</div>
@@ -20363,7 +20446,7 @@ function viewGameFort() {
     <div id="gOver" style="display:none"></div>
   </div>
   <div class="card" id="ftRec"></div>
-  <div class="sec-title">🧑‍🎤 출전 파이터 특성</div>
+  <div class="sec-title">🧑‍🎤 출전 파이터와 무기</div>
   <div class="card" id="ftGuide"></div>`;
   ftRenderRec(); ftRenderGuide();
   const rb = document.getElementById('ftRulesBtn');
@@ -20385,8 +20468,9 @@ function ftRenderRec() {
     <div style="font-size:13.5px;color:var(--muted);line-height:1.7">최고 <b style="color:var(--text)">${r.best}연승</b> · 누적 승리 <b style="color:var(--text)">${r.wins}</b> · 총 ${r.games}판<br><span style="font-size:11.5px">기록은 이 기기에 저장돼요.</span></div>`;
 }
 function ftStatBars(c) {
+  const pr = c.proj, dmg = pr.dmg * (pr.split ? pr.split * pr.splitMul * .55 : 1) * (pr.direct > 1.2 ? 1.12 : 1);
   const bar = (label, v, max) => `<div class="ft-sb"><span>${label}</span><i><b style="width:${Math.round(ftClamp(v / max, .08, 1) * 100)}%"></b></i></div>`;
-  return bar('체력', c.hp, 125) + bar('화력', c.dmg * (c.passive === 'combo' ? 1.7 : 1), 40) + bar('범위', c.rad, 40) + bar('기동', c.move, 125);
+  return bar('체력', c.hp, 112) + bar('화력', dmg, 40) + bar('범위', pr.rad, 40) + bar('기동', c.move, 125);
 }
 function ftRenderGuide() {
   const el = document.getElementById('ftGuide'); if (!el) return;
@@ -20394,8 +20478,9 @@ function ftRenderGuide() {
     const c = FortEngine.CHARS[id];
     return `<div class="ft-grow"><img src="${ftArtSrc(id)}" alt="">
       <div class="ft-gb"><div><b>${esc(c.name)}</b> <span class="ft-tag">${esc(c.tag)}</span></div>
+      <div class="ft-gw">무기 · ${esc(c.proj.label)}</div>
       <div class="ft-gp"><b>${esc(c.pTitle)}</b> ${esc(c.pDesc)}</div>
-      <div class="ft-gs">체력 ${c.hp} · 데미지 ${c.dmg} · 범위 ${c.rad} · 이동 ${c.move}</div></div></div>`;
+      <div class="ft-gs">체력 ${c.hp} · 데미지 ${c.proj.dmg} · 범위 ${c.proj.rad} · 이동 ${c.move}</div></div></div>`;
   }).join('');
 }
 
@@ -20420,16 +20505,31 @@ function ftHold(btn, fn) {
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => btn.addEventListener(ev, stop));
 }
 function ftCanAct() { return !!FT.st && FT.phase === 'aim' && FT.human && !FT.st.over && !FT.aiTween; }
-function ftAdj(dAng, dPow) {
+function ftAdj(dAng) {
   if (!ftCanAct()) return;
   const p = FT.st.p[FT.st.turn];
   p.ang = ftClamp(p.ang + dAng, 0, 180);
-  p.pow = ftClamp(p.pow + dPow, 10, 100);
   ftSyncCtl();
 }
 function ftMove(dir) {
   if (!ftCanAct()) return;
   if (FortEngine.moveStep(FT.st, FT.st.turn, dir)) ftSyncCtl();
+}
+/* 발사 버튼 한 개로 두 단계: (1) 게이지 시작 → (2) 원하는 순간에 멈춰서 발사 */
+function ftStartGauge() {
+  if (!ftCanAct()) return;
+  const T = FT.mode === 'ai' ? ftClamp(.95 - .04 * (FT.stage - 1), .55, .95) : .8;
+  FT.phase = 'gauge'; FT.g = { pos: 0, dir: 1, cyc: 0, T };
+  FT.dragging = false; FT.drag = null;
+  gmCtx(); gmSnd('count');
+  ftSyncCtl();
+}
+function ftStopGauge() {
+  if (FT.phase !== 'gauge' || !FT.g || !FT.st) return;
+  const p = FT.st.p[FT.st.turn];
+  p.pow = ftClamp(Math.round(FT.g.pos), 10, 100);
+  FT.g = null;
+  ftFire();
 }
 function ftBindUI() {
   const $ = id => document.getElementById(id);
@@ -20437,16 +20537,17 @@ function ftBindUI() {
   const guard = fn => () => { if (tok === gmToken) fn(); };
   ftHold($('ftML'), guard(() => ftMove(-1)));
   ftHold($('ftMR'), guard(() => ftMove(1)));
-  ftHold($('ftAm'), guard(() => ftAdj(-1, 0)));
-  ftHold($('ftAp'), guard(() => ftAdj(1, 0)));
-  const pw = $('ftPow');
-  pw.oninput = () => { if (!ftCanAct()) { ftSyncCtl(); return; } FT.st.p[FT.st.turn].pow = +pw.value; ftSyncCtl(); };
+  ftHold($('ftAm'), guard(() => ftAdj(-1)));
+  ftHold($('ftAp'), guard(() => ftAdj(1)));
   const fb = $('ftFire');
-  fb.onpointerdown = e => e.stopPropagation();
-  fb.onclick = e => { e.stopPropagation(); if (ftCanAct()) ftFire(); };
+  fb.onpointerdown = e => {
+    e.stopPropagation(); e.preventDefault();
+    if (FT.phase === 'gauge') ftStopGauge(); else ftStartGauge();
+  };
+  fb.onclick = e => e.stopPropagation();
   $('ftStartAi').onclick = e => { e.stopPropagation(); gmCtx(); FT.mode = 'ai'; FT.stage = 1; FT.streak = 0; ftShowSelect(0); };
   $('ftStartPvp').onclick = e => { e.stopPropagation(); gmCtx(); FT.mode = 'pvp'; FT.stage = 1; FT.streak = 0; ftShowSelect(0); };
-  // 화면 드래그로 조준
+  // 화면 드래그로 각도 조준 / 게이지 중에는 화면 아무 데나 눌러서 멈춤
   const cv = $('gCanvas');
   const aimFrom = e => {
     if (!ftCanAct()) return;
@@ -20457,11 +20558,14 @@ function ftBindUI() {
     let ang = Math.atan2(dy, dx) * 180 / Math.PI;
     if (ang < 0) ang = dx >= 0 ? 0 : 180;
     p.ang = ftClamp(ang, 0, 180);
-    p.pow = ftClamp(Math.hypot(dx, dy) / 1.25, 10, 100);
     FT.drag = { x: px, y: py };
     ftSyncCtl();
   };
-  cv.addEventListener('pointerdown', e => { if (!ftCanAct()) return; FT.dragging = true; try { cv.setPointerCapture(e.pointerId); } catch (err) { } aimFrom(e); });
+  cv.addEventListener('pointerdown', e => {
+    if (FT.phase === 'gauge' && FT.human) { e.preventDefault(); ftStopGauge(); return; }
+    if (!ftCanAct()) return;
+    FT.dragging = true; try { cv.setPointerCapture(e.pointerId); } catch (err) { } aimFrom(e);
+  });
   cv.addEventListener('pointermove', e => { if (FT.dragging) aimFrom(e); });
   const endDrag = () => { FT.dragging = false; FT.drag = null; };
   cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
@@ -20469,16 +20573,20 @@ function ftBindUI() {
   if (FT.keyFn) document.removeEventListener('keydown', FT.keyFn);
   FT.keyFn = e => {
     if (tok !== gmToken || gmCurGame !== 'fort') { document.removeEventListener('keydown', FT.keyFn); return; }
+    const k = e.key;
+    if (k === ' ' || k === 'Enter') {
+      if (e.repeat) return;
+      if (FT.phase === 'gauge' && FT.human) { ftStopGauge(); e.preventDefault(); }
+      else if (ftCanAct()) { ftStartGauge(); e.preventDefault(); }
+      return;
+    }
     if (!ftCanAct()) return;
-    const k = e.key, big = e.shiftKey ? 5 : 1;
+    const big = e.shiftKey ? 5 : 1;
     let used = true;
     if (k === 'ArrowLeft' || k === 'a' || k === 'A') ftMove(-1);
     else if (k === 'ArrowRight' || k === 'd' || k === 'D') ftMove(1);
-    else if (k === 'ArrowUp') ftAdj(big, 0);
-    else if (k === 'ArrowDown') ftAdj(-big, 0);
-    else if (k === 'w' || k === 'W') ftAdj(0, big);
-    else if (k === 's' || k === 'S') ftAdj(0, -big);
-    else if (k === ' ' || k === 'Enter') { if (!e.repeat) ftFire(); }
+    else if (k === 'ArrowUp') ftAdj(big);
+    else if (k === 'ArrowDown') ftAdj(-big);
     else used = false;
     if (used) e.preventDefault();
   };
@@ -20490,15 +20598,34 @@ function ftSyncCtl() {
   const ctl = document.getElementById('ftCtl'); if (!ctl) return;
   const st = FT.st; if (!st) return;
   const pi = st.turn, p = st.p[pi], c = FortEngine.CHARS[p.id];
-  ctl.classList.toggle('off', !(FT.phase === 'aim' && FT.human));
+  const mine = FT.human && (FT.phase === 'aim' || FT.phase === 'gauge');
+  ctl.classList.toggle('off', !mine);
+  ctl.classList.toggle('gauge', FT.phase === 'gauge');
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   set('ftAng', Math.round(p.ang));
-  set('ftPowV', Math.round(p.pow));
-  const pw = document.getElementById('ftPow'); if (pw && +pw.value !== Math.round(p.pow)) pw.value = Math.round(p.pow);
   const sb = document.getElementById('ftStam'); if (sb) sb.style.width = Math.round(100 * p.stam / c.move) + '%';
   set('ftWho', FT.mode === 'ai' ? (pi === 0 ? `내 차례 · ${c.name}` : `상대 차례 · ${c.name}`) : `P${pi + 1} 차례 · ${c.name}`);
   const l = FT.last[pi];
-  set('ftLast', l ? `직전 ${l.ang}도 · 파워 ${l.pow}` : '');
+  set('ftLast', l ? `직전 ${l.ang}도 · 파워 ${l.pow}` : `무기 · ${c.proj.label}`);
+  set('ftFire', FT.phase === 'gauge' ? '지금!' : '발사!');
+  const fb = document.getElementById('ftFire'); if (fb) fb.classList.toggle('now', FT.phase === 'gauge');
+}
+/* 게이지 막대 (매 프레임) */
+function ftGaugeDom() {
+  const st = FT.st; if (!st) return;
+  const p = st.p[st.turn];
+  let gv = 0, txt = '';
+  if (FT.phase === 'gauge' && FT.g) { gv = FT.g.pos; txt = String(Math.round(gv)); }
+  else if (FT.aiTween) { gv = p.pow; txt = String(Math.round(gv)); }
+  else if (FT.phase === 'fly' || FT.phase === 'boom') { gv = FT.lastPow; txt = `파워 ${Math.round(gv)}`; }
+  else if (FT.human && FT.phase === 'aim') { gv = 0; txt = '발사를 누르면 게이지가 움직여요'; }
+  const m = document.getElementById('ftGmask'), k = document.getElementById('ftGmark'), t = document.getElementById('ftGv'), ls = document.getElementById('ftGlast');
+  if (m) m.style.width = (100 - gv) + '%';
+  if (k) k.style.left = `calc(${gv}% - 2px)`;
+  if (k) k.style.display = (FT.phase === 'gauge' || FT.aiTween || FT.phase === 'fly' || FT.phase === 'boom') ? '' : 'none';
+  if (t && t.textContent !== txt) t.textContent = txt;
+  const l = FT.last[st.turn];
+  if (ls) { ls.style.display = l ? '' : 'none'; if (l) ls.style.left = l.pow + '%'; }
 }
 
 /* ── 파이터 선택 ── */
@@ -20513,9 +20640,9 @@ function ftShowSelect(slot) {
     const c = FortEngine.CHARS[id];
     const dis = FT.mode === 'pvp' && slot === 1 && FT.sel[0] === id;
     return `<button type="button" class="ft-card${dis ? ' dis' : ''}" data-id="${id}"><img src="${ftArtSrc(id)}" alt="">
-        <b>${esc(c.name)}</b><span>${esc(c.tag)}</span>${ftStatBars(c)}</button>`;
+        <b>${esc(c.name)}</b><span>${esc(c.proj.label)}</span>${ftStatBars(c)}</button>`;
   }).join('')}</div>
-    <div class="ft-sel-d" id="ftSelD">파이터를 눌러 특성을 확인하세요</div>
+    <div class="ft-sel-d" id="ftSelD">파이터를 눌러 무기와 특성을 확인하세요</div>
     <button class="g-start ft-go" id="ftGo" type="button" disabled>출전!</button>`;
   o.querySelectorAll('.ft-card').forEach(b => {
     b.onclick = e => {
@@ -20524,7 +20651,7 @@ function ftShowSelect(slot) {
       FT.pick = b.dataset.id;
       o.querySelectorAll('.ft-card').forEach(x => x.classList.toggle('on', x === b));
       const c = FortEngine.CHARS[FT.pick];
-      document.getElementById('ftSelD').innerHTML = `<b>${esc(c.pTitle)}</b> ${esc(c.pDesc)}`;
+      document.getElementById('ftSelD').innerHTML = `<div><b>${esc(c.name)} · ${esc(c.proj.label)}</b><br>${esc(c.pDesc)}<br><span style="color:#8d93a3;font-size:11px">체력 ${c.hp} · 데미지 ${c.proj.dmg} · 범위 ${c.proj.rad} · 이동 ${c.move}</span></div>`;
       document.getElementById('ftGo').disabled = false;
       gmSnd('ding');
     };
@@ -20554,8 +20681,8 @@ function ftStartMatch() {
   if (champ) { st.p[1].maxHp = st.p[1].hp = Math.round(st.p[1].hp * 1.25); }
   FT.skill = FT.mode === 'ai' ? ftClamp(.28 + .085 * (FT.stage - 1), .28, .9) : .6;
   FT.st = st; FT.vis = st.p.map(p => ({ x: p.x, y: p.y, hit: 0 }));
-  FT.flying = []; FT.parts = []; FT.pops = []; FT.booms = []; FT.last = [null, null]; FT.aiTween = null;
-  FT.active = true; FT.shake = 0;
+  FT.flying = []; FT.parts = []; FT.pops = []; FT.booms = []; FT.last = [null, null]; FT.aiTween = null; FT.g = null; FT.lastPow = 0;
+  FT.active = true; FT.shake = 0; FT.flash = 0;
   bbArmLeaveGuard();
   const g = document.getElementById('gOver'); if (g) g.style.display = 'none';
   const ctl = document.getElementById('ftCtl'); if (ctl) ctl.style.display = '';
@@ -20577,7 +20704,7 @@ function ftStartMatch() {
 
 function ftBeginTurn() {
   const st = FT.st; if (!st || st.over) return;
-  FT.phase = 'aim';
+  FT.phase = 'aim'; FT.g = null;
   const pi = st.turn;
   FT.human = FT.mode === 'pvp' || pi === 0;
   ftSyncCtl();
@@ -20594,17 +20721,18 @@ function ftAiTurn() {
       if (tok !== gmToken || st !== FT.st || st.over) return;
       if (steps > 0 && E.moveStep(st, pi, plan.dir)) { steps--; ftSyncCtl(); gmDelay(doMove, 22); return; }
       const a = E.aiAim(st, pi, FT.skill, false), p = st.p[pi];
-      FT.aiTween = { a0: p.ang, a1: a.ang, p0: p.pow, p1: a.pow, t0: performance.now(), dur: 700 };
+      FT.aiTween = { a0: p.ang, a1: a.ang, p0: 0, p1: a.pow, t0: performance.now(), dur: 900 };
     };
     doMove();
   }, 800);
 }
 
 function ftFire() {
-  const st = FT.st; if (!st || FT.phase !== 'aim') return;
+  const st = FT.st; if (!st || (FT.phase !== 'aim' && FT.phase !== 'gauge')) return;
   const E = FortEngine, pi = st.turn, p = st.p[pi];
-  FT.phase = 'fly';
+  FT.phase = 'fly'; FT.g = null;
   FT.last[pi] = { ang: Math.round(p.ang), pow: Math.round(p.pow) };
+  FT.lastPow = p.pow;
   const shots = E.fire(st, pi, p.ang, p.pow);
   FT.flying = shots.map(s => ({ s, t: 0, done: false }));
   FT.vis[pi].hit = 0;
@@ -20613,29 +20741,35 @@ function ftFire() {
   ftSyncCtl();
 }
 
-function ftBoom(x, y, r, big) {
-  FT.booms.push({ x, y, r, t: 0 });
-  const n = big ? 26 : 18;
+const FT_BOOM_COL = {
+  glove: ['#ffd76e', '#ffffff', '#e0332a'], staff: ['#ffd76e', '#fff2b0', '#c98c00'], cash: ['#5fbf6a', '#ffffff', '#ffd76e'],
+  plate: ['#9aa0ac', '#d8dbe2', '#6b7280'], shuriken: ['#cfe8ff', '#ffffff', '#7fb8ff'], shield: ['#e0332a', '#ffffff', '#1f4aa8'],
+};
+function ftBoom(x, y, r, big, kind) {
+  FT.booms.push({ x, y, r, t: 0, kind });
+  const cols = FT_BOOM_COL[kind] || FT_BOOM_COL.glove;
+  const n = big ? 28 : 18;
   for (let i = 0; i < n; i++) {
     const a = Math.random() * Math.PI * 2, v = 60 + Math.random() * (big ? 260 : 190);
-    FT.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 90, life: .7 + Math.random() * .5, sz: 1.5 + Math.random() * 2.6, c: i % 3 === 0 ? '#ffd76e' : (i % 3 === 1 ? '#8b5a2b' : '#c98c4b') });
+    FT.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 90, life: .7 + Math.random() * .5, sz: 1.5 + Math.random() * 2.6, c: cols[i % cols.length] });
   }
+  FT.flash = Math.min(1, FT.flash + (big ? .7 : .45));
 }
 function ftPop(x, y, txt, c, size) { FT.pops.push({ x, y, txt, c: c || '#e0332a', size: size || 18, t: 0 }); }
 
 function ftLand() {
   const E = FortEngine, st = FT.st, tok = gmToken;
   FT.phase = 'boom';
-  let koBy = false, anyHit = false, direct = false;
+  let anyHit = false, direct = false;
   FT.flying.forEach(f => {
     const s = f.s, evs = E.resolve(st, s);
-    if (s.type === 'out') { ftPop(ftClamp(s.x, 40, E.W - 40), 70, '빗나감', '#6b7280', 16); return; }
-    ftBoom(s.x, s.y, s.rad, s.rad >= 34);
+    if (s.type === 'out') { ftPop(ftClamp(s.x, 40, E.W - 40), 70, '빗나감', '#cfd6e3', 16); return; }
+    ftBoom(s.x, s.y, s.rad, s.rad >= 34, s.kind);
     evs.forEach(ev => {
-      anyHit = true; if (ev.direct) direct = true; if (ev.ko) koBy = true;
+      anyHit = true; if (ev.direct) direct = true;
       const p = st.p[ev.idx];
       FT.vis[ev.idx].hit = .45;
-      ftPop(p.x + (Math.random() - .5) * 16, p.y - 78, (ev.direct ? '직격! ' : '') + '-' + ev.dmg, ev.direct ? '#d11a2a' : '#e0332a', ev.direct ? 22 : 18);
+      ftPop(p.x + (Math.random() - .5) * 16, p.y - 84, (ev.direct ? '직격! ' : '') + '-' + ev.dmg, ev.direct ? '#ff3b3b' : '#ffb347', ev.direct ? 22 : 18);
     });
     FT.shake = Math.max(FT.shake, Math.min(14, s.rad / 3));
   });
@@ -20722,7 +20856,7 @@ function ftLoop() {
     const now = performance.now();
     const dt = Math.min(50, now - last) / 1000; last = now;
     gmCanvasHeal();
-    try { ftUpdate(dt, now); ftDraw(); } catch (e) { try { console.error(e); } catch (e2) { } }
+    try { ftUpdate(dt, now); ftDraw(); ftGaugeDom(); } catch (e) { try { console.error(e); } catch (e2) { } }
     G.raf = requestAnimationFrame(frame);
   }
   G.raf = requestAnimationFrame(frame);
@@ -20731,23 +20865,29 @@ function ftLoop() {
 function ftUpdate(dt, now) {
   const E = FortEngine, st = FT.st || FT.demo; FT.t += dt;
   if (!st) return;
-  // 캐릭터 시각 위치 보간 (땅이 파이면 천천히 내려앉는다)
   st.p.forEach((p, i) => {
     const v = FT.vis[i]; if (!v) return;
     v.x += (p.x - v.x) * Math.min(1, dt * 16);
     if (v.y < p.y) v.y = Math.min(p.y, v.y + 480 * dt); else v.y = Math.max(p.y, v.y - 480 * dt);
     if (v.hit > 0) v.hit = Math.max(0, v.hit - dt);
   });
-  // AI 조준 연출
+  // 타이밍 게이지: 0 → 100 → 0 을 왕복, 두 번 왕복해도 안 누르면 자동으로 멈춤(발사)
+  if (FT.phase === 'gauge' && FT.g && FT.st) {
+    const g = FT.g;
+    g.pos += g.dir * (100 / g.T) * dt;
+    if (g.pos >= 100) { g.pos = 100; g.dir = -1; }
+    else if (g.pos <= 0 && g.dir < 0) { g.pos = 0; g.dir = 1; g.cyc++; if (g.cyc >= 2) { ftStopGauge(); } }
+    if (FT.g) FT.st.p[FT.st.turn].pow = g.pos;
+  }
+  // AI 조준 연출 (각도가 돌아가고 게이지가 차오른 뒤 발사)
   const tw = FT.aiTween;
   if (tw && FT.st) {
     const p = FT.st.p[FT.st.turn];
     const k = Math.min(1, (now - tw.t0) / tw.dur), e2 = 1 - Math.pow(1 - k, 3);
-    p.ang = tw.a0 + (tw.a1 - tw.a0) * e2; p.pow = tw.p0 + (tw.p1 - tw.p0) * e2;
+    p.ang = tw.a0 + (tw.a1 - tw.a0) * e2; p.pow = tw.p0 + (tw.p1 - tw.p0) * k;
     ftSyncCtl();
-    if (k >= 1) { FT.aiTween = null; gmDelay(() => { if (FT.st === st && FT.phase === 'aim') ftFire(); }, 250); }
+    if (k >= 1) { FT.aiTween = null; gmDelay(() => { if (FT.st === st && FT.phase === 'aim') ftFire(); }, 220); }
   }
-  // 비행
   if (FT.phase === 'fly') {
     let all = true;
     FT.flying.forEach(f => {
@@ -20764,6 +20904,7 @@ function ftUpdate(dt, now) {
   }
   for (let i = FT.pops.length - 1; i >= 0; i--) { const q = FT.pops[i]; q.t += dt; if (q.t > 1.2) FT.pops.splice(i, 1); }
   for (let i = FT.booms.length - 1; i >= 0; i--) { const q = FT.booms[i]; q.t += dt; if (q.t > .5) FT.booms.splice(i, 1); }
+  if (FT.flash > 0) FT.flash = Math.max(0, FT.flash - dt * 2.2);
   if (FT.bubble && FT.t > FT.bubble.until) FT.bubble = null;
 }
 
@@ -20782,13 +20923,63 @@ function ftRR(ctx, x, y, w, h, r) {
   ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
 }
 
-/* 글러브 투사체 (이모지는 기기마다 모양이 달라 직접 그린다) */
-function ftGlove(ctx, k) {
-  ctx.lineWidth = 2; ctx.strokeStyle = '#7a1010';
-  ctx.fillStyle = '#fff'; ftRR(ctx, -4 * k - 6 * k, -5 * k, 8 * k, 10 * k, 2 * k); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#e0332a'; ctx.beginPath(); ctx.ellipse(2 * k, 0, 9 * k, 8 * k, 0, 0, 7); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#f26a5e'; ctx.beginPath(); ctx.ellipse(4 * k, -3 * k, 4 * k, 2.6 * k, -.3, 0, 7); ctx.fill();
-  ctx.fillStyle = '#c42a22'; ctx.beginPath(); ctx.ellipse(1 * k, 6 * k, 5 * k, 3 * k, 0, 0, 7); ctx.fill(); ctx.stroke();
+/* ── 무기별 그림 (원점 기준, k = 화면 배율) ── */
+function ftProj(ctx, kind, k) {
+  ctx.lineWidth = Math.max(1.5, 1.6 * k); ctx.lineJoin = 'round';
+  if (kind === 'glove') {
+    ctx.strokeStyle = '#7a1010';
+    ctx.fillStyle = '#fff'; ftRR(ctx, -11 * k, -5 * k, 8 * k, 10 * k, 2 * k); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#e0332a'; ctx.beginPath(); ctx.ellipse(2 * k, 0, 9 * k, 8 * k, 0, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f26a5e'; ctx.beginPath(); ctx.ellipse(4 * k, -3 * k, 4 * k, 2.6 * k, -.3, 0, 7); ctx.fill();
+    ctx.fillStyle = '#c42a22'; ctx.beginPath(); ctx.ellipse(1 * k, 6 * k, 5 * k, 3 * k, 0, 0, 7); ctx.fill(); ctx.stroke();
+  } else if (kind === 'staff') {
+    ctx.strokeStyle = '#5a1208';
+    ctx.fillStyle = '#c0281c'; ftRR(ctx, -20 * k, -3 * k, 40 * k, 6 * k, 3 * k); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#ffd24a'; ftRR(ctx, -22 * k, -4.5 * k, 8 * k, 9 * k, 2 * k); ctx.fill(); ctx.stroke();
+    ftRR(ctx, 14 * k, -4.5 * k, 8 * k, 9 * k, 2 * k); ctx.fill(); ctx.stroke();
+  } else if (kind === 'cash') {
+    ctx.strokeStyle = '#1f6b34'; ctx.fillStyle = '#6fcf7f'; ftRR(ctx, -11 * k, -6.5 * k, 22 * k, 13 * k, 2 * k); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#d8f7dc'; ctx.beginPath(); ctx.ellipse(0, 0, 4.5 * k, 4.5 * k, 0, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#2f8f45'; ctx.fillRect(-8.5 * k, -3.5 * k, 2 * k, 7 * k); ctx.fillRect(6.5 * k, -3.5 * k, 2 * k, 7 * k);
+  } else if (kind === 'plate') {
+    ctx.strokeStyle = '#0d0d10'; ctx.fillStyle = '#30343d'; ctx.beginPath(); ctx.arc(0, 0, 12 * k, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#f2b32a'; ctx.lineWidth = Math.max(1.5, 2 * k); ctx.beginPath(); ctx.arc(0, 0, 8.5 * k, 0, 7); ctx.stroke();
+    ctx.fillStyle = '#9aa0ac'; ctx.beginPath(); ctx.arc(0, 0, 3 * k, 0, 7); ctx.fill();
+  } else if (kind === 'shuriken') {
+    ctx.strokeStyle = '#1f2937'; ctx.fillStyle = '#d7dde8'; ctx.beginPath();
+    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, rr = i % 2 ? 4 * k : 12 * k; ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#374151'; ctx.beginPath(); ctx.arc(0, 0, 2.4 * k, 0, 7); ctx.fill();
+  } else if (kind === 'shield') {
+    ctx.strokeStyle = '#1f2a44'; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, 12 * k, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#d11a2a'; ctx.beginPath(); ctx.arc(0, 0, 7 * k, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = '#1f4aa8'; ctx.beginPath(); ctx.arc(0, 0, 7 * k, 0, Math.PI); ctx.fill();
+    ctx.fillStyle = '#d11a2a'; ctx.beginPath(); ctx.arc(3.5 * k, 0, 3.5 * k, 0, 7); ctx.fill();
+    ctx.fillStyle = '#1f4aa8'; ctx.beginPath(); ctx.arc(-3.5 * k, 0, 3.5 * k, 0, 7); ctx.fill();
+  }
+}
+const FT_TRAIL = { glove: '255,255,255', staff: '255,210,74', cash: '111,207,127', plate: '180,186,200', shuriken: '170,210,255', shield: '255,120,120' };
+const FT_SPIN = { glove: 9, staff: 0, cash: 7, plate: 6, shuriken: 22, shield: 5 };
+
+/* ── 배경: 블랙컴뱃 케이지 경기장 ── */
+function ftBackdrop(ctx, w, h, floorY) {
+  ctx.fillStyle = '#0b0b10'; ctx.fillRect(-20, -20, w + 40, h + 40);
+  const img = gmArtImg('battleCage');
+  if (img && img.naturalWidth) {
+    const ih = Math.max(w, floorY / 0.62 + 4), iw = ih;
+    ctx.drawImage(img, (w - iw) / 2, floorY - 0.635 * ih, iw, ih);
+  } else {
+    const g = ctx.createLinearGradient(0, 0, 0, floorY); g.addColorStop(0, '#10131f'); g.addColorStop(1, '#2a2f45');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, floorY);
+  }
+  // 관중 카메라 플래시
+  for (let i = 0; i < 22; i++) {
+    const s = Math.sin(FT.t * (1.6 + (i % 5) * .5) + i * 2.3);
+    if (s < .86) continue;
+    const x = ((i * 137) % 100) / 100 * w, y = floorY * (.3 + (((i * 61) % 100) / 100) * .3);
+    ctx.fillStyle = `rgba(255,255,255,${(s - .86) * 5})`; ctx.beginPath(); ctx.arc(x, y, 1.6 + (i % 3), 0, 7); ctx.fill();
+  }
+  if (FT.flash > 0) { ctx.fillStyle = `rgba(255,255,255,${FT.flash * .22})`; ctx.fillRect(0, 0, w, h); }
 }
 
 function ftDraw() {
@@ -20799,24 +20990,17 @@ function ftDraw() {
   const X = x => ox + x * sc, Y = y => oy + y * sc;
   ctx.save();
   if (FT.shake > .3) { ctx.translate((Math.random() - .5) * FT.shake * sc, (Math.random() - .5) * FT.shake * sc); FT.shake *= .88; } else FT.shake = 0;
-  // 하늘
-  const sky = ctx.createLinearGradient(0, 0, 0, h);
-  sky.addColorStop(0, '#5fb6ff'); sky.addColorStop(.55, '#b5e2ff'); sky.addColorStop(1, '#e8f6ff');
-  ctx.fillStyle = sky; ctx.fillRect(-20, -20, w + 40, h + 40);
-  // 해
-  ctx.fillStyle = 'rgba(255,244,190,.95)'; ctx.beginPath(); ctx.arc(w - 58, 70, 24, 0, 7); ctx.fill();
-  ctx.fillStyle = 'rgba(255,244,190,.35)'; ctx.beginPath(); ctx.arc(w - 58, 70, 38, 0, 7); ctx.fill();
-  // 구름
-  ctx.fillStyle = 'rgba(255,255,255,.85)';
-  for (let i = 0; i < 4; i++) {
-    const cx = ((t * (6 + i * 3) + i * 170) % (w + 160)) - 80, cy = 60 + i * 26 + (i % 2) * 14;
-    ctx.beginPath(); ctx.ellipse(cx, cy, 34, 11, 0, 0, 7); ctx.ellipse(cx + 20, cy - 7, 22, 10, 0, 0, 7); ctx.ellipse(cx - 20, cy - 4, 20, 9, 0, 0, 7); ctx.fill();
-  }
-  // 먼 산
-  ctx.fillStyle = 'rgba(120,175,210,.45)'; ctx.beginPath(); ctx.moveTo(0, h);
-  for (let x = 0; x <= w; x += 8) ctx.lineTo(x, Y(E.H * .56) + Math.sin(x * .012) * 20 * sc + Math.sin(x * .031 + 1) * 8 * sc);
-  ctx.lineTo(w, h); ctx.closePath(); ctx.fill();
-  // 지형
+  const floorY = Y(E.BASE);
+  ftBackdrop(ctx, w, h, floorY);
+  // 케이지 벽(좌우 기둥)
+  [0, E.W].forEach(wx => {
+    const px = X(wx), pw = Math.max(4, 6 * sc);
+    const g = ctx.createLinearGradient(px - pw, 0, px + pw, 0);
+    g.addColorStop(0, '#15151a'); g.addColorStop(.5, '#4a4a55'); g.addColorStop(1, '#15151a');
+    ctx.fillStyle = g; ctx.fillRect(px - pw / 2, Y(30), pw, floorY - Y(30) + 4);
+    ctx.fillStyle = '#e6b73a'; ctx.fillRect(px - pw / 2, Y(30), pw, 3);
+  });
+  // 바닥 매트 / 장애물
   const top = st.top, Wd = E.W;
   const path = () => {
     ctx.beginPath(); ctx.moveTo(-10, Y(top[0]));
@@ -20824,56 +21008,68 @@ function ftDraw() {
     ctx.lineTo(X(Wd - 1), Y(top[Wd - 1])); ctx.lineTo(w + 10, Y(top[Wd - 1]));
   };
   path(); ctx.lineTo(w + 10, h + 10); ctx.lineTo(-10, h + 10); ctx.closePath();
-  const dirt = ctx.createLinearGradient(0, Y(E.H * .4), 0, h);
-  dirt.addColorStop(0, '#9a6a36'); dirt.addColorStop(1, '#5a3a1c');
-  ctx.fillStyle = dirt; ctx.fill();
-  path(); ctx.lineWidth = Math.max(4, 7 * sc); ctx.lineJoin = 'round'; ctx.strokeStyle = '#4fae3f'; ctx.stroke();
-  path(); ctx.lineWidth = Math.max(1.5, 2.4 * sc); ctx.strokeStyle = '#8be06a'; ctx.stroke();
+  const mat = ctx.createLinearGradient(0, Y(E.H * .35), 0, h);
+  mat.addColorStop(0, 'rgba(34,34,40,.97)'); mat.addColorStop(1, 'rgba(10,10,13,.98)');
+  ctx.fillStyle = mat; ctx.fill();
+  ctx.save(); ctx.clip();
+  ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.lineWidth = 1;
+  for (let yy = E.H * .3; yy < E.H + 20; yy += 13) { ctx.beginPath(); ctx.moveTo(0, Y(yy)); ctx.lineTo(w, Y(yy)); ctx.stroke(); }
+  ctx.restore();
+  path(); ctx.lineWidth = Math.max(3, 5 * sc); ctx.lineJoin = 'round'; ctx.strokeStyle = '#8a6a14'; ctx.stroke();
+  path(); ctx.lineWidth = Math.max(1.5, 2.4 * sc); ctx.strokeStyle = '#f2c94c'; ctx.stroke();
   // 캐릭터
   st.p.forEach((p, i) => {
-    if (FT.st && p.dead && FT.phase === 'over') {
-      ftDrawChar(ctx, p, FT.vis[i], false, X, Y, sc, true, false);
-    } else ftDrawChar(ctx, p, FT.vis[i], !!FT.st && FT.st.turn === i && !FT.st.over && (FT.phase === 'aim' || FT.phase === 'fly'), X, Y, sc, false, !FT.st);
+    const act = !!FT.st && FT.st.turn === i && !FT.st.over && (FT.phase === 'aim' || FT.phase === 'gauge' || FT.phase === 'fly');
+    ftDrawChar(ctx, p, FT.vis[i], act, X, Y, sc, !!FT.st && p.dead && FT.phase === 'over', !FT.st);
   });
-  // 조준 보조선
-  if (FT.st && FT.phase === 'aim' && FT.human) {
-    const pi = FT.st.turn, p = FT.st.p[pi];
-    const r = E.trace(FT.st, pi, p.ang, p.pow, true, 0);
-    ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.strokeStyle = 'rgba(60,90,140,.55)'; ctx.lineWidth = 1;
-    const n = Math.min(r.path.length, 26);
-    for (let k = 2; k < n; k += 3) {
-      ctx.beginPath(); ctx.arc(X(r.path[k][0]), Y(r.path[k][1]), Math.max(1.8, 2.6 * sc), 0, 7); ctx.fill(); ctx.stroke();
+  // 조준선 + 게이지 링
+  if (FT.st && (FT.phase === 'aim' || FT.phase === 'gauge')) {
+    const pi = FT.st.turn, p = FT.st.p[pi], v = FT.vis[pi];
+    const cx = X(v.x), cy = Y(v.y - E.BODY_CY), a = p.ang * Math.PI / 180;
+    ctx.fillStyle = 'rgba(255,255,255,.95)'; ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 1;
+    for (let k = 0; k < 5; k++) {
+      const d = (32 + k * 11) * sc;
+      ctx.beginPath(); ctx.arc(cx + Math.cos(a) * d, cy - Math.sin(a) * d, Math.max(1.8, (3.2 - k * .3) * sc), 0, 7); ctx.fill(); ctx.stroke();
+    }
+    if (FT.phase === 'gauge' && FT.g) {
+      ctx.lineWidth = Math.max(3, 4.5 * sc); ctx.strokeStyle = 'rgba(255,255,255,.18)';
+      ctx.beginPath(); ctx.arc(cx, cy, 36 * sc, 0, 7); ctx.stroke();
+      ctx.strokeStyle = FT.g.pos > 80 ? '#ff5a3c' : FT.g.pos > 50 ? '#f2b32a' : '#5fd36e'; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.arc(cx, cy, 36 * sc, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * FT.g.pos / 100); ctx.stroke(); ctx.lineCap = 'butt';
     }
     const l = FT.st.lastImpact[pi];
     if (l) {
-      ctx.strokeStyle = 'rgba(224,51,42,.75)'; ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(255,90,70,.85)'; ctx.lineWidth = 2;
       const lx = X(l.x), ly = Y(l.y), s = 5 * sc + 2;
       ctx.beginPath(); ctx.moveTo(lx - s, ly - s); ctx.lineTo(lx + s, ly + s); ctx.moveTo(lx + s, ly - s); ctx.lineTo(lx - s, ly + s); ctx.stroke();
     }
     if (FT.dragging && FT.drag) {
-      ctx.setLineDash([5, 5]); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(X(p.x), Y(p.y - E.BODY_CY)); ctx.lineTo(X(FT.drag.x), Y(FT.drag.y)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.setLineDash([5, 5]); ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(X(FT.drag.x), Y(FT.drag.y)); ctx.stroke(); ctx.setLineDash([]);
     }
   }
-  // 비행 중인 글러브
+  // 비행 중인 무기
   if (FT.phase === 'fly') {
     FT.flying.forEach(f => {
-      const idx = Math.min(f.s.path.length - 1, Math.floor(f.t / E.DT));
-      const pos = f.s.path[idx];
+      const kind = f.s.kind || 'glove', pa = f.s.path;
+      const idx = Math.min(pa.length - 1, Math.floor(f.t / E.DT));
+      const pos = pa[idx], col = FT_TRAIL[kind] || '255,255,255';
       for (let k = 1; k <= 12; k++) {
-        const q = f.s.path[Math.max(0, idx - k * 2)];
-        ctx.fillStyle = `rgba(255,255,255,${.55 - k * .04})`;
-        ctx.beginPath(); ctx.arc(X(q[0]), Y(q[1]), Math.max(1.5, (4.2 - k * .25) * sc), 0, 7); ctx.fill();
+        const q = pa[Math.max(0, idx - k * 2)];
+        ctx.fillStyle = `rgba(${col},${.6 - k * .045})`;
+        ctx.beginPath(); ctx.arc(X(q[0]), Y(q[1]), Math.max(1.5, (4.4 - k * .27) * sc), 0, 7); ctx.fill();
       }
-      ctx.save(); ctx.translate(X(pos[0]), Y(pos[1])); ctx.rotate(f.t * 9);
-      ftGlove(ctx, Math.max(1, sc * 1.25)); ctx.restore();
+      ctx.save(); ctx.translate(X(pos[0]), Y(pos[1]));
+      if (kind === 'staff') { const pr = pa[Math.max(0, idx - 1)]; ctx.rotate(Math.atan2(pos[1] - pr[1], pos[0] - pr[0])); }
+      else ctx.rotate(f.t * (FT_SPIN[kind] || 8));
+      ftProj(ctx, kind, Math.max(1, sc * 1.25)); ctx.restore();
     });
   }
   // 폭발
   FT.booms.forEach(b => {
-    const k = b.t / .5, r = b.r * sc * (.35 + k * .9);
+    const k = b.t / .5, r = b.r * sc * (.35 + k * .9), cols = FT_BOOM_COL[b.kind] || FT_BOOM_COL.glove;
     const g = ctx.createRadialGradient(X(b.x), Y(b.y), 0, X(b.x), Y(b.y), r);
-    g.addColorStop(0, `rgba(255,250,200,${.95 * (1 - k)})`); g.addColorStop(.5, `rgba(255,170,50,${.75 * (1 - k)})`); g.addColorStop(1, 'rgba(255,90,20,0)');
+    g.addColorStop(0, `rgba(255,252,225,${.95 * (1 - k)})`); g.addColorStop(.5, hexA(cols[0], .75 * (1 - k))); g.addColorStop(1, hexA(cols[2], 0));
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(X(b.x), Y(b.y), r, 0, 7); ctx.fill();
     ctx.strokeStyle = `rgba(255,255,255,${.7 * (1 - k)})`; ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.arc(X(b.x), Y(b.y), r * 1.05, 0, 7); ctx.stroke();
@@ -20883,33 +21079,34 @@ function ftDraw() {
     ctx.beginPath(); ctx.arc(X(q.x), Y(q.y), Math.max(1.2, q.sz * sc), 0, 7); ctx.fill();
   });
   ctx.globalAlpha = 1;
-  // 데미지 팝업
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   FT.pops.forEach(q => {
     const k = q.t / 1.2; ctx.globalAlpha = k < .7 ? 1 : 1 - (k - .7) / .3;
     ctx.font = `800 ${Math.max(14, q.size * (sc * .6 + .55))}px Jua, Pretendard, sans-serif`;
-    ctx.lineWidth = 4; ctx.strokeStyle = '#fff'; ctx.strokeText(q.txt, X(q.x), Y(q.y) - q.t * 36 * sc - 4);
+    ctx.lineWidth = 4; ctx.strokeStyle = '#111'; ctx.strokeText(q.txt, X(q.x), Y(q.y) - q.t * 36 * sc - 4);
     ctx.fillStyle = q.c; ctx.fillText(q.txt, X(q.x), Y(q.y) - q.t * 36 * sc - 4);
   });
   ctx.globalAlpha = 1;
-  // 도발 말풍선
   if (FT.bubble && FT.st) {
-    const p = FT.st.p[FT.bubble.idx], v = FT.vis[FT.bubble.idx];
+    const v = FT.vis[FT.bubble.idx];
     ctx.font = `700 ${Math.max(11, 12 * (sc * .5 + .6))}px Jua, Pretendard, sans-serif`;
     const tw = ctx.measureText(FT.bubble.txt).width + 18, bx = ftClamp(X(v.x) - tw / 2, 6, w - tw - 6), by = Y(v.y) - 130 * sc - 30;
     ctx.fillStyle = '#fff'; ctx.strokeStyle = '#1f2a44'; ctx.lineWidth = 2;
     ftRR(ctx, bx, by, tw, 26, 10); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#1f2a44'; ctx.fillText(FT.bubble.txt, bx + tw / 2, by + 13.5);
   }
-  // 바람 표시 (상단 가운데)
   if (FT.st) ftDrawWind(ctx, w, FT.st.wind);
   ctx.restore();
+}
+function hexA(hex, a) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${Math.max(0, a)})`;
 }
 
 function ftDrawWind(ctx, w, wind) {
   const cx = w / 2, cy = 21, bw = 118, bh = 26;
   ctx.fillStyle = 'rgba(255,255,255,.92)'; ftRR(ctx, cx - bw / 2, cy - bh / 2, bw, bh, 13); ctx.fill();
-  ctx.strokeStyle = '#7fa8f8'; ctx.lineWidth = 2; ftRR(ctx, cx - bw / 2, cy - bh / 2, bw, bh, 13); ctx.stroke();
+  ctx.strokeStyle = '#f2b32a'; ctx.lineWidth = 2; ftRR(ctx, cx - bw / 2, cy - bh / 2, bw, bh, 13); ctx.stroke();
   const val = Math.abs(wind) * 10, dir = wind >= 0 ? 1 : -1;
   ctx.font = '800 13px Jua, Pretendard, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillStyle = '#5a3a10';
@@ -20922,14 +21119,15 @@ function ftDrawWind(ctx, w, wind) {
       ctx.globalAlpha = 1 - Math.abs(ph) / 14;
       ctx.beginPath(); ctx.moveTo(sx - dir * len, cy - 5 + i * 5); ctx.lineTo(sx, cy - 5 + i * 5); ctx.stroke();
     }
-    ctx.globalAlpha = 1;
+    ctx.globalAlpha = 1; ctx.lineCap = 'butt';
   }
 }
 
 function ftDrawChar(ctx, p, v, active, X, Y, sc, down, noBar) {
   const E = FortEngine, c = E.CHARS[p.id], sx = X(v.x), sy = Y(v.y);
   const hH = 78 * sc;
-  ctx.fillStyle = 'rgba(0,0,0,.22)'; ctx.beginPath(); ctx.ellipse(sx, sy + 1, 20 * sc, 5 * sc, 0, 0, 7); ctx.fill();
+  if (active) { ctx.fillStyle = 'rgba(242,179,42,.28)'; ctx.beginPath(); ctx.ellipse(sx, sy + 1, 28 * sc, 7 * sc, 0, 0, 7); ctx.fill(); }
+  ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.beginPath(); ctx.ellipse(sx, sy + 1, 20 * sc, 5 * sc, 0, 0, 7); ctx.fill();
   const img = gmArtImg(p.id);
   const bob = active ? Math.sin(FT.t * 6) * 2 * sc : 0, shk = v.hit > 0 ? (Math.random() - .5) * 7 * sc : 0;
   ctx.save();
@@ -20943,19 +21141,18 @@ function ftDrawChar(ctx, p, v, active, X, Y, sc, down, noBar) {
   }
   ctx.restore();
   if (noBar) return;
-  // 체력 바 + 이름
   const bw = 60 * sc + 8, bh = Math.max(6, 7 * sc), bx = sx - bw / 2, by = sy - hH - 12 * sc;
-  ctx.fillStyle = 'rgba(0,0,0,.55)'; ftRR(ctx, bx - 1.5, by - 1.5, bw + 3, bh + 3, 4); ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,.7)'; ftRR(ctx, bx - 1.5, by - 1.5, bw + 3, bh + 3, 4); ctx.fill();
   const r = ftClamp(p.hp / p.maxHp, 0, 1);
   ctx.fillStyle = r > .5 ? '#3ecf5a' : r > .25 ? '#f2b32a' : '#e0332a';
   if (r > 0) { ftRR(ctx, bx, by, bw * r, bh, 3); ctx.fill(); }
   ctx.font = `800 ${Math.max(10, 11 * (sc * .5 + .55))}px Jua, Pretendard, sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-  ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.strokeText(`${c.name}  ${p.hp}`, sx, by - 3);
-  ctx.fillStyle = '#1f2a44'; ctx.fillText(`${c.name}  ${p.hp}`, sx, by - 3);
+  ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.85)'; ctx.strokeText(`${c.name}  ${p.hp}`, sx, by - 3);
+  ctx.fillStyle = '#fff'; ctx.fillText(`${c.name}  ${p.hp}`, sx, by - 3);
   if (active) {
     const my = by - 22 * (sc * .5 + .5) + Math.sin(FT.t * 7) * 2.5;
-    ctx.fillStyle = '#f2b32a'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+    ctx.fillStyle = '#f2b32a'; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(sx - 6, my - 7); ctx.lineTo(sx + 6, my - 7); ctx.lineTo(sx, my + 1); ctx.closePath(); ctx.stroke(); ctx.fill();
   }
 }
