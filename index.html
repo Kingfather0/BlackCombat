@@ -11727,7 +11727,7 @@
     .mt-msg { margin: 0 0 10px; padding: 9px 12px; border-radius: 8px; background: var(--mt-red-t); color: var(--mt-red); font-size: 13px; font-weight: 700; }
     .mt-sum { padding: 11px 13px; background: var(--bg); border-radius: 10px; font-size: 14px; font-weight: 800; margin-bottom: 14px; line-height: 1.55; }
     .mt-submit { position: sticky; bottom: -1px; margin: 0 -16px -14px; padding: 12px 16px 14px; background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 28%); }
-    .modal-h .mt-hback { margin: 0 8px 0 auto; padding: 5px 12px; border: none; background: color-mix(in srgb, var(--text) 16%, var(--bg2)); border-radius: 999px; font-size: 12.5px; font-weight: 700; color: var(--text); cursor: pointer; font-family: inherit; }
+    .modal-h .mt-hback { margin: 0 8px 0 auto; padding: 5px 12px; border: none; background: color-mix(in srgb, var(--text) 8%, var(--bg2)); border-radius: 999px; font-size: 12.5px; font-weight: 700; color: var(--muted); cursor: pointer; font-family: inherit; }
     .mt-back { display: inline-flex; align-items: center; gap: 4px; margin-bottom: 12px; padding: 4px 10px 4px 6px; border: none; background: var(--bg2); border-radius: 999px; font-size: 12.5px; font-weight: 700; color: var(--muted); cursor: pointer; font-family: inherit; }
     .mt-ctypes { display: grid; gap: 10px; margin-top: 4px; }
     .mt-ctype { display: grid; grid-template-columns: 46px 1fr; gap: 0 14px; align-items: center; text-align: left; padding: 14px 16px; background: #fff; border: 1.5px solid var(--hair); border-radius: 12px; cursor: pointer; font-family: inherit; transition: border-color .15s, background .15s; }
@@ -29369,7 +29369,7 @@
         <ul><li><b>직관</b> 같이 경기 보러 갈 사람 모으기</li><li><b>카풀</b> 같은 방향 사람끼리 차 나눠 타기 (모집/희망)</li><li><b>티켓 양도</b> 못 가게 된 티켓을 정가 이하로 넘기기</li></ul></div>
       <div class="mt-gcard"><h4>이것만은 지켜주세요</h4>
         <ul><li>양도 금액은 <b>정가 이하</b>로만 올릴 수 있어요. 웃돈과 프리미엄은 안 돼요.</li>
-        <li><b>계좌, 선입금, 링크</b> 같은 외부 결제 유도는 금지예요. 비고란에도 쓸 수 없어요.</li>
+        <li><b>계좌, 선입금, 링크</b> 같은 외부 결제 유도는 금지예요. 내용란에도 쓸 수 없어요.</li>
         <li>경기마다 종류별로 진행 중인 글은 <b>1개</b>씩 올릴 수 있어요. 내용이 바뀌면 글을 수정하면 돼요.</li>
         <li>카풀비는 기름값·통행료를 나누는 용도로만 사용해주세요.</li></ul></div>
       <div class="mt-gcard"><h4>신청과 연락 수단</h4>
@@ -29425,7 +29425,7 @@
     const mtPrefs = p => (p.age_prefs || []).slice().sort((x, y) => MT_AGE.indexOf(x) - MT_AGE.indexOf(y));
     function mtNoteView(id) {
       const p = MT.posts.find(x => x.id === id); if (!p) return;
-      mtModal('비고', `<div class="mt-form"><div style="white-space:pre-wrap;word-break:break-all;line-height:1.7;font-size:15px">${esc(p.note)}</div></div>`, 420);
+      mtModal('내용', `<div class="mt-form"><div style="white-space:pre-wrap;word-break:break-all;line-height:1.7;font-size:15px">${esc(p.note)}</div></div>`, 420);
     }
     function mtCard(p) {
       const st = (p.category === 'ticket' && p.status === 'full') ? ['✓ 거래 진행 중', 'full'] : (MT_STATUS[p.status] || [p.status, 'closed']);
@@ -29590,7 +29590,7 @@
         <div class="mt-f"><label>모집 성별</label>${mtChoices('genderpref', ['무관', '남자', '여자'], D.gender_pref === '동성만' ? (D.gender || '무관') : (D.gender_pref || '무관'))}</div>`;
       }
       f += mtContactHTML2('내 연락 수단', '승인한 사람에게만 공개돼요', ck, cv, false);
-      f += `<div class="mt-f"><label>비고 <small>최대 100자</small></label><textarea id="mt-note" maxlength="100" rows="2" placeholder="간단한 추가 내용만 적어주세요 (계좌, 링크, 연락 수단 입력 금지)">${esc(D.note || '')}</textarea><div class="mt-hint"><span id="mt-cnt">${(D.note || '').length}</span>/100</div></div>
+      f += `<div class="mt-f"><label>내용 <small>최대 100자</small></label><textarea id="mt-note" maxlength="100" rows="2" placeholder="간단한 추가 내용만 적어주세요 (계좌, 링크, 연락 수단 입력 금지)">${esc(D.note || '')}</textarea><div class="mt-hint"><span id="mt-cnt">${(D.note || '').length}</span>/100</div></div>
         ${edit ? '' : `<label class="mt-agree"><input type="checkbox" id="mt-agree"> <span>${esc(MT_DISCLAIMER)} 정가 초과 판매와 외부 결제 유도 금지에 동의합니다.</span></label>`}
         <div class="mt-submit"><div class="mt-msg" style="display:none;margin-bottom:8px"></div><button type="button" class="mt-b pri lg wide" id="mt-submit">${edit ? '수정 저장' : '등록하기'}</button></div>`;
       root.innerHTML = f;
@@ -29642,7 +29642,7 @@
       }
       q('mt-submit').onclick = async () => {
         const note = q('mt-note').value.trim();
-        if (mtBadText(note)) return mtSetMsg(root, '비고에 금지된 표현(계좌/입금/링크/연락 수단/웃돈 등)이 있어요.');
+        if (mtBadText(note)) return mtSetMsg(root, '내용에 금지된 표현(계좌/입금/링크/연락 수단/웃돈 등)이 있어요.');
         const ckind = ct.kind(), cval = ct.value();
         if (!mtValidContact(ckind, cval)) return mtSetMsg(root, '연락 수단 형식을 확인해주세요. (' + MT_CONTACT[ckind].ph + ')');
         if (!ct.verified()) return mtSetMsg(root, ckind === 'kakaoid' ? '카카오톡에서 내 ID가 검색되는지 확인하고 버튼을 눌러주세요.' : '"열어서 확인"으로 내 연락 수단이 열리는지 확인해주세요.');
