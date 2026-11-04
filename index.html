@@ -11727,6 +11727,7 @@
     .mt-msg { margin: 0 0 10px; padding: 9px 12px; border-radius: 8px; background: var(--mt-red-t); color: var(--mt-red); font-size: 13px; font-weight: 700; }
     .mt-sum { padding: 11px 13px; background: var(--bg); border-radius: 10px; font-size: 14px; font-weight: 800; margin-bottom: 14px; line-height: 1.55; }
     .mt-submit { position: sticky; bottom: -1px; margin: 0 -16px -14px; padding: 12px 16px 14px; background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 28%); }
+    .modal-h .mt-hback { margin: 0 8px 0 auto; padding: 5px 12px; border: none; background: var(--bg2); border-radius: 999px; font-size: 12.5px; font-weight: 700; color: var(--muted); cursor: pointer; font-family: inherit; }
     .mt-back { display: inline-flex; align-items: center; gap: 4px; margin-bottom: 12px; padding: 4px 10px 4px 6px; border: none; background: var(--bg2); border-radius: 999px; font-size: 12.5px; font-weight: 700; color: var(--muted); cursor: pointer; font-family: inherit; }
     .mt-ctypes { display: grid; gap: 10px; margin-top: 4px; }
     .mt-ctype { display: grid; grid-template-columns: 46px 1fr; gap: 0 14px; align-items: center; text-align: left; padding: 14px 16px; background: #fff; border: 1.5px solid var(--hair); border-radius: 12px; cursor: pointer; font-family: inherit; transition: border-color .15s, background .15s; }
@@ -29491,6 +29492,7 @@
       if (['판매', '구매'].every(k => mineAct.some(p => p.category === 'ticket' && (p.tk_kind || '판매') === k))) used.push('ticket');
       S.tkUsed = mineAct.filter(p => p.category === 'ticket').map(p => p.tk_kind || '판매');
       S.ov.querySelector('.modal-h b').textContent = '글쓰기';
+      { const hb = S.ov.querySelector('.modal-h .mt-hback'); if (hb) hb.remove(); }
       S.root.className = 'mt-form';
       S.root.innerHTML = `<div class="mt-hint" style="margin:0 0 10px">어떤 글을 올릴까요?</div><div class="mt-ctypes">${MT_CATS.map(c => {
         const u = used.includes(c.k);
@@ -29554,7 +29556,9 @@
       if (D.grade && !gradeList.includes(D.grade)) gradeList.push(D.grade);
       const gender = D.gender || S.prof.gender || '', age = D.age_group || S.prof.age || '';
       const ck = (S.own && S.own.kind) || 'openkakao', cv = (S.own && S.own.value) || '';
-      let f = edit ? '' : `<button type="button" class="mt-back" id="mt-back">← 종류 다시 고르기</button>`;
+      let f = '';
+      { const h = S.ov.querySelector('.modal-h'), old = h.querySelector('.mt-hback'); if (old) old.remove();
+        if (!edit) { const bb = document.createElement('button'); bb.type = 'button'; bb.className = 'mt-hback'; bb.textContent = '뒤로가기'; bb.onclick = () => mtDrawType(S); h.insertBefore(bb, h.querySelector('.modal-x')); } }
       if (cat === 'carpool') f += `<div class="mt-f"><label>카풀 구분</label>${mtChoices('cpkind', [{ v: '모집', l: '🚗 카풀 모집 (차량 있음)' }, { v: '희망', l: '🙏 카풀 희망 (탑승 원함)' }], D.cp_kind || '')}</div>`;
       if (cat !== 'ticket') {
         f += `<div class="mt-f2"><div class="mt-f"><label>내 성별</label>${mtChoices('gender', ['남자', '여자'], gender)}</div>
@@ -29593,7 +29597,6 @@
       const q = id => root.querySelector('#' + id);
       if (q('mt-origin')) q('mt-origin').value = D.origin || '';
       if (q('mt-grade')) q('mt-grade').value = D.grade || '';
-      if (q('mt-back')) q('mt-back').onclick = () => mtDrawType(S);
       mtBindChoices(root, (g, v) => {
         if (g === 'cpkind' && q('mt-plabel')) q('mt-plabel').textContent = v === '희망' ? '탑승 인원' : '모집 인원 (빈 자리)';
         if (g === 'sellq') upd();
