@@ -29167,7 +29167,8 @@
     function mtChoices(g, opts, sel, o) {
       o = o || {};
       const selArr = Array.isArray(sel) ? sel.map(String) : [String(sel == null ? '' : sel)];
-      return `<div class="mt-chs" data-g="${g}"${o.multi ? ' data-multi="1"' : ''}>` + opts.map(x => {
+      const allB = o.all ? `<button type="button" class="mt-ch multi all${selArr.filter(Boolean).length ? '' : ' on'}" data-v="__all">${esc(o.all)}</button>` : '';
+      return `<div class="mt-chs" data-g="${g}"${o.multi ? ' data-multi="1"' : ''}>` + allB + opts.map(x => {
         const v = typeof x === 'object' ? x.v : x, l = typeof x === 'object' ? x.l : x;
         return `<button type="button" class="mt-ch${o.multi ? ' multi' : ''}${selArr.includes(String(v)) ? ' on' : ''}" data-v="${esc(v)}">${esc(l)}</button>`;
       }).join('') + '</div>';
@@ -29185,7 +29186,15 @@
         grp.querySelectorAll('.mt-ch').forEach(b => {
           b.onclick = () => {
             if (b.disabled) return;
-            if (multi) b.classList.toggle('on');
+            if (multi) {
+              // "전체" 버튼이 있는 묶음: 전체를 누르면 나머지 해제, 다른 걸 누르면 전체 해제, 아무것도 없으면 전체로 돌아감
+              const allBtn = grp.querySelector('.mt-ch.all');
+              if (allBtn && b === allBtn) { grp.querySelectorAll('.mt-ch').forEach(x => x.classList.remove('on')); b.classList.add('on'); }
+              else {
+                b.classList.toggle('on');
+                if (allBtn) { allBtn.classList.remove('on'); if (!grp.querySelector('.mt-ch.on')) allBtn.classList.add('on'); }
+              }
+            }
             else {
               grp.querySelectorAll('.mt-ch').forEach(x => x.classList.remove('on'));
               b.classList.add('on');
@@ -29203,7 +29212,7 @@
       if (b.dataset.v === '__c') { const c = grp.querySelector('.mt-cust'); return c ? c.value.trim() : ''; }
       return b.dataset.v;
     };
-    const mtMulti = (root, g) => Array.from(root.querySelectorAll(`.mt-chs[data-g="${g}"] .mt-ch.on`)).map(b => b.dataset.v);
+    const mtMulti = (root, g) => Array.from(root.querySelectorAll(`.mt-chs[data-g="${g}"] .mt-ch.on`)).map(b => b.dataset.v).filter(v => v !== '__all');
     function mtInt(v, min, max) { if (v === '' || v == null || !/^\d+$/.test(String(v))) return null; const n = Number(v); return n >= min && n <= max ? n : null; }
     function mtSetMsg(root, t) { const m = root.querySelector('.mt-msg'); if (m) { m.textContent = t || ''; m.style.display = t ? 'block' : 'none'; if (t) m.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }
 
@@ -29280,8 +29289,8 @@
       if (p.category !== 'ticket') {
         if ((f.ages || []).length && (p.age_prefs || []).length && !p.age_prefs.some(a => f.ages.includes(a))) return false;
         if (f.gender === 'any' && p.gender_pref !== '무관') return false;
-        if (f.gender === 'm' && !(p.gender_pref === '동성만' && p.gender === '남자')) return false;
-        if (f.gender === 'f' && !(p.gender_pref === '동성만' && p.gender === '여자')) return false;
+        if (f.gender === 'm' && !(p.gender_pref === '남자' || (p.gender_pref === '동성만' && p.gender === '남자'))) return false;
+        if (f.gender === 'f' && !(p.gender_pref === '여자' || (p.gender_pref === '동성만' && p.gender === '여자'))) return false;
         if (f.minleft && mtLeft(p) < f.minleft) return false;
       }
       if (p.category === 'carpool') {
@@ -29423,6 +29432,7 @@
       const tags = [];
       if (p.gender) tags.push(`<span>${esc(p.gender)} · ${esc(p.age_group)}</span>`);
       if (p.gender_pref === '동성만') tags.push('<span class="hl">동성만 모집</span>');
+      else if (p.gender_pref === '남자' || p.gender_pref === '여자') tags.push(`<span class="hl">${p.gender_pref}만 모집</span>`);
       if (p.age_prefs && p.age_prefs.length) tags.push(`<span class="hl">${esc(mtPrefs(p).join('·'))} 모집</span>`);
       let facts = '', hi = '';
       if (p.category === 'watch') {
@@ -29572,8 +29582,8 @@
           <div class="mt-quick"><button type="button" data-d="0">정가</button><button type="button" data-d="10">10% 할인</button><button type="button" data-d="20">20% 할인</button><button type="button" data-d="30">30% 할인</button><span class="mt-disc"><input id="mt-disc" type="number" inputmode="numeric" min="0" max="100" placeholder="직접"><b>% 할인</b></span></div>
           <div id="mt-sumbox" class="mt-hint"></div></div>`;
       } else {
-        f += `<div class="mt-f"><label>모집 연령대 <small>여러 개 선택 가능 · 선택 안 하면 전체</small></label>${mtChoices('agepref', MT_AGE, D.age_prefs || [], { multi: true })}</div>
-        <div class="mt-f"><label>모집 성별</label>${mtChoices('genderpref', ['무관', '동성만'], D.gender_pref || '무관')}</div>`;
+        f += `<div class="mt-f"><label>모집 연령대 <small>여러 개 선택 가능</small></label>${mtChoices('agepref', MT_AGE, D.age_prefs || [], { multi: true, all: '전체' })}</div>
+        <div class="mt-f"><label>모집 성별</label>${mtChoices('genderpref', ['무관', '남자', '여자'], D.gender_pref === '동성만' ? (D.gender || '무관') : (D.gender_pref || '무관'))}</div>`;
       }
       f += mtContactHTML2('내 연락 수단', '승인한 사람에게만 공개돼요', ck, cv, false);
       f += `<div class="mt-f"><label>비고 <small>최대 100자</small></label><textarea id="mt-note" maxlength="100" rows="2" placeholder="간단한 추가 내용만 적어주세요 (계좌, 링크, 연락 수단 입력 금지)">${esc(D.note || '')}</textarea><div class="mt-hint"><span id="mt-cnt">${(D.note || '').length}</span>/100</div></div>
@@ -29682,7 +29692,7 @@
       const multi = p.category === 'watch' || (p.category === 'carpool' && p.cp_kind === '모집');
       const left = mtLeft(p);
       const ov = mtModal('참여 신청', `<div class="mt-form c-${p.category}" id="mt-ap">
-      <div class="mt-sum">${esc(mtTitle(p))}<br><span class="mt-dim">${esc(p.author_nick)}${p.gender ? ' · ' + esc(p.gender) + ' · ' + esc(p.age_group) : ''}${p.gender_pref === '동성만' ? ' · 동성만 모집' : ''}${p.age_prefs && p.age_prefs.length ? ' · ' + esc(mtPrefs(p).join('·')) + ' 모집' : ''}</span></div>
+      <div class="mt-sum">${esc(mtTitle(p))}<br><span class="mt-dim">${esc(p.author_nick)}${p.gender ? ' · ' + esc(p.gender) + ' · ' + esc(p.age_group) : ''}${p.gender_pref === '동성만' ? ' · 동성만 모집' : p.gender_pref === '남자' || p.gender_pref === '여자' ? ' · ' + p.gender_pref + '만 모집' : ''}${p.age_prefs && p.age_prefs.length ? ' · ' + esc(mtPrefs(p).join('·')) + ' 모집' : ''}</span></div>
       ${isT ? '' : `<div class="mt-f2"><div class="mt-f"><label>내 성별</label>${mtChoices('gender', ['남자', '여자'], prof.gender)}</div>
         <div class="mt-f"><label>내 나이대</label>${mtChoices('age', MT_AGE, prof.age)}</div></div>`}
       ${multi ? `<div class="mt-f"><label>신청 인원 <small>나를 포함 · 남은 자리 ${left}명</small></label>${mtNumChips('party', [1, 2, 3], 1, Math.max(left, 1), n => n + '명')}</div>` : ''}
@@ -29698,6 +29708,7 @@
         if (a && (a === '10대') !== (p.age_group === '10대')) w += '상대방과 성인/미성년 구분이 달라요. 만나기 전에 충분히 확인해주세요. ';
         document.getElementById('mt-apwarn').innerHTML = w ? `<div class="mt-warn" style="margin:0 0 12px">${w}</div>` : '';
         if (g && p.gender_pref === '동성만' && g !== p.gender) mtSetMsg(root, '작성자가 동성만 모집하는 글입니다.');
+        else if (g && (p.gender_pref === '남자' || p.gender_pref === '여자') && g !== p.gender_pref) mtSetMsg(root, '작성자가 ' + p.gender_pref + '만 모집하는 글입니다.');
         else if (a && p.age_prefs && p.age_prefs.length && !p.age_prefs.includes(a)) mtSetMsg(root, '작성자가 ' + mtPrefs(p).join(', ') + ' 연령대만 모집하는 글입니다.');
         else mtSetMsg(root, '');
       };
@@ -29872,7 +29883,7 @@
     ${posts.length ? posts.map(p => `<div class="card mt-adm"><b>#${p.id}</b> <span class="mt-badge ${p.status === 'open' ? 'open' : 'closed'}">${stl[p.status] || p.status}</span> ${MT_CATS.find(c => c.k === p.category).n}${p.category === 'ticket' ? ' ' + (p.tk_kind || '판매') : ''} · ${esc(p.author_nick)} ${p.reports ? `<span class="mt-dot">${p.reports}</span>` : ''}
       <div class="mt-dim">${esc(p.summary)}${p.note ? ' / ' + esc(p.note) : ''}</div><div class="mt-dim">연락 수단 ${esc(p.contact_kind)}: ${esc(p.contact_value)}</div>
       ${mtaDeals(p)}
-      <div><button type="button" class="btn xs" onclick="mtaStatus(${p.id},'open')">복구</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'hidden')">숨김</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'closed')">마감</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'deleted')">삭제</button> <button type="button" class="btn xs" data-nick="${esc(p.author_nick)}" onclick="mtaBan(this.dataset.nick)">이용 정지</button></div></div>`).join('') : '<div class="empty">글이 없습니다.</div>'}
+      <div>${p.category === 'ticket' && (p.tk_kind || '판매') === '판매' ? `<button type="button" class="btn xs" onclick="mtaToBuy(${p.id})">구매 글로 변경</button> ` : ''}<button type="button" class="btn xs" onclick="mtaStatus(${p.id},'open')">복구</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'hidden')">숨김</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'closed')">마감</button> <button type="button" class="btn xs" onclick="mtaStatus(${p.id},'deleted')">삭제</button> <button type="button" class="btn xs" data-nick="${esc(p.author_nick)}" onclick="mtaBan(this.dataset.nick)">이용 정지</button></div></div>`).join('') : '<div class="empty">글이 없습니다.</div>'}
     <div class="sec-title">이용 정지 (${bans.filter(b => b.active).length})</div>
     <div class="card"><div class="mt-f3"><input id="mta-bn" type="text" placeholder="닉네임"><select id="mta-bd" class="mt-sel"><option value="7">7일</option><option value="30">30일</option><option value="">영구</option></select><input id="mta-br" type="text" placeholder="사유"></div>
       <button type="button" class="btn small" onclick="mtaBan(document.getElementById('mta-bn').value)">정지 적용</button></div>
@@ -29892,6 +29903,7 @@
     const mtaTestMode = on => mtaDo('admin_meetup_set_test_mode', { p_on: on }, on ? '테스트 모드를 켰습니다.' : '테스트 모드를 껐습니다.');
     function mtaClearTest() { mtConfirm('테스트 데이터를 모두 삭제할까요?', '테스트 계정(테스트-A~)이 만든 글, 신청, 신고, 차단, 정지 기록이 지워집니다. 실제 회원 데이터는 그대로예요.', '삭제', () => mtaDo('admin_meetup_clear_test', {}, '테스트 데이터를 삭제했습니다.')); }
     const mtaResolve = id => mtaDo('admin_meetup_resolve_report', { p_id: id }, '처리했습니다.');
+    const mtaToBuy = id => mtConfirm('구매 글로 변경할까요?', '티켓 판매 글이 티켓 구매 글로 바뀌고 좌석 정보(구역·열·번호)는 지워집니다. 희망 금액은 그대로 유지됩니다.', '변경', () => mtaDo('admin_meetup_set_tk_kind', { p_id: id, p_kind: '구매' }, '구매 글로 변경했습니다.'));
     const mtaStatus = (id, s) => mtaDo('admin_meetup_set_status', { p_id: id, p_status: s }, '변경했습니다.');
     const mtaUnban = id => mtaDo('admin_meetup_unban', { p_ban_id: id }, '해제했습니다.');
     function mtaBan(nick) {
