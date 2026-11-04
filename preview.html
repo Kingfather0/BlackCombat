@@ -12389,7 +12389,7 @@
   font-size: 15px; font-weight: 800; color: #fff; text-shadow: 0 2px 3px rgba(0,0,0,.9), 0 0 3px #000; white-space: nowrap;
 }
 #ftCtl.gauge .ft-gauge { border-color: #fff; box-shadow: 0 0 14px rgba(255,255,255,.45); }
-.ft-fire { animation: none !important; font-size: 19px !important; padding: 9px 18px !important; min-width: 100px; letter-spacing: .02em; border-width: 3px !important; touch-action: manipulation; }
+.ft-fire { animation: none !important; font-size: 17px !important; padding: 9px 12px !important; min-width: 118px; letter-spacing: .02em; border-width: 3px !important; touch-action: manipulation; }
 .ft-fire.now { background: #fff !important; color: #c4261d !important; animation: ftPulse .3s steps(1) infinite alternate !important; }
 @keyframes ftPulse { from { background: #fff; } to { background: #ffd24a; } }
 
@@ -12436,6 +12436,75 @@
 .gcard-fort .gc-ico { background: linear-gradient(135deg, #2a2a33, #0b0b10); }
 body[data-route="game"] .gcard-fort .gc-ico { background: #17171d !important; }
 body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82%; height: 92%; }
+
+/* 칭호 / 꾸미기 버튼 */
+.ft-rank { font-size: 12px; color: #e7e9ef; text-align: center; line-height: 1.5; padding: 0 12px; }
+.ft-rank b { color: #f2c94c; }
+.ft-btnrow { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.ft-dressb { position: relative; }
+.ft-dressb i { position: absolute; top: -7px; right: -5px; min-width: 18px; height: 18px; border-radius: 9px; background: #e0332a; color: #fff; font: 800 11px/18px 'Jua','Pretendard',sans-serif; font-style: normal; text-align: center; padding: 0 4px; box-sizing: border-box; }
+.ft-unlock { background: rgba(242,201,76,.16); border: 1px solid #f2c94c; color: #ffe9a6; border-radius: 12px; padding: 7px 14px; font-size: 13px; line-height: 1.5; text-align: center; }
+.ft-unlock b { color: #fff; }
+.ft-unlock small { color: #cbb877; font-size: 11px; }
+.ft-goal { color: #cfd3df; font-size: 12.5px; background: rgba(255,255,255,.08); border-radius: 99px; padding: 5px 14px; }
+
+/* 꾸미기 화면 */
+#ftDress {
+  position: absolute; inset: 0; z-index: 10; box-sizing: border-box; overflow: hidden; padding: 10px 10px 12px;
+  background: linear-gradient(180deg, rgba(8,8,12,.92), rgba(8,8,12,.98)); color: #fff;
+  display: flex; flex-direction: column; gap: 8px; cursor: default; font-family: 'Jua','Pretendard Variable',Pretendard,sans-serif;
+}
+.fd-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.fd-h b { font-size: 19px; color: #f2c94c; text-shadow: 0 2px 0 #5a3a05; }
+.fd-h span { font-size: 11.5px; color: #aab0c0; }
+.fd-main { flex: 1 1 auto; min-height: 0; display: flex; gap: 10px; }
+.fd-prev { flex: 0 0 130px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.fd-prev canvas { width: 130px; height: 150px; border-radius: 12px; border: 2px solid #2e3240; background: #101015; display: block; }
+.fd-nav { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 4px; }
+.fd-nav b { font-size: 13px; color: #fff; }
+.fd-nav button { font-family: inherit; font-size: 12px; font-weight: 800; color: #e7e9ef; background: #232632; border: 2px solid #3a3f50; border-radius: 8px; padding: 5px 8px; cursor: pointer; }
+.fd-side { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+.fd-tabs { display: flex; gap: 5px; flex: 0 0 auto; }
+.fd-tabs button { position: relative; flex: 1; font-family: inherit; font-size: 12.5px; font-weight: 800; color: #aab0c0; background: #1a1c25; border: 2px solid #2e3240; border-radius: 9px; padding: 7px 2px; cursor: pointer; }
+.fd-tabs button.on { color: #1a1405; background: #f2c94c; border-color: #f2c94c; }
+.fd-tabs button i { position: absolute; top: -4px; right: -3px; width: 10px; height: 10px; border-radius: 50%; background: #e0332a; border: 2px solid #0b0b10; }
+.fd-grid { flex: 1 1 auto; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; align-content: start; padding: 2px; }
+.fd-it { font-family: inherit; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 6px 4px; background: #1a1c25; color: #fff; border: 2px solid #2e3240; border-radius: 10px; cursor: pointer; }
+.fd-it .fd-ico { font-size: 22px; line-height: 1.2; }
+.fd-it b { font-size: 12px; }
+.fd-it small { font-size: 10px; color: #8d93a3; min-height: 12px; }
+.fd-it small em { font-style: normal; color: #fff; background: #e0332a; border-radius: 4px; padding: 0 5px; font-weight: 800; }
+.fd-it.on { border-color: #f2c94c; background: #262417; box-shadow: 0 0 0 2px rgba(242,201,76,.3); }
+.fd-it.lock { opacity: .5; }
+#ftDress .ft-go { align-self: center; flex: 0 0 auto; }
+
+/* 가로 화면(폰 가로): 높이를 화면에 맞추고 컨트롤을 한 줄로 */
+@media (orientation: landscape) and (max-height: 600px) {
+  #gArea.ga-fort { height: calc(100vh - 64px); height: calc(100dvh - 64px); min-height: 280px; }
+  #ftCtl { flex-direction: row; align-items: center; gap: 8px; padding: 6px 10px 7px; border-top-width: 2px; }
+  .ft-r1 { flex-direction: column; align-items: flex-start; gap: 2px; min-width: 104px; flex: 0 0 auto; }
+  .ft-last { display: none; }
+  .ft-r2 { flex: 0 0 auto; }
+  .ft-r3 { flex: 1 1 auto; min-width: 0; }
+  .ft-b { height: 38px; min-width: 56px; }
+  .ft-b.sm { min-width: 36px; }
+  .ft-gauge { height: 38px; }
+  .ft-fire { padding: 7px 14px !important; min-width: 118px; font-size: 16px !important; }
+  .ga-fort .ft-sb { display: none; }
+  .ga-fort #gTitle { gap: 4px; }
+  .ft-faces { height: 56px; } .ft-faces img { height: 54px; } .ft-faces img:nth-child(2) { height: 50px; }
+  .ga-fort #gTitle .gt-name { font-size: 28px; }
+  .ga-fort #gTitle .gt-desc { font-size: 12px; line-height: 1.4; }
+  .ga-fort .g-start { font-size: 20px; padding: 7px 24px; }
+  .ft-grid { grid-template-columns: repeat(6, 1fr); }
+  .ft-card img { height: 46px; }
+  .ft-faces, .ga-fort #gTitle .gt-sub { display: none; }
+  .ga-fort #gTitle .gt-name { font-size: 26px; }
+  .fd-grid { grid-template-columns: repeat(4, 1fr); }
+  .fd-it { padding: 4px 2px; } .fd-it .fd-ico { font-size: 18px; } .fd-it b { font-size: 11px; }
+  .fd-prev { flex-basis: 118px; } .fd-prev canvas { width: 118px; height: 136px; }
+  #ftDress { padding: 6px 10px 8px; gap: 5px; } .fd-h b { font-size: 16px; }
+}
 
   </style>
 </head>
@@ -20130,7 +20199,7 @@ var FortEngine = (function () {
     return e;
   }
 
-  /* ── 이동: 한 번에 1칸. 급경사는 못 올라가고 상대 캐릭터를 통과할 수 없다 ── */
+  /* ── 이동: 한 번에 1칸(화면에서는 여러 칸씩 연속 호출). 급경사(약 67도 이상)는 못 올라가고 상대 캐릭터를 통과할 수 없다 ── */
   function moveStep(st, pi, dir) {
     var p = st.p[pi], o = st.p[1 - pi];
     if (p.stam < 1 || st.over) return false;
@@ -20138,7 +20207,7 @@ var FortEngine = (function () {
     if (nx < 8 || nx > W - 8) return false;
     if (Math.abs(nx - o.x) < 34) return false;
     var ny = surfaceY(st.top, nx);
-    if (p.y - ny > 3.2) return false;
+    if (p.y - ny > 2.4) return false;
     p.x = nx; p.y = ny; p.stam -= 1; p.face = dir;
     return true;
   }
@@ -20364,8 +20433,12 @@ var FT = {
 };
 const FT_STORE = 'ft_v1';
 function ftLoad() {
-  try { const o = JSON.parse(localStorage.getItem(FT_STORE) || '{}'); return { best: +o.best || 0, wins: +o.wins || 0, games: +o.games || 0 }; }
-  catch (e) { return { best: 0, wins: 0, games: 0 }; }
+  try {
+    const o = JSON.parse(localStorage.getItem(FT_STORE) || '{}');
+    const eq = (o.eq && typeof o.eq === 'object') ? o.eq : {};
+    return { best: +o.best || 0, wins: +o.wins || 0, games: +o.games || 0, eq: { head: eq.head || '', face: eq.face || '', body: eq.body || '', aura: eq.aura || '' }, seen: Array.isArray(o.seen) ? o.seen : [] };
+  }
+  catch (e) { return { best: 0, wins: 0, games: 0, eq: { head: '', face: '', body: '', aura: '' }, seen: [] }; }
 }
 function ftSave(o) { try { localStorage.setItem(FT_STORE, JSON.stringify(o)); } catch (e) { } }
 function ftClamp(v, a, b) { return v < a ? a : v > b ? b : v; }
@@ -20387,9 +20460,10 @@ function ftOpenRules() {
       <b style="color:var(--text)">목표</b> 번갈아 무기를 던져 상대 체력을 0으로 만들면 KO 승리!<br>
       <b style="color:var(--text)">무기</b> 선수마다 던지는 물건이 달라요. 속도·궤적·바람·폭발 범위가 전부 달라서 같은 각도로 던져도 결과가 달라요.<br>
       <b style="color:var(--text)">각도</b> 화면을 드래그하면 방향이 각도가 돼요. 각도 버튼으로 미세 조정!<br>
-      <b style="color:var(--text)">파워</b> <b style="color:var(--text)">발사</b>를 누르면 게이지가 오르락내리락! 원하는 위치에서 <b style="color:var(--text)">다시 한 번 눌러(화면 아무 데나 OK)</b> 멈추면 그 세기로 날아가요. 매번 직접 맞춰야 해요.<br>
-      <b style="color:var(--text)">PC</b> 방향키 좌우 = 이동 · 상하 = 각도 · 스페이스 = 게이지 시작/멈춤<br>
-      <b style="color:var(--text)">케이지 벽</b> 양쪽 벽에 한 번 튕겨요. 터지기 전에 두 번째로 벽에 닿으면 그 자리에서 터져요.<br>
+      <b style="color:var(--text)">파워</b> <b style="color:var(--text)">충전 버튼을 꾹 누르면</b> 게이지가 오르락내리락! 원하는 위치에서 <b style="color:var(--text)">손을 떼는 순간</b> 바로 발사돼요. 매번 직접 타이밍을 맞춰야 해요.<br>
+      <b style="color:var(--text)">PC</b> 방향키 좌우 = 이동 · 상하 = 각도 · 스페이스를 누르고 있다가 떼면 발사<br>
+      <b style="color:var(--text)">케이지 벽</b> 화면 양쪽의 철망 벽(붉은 선)에 한 번 튕겨요. 터지기 전에 두 번째로 벽에 닿으면 그 자리에서 터져요. 튕길 때 벽이 번쩍여요.<br>
+      <b style="color:var(--text)">꾸미기</b> 승리와 연승이 쌓일수록 모자·안경·목걸이·오라 같은 아이템이 해금돼요. 시작 화면의 꾸미기 버튼에서 장착!<br>
       <b style="color:var(--text)">바람</b> 매 턴 바뀌어요. 가벼운 무기일수록 바람을 많이 타요.<br>
       <b style="color:var(--text)">땅</b> 터지면 바닥이 파여요. 이동력만큼 걸어서 자리를 옮길 수 있어요.<br>
       <b style="color:var(--text)">직격</b> 몸에 직접 맞으면 폭발 중심 데미지! 내 폭발에 내가 맞으면 60%만 아파요.<br>
@@ -20407,6 +20481,7 @@ function viewGameFort() {
   FT.demo = FortEngine.newGame({ a: 'tusin', b: 'kingkong', rng: FortEngine.mulberry32(20261104) });
   FT.vis = FT.demo.p.map(p => ({ x: p.x, y: p.y, hit: 0 }));
   FT.rec = ftLoad();
+  FT.dress = false; FT.wallFlash = [0, 0]; FT.eqs = [{}, {}];
   if (navStale(__g)) return;
   const faces = ['tusin', 'kingkong', 'captainkorea'].map(id => `<img src="${ftArtSrc(id)}" alt="">`).join('');
   $app.innerHTML = `
@@ -20430,25 +20505,28 @@ function viewGameFort() {
       </div>
       <div class="ft-r3">
         <div class="ft-gauge" id="ftGauge"><s id="ftGmask"></s><u id="ftGlast"></u><b id="ftGmark"></b><span id="ftGv"></span></div>
-        <button class="g-start ft-fire" id="ftFire" type="button">발사!</button>
+        <button class="g-start ft-fire" id="ftFire" type="button">꾹 눌러 충전</button>
       </div>
     </div>
     <div id="gTitle">
       <div class="ft-faces">${faces}</div>
       <div class="gt-name">블랙 케이지</div>
       <div class="gt-sub">BLACK CAGE</div>
+      <div class="ft-rank" id="ftRank"></div>
       <div class="gt-desc">선수마다 <b>다른 무기</b>를 던져라!<br>게이지 타이밍을 직접 맞춰 <b>KO</b> 시켜라!</div>
       <button class="g-start g-en" id="ftStartAi" type="button">AI 대전 시작</button>
-      <button class="ft-btn2" id="ftStartPvp" type="button">친구와 2인 대결</button>
-      <div class="gt-hint">AI를 이길수록 연승! · 한 화면에서 둘이서도 OK</div>
+      <div class="ft-btnrow"><button class="ft-btn2" id="ftStartPvp" type="button">친구와 2인 대결</button>
+      <button class="ft-btn2 ft-dressb" id="ftDressBtn" type="button">꾸미기<i id="ftDressNew"></i></button></div>
+      <div class="gt-hint">AI를 이길수록 연승! · 이길수록 새 아이템 해금</div>
     </div>
     <div id="ftSel" style="display:none"></div>
+    <div id="ftDress" style="display:none"></div>
     <div id="gOver" style="display:none"></div>
   </div>
   <div class="card" id="ftRec"></div>
   <div class="sec-title">🧑‍🎤 출전 파이터와 무기</div>
   <div class="card" id="ftGuide"></div>`;
-  ftRenderRec(); ftRenderGuide();
+  ftRenderRec(); ftRenderGuide(); ftRenderRank();
   const rb = document.getElementById('ftRulesBtn');
   rb.onpointerdown = e => e.stopPropagation();
   rb.onclick = e => { e.stopPropagation(); ftOpenRules(); };
@@ -20499,7 +20577,7 @@ function ftHold(btn, fn) {
   const stop = () => { clearTimeout(tm); clearInterval(iv); tm = 0; iv = 0; };
   btn.addEventListener('pointerdown', e => {
     e.preventDefault(); e.stopPropagation(); stop();
-    fn(); tm = setTimeout(() => { iv = setInterval(fn, 55); }, 260);
+    fn(); tm = setTimeout(() => { iv = setInterval(fn, 26); }, 170);
     try { btn.setPointerCapture(e.pointerId); } catch (err) { }
   });
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => btn.addEventListener(ev, stop));
@@ -20513,12 +20591,14 @@ function ftAdj(dAng) {
 }
 function ftMove(dir) {
   if (!ftCanAct()) return;
-  if (FortEngine.moveStep(FT.st, FT.st.turn, dir)) ftSyncCtl();
+  let moved = 0;
+  for (let i = 0; i < 5; i++) { if (FortEngine.moveStep(FT.st, FT.st.turn, dir)) moved++; else break; }
+  if (moved) ftSyncCtl();
 }
 /* 발사 버튼 한 개로 두 단계: (1) 게이지 시작 → (2) 원하는 순간에 멈춰서 발사 */
 function ftStartGauge() {
   if (!ftCanAct()) return;
-  const T = FT.mode === 'ai' ? ftClamp(.95 - .04 * (FT.stage - 1), .55, .95) : .8;
+  const T = FT.mode === 'ai' ? ftClamp(.8 - .03 * (FT.stage - 1), .5, .8) : .7;
   FT.phase = 'gauge'; FT.g = { pos: 0, dir: 1, cyc: 0, T };
   FT.dragging = false; FT.drag = null;
   gmCtx(); gmSnd('count');
@@ -20540,12 +20620,17 @@ function ftBindUI() {
   ftHold($('ftAm'), guard(() => ftAdj(-1)));
   ftHold($('ftAp'), guard(() => ftAdj(1)));
   const fb = $('ftFire');
+  fb.oncontextmenu = e => e.preventDefault();
   fb.onpointerdown = e => {
     e.stopPropagation(); e.preventDefault();
-    if (FT.phase === 'gauge') ftStopGauge(); else ftStartGauge();
+    try { fb.setPointerCapture(e.pointerId); } catch (err) { }
+    if (FT.phase === 'aim') ftStartGauge();
   };
+  const release = e => { e.stopPropagation(); if (FT.phase === 'gauge' && FT.human) ftStopGauge(); };
+  fb.onpointerup = release; fb.onpointercancel = release; fb.onlostpointercapture = release;
   fb.onclick = e => e.stopPropagation();
   $('ftStartAi').onclick = e => { e.stopPropagation(); gmCtx(); FT.mode = 'ai'; FT.stage = 1; FT.streak = 0; ftShowSelect(0); };
+  $('ftDressBtn').onclick = e => { e.stopPropagation(); gmCtx(); ftOpenDress(); };
   $('ftStartPvp').onclick = e => { e.stopPropagation(); gmCtx(); FT.mode = 'pvp'; FT.stage = 1; FT.streak = 0; ftShowSelect(0); };
   // 화면 드래그로 각도 조준 / 게이지 중에는 화면 아무 데나 눌러서 멈춤
   const cv = $('gCanvas');
@@ -20562,7 +20647,6 @@ function ftBindUI() {
     ftSyncCtl();
   };
   cv.addEventListener('pointerdown', e => {
-    if (FT.phase === 'gauge' && FT.human) { e.preventDefault(); ftStopGauge(); return; }
     if (!ftCanAct()) return;
     FT.dragging = true; try { cv.setPointerCapture(e.pointerId); } catch (err) { } aimFrom(e);
   });
@@ -20575,9 +20659,8 @@ function ftBindUI() {
     if (tok !== gmToken || gmCurGame !== 'fort') { document.removeEventListener('keydown', FT.keyFn); return; }
     const k = e.key;
     if (k === ' ' || k === 'Enter') {
-      if (e.repeat) return;
-      if (FT.phase === 'gauge' && FT.human) { ftStopGauge(); e.preventDefault(); }
-      else if (ftCanAct()) { ftStartGauge(); e.preventDefault(); }
+      if (e.repeat) { e.preventDefault(); return; }
+      if (ftCanAct()) { ftStartGauge(); e.preventDefault(); }
       return;
     }
     if (!ftCanAct()) return;
@@ -20591,6 +20674,12 @@ function ftBindUI() {
     if (used) e.preventDefault();
   };
   document.addEventListener('keydown', FT.keyFn);
+  if (FT.keyUpFn) document.removeEventListener('keyup', FT.keyUpFn);
+  FT.keyUpFn = e => {
+    if (tok !== gmToken || gmCurGame !== 'fort') { document.removeEventListener('keyup', FT.keyUpFn); return; }
+    if ((e.key === ' ' || e.key === 'Enter') && FT.phase === 'gauge' && FT.human) { ftStopGauge(); e.preventDefault(); }
+  };
+  document.addEventListener('keyup', FT.keyUpFn);
 }
 
 /* 컨트롤 패널 표시값 동기화 */
@@ -20607,7 +20696,7 @@ function ftSyncCtl() {
   set('ftWho', FT.mode === 'ai' ? (pi === 0 ? `내 차례 · ${c.name}` : `상대 차례 · ${c.name}`) : `P${pi + 1} 차례 · ${c.name}`);
   const l = FT.last[pi];
   set('ftLast', l ? `직전 ${l.ang}도 · 파워 ${l.pow}` : `무기 · ${c.proj.label}`);
-  set('ftFire', FT.phase === 'gauge' ? '지금!' : '발사!');
+  set('ftFire', FT.phase === 'gauge' ? '떼면 발사!' : '꾹 눌러 충전');
   const fb = document.getElementById('ftFire'); if (fb) fb.classList.toggle('now', FT.phase === 'gauge');
 }
 /* 게이지 막대 (매 프레임) */
@@ -20618,7 +20707,7 @@ function ftGaugeDom() {
   if (FT.phase === 'gauge' && FT.g) { gv = FT.g.pos; txt = String(Math.round(gv)); }
   else if (FT.aiTween) { gv = p.pow; txt = String(Math.round(gv)); }
   else if (FT.phase === 'fly' || FT.phase === 'boom') { gv = FT.lastPow; txt = `파워 ${Math.round(gv)}`; }
-  else if (FT.human && FT.phase === 'aim') { gv = 0; txt = '발사를 누르면 게이지가 움직여요'; }
+  else if (FT.human && FT.phase === 'aim') { gv = 0; txt = '충전 버튼을 꾹 누르세요'; }
   const m = document.getElementById('ftGmask'), k = document.getElementById('ftGmark'), t = document.getElementById('ftGv'), ls = document.getElementById('ftGlast');
   if (m) m.style.width = (100 - gv) + '%';
   if (k) k.style.left = `calc(${gv}% - 2px)`;
@@ -20680,6 +20769,8 @@ function ftStartMatch() {
   const champ = FT.mode === 'ai' && FT.stage % 5 === 0;
   if (champ) { st.p[1].maxHp = st.p[1].hp = Math.round(st.p[1].hp * 1.25); }
   FT.skill = FT.mode === 'ai' ? ftClamp(.28 + .085 * (FT.stage - 1), .28, .9) : .6;
+  const rec0 = ftLoad();
+  FT.eqs = FT.mode === 'ai' ? [rec0.eq, ftAiGear(FT.stage, champ)] : [rec0.eq, rec0.eq];
   FT.st = st; FT.vis = st.p.map(p => ({ x: p.x, y: p.y, hit: 0 }));
   FT.flying = []; FT.parts = []; FT.pops = []; FT.booms = []; FT.last = [null, null]; FT.aiTween = null; FT.g = null; FT.lastPow = 0;
   FT.active = true; FT.shake = 0; FT.flash = 0;
@@ -20697,7 +20788,7 @@ function ftStartMatch() {
   }
   ftHud();
   const tok = gmToken;
-  gmDelay(() => { if (tok === gmToken) ftBeginTurn(); }, 900);
+  gmDelay(() => { if (tok === gmToken) ftBeginTurn(); }, 650);
   FT.phase = 'intro';
   ftSyncCtl();
 }
@@ -20719,12 +20810,12 @@ function ftAiTurn() {
     let steps = plan.steps;
     const doMove = () => {
       if (tok !== gmToken || st !== FT.st || st.over) return;
-      if (steps > 0 && E.moveStep(st, pi, plan.dir)) { steps--; ftSyncCtl(); gmDelay(doMove, 22); return; }
+      if (steps > 0 && E.moveStep(st, pi, plan.dir)) { steps--; if (steps % 2 === 0) { ftSyncCtl(); gmDelay(doMove, 12); return; } return doMove(); }
       const a = E.aiAim(st, pi, FT.skill, false), p = st.p[pi];
-      FT.aiTween = { a0: p.ang, a1: a.ang, p0: 0, p1: a.pow, t0: performance.now(), dur: 900 };
+      FT.aiTween = { a0: p.ang, a1: a.ang, p0: 0, p1: a.pow, t0: performance.now(), dur: 520 };
     };
     doMove();
-  }, 800);
+  }, 420);
 }
 
 function ftFire() {
@@ -20787,7 +20878,7 @@ function ftLand() {
   gmDelay(() => {
     if (tok !== gmToken || st !== FT.st) return;
     E.endTurn(st); ftBeginTurn();
-  }, 950);
+  }, 600);
 }
 
 function ftOver() {
@@ -20796,6 +20887,7 @@ function ftOver() {
   const ctl = document.getElementById('ftCtl'); if (ctl) ctl.style.display = 'none';
   const ov = document.getElementById('gOver'); if (!ov) return;
   const w = st.winner, rec = ftLoad();
+  const prevIds = ftUnlockedIds(rec);
   rec.games++;
   let html;
   if (FT.mode === 'ai') {
@@ -20827,9 +20919,16 @@ function ftOver() {
       <button class="ft-btn2" id="ftChange" type="button">파이터 변경</button>`;
     gmSnd('cheer');
   }
+  {
+    const after = ftUnlockedIds(rec), fresh = ftAllGear().filter(it => after.includes(it.id) && !prevIds.includes(it.id));
+    let extra = '';
+    if (fresh.length) extra = `<div class="ft-unlock">🎁 새 아이템 해금! <b>${fresh.map(i => esc(i.n)).join(', ')}</b><br><small>시작 화면의 꾸미기에서 장착하세요</small></div>`;
+    else if (FT.mode === 'ai') { const g = ftNextGoal(rec); if (g) extra = `<div class="ft-goal">다음 해금 · ${esc(g.it.n)} (${g.it.w ? g.r + '승' : g.r + '연승'} 남음)</div>`; }
+    html = html.replace('<button class="g-start" id="ftNext"', extra + '<button class="g-start" id="ftNext"');
+  }
   ftSave(rec); FT.rec = rec;
   ov.style.display = ''; ov.innerHTML = html;
-  ftRenderRec(); ftHud();
+  ftRenderRec(); ftHud(); ftRenderRank();
   const nx = document.getElementById('ftNext'), ch = document.getElementById('ftChange');
   nx.onpointerdown = e => e.stopPropagation();
   ch.onpointerdown = e => e.stopPropagation();
@@ -20856,12 +20955,13 @@ function ftLoop() {
     const now = performance.now();
     const dt = Math.min(50, now - last) / 1000; last = now;
     gmCanvasHeal();
-    try { ftUpdate(dt, now); ftDraw(); ftGaugeDom(); } catch (e) { try { console.error(e); } catch (e2) { } }
+    try { ftUpdate(dt, now); ftDraw(); ftGaugeDom(); if (FT.dress) ftDressDraw(); } catch (e) { try { console.error(e); } catch (e2) { } }
     G.raf = requestAnimationFrame(frame);
   }
   G.raf = requestAnimationFrame(frame);
 }
 
+const FT_PLAY = 1.8;
 function ftUpdate(dt, now) {
   const E = FortEngine, st = FT.st || FT.demo; FT.t += dt;
   if (!st) return;
@@ -20876,7 +20976,7 @@ function ftUpdate(dt, now) {
     const g = FT.g;
     g.pos += g.dir * (100 / g.T) * dt;
     if (g.pos >= 100) { g.pos = 100; g.dir = -1; }
-    else if (g.pos <= 0 && g.dir < 0) { g.pos = 0; g.dir = 1; g.cyc++; if (g.cyc >= 2) { ftStopGauge(); } }
+    else if (g.pos <= 0 && g.dir < 0) { g.pos = 0; g.dir = 1; g.cyc++; if (g.cyc >= 3) { ftStopGauge(); } }
     if (FT.g) FT.st.p[FT.st.turn].pow = g.pos;
   }
   // AI 조준 연출 (각도가 돌아가고 게이지가 차오른 뒤 발사)
@@ -20886,13 +20986,25 @@ function ftUpdate(dt, now) {
     const k = Math.min(1, (now - tw.t0) / tw.dur), e2 = 1 - Math.pow(1 - k, 3);
     p.ang = tw.a0 + (tw.a1 - tw.a0) * e2; p.pow = tw.p0 + (tw.p1 - tw.p0) * k;
     ftSyncCtl();
-    if (k >= 1) { FT.aiTween = null; gmDelay(() => { if (FT.st === st && FT.phase === 'aim') ftFire(); }, 220); }
+    if (k >= 1) { FT.aiTween = null; gmDelay(() => { if (FT.st === st && FT.phase === 'aim') ftFire(); }, 120); }
   }
   if (FT.phase === 'fly') {
     let all = true;
     FT.flying.forEach(f => {
-      f.t += dt;
-      if (Math.floor(f.t / E.DT) >= f.s.path.length - 1) f.done = true;
+      f.t += dt * FT_PLAY;
+      const ci = Math.min(f.s.path.length - 1, Math.floor(f.t / E.DT));
+      // 벽 반동 감지: 가로 이동 방향이 벽 근처에서 뒤집히면 벽을 번쩍이게 한다
+      for (let i = Math.max(2, (f.lastI || 0) + 1); i <= ci && i < f.s.path.length; i++) {
+        const a = f.s.path[i - 2], b = f.s.path[i - 1], c = f.s.path[i];
+        const d1 = b[0] - a[0], d2 = c[0] - b[0];
+        if (d1 * d2 < 0 && (b[0] < 14 || b[0] > E.W - 14)) {
+          const side = b[0] < E.W / 2 ? 0 : 1; FT.wallFlash[side] = 1; FT.shake = Math.max(FT.shake, 3);
+          for (let q = 0; q < 10; q++) FT.parts.push({ x: b[0], y: b[1], vx: (side ? -1 : 1) * (40 + Math.random() * 120), vy: (Math.random() - .5) * 200, life: .45 + Math.random() * .3, sz: 1.4 + Math.random() * 1.6, c: q % 2 ? '#ffd76e' : '#ffffff' });
+          gmSnd('weak');
+        }
+      }
+      f.lastI = ci;
+      if (ci >= f.s.path.length - 1) f.done = true;
       if (!f.done) all = false;
     });
     if (all && FT.flying.length) ftLand();
@@ -20905,16 +21017,18 @@ function ftUpdate(dt, now) {
   for (let i = FT.pops.length - 1; i >= 0; i--) { const q = FT.pops[i]; q.t += dt; if (q.t > 1.2) FT.pops.splice(i, 1); }
   for (let i = FT.booms.length - 1; i >= 0; i--) { const q = FT.booms[i]; q.t += dt; if (q.t > .5) FT.booms.splice(i, 1); }
   if (FT.flash > 0) FT.flash = Math.max(0, FT.flash - dt * 2.2);
+  if (FT.wallFlash) for (let i = 0; i < 2; i++) if (FT.wallFlash[i] > 0) FT.wallFlash[i] = Math.max(0, FT.wallFlash[i] - dt * 2.6);
   if (FT.bubble && FT.t > FT.bubble.until) FT.bubble = null;
 }
 
 function ftLayout() {
   const E = FortEngine, ctl = document.getElementById('ftCtl');
   const ctlH = (ctl && ctl.style.display !== 'none') ? ctl.offsetHeight : 0;
-  const hudH = 40;
-  const availH = Math.max(120, G.h - ctlH - hudH);
-  const sc = Math.min(G.w / E.W, availH / E.H);
-  FT.sc = sc; FT.ox = (G.w - E.W * sc) / 2; FT.oy = hudH + (availH - E.H * sc) / 2;
+  const land = G.w > G.h * 1.15;
+  const hudH = land ? 34 : 40, pad = 26;
+  const availH = Math.max(100, G.h - ctlH - hudH);
+  const sc = Math.min((G.w - pad * 2) / E.W, availH / E.H);
+  FT.sc = sc; FT.ox = (G.w - E.W * sc) / 2; FT.oy = hudH + (availH - E.H * sc) / 2; FT.land = land;
 }
 
 function ftRR(ctx, x, y, w, h, r) {
@@ -20992,14 +21106,7 @@ function ftDraw() {
   if (FT.shake > .3) { ctx.translate((Math.random() - .5) * FT.shake * sc, (Math.random() - .5) * FT.shake * sc); FT.shake *= .88; } else FT.shake = 0;
   const floorY = Y(E.BASE);
   ftBackdrop(ctx, w, h, floorY);
-  // 케이지 벽(좌우 기둥)
-  [0, E.W].forEach(wx => {
-    const px = X(wx), pw = Math.max(4, 6 * sc);
-    const g = ctx.createLinearGradient(px - pw, 0, px + pw, 0);
-    g.addColorStop(0, '#15151a'); g.addColorStop(.5, '#4a4a55'); g.addColorStop(1, '#15151a');
-    ctx.fillStyle = g; ctx.fillRect(px - pw / 2, Y(30), pw, floorY - Y(30) + 4);
-    ctx.fillStyle = '#e6b73a'; ctx.fillRect(px - pw / 2, Y(30), pw, 3);
-  });
+  ftDrawWalls(ctx, X, Y, sc, floorY);
   // 바닥 매트 / 장애물
   const top = st.top, Wd = E.W;
   const path = () => {
@@ -21020,7 +21127,7 @@ function ftDraw() {
   // 캐릭터
   st.p.forEach((p, i) => {
     const act = !!FT.st && FT.st.turn === i && !FT.st.over && (FT.phase === 'aim' || FT.phase === 'gauge' || FT.phase === 'fly');
-    ftDrawChar(ctx, p, FT.vis[i], act, X, Y, sc, !!FT.st && p.dead && FT.phase === 'over', !FT.st);
+    ftDrawChar(ctx, p, FT.vis[i], act, X, Y, sc, !!FT.st && p.dead && FT.phase === 'over', !FT.st, FT.st ? (FT.eqs[i] || {}) : {});
   });
   // 조준선 + 게이지 링
   if (FT.st && (FT.phase === 'aim' || FT.phase === 'gauge')) {
@@ -21123,9 +21230,9 @@ function ftDrawWind(ctx, w, wind) {
   }
 }
 
-function ftDrawChar(ctx, p, v, active, X, Y, sc, down, noBar) {
+function ftDrawChar(ctx, p, v, active, X, Y, sc, down, noBar, eq) {
   const E = FortEngine, c = E.CHARS[p.id], sx = X(v.x), sy = Y(v.y);
-  const hH = 78 * sc;
+  const hH = 82 * sc;
   if (active) { ctx.fillStyle = 'rgba(242,179,42,.28)'; ctx.beginPath(); ctx.ellipse(sx, sy + 1, 28 * sc, 7 * sc, 0, 0, 7); ctx.fill(); }
   ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.beginPath(); ctx.ellipse(sx, sy + 1, 20 * sc, 5 * sc, 0, 0, 7); ctx.fill();
   const img = gmArtImg(p.id);
@@ -21133,8 +21240,11 @@ function ftDrawChar(ctx, p, v, active, X, Y, sc, down, noBar) {
   ctx.save();
   if (down) { ctx.translate(sx, sy); ctx.rotate(1.2); ctx.translate(-sx, -sy); ctx.globalAlpha = .75; }
   if (img && img.naturalWidth) {
-    const dw = hH * img.naturalWidth / img.naturalHeight;
-    ctx.drawImage(img, sx - dw / 2 + shk, sy - hH + 3 * sc - bob, dw, hH);
+    const dw = hH * img.naturalWidth / img.naturalHeight, gy = sy - hH + 3 * sc - bob;
+    const geo = ftGeo(p.id, sx + shk, gy, hH, dw, sy);
+    ftGearBack(ctx, eq, geo);
+    ctx.drawImage(img, sx - dw / 2 + shk, gy, dw, hH);
+    ftGearFront(ctx, eq, geo);
     if (v.hit > 0) { ctx.globalAlpha = .35 * (v.hit / .45); ctx.fillStyle = '#ff2a2a'; ctx.fillRect(sx - dw / 2 + shk, sy - hH + 3 * sc - bob, dw, hH); ctx.globalAlpha = 1; }
   } else {
     ctx.fillStyle = '#334'; ctx.beginPath(); ctx.arc(sx, sy - 28 * sc, 18 * sc, 0, 7); ctx.fill();
@@ -21155,6 +21265,282 @@ function ftDrawChar(ctx, p, v, active, X, Y, sc, down, noBar) {
     ctx.fillStyle = '#f2b32a'; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(sx - 6, my - 7); ctx.lineTo(sx + 6, my - 7); ctx.lineTo(sx, my + 1); ctx.closePath(); ctx.stroke(); ctx.fill();
   }
+}
+
+
+/* ══════════ 철망 벽 (좌우) — 튕기는 위치를 눈에 확 띄게 ══════════ */
+function ftDrawWalls(ctx, X, Y, sc, floorY) {
+  const E = FortEngine, wS = 22, topY = Y(16), h = floorY - topY + 4;
+  for (let side = 0; side < 2; side++) {
+    const fl = FT.wallFlash ? FT.wallFlash[side] : 0;
+    const inner = side ? X(E.W) : X(0);
+    const x0 = side ? inner : inner - wS;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x0, topY, wS, h); ctx.clip();
+    ctx.fillStyle = fl > 0 ? `rgba(255,${Math.round(120 + fl * 100)},60,${.35 + fl * .45})` : 'rgba(14,14,20,.7)';
+    ctx.fillRect(x0, topY, wS, h);
+    ctx.strokeStyle = fl > 0 ? `rgba(255,240,190,${.55 + fl * .45})` : 'rgba(210,215,230,.6)'; ctx.lineWidth = 1;
+    for (let k = -h; k < wS + h; k += 9) {
+      ctx.beginPath(); ctx.moveTo(x0 + k, topY); ctx.lineTo(x0 + k + h, topY + h); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x0 + k + h, topY); ctx.lineTo(x0 + k, topY + h); ctx.stroke();
+    }
+    ctx.restore();
+    const outer = side ? x0 + wS : x0;
+    ctx.fillStyle = '#c9a02a'; ctx.fillRect(outer - 2.5, topY - 6, 5, h + 6);
+    ctx.fillStyle = '#f2d36a'; ctx.fillRect(x0, topY - 6, wS, 4);
+    // 튕기는 경계선(붉은 네온)
+    ctx.save();
+    ctx.lineWidth = 3 + fl * 4; ctx.strokeStyle = fl > 0 ? `rgba(255,255,255,${.75 + fl * .25})` : 'rgba(255,70,55,.95)';
+    ctx.shadowColor = '#ff3b2f'; ctx.shadowBlur = 8 + fl * 20;
+    ctx.beginPath(); ctx.moveTo(inner, topY); ctx.lineTo(inner, floorY); ctx.stroke();
+    ctx.restore();
+    // 세로 안내 글자
+    ctx.save(); ctx.translate(x0 + wS / 2, topY + h * .45); ctx.rotate(side ? Math.PI / 2 : -Math.PI / 2);
+    ctx.font = '800 10px Jua, Pretendard, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.75)'; ctx.strokeText('벽 · 반동', 0, 0);
+    ctx.fillStyle = fl > 0 ? '#fff' : '#ffd76e'; ctx.fillText('벽 · 반동', 0, 0); ctx.restore();
+  }
+}
+
+/* ══════════ 꾸미기: 아이템 데이터 · 해금 조건 ══════════ */
+const FT_SLOTS = [['head', '모자'], ['face', '얼굴'], ['body', '목·등'], ['aura', '오라']];
+// w: 누적 승리 수, s: 최고 연승 기록
+const FT_GEAR = {
+  head: [
+    { id: 'headband', n: '붉은 머리띠', ico: '🎌', w: 1 }, { id: 'cap', n: '블랙 캡', ico: '🧢', w: 3 },
+    { id: 'horns', n: '악마 뿔', ico: '😈', w: 10 }, { id: 'crown', n: '황금 왕관', ico: '👑', s: 5 }],
+  face: [
+    { id: 'shades', n: '선글라스', ico: '🕶️', w: 2 }, { id: 'scar', n: '전투 흉터', ico: '🩹', w: 5 },
+    { id: 'mask', n: '검은 마스크', ico: '🥷', w: 8 }, { id: 'gshades', n: '황금 선글라스', ico: '😎', s: 3 }],
+  body: [
+    { id: 'towel', n: '목 수건', ico: '🧻', w: 1 }, { id: 'chain', n: '금목걸이', ico: '⛓️', w: 4 },
+    { id: 'scarf', n: '붉은 스카프', ico: '🧣', w: 7 }, { id: 'cape', n: '챔피언 망토', ico: '🦸', w: 20 }],
+  aura: [
+    { id: 'fire', n: '불꽃 오라', ico: '🔥', w: 12 }, { id: 'gold', n: '황금 오라', ico: '✨', s: 7 },
+    { id: 'volt', n: '번개 오라', ico: '⚡', w: 30 }],
+};
+const FT_TITLES = [[0, '연습생'], [1, '신인'], [3, '루키'], [5, '파이터'], [10, '컨텐더'], [20, '랭커'], [35, '챔피언'], [50, '전설']];
+function ftTitle(w) { let t = FT_TITLES[0]; FT_TITLES.forEach(x => { if (w >= x[0]) t = x; }); return t[1]; }
+function ftAllGear() { const a = []; FT_SLOTS.forEach(([sl]) => FT_GEAR[sl].forEach(it => a.push(Object.assign({ slot: sl }, it)))); return a; }
+function ftUnlocked(rec, it) { return (it.w && rec.wins >= it.w) || (it.s && rec.best >= it.s); }
+function ftRemain(rec, it) { return it.w ? it.w - rec.wins : it.s - rec.best; }
+function ftNeedTxt(it) { return it.w ? `${it.w}승 필요` : `${it.s}연승 필요`; }
+function ftUnlockedIds(rec) { return ftAllGear().filter(it => ftUnlocked(rec, it)).map(it => it.id); }
+function ftNextGoal(rec) {
+  let best = null;
+  ftAllGear().forEach(it => { if (ftUnlocked(rec, it)) return; const r = ftRemain(rec, it); if (!best || r < best.r) best = { it, r }; });
+  return best;
+}
+function ftAiGear(stage, champ) {
+  if (champ) return { head: 'crown', aura: 'fire', body: 'cape' };
+  const g = {};
+  if (stage >= 2) g.face = ['shades', 'scar', 'mask'][Math.floor(Math.random() * 3)];
+  if (stage >= 3) g.head = ['headband', 'cap'][Math.floor(Math.random() * 2)];
+  if (stage >= 4) g.body = ['towel', 'chain', 'scarf'][Math.floor(Math.random() * 3)];
+  return g;
+}
+function ftRenderRank() {
+  const el = document.getElementById('ftRank'); if (!el) return;
+  const rec = ftLoad(), g = ftNextGoal(rec);
+  el.innerHTML = `<b>${ftTitle(rec.wins)}</b> · ${rec.wins}승` + (g ? ` · 다음 해금 <b>${esc(g.it.n)}</b> (${g.it.w ? g.r + '승' : g.r + '연승'} 남음)` : ' · 전부 해금!');
+  const un = ftUnlockedIds(rec).filter(id => !rec.seen.includes(id)).length;
+  const nb = document.getElementById('ftDressNew'); if (nb) { nb.textContent = un ? String(un) : ''; nb.style.display = un ? '' : 'none'; }
+}
+
+/* ══════════ 꾸미기: 장비 그리기 (스프라이트 머리 위치 기준) ══════════ */
+const FT_HX = { tusin: .48, wumawang: .52, godfather: .55, kingkong: .53, sirasony: .5, captainkorea: .48 };
+function ftGeo(id, sx, top, hH, dw, foot) {
+  return { hx: sx + ((FT_HX[id] || .5) - .5) * dw, hy: top + .24 * hH, rx: .15 * hH, ry: .19 * hH, k: hH, foot: foot, neckY: top + .43 * hH, cx: sx, top: top };
+}
+function ftGearBack(ctx, eq, g) {
+  if (!eq) return;
+  const k = g.k, cx = g.cx, mid = g.foot - k * .45, t = FT.t;
+  ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  if (eq.aura === 'fire') {
+    const gr = ctx.createRadialGradient(cx, mid, 0, cx, mid, k * .7); gr.addColorStop(0, 'rgba(255,140,40,.5)'); gr.addColorStop(1, 'rgba(255,60,20,0)');
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(cx, mid, k * .62, k * .7, 0, 0, 7); ctx.fill();
+    for (let i = 0; i < 7; i++) {
+      const x = cx + (i - 3) * k * .15, bY = g.foot - k * .04, hh = k * (.3 + .12 * Math.sin(t * 8 + i * 1.7)), w = k * .075, sw = Math.sin(t * 6 + i) * w * .8;
+      const fg = ctx.createLinearGradient(0, bY, 0, bY - hh); fg.addColorStop(0, 'rgba(255,200,60,.85)'); fg.addColorStop(.6, 'rgba(255,110,30,.7)'); fg.addColorStop(1, 'rgba(255,50,20,0)');
+      ctx.fillStyle = fg; ctx.beginPath(); ctx.moveTo(x - w, bY); ctx.quadraticCurveTo(x - w * .3, bY - hh * .6, x + sw, bY - hh); ctx.quadraticCurveTo(x + w * .3, bY - hh * .5, x + w, bY); ctx.fill();
+    }
+  } else if (eq.aura === 'gold') {
+    const gr = ctx.createRadialGradient(cx, mid, 0, cx, mid, k * .7); gr.addColorStop(0, 'rgba(255,220,100,.5)'); gr.addColorStop(1, 'rgba(255,190,40,0)');
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(cx, mid, k * .6, k * .7, 0, 0, 7); ctx.fill();
+    for (let i = 0; i < 7; i++) {
+      const a = t * 1.5 + i * .9, x = cx + Math.cos(a) * k * .36, y = mid + Math.sin(a * 1.3) * k * .5, r = k * .035 * (.6 + .4 * Math.sin(t * 5 + i));
+      ctx.fillStyle = '#fff3b0'; ctx.beginPath(); ctx.moveTo(x, y - r * 2); ctx.lineTo(x + r * .6, y - r * .6); ctx.lineTo(x + r * 2, y); ctx.lineTo(x + r * .6, y + r * .6); ctx.lineTo(x, y + r * 2); ctx.lineTo(x - r * .6, y + r * .6); ctx.lineTo(x - r * 2, y); ctx.lineTo(x - r * .6, y - r * .6); ctx.closePath(); ctx.fill();
+    }
+  } else if (eq.aura === 'volt') {
+    const gr = ctx.createRadialGradient(cx, mid, 0, cx, mid, k * .7); gr.addColorStop(0, 'rgba(110,210,255,.45)'); gr.addColorStop(1, 'rgba(80,160,255,0)');
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(cx, mid, k * .6, k * .7, 0, 0, 7); ctx.fill();
+    const seed = Math.floor(t * 9);
+    for (let i = 0; i < 4; i++) {
+      const a0 = i * 1.57 + seed * .83; ctx.beginPath();
+      for (let j = 0; j <= 5; j++) {
+        const rr = k * (.2 + j * .06), jit = Math.sin(seed * 12.9 + i * 78.2 + j * 37.7) * k * .05, a = a0 + jit / (k * .3);
+        const x = cx + Math.cos(a) * rr * .9, y = mid + Math.sin(a) * rr * 1.15;
+        if (j) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+      }
+      ctx.strokeStyle = '#bfeaff'; ctx.lineWidth = Math.max(1.4, k * .026); ctx.stroke();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(.8, k * .01); ctx.stroke();
+    }
+  }
+  if (eq.body === 'cape') {
+    const hx = g.hx, ny = g.neckY, rx = g.rx, fy = g.foot - k * .05;
+    const cg = ctx.createLinearGradient(0, ny, 0, fy); cg.addColorStop(0, '#c4202e'); cg.addColorStop(1, '#6e0b14');
+    ctx.fillStyle = cg; ctx.strokeStyle = '#f2c94c'; ctx.lineWidth = Math.max(1, k * .016);
+    const sw = Math.sin(t * 3) * k * .03;
+    ctx.beginPath(); ctx.moveTo(hx - rx * 1.0, ny); ctx.lineTo(hx + rx * 1.0, ny);
+    ctx.quadraticCurveTo(hx + rx * 2.0 + sw, ny + (fy - ny) * .5, hx + rx * 2.1, fy);
+    ctx.quadraticCurveTo(hx + rx * 1.0, fy + k * .05, hx, fy); ctx.quadraticCurveTo(hx - rx * 1.0, fy + k * .05, hx - rx * 2.1, fy);
+    ctx.quadraticCurveTo(hx - rx * 2.0 - sw, ny + (fy - ny) * .5, hx - rx * 1.0, ny); ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+  ctx.restore();
+}
+function ftGearFront(ctx, eq, g) {
+  if (!eq) return;
+  const { hx, hy, rx, ry, k, neckY } = g, lw = Math.max(1, k * .018);
+  ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.lineWidth = lw;
+  // 목·몸
+  if (eq.body === 'towel') {
+    ctx.fillStyle = '#f4f4f4'; ctx.strokeStyle = '#7d7d88';
+    ftRR(ctx, hx - rx * 1.05, neckY - k * .03, rx * 2.1, k * .06, k * .03); ctx.fill(); ctx.stroke();
+    ftRR(ctx, hx - rx * .95, neckY, rx * .5, k * .17, k * .02); ctx.fill(); ctx.stroke();
+    ftRR(ctx, hx + rx * .45, neckY, rx * .5, k * .17, k * .02); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#d11a2a'; ctx.fillRect(hx - rx * .95, neckY + k * .1, rx * .5, k * .025); ctx.fillRect(hx + rx * .45, neckY + k * .1, rx * .5, k * .025);
+  } else if (eq.body === 'chain') {
+    ctx.beginPath(); ctx.moveTo(hx - rx * .85, neckY - k * .01); ctx.quadraticCurveTo(hx, neckY + k * .2, hx + rx * .85, neckY - k * .01);
+    ctx.strokeStyle = '#7a5a0c'; ctx.lineWidth = lw * 2.8; ctx.stroke(); ctx.strokeStyle = '#f7d56a'; ctx.lineWidth = lw * 1.6; ctx.stroke();
+    ctx.lineWidth = lw; ctx.fillStyle = '#f2c94c'; ctx.strokeStyle = '#7a5a0c'; ctx.beginPath(); ctx.arc(hx, neckY + k * .105, k * .038, 0, 7); ctx.fill(); ctx.stroke();
+  } else if (eq.body === 'scarf') {
+    ctx.fillStyle = '#d11a2a'; ctx.strokeStyle = '#6e0b14';
+    ctx.beginPath(); ctx.moveTo(hx + rx * .45, neckY + k * .02); ctx.lineTo(hx + rx * 1.3, neckY + k * .05); ctx.lineTo(hx + rx * 1.1, neckY + k * .19); ctx.lineTo(hx + rx * .6, neckY + k * .09); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ftRR(ctx, hx - rx * 1.1, neckY - k * .035, rx * 2.2, k * .075, k * .035); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.beginPath(); ctx.moveTo(hx - rx * .9, neckY); ctx.lineTo(hx + rx * .9, neckY); ctx.stroke();
+  }
+  // 얼굴
+  const ey = hy + ry * .22;
+  if (eq.face === 'shades' || eq.face === 'gshades') {
+    const gold = eq.face === 'gshades', w = rx * .8, h = ry * .32;
+    ctx.fillStyle = gold ? '#1a1405' : '#0b0b10'; ctx.strokeStyle = gold ? '#f2c94c' : '#000'; ctx.lineWidth = gold ? lw * 1.4 : lw;
+    [-1, 1].forEach(sd => { ftRR(ctx, hx + sd * rx * .46 - w / 2, ey - h / 2, w, h, h * .42); ctx.fill(); ctx.stroke(); });
+    ctx.beginPath(); ctx.moveTo(hx - rx * .06, ey - h * .1); ctx.lineTo(hx + rx * .06, ey - h * .1); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(hx - rx * .86, ey - h * .2); ctx.lineTo(hx - rx * 1.0, ey - h * .35); ctx.moveTo(hx + rx * .86, ey - h * .2); ctx.lineTo(hx + rx * 1.0, ey - h * .35); ctx.stroke();
+    ctx.strokeStyle = gold ? 'rgba(255,230,140,.8)' : 'rgba(255,255,255,.55)'; ctx.lineWidth = lw * .8;
+    [-1, 1].forEach(sd => { ctx.beginPath(); ctx.moveTo(hx + sd * rx * .46 - w * .3, ey - h * .22); ctx.lineTo(hx + sd * rx * .46 - w * .05, ey - h * .22); ctx.stroke(); });
+  } else if (eq.face === 'scar') {
+    ctx.strokeStyle = '#b3242a'; ctx.lineWidth = lw * 1.5;
+    ctx.beginPath(); ctx.moveTo(hx - rx * .72, hy - ry * .1); ctx.lineTo(hx - rx * .25, hy + ry * .58); ctx.stroke();
+    ctx.strokeStyle = '#f5c6c6'; ctx.lineWidth = lw * .7;
+    for (let i = 0; i < 3; i++) { const u = .25 + i * .25, x = hx - rx * .72 + rx * .47 * u, y = hy - ry * .1 + ry * .68 * u; ctx.beginPath(); ctx.moveTo(x - rx * .1, y - ry * .05); ctx.lineTo(x + rx * .1, y + ry * .05); ctx.stroke(); }
+  } else if (eq.face === 'mask') {
+    ctx.fillStyle = '#16161d'; ctx.strokeStyle = '#f2c94c'; ctx.lineWidth = lw * 1.2;
+    ctx.beginPath(); ctx.ellipse(hx, hy + ry * .42, rx * .97, ry * .62, 0, 0, Math.PI); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f2c94c'; ctx.beginPath(); ctx.arc(hx, hy + ry * .72, k * .022, 0, 7); ctx.fill();
+  }
+  // 머리
+  if (eq.head === 'headband') {
+    ctx.strokeStyle = '#d11a2a'; ctx.lineWidth = k * .055;
+    ctx.beginPath(); ctx.moveTo(hx - rx * .98, hy - ry * .4); ctx.quadraticCurveTo(hx, hy - ry * .7, hx + rx * .98, hy - ry * .4); ctx.stroke();
+    ctx.strokeStyle = '#8a0f1b'; ctx.lineWidth = k * .035;
+    ctx.beginPath(); ctx.moveTo(hx + rx * .98, hy - ry * .4); ctx.quadraticCurveTo(hx + rx * 1.3, hy - ry * .35, hx + rx * 1.55, hy - ry * .1);
+    ctx.moveTo(hx + rx * .98, hy - ry * .4); ctx.quadraticCurveTo(hx + rx * 1.35, hy - ry * .6, hx + rx * 1.6, hy - ry * .7); ctx.stroke();
+  } else if (eq.head === 'cap') {
+    ctx.fillStyle = '#17171d'; ctx.strokeStyle = '#000'; ctx.lineWidth = lw;
+    ctx.beginPath(); ctx.ellipse(hx, hy - ry * .36, rx * 1.1, ry * .8, 0, Math.PI, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#0b0b10'; ctx.beginPath(); ctx.ellipse(hx, hy - ry * .36, rx * 1.3, ry * .17, 0, 0, Math.PI); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f2c94c'; ctx.beginPath(); ctx.arc(hx, hy - ry * .78, k * .03, 0, 7); ctx.fill();
+  } else if (eq.head === 'horns') {
+    ctx.fillStyle = '#c0182a'; ctx.strokeStyle = '#4a0610';
+    [-1, 1].forEach(sd => {
+      ctx.beginPath(); ctx.moveTo(hx + sd * rx * .5, hy - ry * .8); ctx.quadraticCurveTo(hx + sd * rx * 1.3, hy - ry * 1.05, hx + sd * rx * 1.0, hy - ry * 1.8);
+      ctx.quadraticCurveTo(hx + sd * rx * .85, hy - ry * 1.1, hx + sd * rx * .2, hy - ry * .88); ctx.closePath(); ctx.fill(); ctx.stroke();
+    });
+  } else if (eq.head === 'crown') {
+    const bY = hy - ry * .82;
+    ctx.fillStyle = '#f2c94c'; ctx.strokeStyle = '#8a6a14';
+    ctx.beginPath(); ctx.moveTo(hx - rx * .78, bY); ctx.lineTo(hx - rx * .85, bY - k * .14); ctx.lineTo(hx - rx * .42, bY - k * .07); ctx.lineTo(hx, bY - k * .17);
+    ctx.lineTo(hx + rx * .42, bY - k * .07); ctx.lineTo(hx + rx * .85, bY - k * .14); ctx.lineTo(hx + rx * .78, bY); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#d9a520'; ctx.fillRect(hx - rx * .78, bY - k * .025, rx * 1.56, k * .035);
+    ctx.fillStyle = '#e0332a'; [[-.85, -.14], [0, -.17], [.85, -.14]].forEach(q => { ctx.beginPath(); ctx.arc(hx + q[0] * rx, bY + q[1] * k + k * .02, k * .02, 0, 7); ctx.fill(); });
+  }
+  ctx.restore();
+}
+
+/* ══════════ 꾸미기 화면 ══════════ */
+function ftOpenDress() {
+  const o = document.getElementById('ftDress'); if (!o) return;
+  const rec = ftLoad();
+  FT.dress = true; FT.dSlot = FT.dSlot || 'head'; FT.dChar = FT.dChar || FT.sel[0] || 'tusin';
+  FT.dNew = ftUnlockedIds(rec).filter(id => !rec.seen.includes(id));
+  rec.seen = ftUnlockedIds(rec); ftSave(rec); FT.dEq = rec.eq;
+  o.style.display = ''; const tt = document.getElementById('gTitle'); if (tt) tt.style.display = 'none';
+  o.innerHTML = `<div class="fd-h"><b>내 파이터 꾸미기</b><span>${ftTitle(rec.wins)} · ${rec.wins}승 · 최고 ${rec.best}연승</span></div>
+    <div class="fd-main">
+      <div class="fd-prev"><canvas id="ftPrev"></canvas>
+        <div class="fd-nav"><button type="button" id="fdPrev">이전</button><b id="fdName"></b><button type="button" id="fdNext">다음</button></div></div>
+      <div class="fd-side"><div class="fd-tabs" id="fdTabs"></div><div class="fd-grid" id="fdGrid"></div></div>
+    </div>
+    <button class="g-start ft-go" id="fdDone" type="button">완료</button>`;
+  const cv = document.getElementById('ftPrev'), dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = 130 * dpr; cv.height = 150 * dpr;
+  const stop = e => e.stopPropagation();
+  ['fdPrev', 'fdNext', 'fdDone'].forEach(id => { document.getElementById(id).onpointerdown = stop; });
+  const ids = FortEngine.ORDER;
+  const nav = d => { const i = ids.indexOf(FT.dChar); FT.dChar = ids[(i + d + ids.length) % ids.length]; document.getElementById('fdName').textContent = FortEngine.CHARS[FT.dChar].name; gmSnd('ding'); };
+  document.getElementById('fdPrev').onclick = e => { e.stopPropagation(); nav(-1); };
+  document.getElementById('fdNext').onclick = e => { e.stopPropagation(); nav(1); };
+  document.getElementById('fdName').textContent = FortEngine.CHARS[FT.dChar].name;
+  document.getElementById('fdDone').onclick = e => {
+    e.stopPropagation(); FT.dress = false; o.style.display = 'none'; const t2 = document.getElementById('gTitle'); if (t2) t2.style.display = ''; ftRenderRank();
+  };
+  ftDressTabs(); ftDressGrid();
+}
+function ftDressTabs() {
+  const el = document.getElementById('fdTabs'); if (!el) return;
+  const rec = ftLoad();
+  el.innerHTML = FT_SLOTS.map(([sl, nm]) => {
+    const fresh = FT_GEAR[sl].some(it => FT.dNew.includes(it.id));
+    return `<button type="button" class="${FT.dSlot === sl ? 'on' : ''}" data-sl="${sl}">${nm}${fresh ? '<i></i>' : ''}</button>`;
+  }).join('');
+  el.querySelectorAll('button').forEach(b => {
+    b.onpointerdown = e => e.stopPropagation();
+    b.onclick = e => { e.stopPropagation(); FT.dSlot = b.dataset.sl; ftDressTabs(); ftDressGrid(); };
+  });
+}
+function ftDressGrid() {
+  const el = document.getElementById('fdGrid'); if (!el) return;
+  const rec = ftLoad(), sl = FT.dSlot, cur = rec.eq[sl];
+  let h = `<button type="button" class="fd-it${cur ? '' : ' on'}" data-id=""><span class="fd-ico">🚫</span><b>해제</b><small>&nbsp;</small></button>`;
+  h += FT_GEAR[sl].map(it => {
+    const ok = ftUnlocked(rec, it), isNew = FT.dNew.includes(it.id);
+    return `<button type="button" class="fd-it${cur === it.id ? ' on' : ''}${ok ? '' : ' lock'}" data-id="${it.id}"><span class="fd-ico">${it.ico}</span><b>${esc(it.n)}</b><small>${ok ? (isNew ? '<em>NEW</em>' : '&nbsp;') : '🔒 ' + ftNeedTxt(it)}</small></button>`;
+  }).join('');
+  el.innerHTML = h;
+  el.querySelectorAll('button').forEach(b => {
+    b.onpointerdown = e => e.stopPropagation();
+    b.onclick = e => {
+      e.stopPropagation();
+      if (b.classList.contains('lock')) { gmSnd('weak'); gmVib(30); return; }
+      const r2 = ftLoad(); r2.eq[sl] = b.dataset.id; ftSave(r2); FT.dEq = r2.eq; gmSnd('ding');
+      ftDressGrid();
+    };
+  });
+}
+function ftDressDraw() {
+  const cv = document.getElementById('ftPrev'); if (!cv) return;
+  const ctx = cv.getContext('2d'), W = cv.width, H = cv.height, sc = W / 130;
+  ctx.setTransform(sc, 0, 0, sc, 0, 0); ctx.clearRect(0, 0, 130, 150);
+  const bg = ctx.createRadialGradient(65, 80, 6, 65, 80, 90); bg.addColorStop(0, '#2b2b36'); bg.addColorStop(1, '#101015');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, 130, 150);
+  ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.beginPath(); ctx.ellipse(65, 138, 34, 7, 0, 0, 7); ctx.fill();
+  const img = gmArtImg(FT.dChar); if (!img || !img.naturalWidth) return;
+  const hH = 124, dw = hH * img.naturalWidth / img.naturalHeight, top = 138 - hH + 3, bob = Math.sin(FT.t * 3) * 1.5;
+  const geo = ftGeo(FT.dChar, 65, top - bob, hH, dw, 138);
+  ftGearBack(ctx, FT.dEq, geo);
+  ctx.drawImage(img, 65 - dw / 2, top - bob, dw, hH);
+  ftGearFront(ctx, FT.dEq, geo);
 }
 
     /* ══════════════════════════════════════════════════════════════════════
