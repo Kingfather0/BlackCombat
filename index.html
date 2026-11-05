@@ -12760,6 +12760,8 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 .ft-grid { padding: 10px 8px !important; }
 .ft-card.on { transform: none; }
 
+.ft-card .ft-cpt { font-size: 9.5px; color: #4de3ff; font-weight: 800; margin-top: 1px; }
+
   </style>
 </head>
 
@@ -21084,6 +21086,10 @@ function ftLoad() {
     if (o.eqf && typeof o.eqf === 'object') d.eqf = o.eqf;
     d.ts = +o.ts || 0; d.cp = Math.max(1, Math.min(500, +o.cp || 1)); d.rank = +o.rank || 0; d.rankAt = +o.rankAt || 0; d.hintAng = +o.hintAng || 0;
     if (Array.isArray(o.seen)) d.seen = o.seen.filter(x => typeof x === 'string');
+    if (d.cp > 1) {      // 예전(파이터 공통) 체크포인트는 가장 많이 이긴 파이터에게 한 번 옮긴다
+      const ids = Object.keys(d.f).sort((a, b) => ((d.f[b] && +d.f[b].w) || 0) - ((d.f[a] && +d.f[a].w) || 0)), id = ids[0] || 'tusin';
+      const fs = ftFS(d, id); fs.cp = Math.max(fs.cp, d.cp); d.cp = 1;
+    }
   } catch (e) { }
   ftPruneEq(d);
   return d;
@@ -21134,7 +21140,7 @@ async function ftSyncProfile() {
       try { const old = localStorage.getItem('ft_v1'); if (old && !localStorage.getItem(key)) { localStorage.setItem(key, old); localStorage.removeItem('ft_v1'); migrated = true; } } catch (e) { }
     }
     const loc = ftLoad();
-    if (!data.exists) { if (loc.games > 0 || loc.wins > 0 || loc.cp > 1) ftPushNow(); return migrated; }
+    if (!data.exists) { if (loc.games > 0 || loc.wins > 0) ftPushNow(); return migrated; }
     if ((+data.ts || 0) > (loc.ts || 0) && data.data && typeof data.data === 'object') { localStorage.setItem(key, JSON.stringify(data.data)); return true; }
     if ((loc.ts || 0) > (+data.ts || 0)) ftPushNow();
   } catch (e) { }
@@ -21143,6 +21149,7 @@ async function ftSyncProfile() {
 function ftFS(rec, id) {
   const f = rec.f[id] || (rec.f[id] = {});
   ['w', 's', 'pw', 'ps', 'pc'].forEach(k => { f[k] = +f[k] || 0; });
+  f.cp = Math.max(1, Math.min(500, +f.cp || 1));      // AI 체크포인트 스테이지는 파이터별로 따로 저장한다
   return f;
 }
 function ftEqOf(rec, id) { return Object.assign(ftEmptyEq(), rec.eqf[id] || {}); }
@@ -21657,10 +21664,10 @@ function ftDressDraw() {
 
 
 /* ══════════ 유저 랭킹 (서버) ══════════
-   랭킹 점수(RP) = 최고 STAGE x 100 + 최고 연승 x 40 + 누적 AI 승리 x 5
+   순위 = 최고 STAGE 높은 순 → 최고 연승 → 먼저 달성한 순 (누적 승리는 반복 파밍이 가능해서 점수에 넣지 않는다)
    · 깊이(스테이지)를 가장 크게, 꾸준함(연승)과 누적(승리)을 보조로 본다. 한 번 크게 운이 좋은 것보다 오래 잘하는 쪽이 오른다.
    · 서버 함수(fort_submit / fort_get_ranking)는 fort_ranking.sql 을 Supabase에서 실행해야 켜진다. 안 되어 있으면 안내 문구만 보인다. */
-function ftRP(r) { return (r.bestStage || 0) * 100 + (r.best || 0) * 40 + (r.wins || 0) * 5; }
+function ftRP(r) { return (r.bestStage || 0) * 100 + (r.best || 0); }
 async function ftSubmitRank(rec) {
   try {
     if (typeof sb === 'undefined' || !sb || !gmMyNick) return false;
@@ -21709,7 +21716,7 @@ async function ftLoadBoard() {
   const tok = gmToken;
   ftBindRkTabs();
   { const tb = document.getElementById('ftRkTabs'); if (tb) tb.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.t === (FT.rkTab || 'ai')));
-    const ds = document.getElementById('ftRkDesc'); if (ds) ds.innerHTML = (FT.rkTab || 'ai') === 'pvp' ? 'PvP 랭킹 = PvP 승리 수 순서 (같으면 최고 연승이 높은 쪽)<br>상대가 전부 기권해서 이긴 판은 기록되지 않아요' : '랭킹 점수 = 최고 STAGE x 100 + 최고 연승 x 40 + 누적 승리 x 5<br>꾸미기 해금은 AI 랭킹 순위 기준이에요'; }
+    const ds = document.getElementById('ftRkDesc'); if (ds) ds.innerHTML = (FT.rkTab || 'ai') === 'pvp' ? 'PvP 랭킹 = PvP 승리 수 순서 (같으면 최고 연승이 높은 쪽)<br>상대가 전부 기권해서 이긴 판은 기록되지 않아요' : 'AI 랭킹 = 최고 STAGE가 높은 순 (같으면 최고 연승, 그래도 같으면 먼저 달성한 순)<br>누적 승리는 순위에 넣지 않고 참고용으로만 보여줘요<br>꾸미기 해금은 AI 랭킹 순위 기준이에요'; }
   if ((FT.rkTab || 'ai') === 'pvp') { if (typeof sb === 'undefined' || !sb) { el.innerHTML = '<div class="empty">랭킹 서버에 연결되지 않았어요.</div>'; return; } return ftLoadPvpBoard(el, document.getElementById('ftHall'), tok); }
   const head = ''; ftBindRkInfo(); const hall = document.getElementById('ftHall');
 
@@ -21725,15 +21732,15 @@ async function ftLoadBoard() {
     if (rec.rank !== my) { rec.rank = my; rec.rankAt = Date.now(); ftPruneEq(rec); ftSave(rec); ftRenderRank(); }
     if (!rows.length) { if (hall) hall.style.display = 'none'; el.innerHTML = '<div class="empty">아직 랭킹이 없어요. 첫 번째 랭커가 되어보세요!</div>'; return; }
     const medal = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '위';
-    const top = +rows[0].rp || 1;
-    if (hall) { const b0 = rows[0]; hall.style.display = ''; hall.innerHTML = `<div style="font-size:13.5px">🏛️ <b>명예의 전당</b> — P4P 1위 <b style="color:var(--key-deep)">${esc(b0.nickname)}</b> · <b style="color:var(--key-deep)">${(+b0.rp).toLocaleString()}RP</b> · STAGE ${b0.best_stage} · ${b0.best_streak}연승 · ${b0.wins}승</div>`; }
+    const top = +rows[0].best_stage || 1;
+    if (hall) { const b0 = rows[0]; hall.style.display = ''; hall.innerHTML = `<div style="font-size:13.5px">🏛️ <b>명예의 전당</b> — AI 랭킹 1위 <b style="color:var(--key-deep)">${esc(b0.nickname)}</b> · <b style="color:var(--key-deep)">STAGE ${b0.best_stage}</b> · 최고 ${b0.best_streak}연승 · ${b0.wins}승</div>`; }
     el.innerHTML = `<div class="bb-lb-list">${rows.map((r, i) => {
-      const me = gmMyNick && r.nickname === gmMyNick, pct = Math.max(5, Math.round(+r.rp / top * 100));
+      const me = gmMyNick && r.nickname === gmMyNick, pct = Math.max(5, Math.round(+r.best_stage / top * 100));
       return `<button class="bb-lb-row${i === 0 ? ' top1' : ''}${me ? ' me' : ''}" data-nick="${esc(r.nickname)}" type="button">
         <span class="bb-lb-rank">${medal(i)}</span>
         <div class="bb-lb-wrap"><span class="bb-lb-nick">${esc(r.nickname)}</span>${me ? ' <span style="font-size:11px;color:var(--key-deep)">나</span>' : ''}
           <div class="bb-lb-bar"><span class="bb-lb-fill" style="width:${pct}%"></span></div></div>
-        <span class="bb-lb-stat" style="font-weight:800;color:${i === 0 ? 'var(--key-deep)' : 'var(--text)'}">${(+r.rp).toLocaleString()}RP <span class="bb-lb-rate">(STAGE ${r.best_stage} · ${r.best_streak}연승 · ${r.wins}승)</span></span>
+        <span class="bb-lb-stat" style="font-weight:800;color:${i === 0 ? 'var(--key-deep)' : 'var(--text)'}">STAGE ${r.best_stage} <span class="bb-lb-rate">(최고 ${r.best_streak}연승 · ${r.wins}승)</span></span>
       </button>`;
     }).join('')}</div>`;
   } catch (e) {
@@ -21921,7 +21928,7 @@ function ftRR(ctx, x, y, w, h, r) {
 function ftMenuTop() {
   const el = document.getElementById('gTopFort'); if (!el) return;
   const r = ftLoad();
-  el.innerHTML = r.best > 0 ? `내 최고 <b>${r.best}연승</b> · STAGE ${r.bestStage} · 누적 ${r.wins}승${r.cp > 1 ? ` · 체크포인트 STAGE ${r.cp}` : ''}` : '아직 기록 없음 — 첫 연승에 도전!';
+  el.innerHTML = r.best > 0 ? `내 최고 <b>${r.best}연승</b> · STAGE ${r.bestStage} · 누적 ${r.wins}승${(() => { const a = FortEngine.ORDER.filter(id => ftFS(r, id).cp > 1).map(id => `${FortEngine.CHARS[id].name} ${ftFS(r, id).cp}`); return a.length ? ` · 체크포인트 ${a.join(', ')}` : ''; })()}` : '아직 기록 없음 — 첫 연승에 도전!';
 }
 
 function ftOpenRules() {
@@ -22010,7 +22017,7 @@ function viewGameFort() {
   <div class="sec-title" style="justify-content:space-between"><span class="ft-rktt">🏆 P4P 랭킹<button class="ft-rkinfo" id="ftRkInfo" type="button" aria-label="설명서" title="설명서"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".6" fill="currentColor"/></svg></button></span>
     <input id="ftRankSearch" placeholder="닉네임 검색 (순위 보기)" oninput="filterFortRank(this.value)" style="flex:1;max-width:180px;min-width:120px;box-sizing:border-box;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:6px 10px;color:var(--text);outline:none;font-size:12.5px;font-weight:600"></div>
   <div class="ft-rktabs" id="ftRkTabs"><button type="button" data-t="ai" class="on">AI 랭킹</button><button type="button" data-t="pvp">PvP 랭킹</button></div>
-  <div class="ft-rkdesc" id="ftRkDesc" style="display:none">랭킹 점수 = 최고 STAGE x 100 + 최고 연승 x 40 + 누적 승리 x 5<br>TOP 1 · TOP 3 · TOP 10 은 랭커 전용 꾸미기가 열려요</div>
+  <div class="ft-rkdesc" id="ftRkDesc" style="display:none">AI 랭킹 = 최고 STAGE가 높은 순 (같으면 최고 연승)<br>TOP 1 · TOP 3 · TOP 10 은 랭커 전용 꾸미기가 열려요</div>
   <div class="card" id="ftHall" style="display:none;margin-bottom:10px"></div>
   <div class="card" id="ftRankBoard"></div>
   <div class="sec-title">🧑‍🎤 파이터 특성</div>
@@ -22240,7 +22247,7 @@ function ftBindUI() {
   fb.onpointerup = release; fb.onpointercancel = release; fb.onlostpointercapture = release;
   fb.onclick = e => e.stopPropagation();
   $('ftLoginBtn').onclick = e => { e.stopPropagation(); gmCtx(); gmRequireLogin(); };
-  $('ftStartAi').onclick = e => { e.stopPropagation(); gmCtx(); if (!gmMyNick) { gmRequireLogin(); return; } FT.mode = 'ai'; FT.stage = FT.cp = Math.max(1, ftLoad().cp || 1); FT.lives = 3; FT.streak = 0; FT.foeOff = Math.floor(Math.random() * 6); ftShowSelect(0); };
+  $('ftStartAi').onclick = e => { e.stopPropagation(); gmCtx(); if (!gmMyNick) { gmRequireLogin(); return; } FT.mode = 'ai'; FT.stage = FT.cp = 1; FT.lives = 3; FT.streak = 0; FT.foeOff = Math.floor(Math.random() * 6); ftShowSelect(0); };
   $('ftDressBtn').onclick = e => { e.stopPropagation(); gmCtx(); ftOpenDress(); };
   $('ftStartPvp').onclick = e => { e.stopPropagation(); gmCtx(); if (!gmMyNick) { gmRequireLogin(); return; } ftNetEnter(4); };
   // 화면 터치: 내 캐릭터 근처 드래그 = 각도 조준 / 그 밖의 드래그 = 카메라 이동 / 톡 누르기 = 그쪽으로 조준 / 미니맵 = 그 위치로 이동
@@ -22393,7 +22400,7 @@ function ftShowSelect(slot) {
     const c = FortEngine.CHARS[id], f = ftFS(rec, id);
     const dis = false;
     return `<button type="button" class="ft-card${dis ? ' dis' : ''}" data-id="${id}"><img src="${ftArtSrc(id)}" alt="">
-        <b>${esc(c.name)}</b><span>${esc(c.proj.label)}</span><small class="ft-rc">${f.w}승 · ${f.s}연승</small>${ftStatBars(c)}</button>`;
+        <b>${esc(c.name)}</b><span>${esc(c.proj.label)}</span><small class="ft-rc">${f.w}승 · ${f.s}연승</small>${FT.mode === 'ai' && f.cp > 1 ? `<small class="ft-cpt">체크포인트 STAGE ${f.cp}</small>` : ''}${ftStatBars(c)}</button>`;
   }).join('')}</div>
     <div class="ft-sel-d" id="ftSelD">파이터를 눌러 무기와 스킬을 확인하세요</div>
     <button class="g-start ft-go" id="ftGo" type="button" disabled>${FT.mode === 'pvp' ? '다음' : '출전!'}</button>`;
@@ -22417,6 +22424,7 @@ function ftShowSelect(slot) {
   go.onclick = e => {
     e.stopPropagation(); if (!FT.pick) return;
     FT.sel[slot] = FT.pick;
+    if (FT.mode === 'ai') { FT.stage = FT.cp = ftFS(ftLoad(), FT.pick).cp; FT.lives = 3; FT.streak = 0; }      // 파이터별 체크포인트부터 시작
     o.style.display = 'none';
     if (FT.mode === 'pvp') { ftNetLobby(); return; }
     ftStartMatch();
@@ -22714,7 +22722,7 @@ function ftOver() {
     const oc = E.CHARS[st.p[1].id], me = ftFS(rec, st.p[0].id), cfg = FT.cfg || {};
     if (w === 0) {
       FT.streak++; rec.wins++; rec.best = Math.max(rec.best, FT.streak); me.w++; me.s = Math.max(me.s, FT.streak); rec.bestStage = Math.max(rec.bestStage || 0, FT.stage + 1);
-      let lifeTxt = ''; if (cfg.boss) { FT.cp = FT.stage + 1; rec.cp = FT.cp; if (FT.lives < 3) { FT.lives++; lifeTxt = ' · 목숨 +1'; } else lifeTxt = ' · 체크포인트 저장'; } FT.nextStage = FT.stage + 1;
+      let lifeTxt = ''; if (cfg.boss) { FT.cp = FT.stage + 1; ftFS(rec, st.p[0].id).cp = FT.cp; if (FT.lives < 3) { FT.lives++; lifeTxt = ' · 목숨 +1'; } else lifeTxt = ' · 체크포인트 저장'; } FT.nextStage = FT.stage + 1;
       const nc = E.stageConfig(FT.stage + 1, FT.foeOff), nf = E.CHARS[nc.foe];
       nextInfo = `<div class="ft-next">다음 STAGE ${FT.stage + 1} · ${nc.boss ? '<b class="bos">BOSS</b> ' : ''}${esc(nf.name)}</div>`;
       html = `<div class="go-ko">${cfg.boss ? '보스 격파! 👑' : (st.p[1].vd ? '낙사 승리! 🏆' : 'KO 승리! 🏆')}</div>
@@ -22776,7 +22784,7 @@ function ftOver() {
   };
   ch.onclick = e => {
     e.stopPropagation();
-    FT.stage = FT.cp = Math.max(1, ftLoad().cp || 1); FT.lives = 3; FT.streak = 0;     // 파이터를 바꾸면 연승은 처음부터, 스테이지는 저장된 체크포인트부터
+    FT.stage = FT.cp = 1; FT.lives = 3; FT.streak = 0;     // 파이터를 바꾸면 연승은 처음부터, 스테이지는 고른 파이터의 체크포인트부터
     ov.style.display = 'none'; FT.sel = [null, null]; if (FT.mode === 'pvp') ftNetStop(); ftShowSelect(0);
   };
 }
