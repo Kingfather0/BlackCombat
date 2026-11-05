@@ -12706,10 +12706,25 @@ h1.page.gm-h1 .gm-listbtn { margin-left: auto; }
 
 .ga-fort.ft-hudless .g-mute, .ga-fort.ft-hudless .g-full { top: 8px; }
 .ft-dressrow { margin: 0 0 2px; }
-body[data-route="game"] .gc-new { background: var(--amber) !important; color: #3d2a00 !important; font-weight: 800; border-radius: 999px; padding: 2px 7px; letter-spacing: .03em; }
+body[data-route="game"] .gcard-fort .gc-new { background: var(--amber); color: #3d2a00; }
 
 #ftLobby .fl-promo { border: 0; border-radius: 999px; padding: 7px 11px; background: rgba(255,255,255,.14); color: #fff; font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap; }
 #ftLobby .fl-promo:active { background: rgba(255,255,255,.26); }
+
+@keyframes ftBlueBeat { 0% { box-shadow: 0 6px 0 #14337e, 0 10px 20px rgba(20,50,120,.35), inset 0 2px 0 rgba(255,255,255,.4), 0 0 0 0 rgba(90,170,255,.7); } 100% { box-shadow: 0 6px 0 #14337e, 0 10px 20px rgba(20,50,120,.35), inset 0 2px 0 rgba(255,255,255,.4), 0 0 0 18px rgba(90,170,255,0); } }
+.ga-fort .g-start.ft-pvpb { background: linear-gradient(180deg, #5aa8ff, #2f7fe0 60%, #1d62c9); border-color: #fff; color: #fff; text-shadow: 0 2px 0 rgba(20,50,120,.5); animation: ftBlueBeat 1.5s ease-in-out infinite; }
+.ga-fort .ft-mainrow { gap: 16px; }
+.ga-fort .g-start.g-en.ft-mbtn { letter-spacing: 1px; padding: 10px 6px; font-size: 20px; max-width: 150px; }
+.ft-card[data-id="sirasony"] img { transform: scale(.86); transform-origin: 50% 100%; }
+.ft-quit-ov .bb-confirm-b small { opacity: .75; }
+
+@keyframes ftShopGlow { 0%,100% { box-shadow: 0 3px 0 #8a5d00, 0 0 8px rgba(255,200,60,.45); } 50% { box-shadow: 0 3px 0 #8a5d00, 0 0 18px rgba(255,210,80,.95); } }
+@keyframes ftShopShine { 0% { transform: translateX(-130%) skewX(-20deg); } 55%,100% { transform: translateX(260%) skewX(-20deg); } }
+#ftDressBtn { width: auto; height: auto; display: inline-flex; align-items: center; gap: 6px; padding: 7px 16px 7px 12px; border-radius: 999px; border: 2px solid #fff3c4; background: linear-gradient(180deg, #ffd55a, #f0a91d 60%, #d98d08); color: #3d2a00; font: 800 14px/1 'Jua','Pretendard',sans-serif; position: relative; overflow: visible; animation: ftShopGlow 1.8s ease-in-out infinite; }
+#ftDressBtn svg { width: 20px; height: 20px; flex: 0 0 auto; }
+#ftDressBtn span { white-space: nowrap; }
+#ftDressBtn::after { content: ''; position: absolute; inset: 0; border-radius: inherit; overflow: hidden; background: linear-gradient(100deg, transparent 35%, rgba(255,255,255,.6) 50%, transparent 65%); animation: ftShopShine 2.6s ease-in-out infinite; pointer-events: none; clip-path: inset(0 round 999px); }
+#ftDressBtn:active { transform: translateY(2px); }
 
   </style>
 </head>
@@ -21185,28 +21200,43 @@ function ftDrawCrownAura(ctx, cx, foot, k, t) {
   ctx.globalAlpha = 1; ctx.restore();
   ftDrawCrown(ctx, cx, foot - k * 1.0 + Math.sin(t * 3) * k * .02, k * .24, t);
 }
-/* 왕관: 금속 그라데이션 + 다섯 뾰족 끝의 진주 + 보석 띠 + 반짝임 */
+/* 왕관: 곡선 첨탑 5개 + 금속 광택 + 보석 띠 + 끝 구슬 (옆면 음영 포함) */
 function ftDrawCrown(ctx, cx, by, w, t) {
-  ctx.save(); ctx.translate(cx, by); ctx.lineJoin = 'round';
-  const H = w * 1.15, bh = w * .42;                   // 전체 높이 / 띠 높이
-  const gold = ctx.createLinearGradient(0, -H, 0, 0); gold.addColorStop(0, '#fff3b0'); gold.addColorStop(.35, '#ffd24a'); gold.addColorStop(.75, '#e0a21a'); gold.addColorStop(1, '#a86d08');
-  const pts = [[-w, 0], [-w * 1.0, -H * .82], [-w * .55, -H * .42], [-w * .28, -H * 1.0], [0, -H * .5], [w * .28, -H * 1.0], [w * .55, -H * .42], [w * 1.0, -H * .82], [w, 0]];
-  ctx.fillStyle = gold; ctx.strokeStyle = '#7a4a05'; ctx.lineWidth = Math.max(1, w * .07);
-  ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.fill(); ctx.stroke();
-  // 안쪽 벨벳(붉은 천)
-  ctx.fillStyle = 'rgba(190,30,60,.85)'; ctx.beginPath(); ctx.moveTo(-w * .55, -H * .42); ctx.lineTo(-w * .28, -H * .98); ctx.lineTo(0, -H * .5); ctx.lineTo(w * .28, -H * .98); ctx.lineTo(w * .55, -H * .42); ctx.lineTo(w * .5, -bh); ctx.lineTo(-w * .5, -bh); ctx.closePath(); ctx.globalAlpha = .55; ctx.fill(); ctx.globalAlpha = 1;
-  // 아래 띠
-  const bg = ctx.createLinearGradient(0, -bh, 0, 0); bg.addColorStop(0, '#ffe58a'); bg.addColorStop(.5, '#e8ac22'); bg.addColorStop(1, '#8f5a06');
-  ctx.fillStyle = bg; ctx.beginPath(); ctx.rect(-w * 1.04, -bh, w * 2.08, bh); ctx.fill(); ctx.stroke();
-  // 끝 진주
-  [[-w, -H * .82], [-w * .28, -H * 1.0], [w * .28, -H * 1.0], [w, -H * .82]].forEach(q => { const r = w * .1; const pg = ctx.createRadialGradient(q[0] - r * .3, q[1] - r * .3, 0, q[0], q[1], r); pg.addColorStop(0, '#fff'); pg.addColorStop(1, '#cfe3ff'); ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(q[0], q[1] - r * .4, r, 0, 7); ctx.fill(); ctx.stroke(); });
-  { const r = w * .11, q = [0, -H * .5]; const pg = ctx.createRadialGradient(q[0] - r * .3, q[1] - r * .3, 0, q[0], q[1], r); pg.addColorStop(0, '#fff'); pg.addColorStop(1, '#cfe3ff'); ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(q[0], q[1] - r * .5, r, 0, 7); ctx.fill(); ctx.stroke(); }
-  // 띠의 보석: 가운데 큰 루비 + 양옆 사파이어/에메랄드
-  const gem = (x, y, r, c0, c1) => { const g = ctx.createRadialGradient(x - r * .3, y - r * .3, 0, x, y, r); g.addColorStop(0, c0); g.addColorStop(1, c1); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r * .85, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r * .85, y); ctx.closePath(); ctx.fill(); ctx.stroke(); };
-  gem(0, -bh * .5, bh * .42, '#ffb3c4', '#d1123c'); gem(-w * .55, -bh * .5, bh * .28, '#bfe0ff', '#1f5fd0'); gem(w * .55, -bh * .5, bh * .28, '#c4ffd8', '#14a85a');
-  // 반짝이는 별빛
-  const sp = (Math.sin(t * 4) + 1) / 2; ctx.globalAlpha = .4 + .6 * sp; ctx.fillStyle = '#fff';
-  const sx = w * .62, sy = -H * .75, sr = w * (.1 + .08 * sp);
+  ctx.save(); ctx.translate(cx, by); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  const bh = w * .46, lw = Math.max(1, w * .06);
+  const X = [-.9, -.45, 0, .45, .9].map(v => v * w), Y = [-.95, -1.2, -1.62, -1.2, -.95].map(v => v * w * 1.05);
+  const body = () => {
+    ctx.beginPath(); ctx.moveTo(-w, 0); ctx.lineTo(-w, -bh * 1.25); ctx.lineTo(X[0], Y[0]);
+    for (let i = 0; i < 4; i++) ctx.quadraticCurveTo((X[i] + X[i + 1]) / 2, -bh * 1.05, X[i + 1], Y[i + 1]);
+    ctx.lineTo(w, -bh * 1.25); ctx.lineTo(w, 0); ctx.quadraticCurveTo(0, w * .2, -w, 0); ctx.closePath();
+  };
+  const g = ctx.createLinearGradient(0, -w * 1.7, 0, w * .1); g.addColorStop(0, '#fff6c0'); g.addColorStop(.3, '#ffd84e'); g.addColorStop(.7, '#e3a41c'); g.addColorStop(1, '#8e5805');
+  ctx.shadowColor = 'rgba(255,200,60,.7)'; ctx.shadowBlur = w * .5; ctx.fillStyle = g; body(); ctx.fill(); ctx.shadowBlur = 0;
+  const h = ctx.createLinearGradient(-w, 0, w, 0); h.addColorStop(0, 'rgba(90,50,0,.55)'); h.addColorStop(.28, 'rgba(255,255,255,0)'); h.addColorStop(.42, 'rgba(255,255,255,.5)'); h.addColorStop(.55, 'rgba(255,255,255,0)'); h.addColorStop(1, 'rgba(90,50,0,.55)');
+  ctx.fillStyle = h; body(); ctx.fill();
+  ctx.strokeStyle = '#6b3f03'; ctx.lineWidth = lw; body(); ctx.stroke();
+  // 아래 띠: 금속 레일 두 줄 + 안쪽 홈
+  ctx.strokeStyle = 'rgba(255,240,170,.9)'; ctx.lineWidth = lw * .8; ctx.beginPath(); ctx.moveTo(-w * .98, -bh); ctx.quadraticCurveTo(0, -bh + w * .12, w * .98, -bh); ctx.stroke();
+  ctx.strokeStyle = 'rgba(110,64,4,.8)'; ctx.lineWidth = lw * .7; ctx.beginPath(); ctx.moveTo(-w * .98, -bh * .12); ctx.quadraticCurveTo(0, -bh * .12 + w * .16, w * .98, -bh * .12); ctx.stroke();
+  // 끝 구슬(진주) + 가운데 루비 구슬
+  X.forEach((x, i) => {
+    const r = w * (i === 2 ? .15 : .1), y = Y[i] - r * .6, mid = i === 2;
+    const pg = ctx.createRadialGradient(x - r * .35, y - r * .35, 0, x, y, r); pg.addColorStop(0, '#fff'); pg.addColorStop(1, mid ? '#d1123c' : '#cfdcf5');
+    if (mid) { pg.addColorStop(0, '#ffc2cf'); pg.addColorStop(.5, '#ee2b55'); pg.addColorStop(1, '#8f0724'); }
+    ctx.fillStyle = pg; ctx.strokeStyle = '#6b3f03'; ctx.lineWidth = lw * .6; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.stroke();
+  });
+  // 띠 보석 (마름모 컷)
+  const gem = (x, y, r, c0, c1) => {
+    const gg = ctx.createLinearGradient(x - r, y - r, x + r, y + r); gg.addColorStop(0, c0); gg.addColorStop(1, c1);
+    ctx.fillStyle = gg; ctx.strokeStyle = '#5a3303'; ctx.lineWidth = lw * .5;
+    ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r * .8, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r * .8, y); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.beginPath(); ctx.moveTo(x - r * .1, y - r * .75); ctx.lineTo(x + r * .35, y - r * .1); ctx.lineTo(x - r * .1, y - r * .1); ctx.closePath(); ctx.fill();
+  };
+  const gy = -bh * .55;
+  gem(0, gy, bh * .46, '#ffc0cf', '#c80f3a'); gem(-w * .5, gy, bh * .32, '#c2e2ff', '#1a5bd0'); gem(w * .5, gy, bh * .32, '#c4ffd9', '#0f9f55'); gem(-w * .82, gy, bh * .2, '#fff', '#c9d6ee'); gem(w * .82, gy, bh * .2, '#fff', '#c9d6ee');
+  // 반짝임
+  const sp = (Math.sin(t * 4) + 1) / 2; ctx.globalAlpha = .35 + .65 * sp; ctx.fillStyle = '#fff';
+  const sx = -w * .3, sy = -w * 1.15, sr = w * (.09 + .08 * sp);
   ctx.beginPath(); ctx.moveTo(sx, sy - sr * 2); ctx.lineTo(sx + sr * .4, sy - sr * .4); ctx.lineTo(sx + sr * 2, sy); ctx.lineTo(sx + sr * .4, sy + sr * .4); ctx.lineTo(sx, sy + sr * 2); ctx.lineTo(sx - sr * .4, sy + sr * .4); ctx.lineTo(sx - sr * 2, sy); ctx.lineTo(sx - sr * .4, sy - sr * .4); ctx.closePath(); ctx.fill();
   ctx.restore();
 }
@@ -21805,15 +21835,14 @@ function viewGameFort() {
       </div>
     </div>
     <div id="gTitle">
-      <div class="ft-btnrow ft-dressrow" id="ftDressRow"><button class="ft-ibtn ft-dressb" id="ftDressBtn" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftDressNew"></i></button></div>
+      <div class="ft-btnrow ft-dressrow" id="ftDressRow"><button class="ft-ibtn ft-dressb" id="ftDressBtn" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<span>꾸미기 상점</span><i id="ftDressNew"></i></button></div>
       <div class="ft-faces">${faces}</div>
       <div class="gt-name">블랙 케이지</div>
       <div class="gt-sub">BLACK CAGE</div>
       <div class="ft-rank" id="ftRank"></div>
       <div class="gt-desc">선수마다 <b>다른 무기와 스킬</b>!<br>바람 읽고, 타이밍 맞추고, <b>턱</b>을 노려라</div>
       <div id="ftModes">
-      <div class="ft-btnrow ft-mainrow"><button class="g-start g-en ft-mbtn" id="ftStartAi" type="button">AI 매칭</button></div>
-      <div class="ft-btnrow ft-mainrow"><button class="g-start ft-mbtn ft-pvpb" id="ftStartPvp" type="button">PvP 매칭</button></div>
+      <div class="ft-btnrow ft-mainrow"><button class="g-start g-en ft-mbtn" id="ftStartAi" type="button">AI 매칭</button><button class="g-start g-en ft-mbtn ft-pvpb" id="ftStartPvp" type="button">PvP 매칭</button></div>
       </div>
       <div class="ft-btnrow ft-mainrow" id="ftLoginRow" style="display:none"><button class="g-start g-en ft-mbtn" id="ftLoginBtn" type="button">로그인</button></div>
       <div class="gt-hint" id="ftLoginHint" style="display:none">블랙 케이지는 로그인해야 이용할 수 있어요</div>
@@ -21849,20 +21878,31 @@ function viewGameFort() {
 
 function ftAskQuit() {
   if (!FT.st || FT.phase === 'over' || FT.paused) return;
-  const ov = document.getElementById('gOver'); if (!ov) return;
+  const host = document.getElementById('gArea') || document.body;
+  document.querySelectorAll('.ft-quit-ov').forEach(el => el.remove());
   FT.paused = true;
-  ov.style.display = ''; ov.innerHTML = `<div class="go-ko">포기할까요?</div><div class="go-cmp">${FT.mode === 'ai' ? '지금 포기하면 <b class="ft-red">패배로 기록</b>되고 처음 화면으로 돌아가요' : '지금 나가면 <b class="ft-red">기권패</b>로 처리되고 남은 사람끼리 계속해요'}</div>
-    <button class="g-start" id="ftQCont" type="button">계속하기</button><button class="ft-quitbtn" id="ftQYes" type="button">패배하고 나가기</button>`;
-  const c = document.getElementById('ftQCont'), y = document.getElementById('ftQYes');
+  const ov = document.createElement('div');
+  ov.className = 'modal-ov bb-confirm-ov ft-quit-ov';
+  ov.innerHTML = `<div class="bb-confirm">
+    <div class="bb-confirm-ic">⚠️</div>
+    <div class="bb-confirm-t">게임을 포기하시겠습니까?</div>
+    <div class="bb-confirm-b">기록은 저장되지 않습니다.${FT.mode === 'pvp' && !(FT.net && FT.net.local) ? '<br><small>PvP에서 포기하면 함께한 모든 참가자의 기록이 저장되지 않아요.</small>' : ''}</div>
+    <div class="bb-confirm-actions">
+      <button type="button" class="bb-confirm-btn cancel">취소</button>
+      <button type="button" class="bb-confirm-btn danger">포기하기</button>
+    </div>
+  </div>`;
+  const close = () => { ov.remove(); FT.paused = false; };
+  ov.onclick = e => { if (e.target === ov) close(); };
+  const [c, y] = ov.querySelectorAll('.bb-confirm-btn');
   c.onpointerdown = y.onpointerdown = e => e.stopPropagation();
-  c.onclick = e => { e.stopPropagation(); FT.paused = false; ov.style.display = 'none'; };
+  c.onclick = e => { e.stopPropagation(); close(); };
   y.onclick = e => {
-    e.stopPropagation(); FT.paused = false; gmTimers.forEach(clearTimeout); gmTimers = [];
-    if (FT.mode === 'ai') { const rec = ftLoad(); rec.games++; ftSave(rec); FT.streak = 0; ftSubmitRank(rec).then(() => ftLoadBoard()); }
+    e.stopPropagation(); ov.remove(); FT.paused = false; gmTimers.forEach(clearTimeout); gmTimers = [];
     if (FT.mode === 'pvp') ftNetForfeit();
     ftShowTitle();
-    if (FT.mode === 'ai') gmBanner('<div class="gb-round ft-toast" style="font-size:22px">기권패 처리됐어요</div>', 1500);
   };
+  (typeof overlayHost === 'function' ? overlayHost() : document.body).append(ov);
 }
 function ftShowTitle() {
   const $ = id => document.getElementById(id);
@@ -22498,12 +22538,12 @@ function ftOver() {
     }
   } else {
     const me = FT.net ? FT.net.me : 0, mf = ftFS(rec, st.p[me].id), won = w === me;
-    if (FT.net && FT.net.local) { /* 봇 연습은 기록하지 않는다 */ } else if (won) { mf.pw++; mf.pc++; mf.ps = Math.max(mf.ps, mf.pc); } else mf.pc = 0;
+    if (FT.net && (FT.net.local || FT.net.forfeited)) { /* 봇 연습·기권이 있었던 판은 기록하지 않는다 */ } else if (won) { mf.pw++; mf.pc++; mf.ps = Math.max(mf.ps, mf.pc); } else mf.pc = 0;
     const place = [w].concat(st.order.slice().reverse().filter(i => i !== w)), myPlace = place.indexOf(me) + 1;
     const rows = place.map((i, k) => `<div class="ft-place${i === me ? ' me' : ''}"><i>${k + 1}</i><span>${esc(FT.net && FT.net.players[i] ? FT.net.players[i].nick : 'P' + (i + 1))}</span><em>${esc(E.CHARS[st.p[i].id].name)}</em></div>`).join('');
     html = `<div class="go-ko">${won ? 'PvP 승리! 🏆' : `${myPlace}위`}</div>
       <div class="ft-places">${rows}</div>
-      <div class="go-cmp">내 PvP ${mf.pw}승 · ${mf.pc}연승 (${esc(E.CHARS[st.p[me].id].name)})</div>
+      <div class="go-cmp">${FT.net && FT.net.forfeited ? '누군가 포기해서 이번 판은 기록이 저장되지 않아요' : `내 PvP ${mf.pw}승 · ${mf.pc}연승 (${esc(E.CHARS[st.p[me].id].name)})`}</div>
       @@<button class="g-start" id="ftNext" type="button">다시 매칭</button>
       <div class="ft-btnrow"><button class="ft-btn2" id="ftChange" type="button">파이터 변경</button><button class="ft-ibtn ft-dressb" id="ftOvDress" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftOvNew"></i></button></div>
       <button class="ft-btn2 ft-back" id="ftHome" type="button">처음 화면</button>`;
@@ -23547,7 +23587,7 @@ function ftNetOnRoom(d) {
   if (d.act_no > n.actSeen) {
     n.actSeen = d.act_no; const a = d.act || {};
     if (a.t === 'fire' && a.who !== n.me) { n.pend = a; ftNetPump(); }
-    else if (a.t === 'forfeit' && a.who !== n.me) { const pp = st.p[a.who]; if (pp && !pp.dead) { ftNetKill(a.who, '기권'); } }
+    else if (a.t === 'forfeit' && a.who !== n.me) { n.forfeited = true; const pp = st.p[a.who]; if (pp && !pp.dead) { ftNetKill(a.who, '기권'); } }
   }
   // 생존표 동기화(접속 끊김 탈락 등)
   (d.alive || []).forEach((al, i) => { if (!al && st.p[i] && !st.p[i].dead && !(FT.phase === 'fly' || FT.phase === 'boom')) ftNetKill(i, '탈락'); });
@@ -23596,7 +23636,6 @@ function ftNetPublishEnd(skipped) {
 }
 async function ftNetForfeit() {
   const n = FT.net; if (!n || !n.room) return;
-  const rec = ftLoad(); rec.games++; const st = FT.st; if (st && n.me >= 0) ftFS(rec, st.p[n.me].id).pc = 0; ftSave(rec);
   n.over = true; const room = n.room; await ftRpc('fort_pvp_leave', { p_room: room });
 }
 
