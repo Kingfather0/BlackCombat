@@ -12194,8 +12194,6 @@
     body[data-route="t"] .vc-sum-side.lead b { font-weight: 700; color: var(--text); }
     body[data-route="t"] .vc-sum-side small { font-size: 11.5px; color: var(--dim); font-variant-numeric: tabular-nums; }
     body[data-route="t"] .vc-sum-side.lead small { color: var(--muted); font-weight: 600; }
-    body[data-route="t"] .vc-sum-side.mine b::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; background: var(--teal); }
-    body[data-route="t"] .vc-sum-side.b.mine b::before { background: var(--vio); }
     /* 2026-11-05: 전체 경기 — 정렬 토글 / 탑독·언더독 강조 / 국기·챔피언 왕관 */
     body[data-route="t"] .vc-sum-row { position: relative; }
     body[data-route="t"] .vc-sum-row.hb { padding-bottom: 11px; }
@@ -12206,12 +12204,9 @@
     body[data-route="t"] .vc-sum-side img.flag { opacity: .8; }
     body[data-route="t"] .vc-sum-side.lead b { font-weight: 800; color: var(--text); }
     body[data-route="t"] .vc-sum-side.lead img.flag { opacity: 1; }
-    body[data-route="t"] .vc-sum-bar { position: absolute; left: 6px; right: 6px; bottom: 3px; height: 3px; border-radius: 2px; overflow: hidden; background: #ececf1; }
-    body[data-route="t"] .vc-sum-bar i { display: block; height: 100%; background: #b3b7c6; }
-    body[data-route="t"] .vc-sum-bar.lb { background: #b3b7c6; }
-    body[data-route="t"] .vc-sum-bar.lb i { background: #ececf1; }
-    body[data-route="t"] .vc-sum-bar.tie { background: #b3b7c6; }
-    body[data-route="t"] .vc-sum-bar.tie i { box-shadow: 2px 0 0 #fff; }
+    body[data-route="t"] .vc-sum-bar { position: absolute; left: 6px; right: 6px; bottom: 3px; height: 3px; border-radius: 2px; overflow: hidden; background: var(--vio); }
+    body[data-route="t"] .vc-sum-bar i { display: block; height: 100%; background: var(--teal); }
+    body[data-route="t"] .vc-sum-bar.zero { background: #ececf1; }
     @media (max-width: 640px) {
       body[data-route="t"] .vc-sum-vote { grid-column: 2 / 4; gap: 6px; }
       body[data-route="t"] .vc-sum-side { flex-direction: column; gap: 0; align-items: flex-start; }
