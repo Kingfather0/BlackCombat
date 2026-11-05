@@ -12762,6 +12762,14 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 
 .ft-card .ft-cpt { font-size: 9.5px; color: #4de3ff; font-weight: 800; margin-top: 1px; }
 
+/* 명예의 전당: 다른 게임과 같은 앰버 배경, 글자는 한 줄로 */
+#ftHall, body[data-route] #ftHall.v2-panel { background: linear-gradient(135deg, #fff3d1, #fffaf0 60%, #fffdf7) !important; border: 1px solid rgba(242, 179, 42, .45) !important; }
+#ftHall b[style*="key-deep"] { color: #8a5200 !important; }
+#ftHall > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12.5px !important; }
+#ftRankBoard .bb-lb-stat { white-space: nowrap; font-size: 13px; }
+#ftRankBoard .bb-lb-rate { display: inline !important; margin-left: 3px; font-size: 11px; white-space: nowrap; }
+#ftRankBoard .bb-lb-nick { white-space: nowrap; }
+
   </style>
 </head>
 
@@ -21696,14 +21704,14 @@ async function ftLoadPvpBoard(el, hall, tok) {
     if (!rows.length) { if (hall) hall.style.display = 'none'; el.innerHTML = '<div class="empty">아직 PvP 승리 기록이 없어요. 첫 PvP 승자가 되어보세요!</div>'; return; }
     const medal = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '위';
     const top = +rows[0].wins || 1;
-    if (hall) { const b0 = rows[0]; hall.style.display = ''; hall.innerHTML = `<div style="font-size:13.5px">🏛️ <b>명예의 전당</b> — PvP 1위 <b style="color:var(--key-deep)">${esc(b0.nickname)}</b> · <b style="color:var(--key-deep)">${b0.wins}승</b> · 최고 ${b0.best_streak}연승</div>`; }
+    if (hall) { const b0 = rows[0]; hall.style.display = ''; hall.innerHTML = `<div style="font-size:13.5px">🏛️ <b>명예의 전당</b> — PvP 1위 <b style="color:var(--key-deep)">${esc(b0.nickname)}</b> · <b style="color:var(--key-deep)">${b0.wins}승</b> · ${b0.best_streak}연승</div>`; }
     el.innerHTML = `<div class="bb-lb-list">${rows.map((r, i) => {
       const me = gmMyNick && r.nickname === gmMyNick, pct = Math.max(5, Math.round(+r.wins / top * 100)), rate = r.games ? Math.round(r.wins / r.games * 100) : 0;
       return `<button class="bb-lb-row${i === 0 ? ' top1' : ''}${me ? ' me' : ''}" data-nick="${esc(r.nickname)}" type="button">
         <span class="bb-lb-rank">${medal(i)}</span>
         <div class="bb-lb-wrap"><span class="bb-lb-nick">${esc(r.nickname)}</span>${me ? ' <span style="font-size:11px;color:var(--key-deep)">나</span>' : ''}
           <div class="bb-lb-bar"><span class="bb-lb-fill" style="width:${pct}%"></span></div></div>
-        <span class="bb-lb-stat" style="font-weight:800;color:${i === 0 ? 'var(--key-deep)' : 'var(--text)'}">${r.wins}승 <span class="bb-lb-rate">(${r.games}전 · 승률 ${rate}% · 최고 ${r.best_streak}연승)</span></span>
+        <span class="bb-lb-stat" style="font-weight:800;color:${i === 0 ? 'var(--key-deep)' : 'var(--text)'}">${r.wins}승 <span class="bb-lb-rate">${r.games}전 ${rate}% · ${r.best_streak}연승</span></span>
       </button>`;
     }).join('')}</div>`;
     filterFortRank((document.getElementById('ftRankSearch') || {}).value);
@@ -21733,14 +21741,14 @@ async function ftLoadBoard() {
     if (!rows.length) { if (hall) hall.style.display = 'none'; el.innerHTML = '<div class="empty">아직 랭킹이 없어요. 첫 번째 랭커가 되어보세요!</div>'; return; }
     const medal = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '위';
     const top = +rows[0].best_stage || 1;
-    if (hall) { const b0 = rows[0]; hall.style.display = ''; hall.innerHTML = `<div style="font-size:13.5px">🏛️ <b>명예의 전당</b> — AI 랭킹 1위 <b style="color:var(--key-deep)">${esc(b0.nickname)}</b> · <b style="color:var(--key-deep)">STAGE ${b0.best_stage}</b> · 최고 ${b0.best_streak}연승 · ${b0.wins}승</div>`; }
+    if (hall) { const b0 = rows[0]; hall.style.display = ''; hall.innerHTML = `<div style="font-size:13.5px">🏛️ <b>명예의 전당</b> — AI 1위 <b style="color:var(--key-deep)">${esc(b0.nickname)}</b> · <b style="color:var(--key-deep)">STAGE ${b0.best_stage}</b> · ${b0.best_streak}연승 · ${b0.wins}승</div>`; }
     el.innerHTML = `<div class="bb-lb-list">${rows.map((r, i) => {
       const me = gmMyNick && r.nickname === gmMyNick, pct = Math.max(5, Math.round(+r.best_stage / top * 100));
       return `<button class="bb-lb-row${i === 0 ? ' top1' : ''}${me ? ' me' : ''}" data-nick="${esc(r.nickname)}" type="button">
         <span class="bb-lb-rank">${medal(i)}</span>
         <div class="bb-lb-wrap"><span class="bb-lb-nick">${esc(r.nickname)}</span>${me ? ' <span style="font-size:11px;color:var(--key-deep)">나</span>' : ''}
           <div class="bb-lb-bar"><span class="bb-lb-fill" style="width:${pct}%"></span></div></div>
-        <span class="bb-lb-stat" style="font-weight:800;color:${i === 0 ? 'var(--key-deep)' : 'var(--text)'}">STAGE ${r.best_stage} <span class="bb-lb-rate">(최고 ${r.best_streak}연승 · ${r.wins}승)</span></span>
+        <span class="bb-lb-stat" style="font-weight:800;color:${i === 0 ? 'var(--key-deep)' : 'var(--text)'}">STAGE ${r.best_stage} <span class="bb-lb-rate">${r.best_streak}연승 · ${r.wins}승</span></span>
       </button>`;
     }).join('')}</div>`;
   } catch (e) {
