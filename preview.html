@@ -12569,14 +12569,13 @@ body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82
 .ft-sel-top i { width: 58px; flex: 0 0 auto; }
 .ft-btn2.sm { font-size: 13px; padding: 5px 14px; box-shadow: 0 3px 0 rgba(0,0,0,.5); }
 
-/* 카메라 버튼: 글자 없는 작은 아이콘(내 위치 / 상대 위치 / 전체 보기). 미니맵 왼쪽에 JS가 자리를 잡아 준다 */
-#ftCamBar { position: absolute; left: 70px; top: 47px; z-index: 7; display: flex; gap: 6px; transform: none; flex-direction: row; }
-#ftCamBar button { width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; color: #cfd3df; background: rgba(14,14,19,.8); border: 1.5px solid #5a6072; border-radius: 50%; cursor: pointer; touch-action: manipulation; }
-#ftCamBar button svg { width: 16px; height: 16px; display: block; }
-#ftCamMe { color: #ffd24a; } #ftCamFoe { color: #ff6a5a; }
-#ftCamBar button.on { background: #f2c94c; border-color: #f2c94c; color: #1a1405; }
 .fd-tabs button { padding: 5px 1px; font-size: 11.5px; }
 .ga-fort #gOver .ft-btnrow { gap: 8px; }
+
+/* 스테이지 박스: 작게, 하트는 빨강(남은 목숨은 선명, 잃은 목숨은 흐리게) */
+.ga-fort .ghud #gHearts { font-size: 12.5px; padding: 3px 9px; }
+.ga-fort .ghud .ft-hrt { font-style: normal; color: #ff3b4a; letter-spacing: 1px; text-shadow: 0 0 6px rgba(255,59,74,.35); }
+.ga-fort .ghud .ft-hrt.off { color: rgba(255,59,74,.25); text-shadow: none; }
 
   </style>
 </head>
@@ -20317,6 +20316,12 @@ var FortEngine = (function () {
     for (x = a; x <= b; x++) if (top[x] > top[x - 1] + SLOPE) top[x] = top[x - 1] + SLOPE;
     for (x = b - 1; x >= Math.max(0, a - 1); x--) if (top[x] > top[x + 1] + SLOPE) top[x] = top[x + 1] + SLOPE;
   }
+  function relaxCut(top, a, b) {
+    a = Math.max(1, a | 0); b = Math.min(W - 2, b | 0);
+    var x, ch;
+    for (x = a; x < W; x++) { ch = false; if (top[x] < top[x - 1] - SLOPE) { top[x] = top[x - 1] - SLOPE; ch = true; } if (x > b && !ch) break; }
+    for (x = b; x >= 0; x--) { ch = false; if (top[x] < top[x + 1] - SLOPE) { top[x] = top[x + 1] - SLOPE; ch = true; } if (x < a && !ch) break; }
+  }
   /* 넓은 월드의 양옆에 지형지물을 더 깔아, 중간 지점에서도 엄폐와 고지대 싸움이 생기게 한다 */
   function addExtras(top, rng) {
     [0.23, 0.34, 0.66, 0.77].forEach(function (fx) {
@@ -20561,7 +20566,7 @@ var FortEngine = (function () {
       var bottom = cy + s;
       if (top[x] < bottom) top[x] = Math.min(bottom, H - 12);
     }
-    relax(top, x0 - 40, x1 + 40);                // 구덩이 벽도 걸어서 오르내릴 수 있게
+    relaxCut(top, x0 - 40, x1 + 40);             // 구덩이 벽이 절벽이 되지 않게: 파인 곳을 메우지 않고, 위쪽 가장자리가 무너져 비탈이 된다
   }
 
   /* 착탄 처리: 지형 파괴 + 데미지. 이벤트 목록을 돌려준다 */
@@ -20594,7 +20599,9 @@ var FortEngine = (function () {
         var cr = st.crates[ci];
         if (Math.hypot(shot.x - cr.x, shot.y - (cr.y - 8)) < shot.rad * 0.9) { st.events.push({ type: 'crate_break', x: cr.x, y: cr.y }); st.crates.splice(ci, 1); }
       }
-      carve(st.top, shot.x, shot.y, shot.rad * 0.92 * (shot.carve || 1));
+      // 직격(캐릭터)이나 벽에 닿아 터진 경우에도 땅에 닿은 것처럼 파이게 한다: 폭발 중심을 최소한 지면 높이로 내린다
+      var cxx = clamp(shot.x, 0, W - 1);
+      carve(st.top, cxx, Math.max(shot.y, surfaceY(st.top, cxx)), shot.rad * 0.92 * (shot.carve || 1) * (shot.type === 'ground' ? 1 : 0.85));
       settle(st).forEach(function (f) { evs.push(f); });
       st.crates.forEach(function (cr) { cr.y = surfaceY(st.top, cr.x); });
       st.lastImpact[shot.by] = { x: shot.x, y: shot.y };
@@ -21316,7 +21323,7 @@ function ftOpenRules() {
       <b style="color:var(--text)">조작(모바일)</b> 이동/각도 버튼, 내 캐릭터 근처 드래그로 각도, 충전 버튼을 꾹 눌렀다가 떼면 발사<br>
       <b style="color:var(--text)">언덕</b> 웬만한 비탈은 걸어서 오르내릴 수 있어요. 오르막은 이동력이 더 들어요.<br>
       <b style="color:var(--text)">바람</b> 순풍이면 파워를 줄이고, 맞바람이면 파워를 올려야 해요. 무기마다 바람을 타는 정도가 달라요.<br>
-      <b style="color:var(--text)">넓은 맵 · 카메라</b> 맵은 화면보다 훨씬 넓어요. 내 차례엔 내 위치가 크게 보이고, 화면을 드래그하면 맵을 둘러볼 수 있어요. 위쪽 미니맵을 누르거나 '상대 위치' · '전체 보기' 버튼으로 적을 찾으세요. 내 캐릭터 가까이를 드래그하면 각도 조준, 화면을 톡 누르면 그쪽으로 조준해요.<br>
+      <b style="color:var(--text)">넓은 맵 · 카메라</b> 맵은 화면보다 훨씬 넓어요. 내 차례엔 내 위치가 크게 보이고, 화면을 드래그하면 맵을 둘러볼 수 있어요. 위쪽 미니맵(내 위치 노란 점, 상대 빨간 점)을 누르거나 끌어서 적을 찾으세요. 내 캐릭터 가까이를 드래그하면 각도 조준, 화면을 톡 누르면 그쪽으로 조준해요.<br>
       <b style="color:var(--text)">케이지 벽</b> 맵 양쪽 끝이 철망 벽이에요. 한 번 튕기고, 두 번째 벽에서 터져요.<br>
       <b style="color:var(--text)">지형</b> 매 판 7가지 지형 중 하나가 랜덤으로 나와요. 엄폐물 뒤에서 맞으면 데미지 절반! 높은 곳에서 떨어지면 낙하 데미지가 있어요.<br>
       <b style="color:var(--text)">스킬</b> 때리고 맞을수록 에너지가 차요. 100%가 되면 선수 고유 스킬(분신술, 돈 폭우 등)을 쓸 수 있어요.<br>
@@ -21349,7 +21356,6 @@ function viewGameFort() {
     <button class="g-mute" id="gMute">${gmMuted ? '🔇' : '🔊'}</button>
     <button class="g-full" id="gFull">⛶</button>
     <button id="ftQuit" type="button" style="display:none">포기</button>
-    <div id="ftCamBar" style="display:none"><button id="ftCamMe" type="button" aria-label="내 위치" title="내 위치"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7" r="4"/><path d="M4 21c0-5 3.5-8 8-8s8 3 8 8z"/></svg></button><button id="ftCamFoe" type="button" aria-label="상대 위치" title="상대 위치"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7" r="4"/><path d="M4 21c0-5 3.5-8 8-8s8 3 8 8z"/></svg></button><button id="ftCamAll" type="button" aria-label="전체 보기" title="전체 보기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div>
     <div id="ftCtl" style="display:none">
       <div class="ft-r1"><span class="ft-who" id="ftWho"></span><span class="ft-last" id="ftLast"></span>
         <span class="ft-stamw">이동력<i class="ft-stam"><b id="ftStam"></b></i></span></div>
@@ -21460,7 +21466,7 @@ function ftRenderGuide() {
 function ftHud() {
   const hh = document.getElementById('gHearts'), s = document.getElementById('gScore');
   if (!hh || !s) return;
-  if (FT.st && FT.mode === 'ai') { hh.textContent = `STAGE ${FT.stage}${FT.cfg && FT.cfg.boss ? ' BOSS' : ''} ${'♥'.repeat(FT.lives)}${'♡'.repeat(Math.max(0, 3 - FT.lives))}`; s.innerHTML = `${FT.streak}<span>연승</span>`; }
+  if (FT.st && FT.mode === 'ai') { hh.innerHTML = `STAGE ${FT.stage}${FT.cfg && FT.cfg.boss ? ' BOSS' : ''} <i class="ft-hrt">${'♥'.repeat(FT.lives)}</i><i class="ft-hrt off">${'♥'.repeat(Math.max(0, 3 - FT.lives))}</i>`; s.innerHTML = `${FT.streak}<span>연승</span>`; }
   else if (FT.st) { hh.textContent = '2인 대결'; s.innerHTML = ''; }
   else { hh.textContent = ''; s.innerHTML = ''; }
 }
@@ -21553,7 +21559,7 @@ function ftBindUI() {
   };
   const miniTo = px => {
     const mr = FT.miniRect; if (!mr || !FT.st) return;
-    FT.cam.x = ftClamp((px - mr.x) / mr.w, 0, 1) * FT.st.W; FT.camFree = true; FT.camOv = false; FT.camTo = null; ftCamBtns();
+    FT.cam.x = ftClamp((px - mr.x) / mr.w, 0, 1) * FT.st.W; FT.camFree = true; FT.camOv = false; FT.camTo = null;
   };
   cv.addEventListener('pointerdown', e => {
     if (!FT.st || FT.paused || (FT.phase !== 'aim' && FT.phase !== 'gauge')) return;
@@ -21572,7 +21578,7 @@ function ftBindUI() {
     else if (P.mode === 'mini') miniTo(px);
     else {
       if (!P.moved && Math.hypot(px - P.x0, py - P.y0) > 8) { P.moved = true; P.lx = px; }
-      if (P.moved) { FT.cam.x -= (px - P.lx) / FT.sc; P.lx = px; FT.camFree = true; FT.camOv = false; FT.camTo = null; ftCamBtns(); }
+      if (P.moved) { FT.cam.x -= (px - P.lx) / FT.sc; P.lx = px; FT.camFree = true; FT.camOv = false; FT.camTo = null; }
     }
   });
   const endDrag = e => {
@@ -21580,12 +21586,6 @@ function ftBindUI() {
     if (P && P.mode === 'pan' && !P.moved && e && e.type === 'pointerup') aimFrom(e);      // 톡 누르면 그쪽으로 조준
   };
   cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
-  // 카메라 버튼: 내 위치 / 상대 위치 / 전체 보기
-  const camMe = $('ftCamMe'), camFoe = $('ftCamFoe'), camAll = $('ftCamAll');
-  [camMe, camFoe, camAll].forEach(b => { b.onpointerdown = e => e.stopPropagation(); });
-  camMe.onclick = e => { e.stopPropagation(); FT.camFree = false; FT.camOv = false; FT.camTo = null; ftCamBtns(); };
-  camFoe.onclick = e => { e.stopPropagation(); if (!FT.st) return; const o = FT.vis[1 - FT.st.turn]; FT.camOv = false; FT.camFree = true; FT.camTo = o.x; ftCamBtns(); };
-  camAll.onclick = e => { e.stopPropagation(); FT.camOv = !FT.camOv; if (!FT.camOv) { FT.camFree = false; FT.camTo = null; } ftCamBtns(); };
   // 키보드: A/D 이동, W/S 각도, 스페이스 충전(떼면 발사), E 스킬 (방향키도 가능). 한글 입력 상태에서도 되도록 e.code 로 판별
   const keyMap = { KeyA: 'l', ArrowLeft: 'l', KeyD: 'r', ArrowRight: 'r', KeyW: 'u', ArrowUp: 'u', KeyS: 'dn', ArrowDown: 'dn' };
   if (FT.keyFn) document.removeEventListener('keydown', FT.keyFn);
@@ -21612,10 +21612,6 @@ function ftBindUI() {
   window.addEventListener('blur', () => { FT.keys = {}; });
 }
 
-function ftCamBtns() {
-  const a = document.getElementById('ftCamAll'); if (a) a.classList.toggle('on', !!FT.camOv);
-  const m = document.getElementById('ftCamMe'); if (m) m.classList.toggle('on', !FT.camFree && !FT.camOv);
-}
 /* 바람: 쏘는 쪽 기준으로 순풍/맞바람 */
 function ftWindInfo(st, pi) {
   const me = st.p[pi], o = st.p[1 - pi], dir = o.x >= me.x ? 1 : -1, rel = st.wind * dir, v = Math.abs(st.wind) * 10;
@@ -22530,8 +22526,7 @@ function ftDrawSky(ctx, w, h, floorY) {
 
 /* 미니맵: 맵 전체 모양 + 두 선수 위치 + 지금 보이는 구간. 누르거나 드래그하면 카메라가 그쪽으로 간다 */
 function ftDrawMini(ctx, w, h, st) {
-  const E = FortEngine, Wd = st.W, mw = Math.round(Math.min(w * .4, 170)), mh = 30, mx = Math.round((w - mw) / 2 + 48), my = FT.hudH + 8;
-  { const bar = document.getElementById('ftCamBar'); if (bar) { const L = (mx - 12 - 96) + 'px', T = (my - 1) + 'px'; if (bar.style.left !== L) bar.style.left = L; if (bar.style.top !== T) bar.style.top = T; } }
+  const E = FortEngine, Wd = st.W, mw = Math.round(Math.min(w * .5, 220)), mh = 30, mx = Math.round((w - mw) / 2), my = FT.hudH + 8;
   FT.miniRect = { x: mx, y: my, w: mw, h: mh };
   const pc = i => FT.mode === 'pvp' && i === 1 ? '#4de3ff' : i === 0 ? '#ffd24a' : '#ff5a4a';
   ctx.save();
@@ -22578,7 +22573,14 @@ function ftDrawAmb(ctx, w, h, floorY, mcol, st) {
 /* ── 바람 표시: 상단 알약(쏘는 쪽 기준 순풍/맞바람) + 화면을 가로지르는 바람 줄 ── */
 function ftDrawWind(ctx, w, st) {
   const pi = st.turn, wi = ftWindInfo(st, pi), dir = st.wind >= 0 ? 1 : -1, v = wi.v;
-  const cx = w / 2, cy = 21, bw = 150, bh = 26;
+  if (!FT._hw || FT.t - FT._hwT > .4) {                 // 좌측 스테이지 박스와 우측 연승 박스 사이의 빈 공간에 맞춘다
+    FT._hwT = FT.t;
+    const cvr = G.ctx && document.getElementById('gCanvas'), hh = document.getElementById('gHearts'), sc2 = document.getElementById('gScore');
+    let L = 8, R = w - 8;
+    if (cvr) { const cr = cvr.getBoundingClientRect(); if (hh && hh.offsetWidth) L = hh.getBoundingClientRect().right - cr.left + 6; if (sc2 && sc2.offsetWidth) R = sc2.getBoundingClientRect().left - cr.left - 6; }
+    FT._hw = { L, R };
+  }
+  const HL = FT._hw.L, HR = FT._hw.R, bw = ftClamp(HR - HL, 96, 150), cx = (HL + HR) / 2, cy = 21, bh = 26;
   ctx.save();
   ctx.fillStyle = 'rgba(255,255,255,.93)'; ftRR(ctx, cx - bw / 2, cy - bh / 2, bw, bh, 13); ctx.fill();
   ctx.strokeStyle = wi.kind === 'tail' ? '#2fa84f' : wi.kind === 'head' ? '#d9382c' : '#f2b32a'; ctx.lineWidth = 2.4; ftRR(ctx, cx - bw / 2, cy - bh / 2, bw, bh, 13); ctx.stroke();
@@ -22652,7 +22654,7 @@ function ftDrawKO(ctx, w, h) {
 
 /* ── 보급 드론 + 선물 상자: 위에서 드론이 나타나 랜덤 위치 위에서 멈추고, 낙하산 선물을 떨어뜨린다 ── */
 function ftDronePos(d, X, w) {
-  const tx = X(d.tx), sx = d.from < 0 ? -50 : w + 50, ty = FT.hudH + 38, sw = Math.sin(d.t * 9) * 1.6;
+  const tx = X(d.tx), sx = d.from < 0 ? -50 : w + 50, ty = FT.hudH + 88, sw = Math.sin(d.t * 9) * 1.6;
   if (d.t < .9) { const u = 1 - Math.pow(1 - d.t / .9, 3); return { x: sx + (tx - sx) * u, y: ty + (1 - u) * -14 + sw, tilt: (1 - u) * .3 * (d.from < 0 ? 1 : -1) }; }
   if (d.t < 1.2) return { x: tx, y: ty + sw, tilt: 0 };
   const u = (d.t - 1.2) / 1.0; return { x: tx - d.from * u * u * w * .9, y: ty - u * u * 70 + sw, tilt: -.3 * u * (d.from < 0 ? 1 : -1) };
