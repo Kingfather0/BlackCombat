@@ -20321,6 +20321,7 @@ var FortEngine = (function () {
      proj.kind  무기 종류(화면 그림도 달라진다)
      dmg 데미지 · rad 폭발 반경 · spd 탄속 배율 · gmul 중력 배율 · wmul 바람 민감도
      bounce 땅에서 튕기는 횟수 · split 정점에서 갈라지는 개수 · direct 직격 배율 · carve 땅 파임 배율 */
+  var HP_MUL = 2;   // 체력 배율 (한 판이 너무 빨리 끝나지 않게)
   var CHARS = {
     tusin: {
       id: 'tusin', name: '투신', tag: '정석 포격수', hp: 100, move: 70, take: 1, passive: 'rage',
@@ -20514,7 +20515,7 @@ var FortEngine = (function () {
     function mk(id, x, face) {
       var c = CHARS[id];
       return {
-        id: id, x: x, y: surfaceY(top, x), hp: c.hp, maxHp: c.hp,
+        id: id, x: x, y: surfaceY(top, x), hp: c.hp * HP_MUL, maxHp: c.hp * HP_MUL,
         stam: c.move * K, maxStam: c.move * K, ang: face > 0 ? 50 : 130, pow: 60, face: face, dead: false,
         energy: 20, skillOn: false, shield: false, pwr: false, dbl: false, dmgMul: 1,
       };
@@ -20825,7 +20826,7 @@ var FortEngine = (function () {
   }
   function applyItem(st, pi, type) {
     var p = st.p[pi];
-    if (type === 'hp') p.hp = Math.min(p.maxHp, p.hp + 28);
+    if (type === 'hp') p.hp = Math.min(p.maxHp, p.hp + 28 * HP_MUL);
     else if (type === 'shield') p.shield = true;
     else if (type === 'power') p.pwr = true;
     else if (type === 'dbl') p.dbl = true;
@@ -20835,7 +20836,7 @@ var FortEngine = (function () {
     var p = st.p[pi], c = CHARS[p.id];
     if (st.over || p.skillOn || p.energy < 100 || !c.skill) return false;
     p.energy = 0; p.skillOn = true;
-    if (c.skill.heal) p.hp = Math.min(p.maxHp, p.hp + c.skill.heal);
+    if (c.skill.heal) p.hp = Math.min(p.maxHp, p.hp + c.skill.heal * HP_MUL);
     if (c.skill.shield) p.shield = true;
     st.events.push({ type: 'skill', idx: pi });
     return true;
@@ -22157,7 +22158,7 @@ function ftSyncCtl() {
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   set('ftAng', Math.round(p.ang));
   const sb = document.getElementById('ftStam'); if (sb) sb.style.width = Math.round(100 * p.stam / (p.maxStam || c.move)) + '%';
-  set('ftWho', FT.mode === 'ai' ? (pi === 0 ? `내 차례 · ${c.name}` : `상대 차례 · ${c.name}`) : (FT.net && FT.net.players[pi] ? (pi === FT.net.me ? `내 차례 · ${c.name}` : `${FT.net.players[pi].nick} 차례 · ${c.name}`) : `P${pi + 1} 차례 · ${c.name}`));
+  set('ftWho', FT.mode === 'ai' ? (pi === 0 ? `내 차례 · ${ftNameOf(0, c.name)}` : `상대 차례 · ${c.name}`) : (FT.net && FT.net.players[pi] ? (pi === FT.net.me ? `내 차례 · ${FT.net.players[pi].nick}` : `${FT.net.players[pi].nick} 차례`) : `P${pi + 1} 차례 · ${c.name}`));
   const w = ftWindInfo(st, pi), l = FT.last[pi];
   set('ftLast', w.kind === 'calm' ? (l ? `직전 ${l.ang}도 · 파워 ${l.pow}` : `무기 · ${c.proj.label}`) : `${w.hint}${l ? ` · 직전 ${l.ang}도/${l.pow}` : ''}`);
   set('ftFire', FT.phase === 'gauge' ? '떼면 발사!' : '꾹 눌러 충전');
@@ -23362,13 +23363,14 @@ function ftDrawChar(ctx, i, active, X, Y, sc, st) {
   if (ko) ctx.restore();
   if (!FT.st || ko) return;
   const bw = 60 * sc * (z > 1 ? 1.1 : 1) + 8, bh = Math.max(6, 7 * sc), bx = sx - bw / 2, by = sy - hH * z - 14 * sc;
-  ctx.fillStyle = 'rgba(0,0,0,.7)'; ftRR(ctx, bx - 1.5, by - 1.5, bw + 3, bh + 3 + 4, 4); ctx.fill();
+  const bb = sy + 7 * sc;   // HP 막대는 발밑에 둔다 (오라와 겹치지 않게)
+  ctx.fillStyle = 'rgba(0,0,0,.7)'; ftRR(ctx, bx - 1.5, bb - 1.5, bw + 3, bh + 3 + 4, 4); ctx.fill();
   const r = ftClamp(p.hp / p.maxHp, 0, 1);
   ctx.fillStyle = r > .5 ? '#3ecf5a' : r > .25 ? '#f2b32a' : '#e0332a';
-  if (r > 0) { ftRR(ctx, bx, by, bw * r, bh, 3); ctx.fill(); }
+  if (r > 0) { ftRR(ctx, bx, bb, bw * r, bh, 3); ctx.fill(); }
   // 에너지(스킬) 막대
-  ctx.fillStyle = 'rgba(255,255,255,.14)'; ctx.fillRect(bx, by + bh + 1.5, bw, 2.5);
-  ctx.fillStyle = p.energy >= 100 ? (Math.floor(FT.t * 5) % 2 ? '#ffd24a' : '#fff') : '#4da3ff'; ctx.fillRect(bx, by + bh + 1.5, bw * ftClamp(p.energy / 100, 0, 1), 2.5);
+  ctx.fillStyle = 'rgba(255,255,255,.14)'; ctx.fillRect(bx, bb + bh + 1.5, bw, 2.5);
+  ctx.fillStyle = p.energy >= 100 ? (Math.floor(FT.t * 5) % 2 ? '#ffd24a' : '#fff') : '#4da3ff'; ctx.fillRect(bx, bb + bh + 1.5, bw * ftClamp(p.energy / 100, 0, 1), 2.5);
   const tag = (p.shield ? '🛡' : '') + (p.pwr ? '💥' : '') + (p.dbl ? '✌' : '') + (p.skillOn ? '⚡' : '');
   ctx.font = `800 ${Math.max(10, 11 * (sc * .5 + .55))}px Jua, Pretendard, sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
