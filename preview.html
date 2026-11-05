@@ -21053,6 +21053,7 @@ function ftEmptyEq() { return { aura: '', glow: '', shine: '', ring: '', trail: 
 function ftLoad() {
   const d = { best: 0, wins: 0, games: 0, bestStage: 0, f: {}, eqf: {}, seen: [], rank: 0, rankAt: 0, hintAng: 0 };
   try {
+    if (!localStorage.getItem(FT_STORE + '_live')) { localStorage.removeItem(FT_STORE); localStorage.setItem(FT_STORE + '_live', '1'); }   // 정식 오픈 첫 접속: 테스트 때 쌓인 이 기기 기록을 한 번만 비운다
     const o = JSON.parse(localStorage.getItem(FT_STORE) || '{}');
     d.best = +o.best || 0; d.bestStage = +o.bestStage || 0; d.wins = +o.wins || 0; d.games = +o.games || 0;
     if (o.f && typeof o.f === 'object') d.f = o.f;
