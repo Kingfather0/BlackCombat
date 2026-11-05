@@ -20648,7 +20648,7 @@ var FortEngine = (function () {
         else { res = { type: 'wall', x: clamp(x, 0, W), y: y, steps: s }; if (rec) path.push([res.x, y]); break; }
       }
       if (rec) path.push([x, y]);
-      if (y > H + 60 || y < -420) { res = { type: 'out', x: x, y: y, steps: s }; break; }
+      if (y > H + 60 || y < -4000) { res = { type: 'out', x: x, y: y, steps: s }; break; }
       // 바닥
       if (x >= 0 && x < W) {
         var sy = surfaceY(st.top, x);
