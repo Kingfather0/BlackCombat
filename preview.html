@@ -12715,7 +12715,6 @@ body[data-route="game"] .gcard-fort .gc-new { background: var(--amber); color: #
 .ga-fort .g-start.ft-pvpb { background: linear-gradient(180deg, #5aa8ff, #2f7fe0 60%, #1d62c9); border-color: #fff; color: #fff; text-shadow: 0 2px 0 rgba(20,50,120,.5); animation: ftBlueBeat 1.5s ease-in-out infinite; }
 .ga-fort .ft-mainrow { gap: 16px; }
 .ga-fort .g-start.g-en.ft-mbtn { letter-spacing: 1px; padding: 10px 6px; font-size: 20px; max-width: 150px; }
-.ft-card[data-id="sirasony"] img { transform: scale(.86); transform-origin: 50% 100%; }
 .ft-quit-ov .bb-confirm-b small { opacity: .75; }
 
 @keyframes ftShopGlow { 0%,100% { box-shadow: 0 3px 0 #8a5d00, 0 0 8px rgba(255,200,60,.45); } 50% { box-shadow: 0 3px 0 #8a5d00, 0 0 18px rgba(255,210,80,.95); } }
@@ -12725,6 +12724,15 @@ body[data-route="game"] .gcard-fort .gc-new { background: var(--amber); color: #
 #ftDressBtn span { white-space: nowrap; }
 #ftDressBtn::after { content: ''; position: absolute; inset: 0; border-radius: inherit; overflow: hidden; background: linear-gradient(100deg, transparent 35%, rgba(255,255,255,.6) 50%, transparent 65%); animation: ftShopShine 2.6s ease-in-out infinite; pointer-events: none; clip-path: inset(0 round 999px); }
 #ftDressBtn:active { transform: translateY(2px); }
+.ga-fort .ft-mainrow { gap: 18px; padding: 0 14px; box-sizing: border-box; }
+.ga-fort .g-start.g-en.ft-mbtn { letter-spacing: 0; padding: 12px 18px; font-size: 19px; max-width: 156px; min-width: 118px; }
+.ft-faces img { object-fit: contain; object-position: 50% 100%; }
+
+.ft-rktt { display: inline-flex; align-items: center; gap: 6px; }
+.ft-rkinfo { width: 22px; height: 22px; padding: 0; border: 0; background: transparent; color: var(--dim, #9097a3); border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; box-shadow: none; }
+.ft-rkinfo:active { color: var(--muted, #6b7280); }
+#ftRankBoard .bb-lb-stat { text-align: right; line-height: 1.25; }
+#ftRankBoard .bb-lb-rate { display: block; font-size: 11px; font-weight: 600; }
 
   </style>
 </head>
@@ -21562,12 +21570,14 @@ async function ftSubmitRank(rec) {
     return true;
   } catch (e) { return false; }
 }
-function ftRkHead(h) { setTimeout(() => { const b = document.getElementById('ftRkInfo'), d = document.getElementById('ftRkDesc'); if (b && d && !b.__b) { b.__b = 1; b.onclick = e => { e.stopPropagation(); d.style.display = d.style.display === 'none' ? '' : 'none'; }; } }, 0); return h; }
+function ftRkHead(h) { return ''; }
+function filterFortRank(q) { q = (q || '').trim().toLowerCase(); document.querySelectorAll('#ftRankBoard .bb-lb-row').forEach(r => { r.style.display = (!q || (r.dataset.nick || '').toLowerCase().includes(q)) ? '' : 'none'; }); }
+function ftBindRkInfo() { const b = document.getElementById('ftRkInfo'), d = document.getElementById('ftRkDesc'); if (b && d && !b.__b) { b.__b = 1; b.onpointerdown = e => e.stopPropagation(); b.onclick = e => { e.stopPropagation(); d.style.display = d.style.display === 'none' ? '' : 'none'; }; } }
 async function ftLoadBoard() {
   const el = document.getElementById('ftRankBoard'); if (!el) return;
   const tok = gmToken;
-  const head = `<div class="ft-rkh"><b>🏆 유저 랭킹</b><button class="ft-ibtn ft-rkinfo" id="ftRkInfo" type="button" aria-label="설명서" title="설명서"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".6" fill="currentColor"/></svg></button></div>
-    <div class="ft-rkdesc" id="ftRkDesc" style="display:none">랭킹 점수 = 최고 STAGE x 100 + 최고 연승 x 40 + 누적 승리 x 5<br>TOP 1 · TOP 3 · TOP 10 은 랭커 전용 꾸미기가 열려요</div>`;
+  const head = ''; ftBindRkInfo(); const hall = document.getElementById('ftHall');
+
   if (typeof sb === 'undefined' || !sb) { el.innerHTML = ftRkHead(head) + '<div class="empty">랭킹 서버에 연결되지 않았어요.</div>'; return; }
   el.innerHTML = ftRkHead(head) + '<div class="empty">불러오는 중…</div>';
   try {
@@ -21578,17 +21588,19 @@ async function ftLoadBoard() {
     const rec = ftLoad(); let my = 0;
     rows.forEach((r, i) => { if (gmMyNick && r.nickname === gmMyNick) my = i + 1; });
     if (rec.rank !== my) { rec.rank = my; rec.rankAt = Date.now(); ftSave(rec); ftRenderRank(); }
-    if (!rows.length) { el.innerHTML = ftRkHead(head) + '<div class="empty">아직 랭킹이 없어요. 첫 번째 랭커가 되어보세요!</div>'; return; }
+    if (!rows.length) { if (hall) hall.style.display = 'none'; el.innerHTML = '<div class="empty">아직 랭킹이 없어요. 첫 번째 랭커가 되어보세요!</div>'; return; }
     const medal = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '위';
     const top = +rows[0].rp || 1;
-    el.innerHTML = ftRkHead(head) + rows.slice(0, 30).map((r, i) => {
+    if (hall) { const b0 = rows[0]; hall.style.display = ''; hall.innerHTML = `<div style="font-size:13.5px">🏛️ <b>명예의 전당</b> — P4P 1위 <b style="color:var(--key-deep)">${esc(b0.nickname)}</b> · <b style="color:var(--key-deep)">${(+b0.rp).toLocaleString()}RP</b> · STAGE ${b0.best_stage} · ${b0.best_streak}연승 · ${b0.wins}승</div>`; }
+    el.innerHTML = `<div class="bb-lb-list">${rows.map((r, i) => {
       const me = gmMyNick && r.nickname === gmMyNick, pct = Math.max(5, Math.round(+r.rp / top * 100));
-      return `<div class="grank-row ${i === 0 ? 'top1' : ''}${me ? ' me' : ''}"><span class="gr-medal">${medal(i)}</span>
-        <div class="gr-wrap"><div class="gr-nick"><span class="gr-nk">${esc(r.nickname)}</span>${me ? ' <span style="font-size:11px;color:var(--key-deep)">나</span>' : ''}
-          <span style="font-size:11px;color:var(--dim);font-weight:600">STAGE ${r.best_stage} · ${r.best_streak}연승 · ${r.wins}승</span></div>
-          <div class="gr-bar"><span class="gr-fill" style="width:${pct}%"></span></div></div>
-        <span style="font-weight:900;color:${i === 0 ? 'var(--key-deep)' : 'var(--text)'}">${(+r.rp).toLocaleString()}<span style="font-size:11px;color:var(--dim)">RP</span></span></div>`;
-    }).join('') + (my > 30 ? `<div style="text-align:center;font-size:12.5px;margin-top:8px;color:var(--muted)">내 순위 <b style="color:var(--text)">${my}위</b></div>` : '');
+      return `<button class="bb-lb-row${i === 0 ? ' top1' : ''}${me ? ' me' : ''}" data-nick="${esc(r.nickname)}" type="button">
+        <span class="bb-lb-rank">${medal(i)}</span>
+        <div class="bb-lb-wrap"><span class="bb-lb-nick">${esc(r.nickname)}</span>${me ? ' <span style="font-size:11px;color:var(--key-deep)">나</span>' : ''}
+          <div class="bb-lb-bar"><span class="bb-lb-fill" style="width:${pct}%"></span></div></div>
+        <span class="bb-lb-stat" style="font-weight:800;color:${i === 0 ? 'var(--key-deep)' : 'var(--text)'}">${(+r.rp).toLocaleString()}RP <span class="bb-lb-rate">(STAGE ${r.best_stage} · ${r.best_streak}연승 · ${r.wins}승)</span></span>
+      </button>`;
+    }).join('')}</div>`;
   } catch (e) {
     if (document.getElementById('ftRankBoard')) el.innerHTML = ftRkHead(head) + '<div class="empty">랭킹을 불러오지 못했어요.<br>관리자가 fort_ranking.sql 을 실행해야 켜져요.</div>';
   }
@@ -21806,7 +21818,7 @@ function viewGameFort() {
   FT.rec = ftLoad(); FT.hintDone = !!FT.rec.hintAng;
   FT.dress = false; FT.wallFlash = [0, 0]; FT.eqs = [{}, {}];
   if (navStale(__g)) return;
-  const faces = ['tusin', 'sirasony', 'godfather'].map(id => `<img src="${ftArtSrc(id)}" alt="">`).join('');
+  const faces = ['tusin', 'godfather', 'sirasony'].map(id => `<img data-id="${id}" src="${ftArtSrc(id)}" alt="">`).join('');
   $app.innerHTML = `
   <h1 class="page gm-h1">🥊 블랙 케이지 <button class="bb-rules-btn-top" id="ftRulesBtn" type="button">📖 설명서</button><button class="bb-rules-btn-top gm-listbtn" id="ftBackBtn" type="button">게임 목록</button></h1>
   <div id="gArea" class="ga-fort">
@@ -21854,10 +21866,15 @@ function viewGameFort() {
     <div id="gOver" style="display:none"></div>
   </div>
   <div class="card" id="ftRec"></div>
+  <div class="sec-title" style="justify-content:space-between"><span class="ft-rktt">🏆 P4P 랭킹<button class="ft-rkinfo" id="ftRkInfo" type="button" aria-label="설명서" title="설명서"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".6" fill="currentColor"/></svg></button></span>
+    <input id="ftRankSearch" placeholder="닉네임 검색 (순위 보기)" oninput="filterFortRank(this.value)" style="flex:1;max-width:180px;min-width:120px;box-sizing:border-box;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:6px 10px;color:var(--text);outline:none;font-size:12.5px;font-weight:600"></div>
+  <div class="ft-rkdesc" id="ftRkDesc" style="display:none">랭킹 점수 = 최고 STAGE x 100 + 최고 연승 x 40 + 누적 승리 x 5<br>TOP 1 · TOP 3 · TOP 10 은 랭커 전용 꾸미기가 열려요</div>
+  <div class="card" id="ftHall" style="display:none;margin-bottom:10px"></div>
   <div class="card" id="ftRankBoard"></div>
   <div class="sec-title">🧑‍🎤 파이터 특성</div>
   <div class="card" id="ftGuide"></div>`;
   ftRenderRec(); ftRenderGuide(); ftRenderRank(); ftLoadBoard();
+  ftTrimSprites(document.getElementById('gArea') || document);
   const rb = document.getElementById('ftRulesBtn');
   rb.onpointerdown = e => e.stopPropagation();
   rb.onclick = e => { e.stopPropagation(); ftOpenRules(); };
@@ -21886,7 +21903,7 @@ function ftAskQuit() {
   ov.innerHTML = `<div class="bb-confirm">
     <div class="bb-confirm-ic">⚠️</div>
     <div class="bb-confirm-t">게임을 포기하시겠습니까?</div>
-    <div class="bb-confirm-b">기록은 저장되지 않습니다.${FT.mode === 'pvp' && !(FT.net && FT.net.local) ? '<br><small>PvP에서 포기하면 함께한 모든 참가자의 기록이 저장되지 않아요.</small>' : ''}</div>
+    <div class="bb-confirm-b">기록은 저장되지 않습니다.${FT.mode === 'pvp' && !(FT.net && FT.net.local) ? '<br><small>상대가 전부 포기해서 이긴 판은 승점이 오르지 않아요.</small>' : ''}</div>
     <div class="bb-confirm-actions">
       <button type="button" class="bb-confirm-btn cancel">취소</button>
       <button type="button" class="bb-confirm-btn danger">포기하기</button>
@@ -22171,8 +22188,8 @@ function ftGaugeDom() {
 /* 파이터 그림마다 여백이 달라 크기가 들쭉날쭉하므로, 투명 여백을 잘라내고 같은 칸에 꽉 채워 그린다 */
 const FT_TRIM = {};
 function ftTrimSprites(root) {
-  root.querySelectorAll('.ft-card').forEach(card => {
-    const id = card.dataset.id, img = card.querySelector('img'); if (!img) return;
+  root.querySelectorAll('.ft-card, .ft-faces img').forEach(card => {
+    const id = card.dataset.id, img = card.tagName === 'IMG' ? card : card.querySelector('img'); if (!img) return;
     if (FT_TRIM[id]) { img.src = FT_TRIM[id]; return; }
     const im = new Image(); im.onload = () => {
       try {
@@ -22538,12 +22555,12 @@ function ftOver() {
     }
   } else {
     const me = FT.net ? FT.net.me : 0, mf = ftFS(rec, st.p[me].id), won = w === me;
-    if (FT.net && (FT.net.local || FT.net.forfeited)) { /* 봇 연습·기권이 있었던 판은 기록하지 않는다 */ } else if (won) { mf.pw++; mf.pc++; mf.ps = Math.max(mf.ps, mf.pc); } else mf.pc = 0;
+    if (FT.net && (FT.net.local || ftNetNoRec(st))) { /* 봇 연습, 또는 남은 사람이 기권만으로 이긴 판은 기록하지 않는다 */ } else if (won) { mf.pw++; mf.pc++; mf.ps = Math.max(mf.ps, mf.pc); } else mf.pc = 0;
     const place = [w].concat(st.order.slice().reverse().filter(i => i !== w)), myPlace = place.indexOf(me) + 1;
     const rows = place.map((i, k) => `<div class="ft-place${i === me ? ' me' : ''}"><i>${k + 1}</i><span>${esc(FT.net && FT.net.players[i] ? FT.net.players[i].nick : 'P' + (i + 1))}</span><em>${esc(E.CHARS[st.p[i].id].name)}</em></div>`).join('');
     html = `<div class="go-ko">${won ? 'PvP 승리! 🏆' : `${myPlace}위`}</div>
       <div class="ft-places">${rows}</div>
-      <div class="go-cmp">${FT.net && FT.net.forfeited ? '누군가 포기해서 이번 판은 기록이 저장되지 않아요' : `내 PvP ${mf.pw}승 · ${mf.pc}연승 (${esc(E.CHARS[st.p[me].id].name)})`}</div>
+      <div class="go-cmp">${FT.net && ftNetNoRec(st) ? '상대가 모두 포기해서 이번 판은 기록이 저장되지 않아요' : `내 PvP ${mf.pw}승 · ${mf.pc}연승 (${esc(E.CHARS[st.p[me].id].name)})`}</div>
       @@<button class="g-start" id="ftNext" type="button">다시 매칭</button>
       <div class="ft-btnrow"><button class="ft-btn2" id="ftChange" type="button">파이터 변경</button><button class="ft-ibtn ft-dressb" id="ftOvDress" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftOvNew"></i></button></div>
       <button class="ft-btn2 ft-back" id="ftHome" type="button">처음 화면</button>`;
@@ -23587,7 +23604,7 @@ function ftNetOnRoom(d) {
   if (d.act_no > n.actSeen) {
     n.actSeen = d.act_no; const a = d.act || {};
     if (a.t === 'fire' && a.who !== n.me) { n.pend = a; ftNetPump(); }
-    else if (a.t === 'forfeit' && a.who !== n.me) { n.forfeited = true; const pp = st.p[a.who]; if (pp && !pp.dead) { ftNetKill(a.who, '기권'); } }
+    else if (a.t === 'forfeit' && a.who !== n.me) { (n.fset = n.fset || {})[a.who] = 1; const pp = st.p[a.who]; if (pp && !pp.dead) { ftNetKill(a.who, '기권'); } }
   }
   // 생존표 동기화(접속 끊김 탈락 등)
   (d.alive || []).forEach((al, i) => { if (!al && st.p[i] && !st.p[i].dead && !(FT.phase === 'fly' || FT.phase === 'boom')) ftNetKill(i, '탈락'); });
@@ -23693,6 +23710,12 @@ function ftNetLand(st) {
   n.waitSnap = true; ftSyncCtl();
   n.waitCb = () => { if (has()) fin(); else n.waitCb = () => { if (has()) fin(); }; };
   gmDelay(() => { if (n.waitCb) { n.waitCb = null; fin(); } }, 9000);          // 스냅샷이 끝내 안 오면 내 계산대로 진행
+}
+
+/* 기권 외에 실제로 쓰러진 상대가 한 명도 없으면(= 남은 사람이 기권 덕에만 이김) 승점을 주지 않는다 */
+function ftNetNoRec(st) {
+  const n = FT.net; if (!n || !n.fset) return false;
+  return !st.order.some(i => !n.fset[i]);
 }
 
 
