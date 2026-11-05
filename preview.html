@@ -12733,11 +12733,6 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 .ft-rkinfo:active { color: var(--muted, #6b7280); }
 #ftRankBoard .bb-lb-stat { text-align: right; line-height: 1.25; }
 #ftRankBoard .bb-lb-rate { display: block; font-size: 11px; font-weight: 600; }
-/* 선물상자(꾸미기) 버튼은 핑크 계열 */
-.ft-ibtn.ft-dressb { background: rgba(255,126,182,.14); color: #ff8fc2; border-color: #ff8fc2; box-shadow: 0 3px 0 rgba(120,20,70,.8); }
-.ft-ibtn.ft-dressb:active { box-shadow: 0 0 0 rgba(120,20,70,.8); }
-@keyframes ftShopGlow { 0%,100% { box-shadow: 0 3px 0 #a3185f, 0 0 8px rgba(255,120,185,.5); } 50% { box-shadow: 0 3px 0 #a3185f, 0 0 18px rgba(255,140,200,.95); } }
-#ftDressBtn { background: linear-gradient(180deg, #ff9ccb, #f0589c 60%, #d93a82); border-color: #ffe0ef; color: #fff; text-shadow: 0 1px 0 rgba(120,20,70,.5); }
 
   </style>
 </head>
@@ -22451,7 +22446,7 @@ function ftDrain() {
       ftPop(ev.x, ev.y - 54, it[0], it[1], 19); gmSnd('perfect'); gmVib(25);
       for (let i = 0; i < 16; i++) { const a = Math.random() * 6.28, v = 40 + Math.random() * 110; FT.parts.push({ x: ev.x, y: ev.y - 10, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 50, life: .6 + Math.random() * .3, sz: 1.6 + Math.random() * 1.8, c: i % 2 ? it[1] : '#fff3b0', shape: 'star', rot: 0, vr: 6, g: 120 }); }
     } else if (ev.type === 'crate_break') {
-      for (let i = 0; i < 12; i++) FT.parts.push({ x: ev.x, y: ev.y - 8, vx: (Math.random() - .5) * 180, vy: -60 - Math.random() * 120, life: .8, sz: 2 + Math.random() * 2, c: i % 2 ? '#b57a35' : '#f2c94c', shape: 'sq', rot: 0, vr: 9 });
+      for (let i = 0; i < 12; i++) FT.parts.push({ x: ev.x, y: ev.y - 8, vx: (Math.random() - .5) * 180, vy: -60 - Math.random() * 120, life: .8, sz: 2 + Math.random() * 2, c: i % 2 ? '#e0467f' : '#ffc4e0', shape: 'sq', rot: 0, vr: 9 });
       ftPop(ev.x, ev.y - 30, '선물 박살', '#cfd6e3', 15);
     } else if (ev.type === 'skill') {
       const p = st.p[ev.idx], c = FortEngine.CHARS[p.id];
@@ -23325,7 +23320,7 @@ function ftDrawCrate(ctx, cr, X, Y, sc, Wd, w) {
     else { const u = (a.t - 1.2) / .6, y0 = ftDronePos({ t: 1.2, from: a.from, tx: a.tx }, X, w || G.w).y + 24 * (sc * .4 + .6); px = X(cr.x); py = y0 + (gy - y0) * (u * (2 - u)); chute = 1 - u * .6; sway = Math.sin(a.t * 14) * (1 - u) * .18; }
   }
   const bob = a.t >= 1.8 ? Math.sin(FT.t * 3 + cr.id) * 1.6 : 0;
-  if (a.t >= 1.8) { ctx.fillStyle = `rgba(255,230,130,${.22 + .12 * Math.sin(FT.t * 4)})`; ctx.beginPath(); ctx.ellipse(px, Y(cr.y), s * 1.3, s * .4, 0, 0, 7); ctx.fill(); }
+  if (a.t >= 1.8) { ctx.fillStyle = `rgba(255,150,205,${.24 + .12 * Math.sin(FT.t * 4)})`; ctx.beginPath(); ctx.ellipse(px, Y(cr.y), s * 1.3, s * .4, 0, 0, 7); ctx.fill(); }
   ctx.save(); ctx.translate(px, py + bob); ctx.rotate(sway);
   if (chute > 0) {                                     // 낙하산
     ctx.globalAlpha = Math.min(1, chute * 1.4); ctx.strokeStyle = '#0d0f16'; ctx.lineWidth = 1.2;
@@ -23334,10 +23329,10 @@ function ftDrawCrate(ctx, cr, X, Y, sc, Wd, w) {
     ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(-s * .7, -s * 3.6); ctx.quadraticCurveTo(0, -s * 5, s * .7, -s * 3.6); ctx.quadraticCurveTo(0, -s * 3.1, -s * .7, -s * 3.6); ctx.fill();
     ctx.globalAlpha = 1;
   }
-  ctx.lineWidth = 2; ctx.strokeStyle = '#3a2208';
-  ftRR(ctx, -s * .8, -s * .8, s * 1.6, s * 1.6, 3); const g = ctx.createLinearGradient(0, -s, 0, s); g.addColorStop(0, '#d79a4a'); g.addColorStop(1, '#8a5a24'); ctx.fillStyle = g; ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#f2c94c'; ctx.fillRect(-s * .8, -s * .15, s * 1.6, s * .3); ctx.fillRect(-s * .15, -s * .8, s * .3, s * 1.6);
-  ctx.font = `800 ${Math.round(s * 1.1)}px Jua, Pretendard, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.strokeStyle = '#3a2208'; ctx.lineWidth = 3;
+  ctx.lineWidth = 2; ctx.strokeStyle = '#7a1a4a';
+  ftRR(ctx, -s * .8, -s * .8, s * 1.6, s * 1.6, 3); const g = ctx.createLinearGradient(0, -s, 0, s); g.addColorStop(0, '#ffa8d2'); g.addColorStop(1, '#e0467f'); ctx.fillStyle = g; ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#fff0f7'; ctx.fillRect(-s * .8, -s * .15, s * 1.6, s * .3); ctx.fillRect(-s * .15, -s * .8, s * .3, s * 1.6);
+  ctx.font = `800 ${Math.round(s * 1.1)}px Jua, Pretendard, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#fff'; ctx.strokeStyle = '#7a1a4a'; ctx.lineWidth = 3;
   ctx.strokeText('?', 0, 1); ctx.fillText('?', 0, 1);
   ctx.restore();
 }
