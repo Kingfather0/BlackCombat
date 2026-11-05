@@ -12734,6 +12734,9 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 #ftRankBoard .bb-lb-stat { text-align: right; line-height: 1.25; }
 #ftRankBoard .bb-lb-rate { display: block; font-size: 11px; font-weight: 600; }
 
+.ga-fort #gOver .ft-ovicons { gap: 16px; margin-top: 10px; padding: 6px 10px 8px; justify-content: center; flex-wrap: nowrap; }
+.ft-ibtn.ft-chg { color: #cfe3ff; border-color: #7fb4ff; background: rgba(127,180,255,.10); box-shadow: 0 3px 0 rgba(20,40,90,.8); }
+
   </style>
 </head>
 
@@ -20321,7 +20324,8 @@ var FortEngine = (function () {
      proj.kind  무기 종류(화면 그림도 달라진다)
      dmg 데미지 · rad 폭발 반경 · spd 탄속 배율 · gmul 중력 배율 · wmul 바람 민감도
      bounce 땅에서 튕기는 횟수 · split 정점에서 갈라지는 개수 · direct 직격 배율 · carve 땅 파임 배율 */
-  var HP_MUL = 1.5;   // 체력 배율 (한 판이 너무 빨리 끝나지 않게)
+  var VOID_Y = 326;   // 지형이 이 높이(바닥)까지 파이면 구멍 — 서 있던 선수는 낙사
+  var HP_MUL = 1.3;   // 체력 배율 (한 판이 너무 빨리 끝나지 않게)
   var CHARS = {
     tusin: {
       id: 'tusin', name: '투신', tag: '정석 포격수', hp: 100, move: 70, take: 1, passive: 'rage',
@@ -20363,7 +20367,7 @@ var FortEngine = (function () {
       proj: { kind: 'burger', label: '햄버거', dmg: 36, rad: 32, spd: 1.0, gmul: 1.0, wmul: 0.9, direct: 1, carve: 1, bounce: 1 },
       pTitle: '햄버거 반사', pDesc: '땅에 한 번 튕긴 뒤 터지는 햄버거! 받는 데미지 20% 감소. 대신 한 방이 약해요',
       taunt: '햄버거 먹고 와도 너는 잡겠다',
-      skill: { name: '햄버거 파티', desc: '체력 18 회복 + 다음 피격 60% 감소, 착탄 지점에 햄버거 5개가 하늘에서 쏟아져요', heal: 12, shield: true, mod: { dmg: 1.05 }, ult: { kind: 'burger', shots: 'shield5' } },
+      skill: { name: '햄버거 파티', desc: '체력 회복 + 다음 피격 60% 감소, 착탄 지점에 햄버거 5개가 하늘에서 쏟아져요', heal: 12, shield: true, mod: { dmg: 1.05 }, ult: { kind: 'burger', shots: 'shield5' } },
     },
   };
   /* ── AI 전용 캐릭터(선수 아님) + 보스 ── */
@@ -20502,7 +20506,7 @@ var FortEngine = (function () {
 
   /* ── 새 게임 ── */
   function newGame(opts) {
-    var rng = opts.rng || Math.random;
+    var rng = opts.rng || Math.random, hm = opts.hpMul || HP_MUL;     // 체력 배율: PvP는 기본 1.5배, AI 매칭은 1배(opts.hpMul)
     var FW = clamp(Math.round(opts.W || 600), 600, 1400), K = FW / 600;
     VMAX = VBASE * Math.sqrt(K);
     W = 600;                                              // 지형은 기본 폭(600)으로 만든 뒤 가로로 늘린다 → 경사가 완만해진다
@@ -20515,7 +20519,7 @@ var FortEngine = (function () {
     function mk(id, x, face) {
       var c = CHARS[id];
       return {
-        id: id, x: x, y: surfaceY(top, x), hp: Math.round(c.hp * HP_MUL), maxHp: Math.round(c.hp * HP_MUL),
+        id: id, x: x, y: surfaceY(top, x), hp: Math.round(c.hp * hm), maxHp: Math.round(c.hp * hm),
         stam: c.move * K, maxStam: c.move * K, ang: face > 0 ? 50 : 130, pow: 60, face: face, dead: false,
         energy: 20, skillOn: false, shield: false, pwr: false, dbl: false, dmgMul: 1,
       };
@@ -20537,7 +20541,7 @@ var FortEngine = (function () {
     return {
       top: top, W: W, map: { id: map.id, name: map.name, col: map.col }, p: ps,
       mk: K, turn: opts.first || 0, wind: (rng() - 0.5) * 2.0, over: false, winner: -1, turnNo: 0, crates: [], crateId: 0, events: [],
-      shots: 0, lastImpact: li, rng: rng, n: n, order: [],
+      shots: 0, lastImpact: li, rng: rng, n: n, order: [], hpMul: hm,
     };
   }
 
@@ -20571,13 +20575,21 @@ var FortEngine = (function () {
   }
 
   /* ── 이동: 한 번에 1칸(화면에서는 여러 칸씩 연속 호출). 급경사(약 67도 이상)는 못 올라가고 상대 캐릭터를 통과할 수 없다 ── */
-  function moveStep(st, pi, dir) {
+  function moveStep(st, pi, dir, allowVoid) {
     var p = st.p[pi];
     if (p.stam < 0.4 || st.over) return false;
     var nx = p.x + dir;
     if (nx < 8 || nx > W - 8) return false;
     for (var oi = 0; oi < st.p.length; oi++) if (oi !== pi && !st.p[oi].dead && Math.abs(nx - st.p[oi].x) < 34) return false;
     var ny = surfaceY(st.top, nx);
+    var ix = Math.max(0, Math.min(W - 1, nx | 0));
+    if (ny >= VOID_Y || st.top[ix] >= VOID_Y || st.top[Math.min(W - 1, ix + 1)] >= VOID_Y) {   // 바닥까지 뚫린 구멍: 사람이 걸어 들어가면 낙사(AI는 피한다)
+      if (!allowVoid) return false;
+      p.x = nx; p.y = ny; p.hp = 0; p.dead = true; st.order.push(pi); p.face = dir;
+      st.events.push({ type: 'void', idx: pi });
+      if (aliveCount(st) <= 1) { st.over = true; for (var wi = 0; wi < st.p.length; wi++) if (!st.p[wi].dead) st.winner = wi; }
+      return true;
+    }
     if (p.y - ny > 2.4) return false;            // 지형 경사가 1.6 이하로 깎여 있어 웬만한 비탈은 다 오른다(수직 절벽만 불가)
     if (ny - p.y > 9) return false;
     var rise = Math.max(0, p.y - ny);            // 오르막일수록 힘이 더 든다
@@ -20594,11 +20606,16 @@ var FortEngine = (function () {
     for (var i = 0; i < st.p.length; i++) {
       var p = st.p[i], ny = surfaceY(st.top, p.x), drop = ny - p.y;
       p.y = ny;
+      if (!p.dead && ny >= VOID_Y) {                 // 발밑 땅이 바닥까지 다 파이면 구멍으로 떨어져 낙사
+        p.hp = 0; p.dead = true; st.order.push(i);
+        falls.push({ idx: i, dmg: 0, direct: false, fall: true, voidDeath: true, ko: true });
+        continue;
+      }
       if (drop > 26 && !p.dead) {
         var dm = Math.min(16, 3 + Math.round((drop - 26) * 0.3));
         p.hp = Math.max(0, p.hp - dm);
         falls.push({ idx: i, dmg: dm, direct: false, fall: true, ko: p.hp <= 0 });
-        if (p.hp <= 0) p.dead = true;
+        if (p.hp <= 0) { p.dead = true; st.order.push(i); }
       }
     }
     return falls;
@@ -20826,7 +20843,7 @@ var FortEngine = (function () {
   }
   function applyItem(st, pi, type) {
     var p = st.p[pi];
-    if (type === 'hp') p.hp = Math.min(p.maxHp, p.hp + Math.round(28 * HP_MUL));
+    if (type === 'hp') p.hp = Math.min(p.maxHp, p.hp + Math.round(28 * st.hpMul));
     else if (type === 'shield') p.shield = true;
     else if (type === 'power') p.pwr = true;
     else if (type === 'dbl') p.dbl = true;
@@ -20836,7 +20853,7 @@ var FortEngine = (function () {
     var p = st.p[pi], c = CHARS[p.id];
     if (st.over || p.skillOn || p.energy < 100 || !c.skill) return false;
     p.energy = 0; p.skillOn = true;
-    if (c.skill.heal) p.hp = Math.min(p.maxHp, p.hp + Math.round(c.skill.heal * HP_MUL));
+    if (c.skill.heal) p.hp = Math.min(p.maxHp, p.hp + Math.round(c.skill.heal * st.hpMul));
     if (c.skill.shield) p.shield = true;
     st.events.push({ type: 'skill', idx: pi });
     return true;
@@ -21117,6 +21134,7 @@ function ftCastDef(id) { return (id && FT_CAST[id]) || FT_CAST0; }
 /* 아이콘: 이모지 대신 직접 그린 것(검정 글러브, 동그라미 점/링) */
 const FT_GLOVE_SVG = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4.5 10c0-3.6 3-6 7.5-6s7.5 2.4 7.5 6v4.2c0 1.9-1 3-2.4 3H8.4C6.2 17.2 4.5 15 4.5 12z" fill="#15151a" stroke="#6b6f7c" stroke-width="1"/><ellipse cx="9.4" cy="8.2" rx="2.8" ry="1.5" fill="#3b3d48"/><rect x="7.6" y="17.2" width="9.6" height="4.2" rx="1.2" fill="#f4f4f6" stroke="#15151a" stroke-width=".8"/><rect x="7.6" y="18.7" width="9.6" height="1.2" fill="#d4a017"/></svg>';
 const FT_GIFT_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11.5" rx="1.8"/><rect x="2.5" y="6.2" width="19" height="3.8" rx="1.2"/><path d="M12 6.2v14.3"/><path d="M12 6.2C10.6 3 7 3.2 7.3 5.4c.2 1.4 2.7 .8 4.7.8"/><path d="M12 6.2c1.4-3.2 5-3 4.7-.8-.2 1.4-2.7 .8-4.7 .8"/></svg>';
+const FT_FIGHTER_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.2 19.5c.4-3.4 2.7-5.4 5.8-5.4s5.4 2 5.8 5.4"/><circle cx="17" cy="9" r="2.4"/><path d="M16.4 14.2c2.5-.1 4.2 1.5 4.6 4.3"/></svg>';
 const FT_HOME_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2"/><path d="M5.8 9.8V20h12.4V9.8"/><path d="M10 20v-5.4h4V20"/></svg>';
 const FT_FLAG_SVG = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 21V3.5"/><path d="M5.5 4.6c3.6-1.6 6 1.6 10 0 1.4-.6 2.6-.6 3.2-.4v8.2c-.7-.2-1.8-.2-3.2.4-4 1.6-6.4-1.6-10 0" fill="rgba(255,255,255,.92)"/></svg>';
 function ftIco(it) {
@@ -21965,7 +21983,7 @@ function ftRenderGuide() {
       <div class="ft-gw">무기 · ${esc(c.proj.label)}</div>
       <div class="ft-gp"><b>${esc(c.pTitle)}</b> ${esc(c.pDesc)}</div>
       <div class="ft-gp"><b>스킬 · ${esc(c.skill.name)}</b> ${esc(c.skill.desc)}</div>
-      <div class="ft-gs">체력 ${Math.round(c.hp * FortEngine.HP_MUL)} · 데미지 ${c.proj.dmg} · 범위 ${c.proj.rad} · 이동 ${c.move}</div></div></div>`;
+      <div class="ft-gs">체력 ${c.hp} · 데미지 ${c.proj.dmg} · 범위 ${c.proj.rad} · 이동 ${c.move}</div></div></div>`;
   }).join('');
 }
 
@@ -21975,7 +21993,7 @@ function ftSyncLogin() {
   const ok = !!gmMyNick, $ = id => document.getElementById(id); if (!$('ftModes')) return;
   $('ftModes').style.display = ok ? '' : 'none'; $('ftModeHint').style.display = ok ? '' : 'none';
   { const dr = $('ftDressRow'); if (dr) dr.style.display = ok ? '' : 'none'; }
-  { const ga = $('gArea'); if (ga) ga.classList.toggle('ft-hudless', !FT.st); }
+  { const ga = $('gArea'); if (ga) ga.classList.toggle('ft-hudless', !FT.st || FT.phase === 'over'); }
   $('ftLoginRow').style.display = ok ? 'none' : ''; $('ftLoginHint').style.display = ok ? 'none' : '';
 }
 function ftHud() {
@@ -22009,12 +22027,24 @@ function ftAdj(dAng) {
 function ftMove(dir) {
   if (!ftCanAct()) return;
   let moved = 0;
-  for (let i = 0; i < 3; i++) { if (FortEngine.moveStep(FT.st, FT.st.turn, dir)) moved++; else break; }
+  for (let i = 0; i < 3; i++) { if (FortEngine.moveStep(FT.st, FT.st.turn, dir, true)) moved++; else break; if (FT.st.p[FT.st.turn].dead) break; }
   if (moved) {
     if (FT.mode === 'pvp' && FT.net) { const L = FT.net.mv, e = L[L.length - 1]; if (e && e[0] === dir) e[1] += moved; else L.push([dir, moved]); }
     if (Math.random() < .35) { const p = FT.st.p[FT.st.turn]; FT.parts.push({ x: p.x - dir * 6, y: p.y - 2, vx: -dir * 20, vy: -22, life: .4, sz: 2.4, c: '#b8ad9c', g: 60 }); }
     ftDrain(); ftSyncCtl();
+    { const st = FT.st, pp = st.p[st.turn]; if (pp.dead) ftVoidEnd(st); }
   }
+}
+function ftVoidEnd(st) {                       // 구멍으로 걸어 들어가 낙사(TKO): 이 차례는 바로 끝난다
+  const tok = gmToken, online = FT.mode === 'pvp' && FT.net && !FT.net.local;
+  FT.phase = 'boom'; FT.dragging = false; FT.drag = null; FT.keys = {}; FT.human = false; ftSyncCtl();
+  if (st.over) { if (online) ftNetPublishEnd(false); ftKO(); return; }
+  gmDelay(() => {
+    if (tok !== gmToken || st !== FT.st || st.over) return;
+    FortEngine.endTurn(st);
+    if (online) ftNetPublishEnd(false);
+    ftBeginTurn();
+  }, 900);
 }
 function ftStartGauge() {
   if (!ftCanAct()) return;
@@ -22270,7 +22300,7 @@ function ftStartMatch() {
   const NET = FT.mode === 'pvp' && FT.net && FT.net.players ? FT.net : null;
   if (FT.mode === 'ai') { cfg = E.stageConfig(FT.stage, FT.foeOff); b = cfg.foe; } else b = NET ? null : FT.sel[1];
   const st = NET ? E.newGame({ fighters: NET.players.map(p => p.char), first: 0, rng: E.mulberry32(NET.seed), W: ftPickW() })
-    : E.newGame({ a, b, first: 0, rng: Math.random, W: ftPickW(), hpMulB: cfg ? cfg.hpMul : 1, dmgMulB: cfg ? cfg.dmgMul : 1 });
+    : E.newGame({ a, b, first: 0, rng: Math.random, W: ftPickW(), hpMul: 1, hpMulB: cfg ? cfg.hpMul : 1, dmgMulB: cfg ? cfg.dmgMul : 1 });
   FT.cfg = cfg;
   if (cfg && cfg.boss) st.p[1].energy = 60;
   FT.skill = cfg ? cfg.skill : .6;
@@ -22434,7 +22464,7 @@ function ftBoom(x, y, r, big, kind, eq, ground) {
 function ftPop(x, y, txt, c, size) { FT.pops.push({ x, y, txt, c: c || '#e0332a', size: size || 18, t: 0 }); }
 
 /* 이벤트(상자 투하/획득/파괴, 스킬 발동)를 화면 연출로 바꾼다 */
-const FT_ITEM_TXT = { hp: ['+42 회복', '#5fe08a'], shield: ['실드 획득', '#7fd0ff'], power: ['파워샷 장전', '#ffb347'], dbl: ['더블샷 장전', '#d9a6ff'], stam: ['이동력 회복', '#9ad0ff'] };
+const FT_ITEM_TXT = { hp: ['+회복', '#5fe08a'], shield: ['실드 획득', '#7fd0ff'], power: ['파워샷 장전', '#ffb347'], dbl: ['더블샷 장전', '#d9a6ff'], stam: ['이동력 회복', '#9ad0ff'] };
 function ftDrain() {
   const st = FT.st; if (!st || !st.events.length) return false;
   const evs = st.events.splice(0, st.events.length);
@@ -22443,8 +22473,12 @@ function ftDrain() {
     if (ev.type === 'drop') { FT.cAnim[ev.crate.id] = { t: 0, landed: false, from: ev.crate.from, tx: ev.crate.x }; FT.drones.push({ t: 0, from: ev.crate.from, tx: ev.crate.x }); gmSnd('swish'); ftPop(ev.crate.x, 70, '보급 드론 출동!', '#ffd24a', 17); dropped = true; FT.focus = { x: ev.crate.x, y: 200, until: FT.t + 2.1 }; }
     else if (ev.type === 'pick') {
       const it = FT_ITEM_TXT[ev.item] || ['획득', '#fff'];
+      if (ev.item === 'hp') it[0] = '+' + Math.round(28 * (st.hpMul || 1)) + ' 회복';
       ftPop(ev.x, ev.y - 54, it[0], it[1], 19); gmSnd('perfect'); gmVib(25);
       for (let i = 0; i < 16; i++) { const a = Math.random() * 6.28, v = 40 + Math.random() * 110; FT.parts.push({ x: ev.x, y: ev.y - 10, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 50, life: .6 + Math.random() * .3, sz: 1.6 + Math.random() * 1.8, c: i % 2 ? it[1] : '#fff3b0', shape: 'star', rot: 0, vr: 6, g: 120 }); }
+    } else if (ev.type === 'void') {
+      const vp = st.p[ev.idx]; ftPop(vp.x, vp.y - 84, 'TKO!', '#ff4d6d', 24); gmSnd('crash'); gmVib([80, 40, 100]);
+      if (!st.over) ftDeathFx(ev.idx);
     } else if (ev.type === 'crate_break') {
       for (let i = 0; i < 12; i++) FT.parts.push({ x: ev.x, y: ev.y - 8, vx: (Math.random() - .5) * 180, vy: -60 - Math.random() * 120, life: .8, sz: 2 + Math.random() * 2, c: i % 2 ? '#e0467f' : '#ffc4e0', shape: 'sq', rot: 0, vr: 9 });
       ftPop(ev.x, ev.y - 30, '선물 박살', '#cfd6e3', 15);
@@ -22470,6 +22504,7 @@ function ftResolveOne(f) {
     const p = st.p[ev.idx];
     FT.vis[ev.idx].hit = .45;
     if (FT.mode === 'pvp' ? (FT.net && ev.idx === FT.net.me) : ev.idx === 0) FT.hurt = Math.min(1, FT.hurt + (s.sky ? .25 : .7));
+    if (ev.voidDeath) { ftPop(p.x, p.y - 84, 'TKO!', '#ff4d6d', 24); gmSnd('crash'); return; }
     if (ev.fall) { ftPop(p.x, p.y - 84, '낙하 -' + ev.dmg, '#ffb347', 18); return; }
     ftPop(p.x + (Math.random() - .5) * 26, p.y - 84 - (s.sky ? Math.random() * 26 : 0), (ev.direct ? '직격! ' : '') + '-' + ev.dmg, ev.direct ? '#ff3b3b' : '#ffb347', ev.direct ? 23 : 18);
     if (ev.cover) ftPop(p.x, p.y - 108, '엄폐!', '#7fd0ff', 16);
@@ -22545,8 +22580,7 @@ function ftOver() {
         <div class="go-cmp">STAGE ${FT.stage} 클리어 — ${esc(oc.name)} 격파${lifeTxt}</div>
         <div class="go-grade">${FT.streak >= rec.best && FT.streak > 1 ? '🔥 최고 기록 경신 중!' : `${esc(E.CHARS[st.p[0].id].name)} 통산 ${me.w}승`}</div>
         ${nextInfo}@@<button class="g-start" id="ftNext" type="button">다음 상대</button>
-        <div class="ft-btnrow"><button class="ft-btn2" id="ftChange" type="button">파이터 변경</button><button class="ft-ibtn ft-dressb" id="ftOvDress" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftOvNew"></i></button></div>
-        <button class="ft-btn2 ft-back" id="ftHome" type="button">처음 화면</button>`;
+        <div class="ft-btnrow ft-ovicons"><button class="ft-ibtn ft-chg" id="ftChange" type="button" aria-label="파이터 변경" title="파이터 변경">${FT_FIGHTER_SVG}</button><button class="ft-ibtn ft-dressb" id="ftOvDress" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftOvNew"></i></button><button class="ft-ibtn ft-back" id="ftHome" type="button" aria-label="처음 화면" title="처음 화면">${FT_HOME_SVG}</button></div>`;
       gmSnd('cheer');
     } else {
       FT.streak = 0; FT.lives--;
@@ -22556,8 +22590,7 @@ function ftOver() {
         <div class="go-cmp">${esc(oc.name)}에게 패배 (STAGE ${FT.stage})</div>
         <div class="go-grade">${dead ? `STAGE ${FT.cp}부터 다시 도전해요 (최고 ${rec.best}연승)` : `같은 스테이지에 재도전! (최고 ${rec.best}연승)`}</div>
         @@<button class="g-start" id="ftNext" type="button">다시 도전</button>
-        <div class="ft-btnrow"><button class="ft-btn2" id="ftChange" type="button">파이터 변경</button><button class="ft-ibtn ft-dressb" id="ftOvDress" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftOvNew"></i></button></div>
-        <button class="ft-btn2 ft-back" id="ftHome" type="button">처음 화면</button>`;
+        <div class="ft-btnrow ft-ovicons"><button class="ft-ibtn ft-chg" id="ftChange" type="button" aria-label="파이터 변경" title="파이터 변경">${FT_FIGHTER_SVG}</button><button class="ft-ibtn ft-dressb" id="ftOvDress" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftOvNew"></i></button><button class="ft-ibtn ft-back" id="ftHome" type="button" aria-label="처음 화면" title="처음 화면">${FT_HOME_SVG}</button></div>`;
       gmSnd('over');
     }
   } else {
@@ -22569,8 +22602,7 @@ function ftOver() {
       <div class="ft-places">${rows}</div>
       <div class="go-cmp">${FT.net && ftNetNoRec(st) ? '상대가 모두 포기해서 이번 판은 기록이 저장되지 않아요' : `내 PvP ${mf.pw}승 · ${mf.pc}연승 (${esc(E.CHARS[st.p[me].id].name)})`}</div>
       @@<button class="g-start" id="ftNext" type="button">다시 매칭</button>
-      <div class="ft-btnrow"><button class="ft-btn2" id="ftChange" type="button">파이터 변경</button><button class="ft-ibtn ft-dressb" id="ftOvDress" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftOvNew"></i></button></div>
-      <button class="ft-btn2 ft-back" id="ftHome" type="button">처음 화면</button>`;
+      <div class="ft-btnrow ft-ovicons"><button class="ft-ibtn ft-chg" id="ftChange" type="button" aria-label="파이터 변경" title="파이터 변경">${FT_FIGHTER_SVG}</button><button class="ft-ibtn ft-dressb" id="ftOvDress" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftOvNew"></i></button><button class="ft-ibtn ft-back" id="ftHome" type="button" aria-label="처음 화면" title="처음 화면">${FT_HOME_SVG}</button></div>`;
     gmSnd('cheer');
   }
   {
