@@ -12608,6 +12608,53 @@ body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82
   .ft-fire { padding: 5px 14px !important; }
 }
 
+/* ===== v5.0 ===== */
+.ft-hrt { font-style: normal; color: #ff3b4a; letter-spacing: 1px; }
+.ga-fort #gOver .ft-hrt { text-shadow: 0 0 8px rgba(255,59,74,.4); }
+.ft-red { color: #ff6b6b; }
+.ico-dot, .ico-ring { display: inline-block; width: 20px; height: 20px; border-radius: 50%; box-sizing: border-box; vertical-align: middle; }
+.ico-dot { border: 2px solid rgba(255,255,255,.55); }
+.ico-ring { border: 4px solid #fff; background: transparent; }
+.fd-ico { display: flex; align-items: center; justify-content: center; }
+/* 아이콘 버튼 (꾸미기 선물상자 / 처음 화면) */
+.ft-ibtn { position: relative; width: 40px; height: 40px; padding: 0; flex: 0 0 auto; border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(242,201,76,.1); color: #f2c94c; border: 2px solid #f2c94c; box-shadow: 0 3px 0 rgba(90,58,5,.8); touch-action: manipulation; }
+.ft-ibtn:active { transform: translateY(3px); box-shadow: 0 0 0 rgba(90,58,5,.8); }
+.ft-ibtn.ft-back { color: #cfd3df; border-color: #8d93a3; background: rgba(255,255,255,.06); box-shadow: 0 3px 0 rgba(0,0,0,.5); }
+.ft-sel-top { align-items: center; }
+.ft-dressb i { background: var(--amber, #f2b32a) !important; color: #3d2a00 !important; }
+.fd-it small em { background: var(--amber, #f2b32a) !important; color: #3d2a00 !important; }
+.fd-it small s.rk { text-decoration: none; background: linear-gradient(90deg, #ffd24a, #ff9a3a); color: #3a2300; border-radius: 4px; padding: 0 5px; font-weight: 800; font-size: 9px; letter-spacing: .04em; }
+.fd-it.rk { border-color: #b8860b; background: linear-gradient(180deg, #2b2410, #1a1c25); }
+.fd-it.rk.on { border-color: #ffd24a; }
+/* 시작 화면 버튼 줄 */
+.ft-mainrow { gap: 10px; flex-wrap: nowrap; }
+.ga-fort .g-start.ft-mbtn { font-size: 21px; padding: 10px 14px; min-width: 0; flex: 1 1 0; max-width: 160px; display: flex; flex-direction: column; align-items: center; line-height: 1.15; white-space: nowrap; }
+.ga-fort .g-start.ft-mbtn small { font-size: 10.5px; font-weight: 700; opacity: .85; margin-top: 1px; }
+.ga-fort .g-start.ft-pvpb { background: linear-gradient(180deg, #4da3ff, #2a5bd7); border-color: #cfe3ff; color: #fff; box-shadow: 0 5px 0 #13307a; animation: none; }
+/* 포기: 하얀 깃발 아이콘 + 읽기 쉬운 확인 버튼 */
+#ftQuit { width: 30px; height: 30px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; left: 8px; top: 46px; color: #fff; background: rgba(14,14,19,.6); border: 1.5px solid rgba(255,255,255,.45); }
+.ft-quitbtn { font-family: inherit; font-size: 15px; font-weight: 800; color: #fff; background: #c4261d; border: 2px solid #ff8a80; border-radius: 99px; padding: 9px 22px; cursor: pointer; box-shadow: 0 4px 0 #6b0f0a; touch-action: manipulation; }
+.ft-quitbtn:active { transform: translateY(3px); box-shadow: 0 1px 0 #6b0f0a; }
+/* 소리/전체화면: 작고 눈에 덜 띄게 */
+.ga-fort .g-mute, .ga-fort .g-full { width: 26px; height: 26px; font-size: 11.5px; right: 8px; background: rgba(14,14,19,.45); border: 1px solid rgba(255,255,255,.28); color: #cfd3df; box-shadow: none; filter: grayscale(1) brightness(1.15); opacity: .8; display: flex; align-items: center; justify-content: center; padding: 0; }
+.ga-fort .g-mute { top: 40px; }
+.ga-fort .g-full { top: 70px; }
+/* 선택 화면: 스크롤 없이 한 화면에 맞춤 */
+#ftSel { overflow: hidden; }
+.ft-grid { overflow: hidden; grid-template-rows: repeat(2, minmax(0, 1fr)); align-content: stretch; }
+.ft-card { min-height: 0; overflow: hidden; }
+.ft-card img { flex: 1 1 0; min-height: 0; height: auto; max-height: 100%; width: auto; max-width: 90%; }
+/* 게임 제목줄: 설명서 + 게임 목록, 줄바꿈 없이 */
+h1.page.gm-h1 { flex-wrap: wrap; align-items: center; gap: 6px; white-space: nowrap; font-size: 26px; }
+h1.page.gm-h1 .bb-rules-btn-top { padding: 5px 10px; flex: 0 0 auto; }
+h1.page.gm-h1 .gm-listbtn { margin-left: auto; }
+.gm-subline { font-size: 11px; font-weight: 700; color: var(--muted); text-align: right; margin: 6px 0 -2px; font-family: 'Jua','Pretendard Variable',Pretendard,sans-serif; }
+.gm-subline b { color: #dc2626; }
+
+.ga-fort .ghud #gHearts:empty, .ga-fort .ghud #gScore:empty { display: none; }
+.ft-toast { background: rgba(10,10,16,.88); border: 2px solid #f2c94c; border-radius: 14px; padding: 10px 18px; line-height: 1.5; }
+
   </style>
 </head>
 
@@ -13676,7 +13723,7 @@ body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82
       // 게임 화면(러닝/펀칭/점핑/배틀) 4개일 때만 헤더의 "🎮 게임 선택" 링크를 보여준다.
       // 게임 메뉴(#/game)나 홈/랭킹/격잘알 등 다른 페이지에서는 숨긴다.
       const headerGS = document.getElementById('headerGameSelectLink');
-      if (headerGS) headerGS.style.display = (seg[0] === 'game' && ['run', 'punch', 'grow', 'battle', 'quiz', 'fort'].includes(seg[1])) ? '' : 'none';
+      if (headerGS) headerGS.style.display = 'none';
       // 티켓 판매 현황 — 모든 방문자에게 공개.
       const navTickets = document.querySelector('[data-nav="tickets"]');
       if (navTickets) navTickets.style.display = '';
@@ -19435,6 +19482,13 @@ body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82
     // 공간을 차지한다는 피드백에 따라 헤더로 옮기고 4개 게임이 하나의 링크를 공유한다.
     // 표시 여부는 route()에서 해시에 따라 토글하고, 클릭 시 이탈 확인 팝업은 여기서 한 번만
     // 바인딩해 둔다(블랙 배틀 대결 중 / 미니게임 플레이 중이면 곧장 나가지 않고 먼저 확인).
+    window.gmGoList = function () {
+      const go = () => { location.hash = '#/game'; };
+      if (typeof BB !== 'undefined' && (BB.phase === 'fight' || BB.phase === 'pvp_fight') && !BB.isBotSpar) bbShowLeaveConfirm(go);
+      else if (gmMiniGameIsPlaying()) bbShowLeaveConfirm(go, '기록은 저장되지 않습니다.');
+      else if (typeof bqIsPlaying === 'function' && bqIsPlaying()) bbShowLeaveConfirm(() => bqLeaveAndForfeit(), '기록은 저장되지 않습니다.');
+      else go();
+    };
     (function bindHeaderGameSelect() {
       const link = document.getElementById('headerGameSelectLink');
       if (!link) return;
@@ -19915,7 +19969,8 @@ body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82
     function gmShellHTML(wk, title, sub, desc, startLabel, hint, rule, disabled) {
       gmCurRule = rule;
       return `
-  <h1 class="page" style="gap:6px">${title} <button class="bb-rules-btn-top" id="gRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button><span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰️ 주간 랭킹 리셋까지 <b style="color:#dc2626">${gmResetLeft()}</b></span></h1>
+  <h1 class="page gm-h1">${title} <button class="bb-rules-btn-top" id="gRulesBtn" type="button">📖 설명서</button><button class="bb-rules-btn-top gm-listbtn" type="button" onclick="gmGoList()">게임 목록</button></h1>
+  <div class="gm-subline">⏰️ 주간 랭킹 리셋까지 <b>${gmResetLeft()}</b></div>
   <div id="gArea" class="ga-${gmCurGame}">
     <canvas id="gCanvas"></canvas>
     <div class="ghud">
@@ -20224,11 +20279,11 @@ var FortEngine = (function () {
       skill: { name: '그림자 난무', desc: '바람을 무시하는 수리검 2개 + 사방에서 수리검 8발이 날아와 꽂혀요', mod: { wmul: 0, multi: [{ da: -3, pm: 0.96, dm: 0.8 }, { da: 3, pm: 1.04, dm: 0.8 }] }, ult: { kind: 'shuriken', shots: 'ninja8' } },
     },
     captainkorea: {
-      id: 'captainkorea', name: '캡틴 코리아', tag: '방패 반사', hp: 108, move: 100, take: 0.9, passive: null,
-      proj: { kind: 'shield', label: '태극 방패', dmg: 36, rad: 32, spd: 1.0, gmul: 1.0, wmul: 0.9, direct: 1, carve: 1, bounce: 1 },
-      pTitle: '방패 반사', pDesc: '땅에 한 번 튕긴 뒤 터지는 방패! 받는 데미지 20% 감소. 대신 한 방이 약해요',
-      taunt: '방패가 왜 있는 줄 아냐? 네 주먹 받아주려고',
-      skill: { name: '태극 수호', desc: '체력 12 회복 + 다음 피격 60% 감소, 착탄 지점에 방패 5개가 하늘에서 쏟아져요', heal: 12, shield: true, mod: { dmg: 1.05 }, ult: { kind: 'shield', shots: 'shield5' } },
+      id: 'captainkorea', name: '캡틴 코리아', tag: '햄버거 반사', hp: 108, move: 100, take: 0.9, passive: null,
+      proj: { kind: 'burger', label: '햄버거', dmg: 36, rad: 32, spd: 1.0, gmul: 1.0, wmul: 0.9, direct: 1, carve: 1, bounce: 1 },
+      pTitle: '햄버거 반사', pDesc: '땅에 한 번 튕긴 뒤 터지는 햄버거! 받는 데미지 20% 감소. 대신 한 방이 약해요',
+      taunt: '햄버거 먹고 와도 너는 잡겠다',
+      skill: { name: '햄버거 파티', desc: '체력 12 회복 + 다음 피격 60% 감소, 착탄 지점에 햄버거 5개가 하늘에서 쏟아져요', heal: 12, shield: true, mod: { dmg: 1.05 }, ult: { kind: 'shield', shots: 'shield5' } },
     },
   };
   /* ── AI 전용 캐릭터(선수 아님) + 보스 ── */
@@ -20775,7 +20830,7 @@ if (typeof module !== 'undefined') module.exports = FortEngine;
    · 꾸미기는 선수의 몸에 겹쳐 붙이는 옷/장신구가 아니라, 어떤 선수에게나 자연스럽게 어울리는 "효과" 8종이다.
      오라 · 윤곽 빛 · 광택 · 발밑 링 · 무기 궤적 · 폭발 · 칭호 · 도발 대사
    · 해금은 선수별로 따로 쌓인다 (투신으로 이긴 승리는 투신의 꾸미기만 열어 준다).
-     w 승리 · s 최고 연승 · pw 대인전 승리 · ps 대인전 최고 연승
+     w 승리 · s 최고 연승 · pw PvP 승리 · ps PvP 최고 연승
    · FT_TEST_UNLOCK = true 인 동안(테스트 버전)에는 조건과 상관없이 전부 장착할 수 있다.
    ══════════════════════════════════════════════════════════════════════ */
 const FT_STORE = 'ft_v1';
@@ -20785,40 +20840,89 @@ const FT_GEAR = {
   aura: [
     { id: 'fire', n: '불꽃 오라', ico: '🔥', c: { w: 5 } }, { id: 'ice', n: '서리 오라', ico: '❄️', c: { s: 3 } },
     { id: 'volt', n: '번개 오라', ico: '⚡', c: { w: 15 } }, { id: 'gold', n: '황금 오라', ico: '✨', c: { s: 7 } },
-    { id: 'shadow', n: '암흑 오라', ico: '🌑', c: { pw: 5 } }],
+    { id: 'shadow', n: '암흑 오라', ico: '🌑', c: { pw: 5 } },
+    { id: 'sakura', n: '벚꽃 오라', ico: '🌸', c: { w: 3 } }, { id: 'leaf', n: '숲의 오라', ico: '🍃', c: { s: 2 } },
+    { id: 'bubble', n: '비눗방울 오라', ico: '🫧', c: { w: 6 } }, { id: 'music', n: '리듬 오라', ico: '🎵', c: { s: 4 } },
+    { id: 'plasma', n: '플라즈마 오라', ico: '🔮', c: { w: 25 } }, { id: 'money', n: '돈다발 오라', ico: '💵', c: { w: 35 } },
+    { id: 'galaxy', n: '은하 오라', ico: '🌌', c: { s: 10 } }, { id: 'sun', n: '태양 오라', ico: '☀️', c: { w: 50 } },
+    { id: 'rk_crown', n: '왕관의 후광', ico: '👑', c: { rk: 1 } }],
   glow: [
-    { id: 'wht', n: '화이트 윤곽', ico: '⚪', c: { w: 1 } }, { id: 'red', n: '레드 윤곽', ico: '🔴', c: { w: 3 } },
-    { id: 'cyan', n: '시안 윤곽', ico: '🔵', c: { s: 2 } }, { id: 'gold', n: '골드 윤곽', ico: '🟡', c: { w: 10 } },
-    { id: 'rainbow', n: '레인보우 윤곽', ico: '🌈', c: { pw: 3 } }],
+    { id: 'wht', n: '화이트 윤곽', ico: '@dot:#ffffff', c: { w: 1 } }, { id: 'red', n: '레드 윤곽', ico: '@dot:#ff3b3b', c: { w: 3 } },
+    { id: 'cyan', n: '시안 윤곽', ico: '@dot:#4de3ff', c: { s: 2 } }, { id: 'gold', n: '골드 윤곽', ico: '@dot:#ffd24a', c: { w: 10 } },
+    { id: 'rainbow', n: '레인보우 윤곽', ico: '🌈', c: { pw: 3 } },
+    { id: 'pink', n: '핑크 윤곽', ico: '@dot:#ff7ac8', c: { w: 2 } }, { id: 'lime', n: '라임 윤곽', ico: '@dot:#8dff6b', c: { s: 3 } },
+    { id: 'purple', n: '퍼플 윤곽', ico: '@dot:#b58cff', c: { w: 6 } }, { id: 'orange', n: '오렌지 윤곽', ico: '@dot:#ff9a3a', c: { w: 8 } },
+    { id: 'blue', n: '블루 윤곽', ico: '@dot:#4d7bff', c: { w: 12 } }, { id: 'mint', n: '민트 윤곽', ico: '@dot:#6ff0c0', c: { s: 4 } },
+    { id: 'sunset', n: '선셋 윤곽', ico: '🌇', c: { w: 20 } }, { id: 'pulse', n: '네온 펄스 윤곽', ico: '💠', c: { s: 8 } },
+    { id: 'rk_holo', n: '홀로그램 윤곽', ico: '🪩', c: { rk: 10 } }],
   shine: [
     { id: 'sweep', n: '반짝 광택', ico: '💫', c: { w: 2 } }, { id: 'goldp', n: '황금 도금', ico: '🥇', c: { s: 4 } },
-    { id: 'chrome', n: '크롬 도금', ico: '🪞', c: { w: 20 } }, { id: 'neon', n: '네온 광택', ico: '💜', c: { pw: 1 } }],
+    { id: 'chrome', n: '크롬 도금', ico: '🪞', c: { w: 20 } }, { id: 'neon', n: '네온 광택', ico: '💜', c: { pw: 1 } },
+    { id: 'pearl', n: '진주 광택', ico: '🦪', c: { w: 4 } }, { id: 'rose', n: '로즈골드 도금', ico: '🌹', c: { w: 9 } },
+    { id: 'emerald', n: '에메랄드 광택', ico: '💚', c: { s: 5 } }, { id: 'ruby', n: '루비 광택', ico: '❤️', c: { w: 16 } },
+    { id: 'sapphire', n: '사파이어 광택', ico: '💙', c: { w: 22 } }, { id: 'obsid', n: '흑요석 광택', ico: '🖤', c: { w: 28 } },
+    { id: 'holo', n: '홀로그램 광택', ico: '🌈', c: { w: 35 } }, { id: 'lava', n: '용암 광택', ico: '🌋', c: { w: 45 } },
+    { id: 'rk_diamond', n: '다이아몬드 광택', ico: '💎', c: { rk: 10 } }],
   ring: [
-    { id: 'r_gold', n: '골드 링', ico: '🟨', c: { w: 1 } }, { id: 'r_red', n: '레드 링', ico: '🟥', c: { w: 4 } },
-    { id: 'r_blue', n: '블루 링', ico: '🟦', c: { s: 2 } }, { id: 'r_star', n: '스타 링', ico: '⭐', c: { pw: 2 } },
-    { id: 'r_rain', n: '레인보우 링', ico: '🎡', c: { ps: 3 } }],
+    { id: 'r_gold', n: '골드 링', ico: '@ring:#ffd24a', c: { w: 1 } }, { id: 'r_red', n: '레드 링', ico: '@ring:#ff4638', c: { w: 4 } },
+    { id: 'r_blue', n: '블루 링', ico: '@ring:#4dc8ff', c: { s: 2 } }, { id: 'r_star', n: '스타 링', ico: '⭐', c: { pw: 2 } },
+    { id: 'r_rain', n: '레인보우 링', ico: '🎡', c: { ps: 3 } },
+    { id: 'r_green', n: '그린 링', ico: '@ring:#5fe08a', c: { w: 2 } }, { id: 'r_pink', n: '핑크 링', ico: '@ring:#ff7ac8', c: { s: 3 } },
+    { id: 'r_purple', n: '퍼플 링', ico: '@ring:#b58cff', c: { w: 7 } }, { id: 'r_dash', n: '대시 링', ico: '⭕', c: { w: 5 } },
+    { id: 'r_double', n: '더블 링', ico: '🎯', c: { w: 11 } }, { id: 'r_ice', n: '서리 링', ico: '🧊', c: { s: 5 } },
+    { id: 'r_heart', n: '하트 링', ico: '💗', c: { w: 14 } }, { id: 'r_fire', n: '불꽃 링', ico: '🔥', c: { w: 18 } },
+    { id: 'rk_throne', n: '왕좌의 링', ico: '🏯', c: { rk: 1 } }],
   trail: [
     { id: 't_spark', n: '불꽃 궤적', ico: '🧨', c: { w: 1 } }, { id: 't_bolt', n: '번개 궤적', ico: '🌩️', c: { s: 2 } },
     { id: 't_gold', n: '황금 궤적', ico: '🪙', c: { w: 6 } }, { id: 't_neon', n: '네온 궤적', ico: '🎆', c: { w: 12 } },
-    { id: 't_rain', n: '무지개 궤적', ico: '🌈', c: { ps: 2 } }],
+    { id: 't_rain', n: '무지개 궤적', ico: '🌈', c: { ps: 2 } },
+    { id: 't_sakura', n: '벚꽃 궤적', ico: '🌸', c: { w: 3 } }, { id: 't_mint', n: '민트 궤적', ico: '🍀', c: { s: 3 } },
+    { id: 't_ice', n: '서리 궤적', ico: '🧊', c: { w: 7 } }, { id: 't_sun', n: '선셋 궤적', ico: '🌇', c: { w: 10 } },
+    { id: 't_crim', n: '진홍 궤적', ico: '🍒', c: { w: 16 } }, { id: 't_toxic', n: '맹독 궤적', ico: '☣️', c: { w: 22 } },
+    { id: 't_galaxy', n: '은하 궤적', ico: '🌌', c: { s: 9 } }, { id: 't_mono', n: '흑백 궤적', ico: '🎞️', c: { w: 30 } },
+    { id: 'rk_comet', n: '혜성 궤적', ico: '☄️', c: { rk: 3 } }],
   blast: [
     { id: 'b_conf', n: '컨페티 폭발', ico: '🎉', c: { w: 2 } }, { id: 'b_star', n: '별빛 폭발', ico: '🌟', c: { s: 3 } },
     { id: 'b_flame', n: '화염 폭발', ico: '🔥', c: { w: 8 } }, { id: 'b_bolt', n: '번개 폭발', ico: '⚡', c: { w: 14 } },
-    { id: 'b_heart', n: '하트 폭발', ico: '💖', c: { pw: 2 } }, { id: 'b_coin', n: '금화 폭발', ico: '💰', c: { s: 6 } }],
+    { id: 'b_heart', n: '하트 폭발', ico: '💖', c: { pw: 2 } }, { id: 'b_coin', n: '금화 폭발', ico: '💰', c: { s: 6 } },
+    { id: 'b_sakura', n: '벚꽃 폭발', ico: '🌸', c: { w: 4 } }, { id: 'b_bubble', n: '비눗방울 폭발', ico: '🫧', c: { w: 7 } },
+    { id: 'b_snow', n: '눈꽃 폭발', ico: '❄️', c: { s: 4 } }, { id: 'b_pixel', n: '픽셀 폭발', ico: '👾', c: { s: 7 } },
+    { id: 'b_money', n: '지폐 폭발', ico: '💸', c: { w: 18 } }, { id: 'b_rain', n: '무지개 폭발', ico: '🌈', c: { w: 24 } },
+    { id: 'b_ghost', n: '유령 폭발', ico: '👻', c: { w: 32 } }, { id: 'b_fw', n: '불꽃놀이 폭발', ico: '🎇', c: { w: 40 } },
+    { id: 'rk_nova', n: '초신성 폭발', ico: '💫', c: { rk: 10 } }],
   cast: [
     { id: 'c_burst', n: '기합 폭발', ico: '💥', c: { w: 2 } }, { id: 'c_wave', n: '충격파 발사', ico: '🌀', c: { s: 2 } },
     { id: 'c_flame', n: '불꽃 폭주', ico: '🔥', c: { w: 12 } }, { id: 'c_bolt', n: '낙뢰 일격', ico: '⚡', c: { w: 25 } },
-    { id: 'c_gold', n: '황금 폭죽', ico: '🎆', c: { s: 8 } }, { id: 'c_roar', n: '포효 일격', ico: '🦁', c: { pw: 6 } }],
+    { id: 'c_gold', n: '황금 폭죽', ico: '🎆', c: { s: 8 } }, { id: 'c_roar', n: '포효 일격', ico: '🦁', c: { pw: 6 } },
+    { id: 'c_quake', n: '지진 강타', ico: '🪨', c: { w: 6 } }, { id: 'c_ice', n: '빙결 일격', ico: '🧊', c: { s: 4 } },
+    { id: 'c_heart', n: '사랑의 한 방', ico: '💘', c: { w: 10 } }, { id: 'c_fw', n: '불꽃놀이 일격', ico: '🎇', c: { w: 16 } },
+    { id: 'c_shadow', n: '암흑 질주', ico: '🌑', c: { w: 28 } }, { id: 'c_sun', n: '태양 강림', ico: '☀️', c: { w: 38 } },
+    { id: 'c_dragon', n: '용의 포효', ico: '🐉', c: { s: 12 } },
+    { id: 'rk_meteor', n: '혜성 강림', ico: '☄️', c: { rk: 3 } }],
   badge: [
-    { id: 'g_rookie', n: '링 새내기', ico: '🥊', c: { w: 1 } }, { id: 'g_star', n: '샌드백 단골', ico: '⭐', c: { w: 3 } },
-    { id: 'g_fire', n: '불주먹', ico: '🔥', c: { w: 8 } }, { id: 'g_skull', n: '턱 사냥꾼', ico: '💀', c: { w: 20 } },
+    { id: 'g_rookie', n: '블린이', ico: '@glove', c: { w: 1 } }, { id: 'g_star', n: '샌드백 단골', ico: '⭐', c: { w: 3 } },
+    { id: 'g_fire', n: '불빠따', ico: '🔥', c: { w: 8 } }, { id: 'g_skull', n: '턱 사냥꾼', ico: '💀', c: { w: 20 } },
     { id: 'g_crown', n: '무패 챔프', ico: '👑', c: { s: 6 } }, { id: 'g_trophy', n: '케이지 레전드', ico: '🏆', c: { w: 40 } },
-    { id: 'g_hand', n: '친구 눕힌 자', ico: '🤝', c: { pw: 1 } }, { id: 'g_lion', n: '대인전 지배자', ico: '🦁', c: { pw: 10 } },
-    { id: 'g_sword', n: '무적 연승러', ico: '⚔️', c: { ps: 5 } }],
+    { id: 'g_hand', n: '친구 눕힌 자', ico: '🤝', c: { pw: 1 } }, { id: 'g_lion', n: 'PvP 지배자', ico: '🦁', c: { pw: 10 } },
+    { id: 'g_sword', n: '무적 연승러', ico: '⚔️', c: { ps: 5 } },
+    { id: 'g_coffee', n: '아침 스파링', ico: '☕', c: { w: 2 } }, { id: 'g_cat', n: '고양이 펀치', ico: '🐱', c: { w: 4 } },
+    { id: 'g_noodle', n: '라면 먹고 갈래?', ico: '🍜', c: { w: 6 } }, { id: 'g_gym', n: '헬창 인증', ico: '🏋️', c: { w: 7 } },
+    { id: 'g_burger', n: '햄버거 헌터', ico: '🍔', c: { w: 5 } }, { id: 'g_sleep', n: '숙면 유도자', ico: '😴', c: { w: 10 } },
+    { id: 'g_shark', n: '턱 수집가', ico: '🦈', c: { w: 12 } }, { id: 'g_rocket', n: '로켓 연승', ico: '🚀', c: { s: 4 } },
+    { id: 'g_clown', n: '샌드백 조련사', ico: '🤡', c: { w: 15 } }, { id: 'g_bonus', n: '보너스 받을 자격', ico: '💰', c: { w: 25 } },
+    { id: 'g_p4p', n: 'P4P 후보', ico: '🌟', c: { s: 10 } }, { id: 'g_dragon', n: '케이지의 용', ico: '🐉', c: { w: 60 } },
+    { id: 'rk_top10', n: 'TOP 10 랭커', ico: '🥉', c: { rk: 10 } }, { id: 'rk_top3', n: 'TOP 3 랭커', ico: '🥈', c: { rk: 3 } },
+    { id: 'rk_p4p', n: 'P4P 1위', ico: '🥇', c: { rk: 1 } }],
   line: [
     { id: 'l1', n: '오늘 컨디션 미쳤다', ico: '💬', c: { w: 1 } }, { id: 'l2', n: '워밍업이 좀 필요했거든', ico: '💬', c: { w: 4 } },
     { id: 'l3', n: '다음 상대 줄 서세요', ico: '💬', c: { s: 3 } }, { id: 'l4', n: '벨트가 좀 무겁긴 하더라', ico: '💬', c: { s: 6 } },
-    { id: 'l5', n: '친구야, 우정은 링 밖에서만', ico: '💬', c: { pw: 1 } }, { id: 'l6', n: '이 구역 대인전은 내가 접수했다', ico: '💬', c: { pw: 5 } }],
+    { id: 'l5', n: '검정님 보너스 주십시오', ico: '💬', c: { pw: 1 } }, { id: 'l6', n: '블랙컴뱃 P4P 1위는 나야', ico: '💬', c: { pw: 5 } },
+    { id: 'l7', n: "I'm the King!", ico: '👑', c: { w: 2 } }, { id: 'l8', n: '쪼여쪼여!', ico: '💬', c: { w: 3 } },
+    { id: 'l9', n: '얌바!', ico: '💬', c: { w: 5 } }, { id: 'l10', n: '너한테 질 자신이 없다', ico: '💬', c: { w: 7 } },
+    { id: 'l11', n: '내가 화나기 전에 끝내자🔥', ico: '🔥', c: { w: 6 } }, { id: 'l12', n: '가드 올려, 그래도 깨진다👊', ico: '👊', c: { w: 9 } },
+    { id: 'l13', n: '덤비는 건 좋은데, 수준부터 맞춰라😑', ico: '😑', c: { w: 13 } }, { id: 'l14', n: '햄버거 먹고 와도 너는 잡겠다🍔', ico: '🍔', c: { w: 11 } },
+    { id: 'l15', n: '내가 만든 판에서 내가 지는 그림은 없어🎩', ico: '🎩', c: { w: 17 } }, { id: 'l16', n: '뭐노? 내로남불이노?🦍', ico: '🦍', c: { w: 14 } },
+    { id: 'rk_l3', n: '톱3는 아무나 되는 줄 아냐', ico: '👑', c: { rk: 3 } }, { id: 'rk_l1', n: '랭킹 1위, 이름값 하러 왔다', ico: '👑', c: { rk: 1 } }],
 };
 const FT_TITLES = [[0, '연습생'], [1, '신인'], [3, '루키'], [5, '파이터'], [10, '컨텐더'], [20, '랭커'], [35, '챔피언'], [50, '전설']];
 function ftTitle(w) { let t = FT_TITLES[0]; FT_TITLES.forEach(x => { if (w >= x[0]) t = x; }); return t[1]; }
@@ -20826,12 +20930,13 @@ function ftTitle(w) { let t = FT_TITLES[0]; FT_TITLES.forEach(x => { if (w >= x[
 /* ── 기록 저장/불러오기 ── */
 function ftEmptyEq() { return { aura: '', glow: '', shine: '', ring: '', trail: '', blast: '', cast: '', badge: '', line: '' }; }
 function ftLoad() {
-  const d = { best: 0, wins: 0, games: 0, bestStage: 0, f: {}, eqf: {}, seen: [] };
+  const d = { best: 0, wins: 0, games: 0, bestStage: 0, f: {}, eqf: {}, seen: [], rank: 0, rankAt: 0, hintAng: 0 };
   try {
     const o = JSON.parse(localStorage.getItem(FT_STORE) || '{}');
     d.best = +o.best || 0; d.bestStage = +o.bestStage || 0; d.wins = +o.wins || 0; d.games = +o.games || 0;
     if (o.f && typeof o.f === 'object') d.f = o.f;
     if (o.eqf && typeof o.eqf === 'object') d.eqf = o.eqf;
+    d.rank = +o.rank || 0; d.rankAt = +o.rankAt || 0; d.hintAng = +o.hintAng || 0;
     if (Array.isArray(o.seen)) d.seen = o.seen.filter(x => typeof x === 'string');
   } catch (e) { }
   return d;
@@ -20846,24 +20951,25 @@ function ftEqOf(rec, id) { return Object.assign(ftEmptyEq(), rec.eqf[id] || {});
 function ftAllGear() { const a = []; FT_SLOTS.forEach(([sl]) => FT_GEAR[sl].forEach(it => a.push(Object.assign({ slot: sl }, it)))); return a; }
 function ftGearById(slot, id) { return FT_GEAR[slot].find(i => i.id === id) || null; }
 function ftReal(rec, fid, it) {
+  if (it.c.rk) return !!rec.rank && rec.rank > 0 && rec.rank <= it.c.rk;     // 랭커 전용: 현재 랭킹이 기준 이내일 때만
   const f = ftFS(rec, fid);
   return Object.keys(it.c).every(k => f[k] >= it.c[k]);
 }
 function ftUnlocked(rec, fid, it) { return FT_TEST_UNLOCK || ftReal(rec, fid, it); }
 function ftNeedTxt(it) {
   const k = Object.keys(it.c)[0], n = it.c[k];
-  return k === 'w' ? `${n}승` : k === 's' ? `${n}연승` : k === 'pw' ? `대인전 ${n}승` : `대인전 ${n}연승`;
+  return k === 'rk' ? (n === 1 ? '랭킹 1위' : `랭킹 ${n}위 이내`) : k === 'w' ? `${n}승` : k === 's' ? `${n}연승` : k === 'pw' ? `PvP ${n}승` : `PvP ${n}연승`;
 }
-function ftRemain(rec, fid, it) { const k = Object.keys(it.c)[0]; return it.c[k] - ftFS(rec, fid)[k]; }
+function ftRemain(rec, fid, it) { const k = Object.keys(it.c)[0]; if (k === 'rk') return 1e9; return it.c[k] - ftFS(rec, fid)[k]; }
 function ftRealKeys(rec, fid) { return ftAllGear().filter(it => ftReal(rec, fid, it)).map(it => fid + ':' + it.id); }
 function ftNextGoal(rec, fid) {
   let best = null;
-  ftAllGear().forEach(it => { if (ftReal(rec, fid, it)) return; const r = ftRemain(rec, fid, it); if (!best || r < best.r) best = { it, r }; });
+  ftAllGear().forEach(it => { if (it.c.rk || it.c.pw || it.c.ps || ftReal(rec, fid, it)) return; const r = ftRemain(rec, fid, it); if (!best || r < best.r) best = { it, r }; });
   return best;
 }
 function ftGoalTxt(g) {
   const k = Object.keys(g.it.c)[0];
-  return `${g.it.n} (${k === 'w' ? g.r + '승' : k === 's' ? g.r + '연승' : k === 'pw' ? '대인전 ' + g.r + '승' : '대인전 ' + g.r + '연승'} 남음)`;
+  return `${g.it.n} (${k === 'w' ? g.r + '승' : g.r + '연승'} 남음)`;
 }
 function ftNewCount(rec) {
   let n = 0; FortEngine.ORDER.forEach(id => { ftRealKeys(rec, id).forEach(k => { if (!rec.seen.includes(k)) n++; }); });
@@ -20882,8 +20988,8 @@ function ftFoeEq(id, cfg) {
 }
 
 /* 어려운 조건일수록 더 화려한 3단계(전설) 연출 */
-const FT_T3 = { aura: ['gold', 'volt', 'shadow'], glow: ['rainbow', 'gold'], shine: ['chrome', 'neon', 'goldp'], ring: ['r_rain', 'r_star'], trail: ['t_rain', 't_neon', 't_gold'], blast: ['b_bolt', 'b_coin', 'b_heart', 'b_flame'], badge: ['g_crown', 'g_trophy', 'g_lion', 'g_sword', 'g_skull'], cast: ['c_flame', 'c_bolt', 'c_gold', 'c_roar'] };
-const FT_T2 = { aura: ['fire', 'ice'], glow: ['cyan', 'red'], shine: ['sweep'], ring: ['r_blue', 'r_red'], trail: ['t_bolt'], blast: ['b_star'], badge: ['g_fire', 'g_star'], cast: ['c_wave'] };
+const FT_T3 = { aura: ['gold', 'volt', 'shadow', 'plasma', 'galaxy', 'sun', 'rk_crown', 'money'], glow: ['rainbow', 'gold', 'sunset', 'rk_holo', 'pulse'], shine: ['chrome', 'neon', 'goldp', 'holo', 'lava', 'rk_diamond', 'rose'], ring: ['r_rain', 'r_star', 'r_fire', 'r_heart', 'rk_throne'], trail: ['t_rain', 't_neon', 't_gold', 't_galaxy', 't_toxic', 'rk_comet', 't_mono'], blast: ['b_bolt', 'b_coin', 'b_heart', 'b_flame', 'b_fw', 'b_ghost', 'b_rain', 'rk_nova'], badge: ['g_crown', 'g_trophy', 'g_lion', 'g_sword', 'g_skull', 'g_dragon', 'g_p4p', 'rk_top10', 'rk_top3', 'rk_p4p'], cast: ['c_flame', 'c_bolt', 'c_gold', 'c_roar', 'c_sun', 'c_dragon', 'c_shadow', 'rk_meteor'] };
+const FT_T2 = { aura: ['fire', 'ice', 'sakura', 'leaf', 'music', 'bubble'], glow: ['cyan', 'red', 'purple', 'orange', 'blue', 'mint'], shine: ['sweep', 'emerald', 'ruby', 'sapphire', 'obsid'], ring: ['r_blue', 'r_red', 'r_purple', 'r_double', 'r_ice'], trail: ['t_bolt', 't_sun', 't_ice', 't_crim'], blast: ['b_star', 'b_snow', 'b_money', 'b_pixel'], badge: ['g_fire', 'g_star', 'g_shark', 'g_clown', 'g_bonus', 'g_rocket'], cast: ['c_wave', 'c_quake', 'c_ice', 'c_fw', 'c_heart'] };
 function ftTier(slot, id) { if (!id) return 0; return (FT_T3[slot] || []).includes(id) ? 3 : (FT_T2[slot] || []).includes(id) ? 2 : 1; }
 
 /* 공격 모션: 기 모으는 시간(wind, 초) · 돌진 거리(lunge) · 무기 크기 배율(big) · 화면 흔들림 · 충격파 링 수 · 후광 색 · 추가 연출 */
@@ -20895,8 +21001,39 @@ const FT_CAST = {
   c_bolt: { wind: .34, lunge: 9, big: 1.8, shake: 12, flash: .5, rings: 2, col: ['150,220,255', '255,255,255'], halo: '130,210,255', bolt: 1, pt: 'zap' },
   c_gold: { wind: .3, lunge: 8, big: 1.9, shake: 8, flash: .3, rings: 2, col: ['255,224,110', '255,255,255'], halo: '255,210,80', coins: 1, pt: 'gold' },
   c_roar: { wind: .38, lunge: 10, big: 1.85, shake: 13, flash: .4, rings: 3, col: ['255,90,70', '255,230,120', '255,255,255'], halo: '255,90,70', text: '포효!', tcol: '#ffb347', pt: 'fire' },
+  c_quake: { wind: .3, lunge: 8, big: 1.7, shake: 15, flash: .15, rings: 3, col: ['200,160,110', '255,230,190', '150,110,70'], halo: '200,150,90', text: '쿵!', tcol: '#e6c27a', pt: 'fire' },
+  c_ice: { wind: .3, lunge: 8, big: 1.7, shake: 8, flash: .35, rings: 3, col: ['190,235,255', '255,255,255', '120,190,255'], halo: '170,225,255', text: '얼어라!', tcol: '#bfeaff', pt: 'zap' },
+  c_heart: { wind: .26, lunge: 7, big: 1.6, shake: 6, flash: .3, rings: 2, col: ['255,150,190', '255,255,255', '255,90,150'], halo: '255,130,180', text: '사랑해!', tcol: '#ff9ac4', coins: 1, pt: 'gold' },
+  c_fw: { wind: .32, lunge: 8, big: 1.8, shake: 9, flash: .4, rings: 2, col: ['255,120,200', '120,255,255', '255,230,110'], halo: '255,200,120', coins: 1, pt: 'gold' },
+  c_shadow: { wind: .36, lunge: 14, big: 1.9, shake: 12, flash: .3, rings: 3, col: ['170,90,255', '60,20,110', '255,255,255'], halo: '150,70,255', text: '그림자!', tcol: '#caa6ff', pt: 'zap' },
+  c_sun: { wind: .4, lunge: 10, big: 2.05, shake: 14, flash: .6, rings: 4, col: ['255,230,120', '255,150,50', '255,255,255'], halo: '255,200,80', pillar: 1, text: '태양!', tcol: '#ffe08a', pt: 'fire' },
+  c_dragon: { wind: .42, lunge: 11, big: 2.0, shake: 15, flash: .45, rings: 4, col: ['120,255,170', '255,230,110', '255,255,255'], halo: '110,240,150', pillar: 1, bolt: 1, text: '승천!', tcol: '#8dff9a', pt: 'fire' },
+  rk_meteor: { wind: .42, lunge: 12, big: 2.2, shake: 16, flash: .6, rings: 4, col: ['255,230,150', '255,120,60', '255,255,255'], halo: '255,170,70', pillar: 1, coins: 1, text: '혜성!', tcol: '#ffd24a', pt: 'fire' },
 };
 function ftCastDef(id) { return (id && FT_CAST[id]) || FT_CAST0; }
+
+/* 아이콘: 이모지 대신 직접 그린 것(검정 글러브, 동그라미 점/링) */
+const FT_GLOVE_SVG = '<svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M4.5 10c0-3.6 3-6 7.5-6s7.5 2.4 7.5 6v4.2c0 1.9-1 3-2.4 3H8.4C6.2 17.2 4.5 15 4.5 12z" fill="#15151a" stroke="#6b6f7c" stroke-width="1"/><ellipse cx="9.4" cy="8.2" rx="2.8" ry="1.5" fill="#3b3d48"/><rect x="7.6" y="17.2" width="9.6" height="4.2" rx="1.2" fill="#f4f4f6" stroke="#15151a" stroke-width=".8"/><rect x="7.6" y="18.7" width="9.6" height="1.2" fill="#d4a017"/></svg>';
+const FT_GIFT_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="9" width="17" height="11.5" rx="1.8"/><rect x="2.5" y="6.2" width="19" height="3.8" rx="1.2"/><path d="M12 6.2v14.3"/><path d="M12 6.2C10.6 3 7 3.2 7.3 5.4c.2 1.4 2.7 .8 4.7.8"/><path d="M12 6.2c1.4-3.2 5-3 4.7-.8-.2 1.4-2.7 .8-4.7 .8"/></svg>';
+const FT_HOME_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2"/><path d="M5.8 9.8V20h12.4V9.8"/><path d="M10 20v-5.4h4V20"/></svg>';
+const FT_FLAG_SVG = '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 21V3.5"/><path d="M5.5 4.6c3.6-1.6 6 1.6 10 0 1.4-.6 2.6-.6 3.2-.4v8.2c-.7-.2-1.8-.2-3.2.4-4 1.6-6.4-1.6-10 0" fill="rgba(255,255,255,.92)"/></svg>';
+function ftIco(it) {
+  const s0 = (it && it.ico) || '';
+  if (s0 === '@glove') return FT_GLOVE_SVG;
+  if (s0.indexOf('@dot:') === 0) return `<i class="ico-dot" style="background:${s0.slice(5)}"></i>`;
+  if (s0.indexOf('@ring:') === 0) return `<i class="ico-ring" style="border-color:${s0.slice(6)}"></i>`;
+  return s0;
+}
+/* 캔버스용 칭호 라벨: 글러브는 직접 그린다 */
+function ftBadgeLabel(bd) { return (bd.ico && bd.ico[0] !== '@') ? `${bd.ico} ${bd.n}` : bd.n; }
+function ftBadgeIcon(ctx, bd, x, y, s) {
+  if (!bd || bd.ico !== '@glove') return;
+  ctx.save(); ctx.translate(x, y); ctx.scale(s / 24, s / 24); ctx.translate(-12, -12);
+  ctx.fillStyle = '#15151a'; ctx.strokeStyle = '#8a8e9c'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(4.5, 10); ctx.bezierCurveTo(4.5, 6.4, 7.5, 4, 12, 4); ctx.bezierCurveTo(16.5, 4, 19.5, 6.4, 19.5, 10); ctx.lineTo(19.5, 14.2); ctx.bezierCurveTo(19.5, 16, 18.5, 17.2, 17.1, 17.2); ctx.lineTo(8.4, 17.2); ctx.bezierCurveTo(6.2, 17.2, 4.5, 15, 4.5, 12); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#f4f4f6'; ctx.fillRect(7.6, 17.2, 9.6, 4.2); ctx.fillStyle = '#d4a017'; ctx.fillRect(7.6, 18.7, 9.6, 1.2);
+  ctx.restore();
+}
 
 /* ══════════ 효과 그리기 ══════════ */
 function ftHsl(h, s, l, a) { return `hsla(${Math.round(h) % 360},${s}%,${l}%,${a === undefined ? 1 : a})`; }
@@ -20906,8 +21043,60 @@ function ftHslRgb(h) {
   return `${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)}`;
 }
 /* 오라: 캐릭터 뒤에서 일렁이는 효과 */
+/* 새 오라들: 색 + 입자 움직임(fall 떨어짐 / rise 떠오름 / orbit 맴돎 / tw 반짝)만 다른 데이터 표 */
+const FT_AURA2 = {
+  sakura: { g: ['255,170,200', 'rgba(255,120,170,0)'], pc: ['#ffc2d9', '#ff8fb8', '#ffffff'], sh: 'petal', mv: 'fall', n: 12 },
+  leaf: { g: ['120,220,120', 'rgba(60,170,80,0)'], pc: ['#7fe08a', '#4cbf62', '#d6ffa8'], sh: 'leaf', mv: 'orbit', n: 9 },
+  bubble: { g: ['170,230,255', 'rgba(110,190,255,0)'], pc: ['#ffffff', '#bfeaff'], sh: 'bubble', mv: 'rise', n: 10 },
+  music: { g: ['190,140,255', 'rgba(130,80,230,0)'], pc: ['#ffd24a', '#ff7ac8', '#7fe8ff'], sh: 'note', mv: 'rise', n: 7 },
+  plasma: { g: ['170,110,255', 'rgba(90,200,255,0)'], pc: ['#e3c8ff', '#8ff0ff', '#ffffff'], sh: 'orb', mv: 'orbit', n: 12 },
+  money: { g: ['110,210,120', 'rgba(60,160,80,0)'], pc: ['#7fe08a', '#d8f7dc', '#ffd24a'], sh: 'bill', mv: 'fall', n: 11 },
+  galaxy: { g: ['110,90,230', 'rgba(40,20,120,0)'], pc: ['#ffffff', '#b8c8ff', '#ff9ae0', '#ffe9a6'], sh: 'star', mv: 'orbit', n: 16 },
+  sun: { g: ['255,200,70', 'rgba(255,120,30,0)'], pc: ['#fff3b0', '#ffc94a', '#ff9a3a'], sh: 'star', mv: 'orbit', n: 12 },
+};
+function ftAuraShape(ctx, sh, x, y, r, rot, col) {
+  ctx.fillStyle = col; ctx.strokeStyle = col;
+  if (sh === 'petal') { ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.beginPath(); ctx.ellipse(0, 0, r * 1.5, r * .8, 0, 0, 7); ctx.fill(); ctx.restore(); }
+  else if (sh === 'leaf') { ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.beginPath(); ctx.moveTo(-r * 1.6, 0); ctx.quadraticCurveTo(0, -r * 1.3, r * 1.6, 0); ctx.quadraticCurveTo(0, r * 1.3, -r * 1.6, 0); ctx.fill(); ctx.restore(); }
+  else if (sh === 'bubble') { ctx.lineWidth = Math.max(1, r * .35); ctx.globalAlpha *= .85; ctx.beginPath(); ctx.arc(x, y, r * 1.5, 0, 7); ctx.stroke(); ctx.globalAlpha *= .3; ctx.fill(); }
+  else if (sh === 'note') { ctx.font = `800 ${Math.round(r * 5)}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(rot > 3 ? '♪' : '♫', x, y); }
+  else if (sh === 'bill') { ctx.save(); ctx.translate(x, y); ctx.rotate(rot); ctx.fillRect(-r * 1.7, -r, r * 3.4, r * 2); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.arc(0, 0, r * .55, 0, 7); ctx.fill(); ctx.restore(); }
+  else if (sh === 'star') { r *= 1.4; ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r * .3, y - r * .3); ctx.lineTo(x + r, y); ctx.lineTo(x + r * .3, y + r * .3); ctx.lineTo(x, y + r); ctx.lineTo(x - r * .3, y + r * .3); ctx.lineTo(x - r, y); ctx.lineTo(x - r * .3, y - r * .3); ctx.closePath(); ctx.fill(); }
+  else { ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); }
+}
+function ftDrawAura2(ctx, kind, cx, foot, k, t, tier) {
+  const d = FT_AURA2[kind]; if (!d) return false;
+  const mid = foot - k * .45;
+  ctx.save();
+  const gr = ctx.createRadialGradient(cx, mid, 0, cx, mid, k * .72); gr.addColorStop(0, `rgba(${d.g[0]},.42)`); gr.addColorStop(1, d.g[1]);
+  ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(cx, mid, k * .62, k * .72, 0, 0, 7); ctx.fill();
+  if (kind === 'sun') { ctx.save(); ctx.translate(cx, mid); ctx.rotate(t * .5); for (let i = 0; i < 12; i++) { const a0 = i / 12 * 6.283; ctx.fillStyle = `rgba(255,214,90,${.18 + .08 * Math.sin(t * 3 + i)})`; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, k * (.85 + (i % 2) * .15), a0, a0 + .2); ctx.closePath(); ctx.fill(); } ctx.restore(); }
+  for (let i = 0; i < d.n; i++) {
+    const ph = (t * (d.mv === 'orbit' ? .22 : .32) + i / d.n) % 1; let x, y;
+    if (d.mv === 'fall') { x = cx + Math.sin(i * 2.1 + t * 1.3) * k * .42; y = mid - k * .62 + ph * k * 1.3; }
+    else if (d.mv === 'rise') { x = cx + Math.sin(i * 1.7 + t * 1.6) * k * .36; y = foot - ph * k * 1.1; }
+    else { const a = t * (.9 + (i % 3) * .25) + i * 6.283 / d.n; x = cx + Math.cos(a) * k * (.32 + (i % 3) * .08); y = mid + Math.sin(a * 1.2) * k * .5; }
+    const al = d.mv === 'orbit' ? .55 + .4 * Math.sin(t * 4 + i) : Math.sin(ph * Math.PI);
+    ctx.globalAlpha = Math.max(0, Math.min(1, al)); ftAuraShape(ctx, d.sh, x, y, k * (.03 + (i % 3) * .008), t * 2 + i, d.pc[i % d.pc.length]);
+  }
+  ctx.restore(); return true;
+}
+function ftDrawCrownAura(ctx, cx, foot, k, t) {
+  const mid = foot - k * .45;
+  ctx.save(); ctx.translate(cx, mid); ctx.rotate(t * .5);
+  for (let i = 0; i < 14; i++) { const a0 = i / 14 * 6.283; ctx.fillStyle = `rgba(255,${200 + (i % 3) * 18},90,${.2 + .08 * Math.sin(t * 3 + i)})`; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, k * (1.1 + (i % 2) * .22), a0, a0 + .15); ctx.closePath(); ctx.fill(); }
+  ctx.restore();
+  const gr = ctx.createRadialGradient(cx, mid, 0, cx, mid, k * .8); gr.addColorStop(0, 'rgba(255,225,120,.5)'); gr.addColorStop(1, 'rgba(255,170,40,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(cx, mid, k * .72, k * .8, 0, 0, 7); ctx.fill();
+  for (let i = 0; i < 9; i++) { const a = t * 1.3 + i * .7, x = cx + Math.cos(a) * k * .5, y = mid + Math.sin(a * 1.4) * k * .62; ftAuraShape(ctx, 'star', x, y, k * .03 * (.7 + .3 * Math.sin(t * 6 + i)), 0, '#fff3b0'); }
+  const cy = foot - k * 1.14 + Math.sin(t * 3) * k * .02, w = k * .3;      // 머리 위 왕관
+  ctx.fillStyle = '#ffd24a'; ctx.strokeStyle = '#8a5a05'; ctx.lineWidth = Math.max(1, k * .02);
+  ctx.beginPath(); ctx.moveTo(cx - w, cy); ctx.lineTo(cx - w * 1.05, cy - w * .8); ctx.lineTo(cx - w * .5, cy - w * .35); ctx.lineTo(cx, cy - w * 1.0); ctx.lineTo(cx + w * .5, cy - w * .35); ctx.lineTo(cx + w * 1.05, cy - w * .8); ctx.lineTo(cx + w, cy); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#ff4d6d'; ctx.beginPath(); ctx.arc(cx, cy - w * .35, w * .13, 0, 7); ctx.fill();
+}
 function ftDrawAura(ctx, kind, cx, foot, k, t, tier) {
   if (!kind) return;
+  if (kind === 'rk_crown') { ftDrawCrownAura(ctx, cx, foot, k, t); return; }
+  if (FT_AURA2[kind]) { ftDrawAura2(ctx, kind, cx, foot, k, t, tier); return; }
   if (tier >= 3) {                                   // 전설: 뒤에서 회전하는 빛줄기 + 더 큰 오라
     const rc = ({ gold: '255,224,110', volt: '130,220,255', shadow: '170,90,255', fire: '255,140,50' })[kind] || '255,255,255';
     ctx.save(); ctx.translate(cx, foot - k * .45); ctx.rotate(t * .6);
@@ -20963,7 +21152,13 @@ function ftDrawAura(ctx, kind, cx, foot, k, t, tier) {
   ctx.restore();
 }
 function ftGlowColor(kind, t) {
-  return ({ wht: '#ffffff', red: '#ff3b3b', cyan: '#4de3ff', gold: '#ffd24a' })[kind] || (kind === 'rainbow' ? ftHsl(t * 180, 100, 62) : null);
+  const fx = ({ wht: '#ffffff', red: '#ff3b3b', cyan: '#4de3ff', gold: '#ffd24a', pink: '#ff7ac8', lime: '#8dff6b', purple: '#b58cff', orange: '#ff9a3a', blue: '#4d7bff', mint: '#6ff0c0' })[kind];
+  if (fx) return fx;
+  if (kind === 'rainbow') return ftHsl(t * 180, 100, 62);
+  if (kind === 'rk_holo') return ftHsl(t * 320, 100, 70);
+  if (kind === 'sunset') return ftHsl(330 + Math.sin(t * 1.6) * 50, 100, 62);
+  if (kind === 'pulse') return ftHsl(185, 100, 55 + 22 * Math.sin(t * 5));
+  return null;
 }
 /* 광택: 스프라이트 실루엣 위에만 덧칠 → 어떤 선수에게나 자연스럽다 */
 function ftShine(ctx, img, dx, dy, dw, dh, kind, t) {
@@ -20972,10 +21167,15 @@ function ftShine(ctx, img, dx, dy, dw, dh, kind, t) {
   const W = Math.max(8, Math.ceil(dw * 2)), H = Math.max(8, Math.ceil(dh * 2));
   if (oc.width !== W || oc.height !== H) { oc.width = W; oc.height = H; }
   o.globalCompositeOperation = 'source-over'; o.clearRect(0, 0, W, H);
+  const TINT = { pearl: 'rgba(255,245,250,.32)', rose: 'rgba(240,160,150,.46)', emerald: 'rgba(40,200,120,.4)', ruby: 'rgba(230,40,70,.4)', sapphire: 'rgba(50,100,235,.42)', obsid: 'rgba(10,8,20,.55)' };
+  if (TINT[kind]) { o.fillStyle = TINT[kind]; o.fillRect(0, 0, W, H); }
+  else if (kind === 'holo') { const g2 = o.createLinearGradient(0, 0, W, H); for (let i = 0; i <= 4; i++) g2.addColorStop(i / 4, ftHsl(t * 120 + i * 70, 100, 68, .42)); o.fillStyle = g2; o.fillRect(0, 0, W, H); }
+  else if (kind === 'lava') { const g2 = o.createLinearGradient(0, H, 0, 0); g2.addColorStop(0, 'rgba(255,70,20,.62)'); g2.addColorStop(.5 + .15 * Math.sin(t * 2), 'rgba(255,170,40,.4)'); g2.addColorStop(1, 'rgba(255,230,120,.06)'); o.fillStyle = g2; o.fillRect(0, 0, W, H); }
+  else if (kind === 'rk_diamond') { o.fillStyle = 'rgba(190,235,255,.34)'; o.fillRect(0, 0, W, H); const g2 = o.createLinearGradient(0, 0, W, H); g2.addColorStop(0, 'rgba(255,255,255,0)'); g2.addColorStop(.5, ftHsl(190 + Math.sin(t * 3) * 40, 100, 85, .5)); g2.addColorStop(1, 'rgba(255,255,255,0)'); o.fillStyle = g2; o.fillRect(0, 0, W, H); }
   if (kind === 'goldp') { o.fillStyle = 'rgba(255,196,40,.5)'; o.fillRect(0, 0, W, H); }
   else if (kind === 'chrome') { const g = o.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(238,244,255,.6)'); g.addColorStop(.5, 'rgba(140,150,175,.5)'); g.addColorStop(1, 'rgba(210,220,240,.55)'); o.fillStyle = g; o.fillRect(0, 0, W, H); }
   else if (kind === 'neon') { o.fillStyle = ftHsl(300 + Math.sin(t * 2) * 60, 100, 60, .3 + .12 * Math.sin(t * 5)); o.fillRect(0, 0, W, H); }
-  const bx = ((t * .6) % 2.2 - .6) * W, bw = W * .28;
+  const bx = ((t * (kind === 'rk_diamond' ? 1.1 : .6)) % 2.2 - .6) * W, bw = W * .28;
   const g = o.createLinearGradient(bx - bw, 0, bx + bw, H * .5);
   g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, kind === 'goldp' ? 'rgba(255,245,190,.95)' : 'rgba(255,255,255,.8)'); g.addColorStop(1, 'rgba(255,255,255,0)');
   o.fillStyle = g; o.fillRect(0, 0, W, H);
@@ -20993,7 +21193,7 @@ function ftDrawRing(ctx, kind, sx, sy, sc, t, active, tier) {
   }
   const rx = 30 * sc, ry = 7.5 * sc, pulse = 1 + .06 * Math.sin(t * 4), a = active ? 1 : .75;
   ctx.save(); ctx.lineWidth = Math.max(1.6, 2.4 * sc);
-  const col = ({ r_gold: '255,210,74', r_red: '255,70,60', r_blue: '77,200,255', r_star: '255,214,90' })[kind];
+  const col = ({ r_gold: '255,210,74', r_red: '255,70,60', r_blue: '77,200,255', r_star: '255,214,90', r_green: '95,224,138', r_pink: '255,122,200', r_purple: '181,140,255', r_dash: '255,255,255', r_double: '255,210,74', r_ice: '170,230,255', r_heart: '255,100,170', r_fire: '255,140,50', rk_throne: '255,214,90' })[kind];
   if (kind === 'r_rain') {
     for (let i = 0; i < 14; i++) {
       ctx.strokeStyle = `rgba(${ftHslRgb(i * 26 + t * 140)},${a})`; ctx.beginPath(); ctx.ellipse(sx, sy, rx * pulse, ry * pulse, 0, i / 14 * 6.283, (i + 1.08) / 14 * 6.283); ctx.stroke();
@@ -21001,6 +21201,17 @@ function ftDrawRing(ctx, kind, sx, sy, sc, t, active, tier) {
   } else {
     ctx.strokeStyle = `rgba(${col},${a})`; ctx.beginPath(); ctx.ellipse(sx, sy, rx * pulse, ry * pulse, 0, 0, 7); ctx.stroke();
     ctx.strokeStyle = `rgba(${col},${.45 * a})`; ctx.beginPath(); ctx.ellipse(sx, sy, rx * .66 * pulse, ry * .66 * pulse, 0, 0, 7); ctx.stroke();
+    if (kind === 'r_dash') { ctx.save(); ctx.setLineDash([8 * sc, 6 * sc]); ctx.lineDashOffset = -t * 30; ctx.strokeStyle = `rgba(${col},${a})`; ctx.beginPath(); ctx.ellipse(sx, sy, rx * 1.12, ry * 1.12, 0, 0, 7); ctx.stroke(); ctx.restore(); }
+    if (kind === 'r_double' || kind === 'rk_throne') { ctx.strokeStyle = `rgba(${col},${.8 * a})`; ctx.beginPath(); ctx.ellipse(sx, sy, rx * 1.3 * pulse, ry * 1.3 * pulse, 0, 0, 7); ctx.stroke(); }
+    if (kind === 'r_ice' || kind === 'r_fire' || kind === 'r_heart' || kind === 'rk_throne') {
+      const n = kind === 'rk_throne' ? 8 : 6;
+      for (let i = 0; i < n; i++) {
+        const an = (kind === 'r_fire' ? -t * 2.2 : t * 1.4) + i * 6.283 / n, x = sx + Math.cos(an) * rx, y = sy + Math.sin(an) * ry, r = 3.4 * sc + 1;
+        if (kind === 'r_heart') { ctx.fillStyle = '#ff6fae'; ctx.beginPath(); ctx.moveTo(x, y + r); ctx.bezierCurveTo(x - r * 1.6, y - r * .2, x - r * .7, y - r * 1.4, x, y - r * .4); ctx.bezierCurveTo(x + r * .7, y - r * 1.4, x + r * 1.6, y - r * .2, x, y + r); ctx.fill(); }
+        else if (kind === 'r_fire') { const hh = r * (2.2 + Math.sin(t * 9 + i)); const fg = ctx.createLinearGradient(0, y, 0, y - hh); fg.addColorStop(0, 'rgba(255,210,70,.95)'); fg.addColorStop(1, 'rgba(255,60,20,0)'); ctx.fillStyle = fg; ctx.beginPath(); ctx.moveTo(x - r * .8, y); ctx.quadraticCurveTo(x, y - hh * .7, x, y - hh); ctx.quadraticCurveTo(x, y - hh * .5, x + r * .8, y); ctx.fill(); }
+        else { ctx.fillStyle = kind === 'r_ice' ? '#e6f6ff' : '#fff3b0'; ctx.beginPath(); ctx.moveTo(x, y - r * 1.8); ctx.lineTo(x + r * .5, y - r * .5); ctx.lineTo(x + r * 1.8, y); ctx.lineTo(x + r * .5, y + r * .5); ctx.lineTo(x, y + r * 1.8); ctx.lineTo(x - r * .5, y + r * .5); ctx.lineTo(x - r * 1.8, y); ctx.lineTo(x - r * .5, y - r * .5); ctx.closePath(); ctx.fill(); }
+      }
+    }
     if (kind === 'r_star') {
       for (let i = 0; i < 6; i++) {
         const an = t * 1.6 + i * 1.047, x = sx + Math.cos(an) * rx, y = sy + Math.sin(an) * ry, r = 3.2 * sc + 1;
@@ -21018,6 +21229,15 @@ function ftTrailRGB(kind, i, t) {
     case 't_gold': return '255,214,90';
     case 't_neon': return i % 2 ? '255,70,225' : '70,255,255';
     case 't_rain': return ftHslRgb(i * 38 + t * 220);
+    case 't_sakura': return i % 2 ? '255,170,205' : '255,235,245';
+    case 't_mint': return i % 2 ? '110,240,190' : '210,255,240';
+    case 't_ice': return i % 2 ? '170,230,255' : '255,255,255';
+    case 't_sun': return i % 2 ? '255,150,60' : '255,110,170';
+    case 't_crim': return i % 3 ? '230,40,70' : '255,150,160';
+    case 't_toxic': return i % 2 ? '140,255,70' : '230,255,90';
+    case 't_galaxy': return ['150,120,255', '255,150,230', '255,255,255', '110,200,255'][i % 4];
+    case 't_mono': return i % 2 ? '255,255,255' : '90,90,100';
+    case 'rk_comet': return i % 3 === 0 ? '255,240,170' : i % 3 === 1 ? '120,230,255' : ftHslRgb(i * 30 + t * 260);
   }
   return null;
 }
@@ -21043,6 +21263,15 @@ const FT_BLAST = {
   b_bolt: { cols: ['#bfeaff', '#ffffff', '#7fb8ff'], n: 1.2, shape: 'bolt' },
   b_heart: { cols: ['#ff7aa8', '#ff3b7a', '#ffd1e0'], n: 1.1, shape: 'heart' },
   b_coin: { cols: ['#ffd24a', '#ffe08a', '#c98c00'], n: 1.1, shape: 'coin' },
+  b_sakura: { cols: ['#ffc2d9', '#ff8fb8', '#ffffff'], n: 1.6, shape: 'circ', up: 1 },
+  b_bubble: { cols: ['#ffffff', '#bfeaff', '#9ad6ff'], n: 1.2, shape: 'circ', up: 1 },
+  b_snow: { cols: ['#ffffff', '#d8f1ff', '#9ad6ff'], n: 1.5, shape: 'star' },
+  b_pixel: { cols: ['#ff4dd8', '#4dffff', '#ffffff', '#ffd24a'], n: 1.6, shape: 'sq' },
+  b_money: { cols: ['#5fbf6a', '#d8f7dc', '#2f8f45'], n: 1.5, shape: 'sq' },
+  b_rain: { cols: ['#ff4d6d', '#ffd24a', '#8dff6b', '#4de3ff', '#c77dff'], n: 2, shape: 'circ' },
+  b_ghost: { cols: ['#e8dcff', '#b58cff', '#6a3fd0', '#ffffff'], n: 1.6, shape: 'circ', up: 1 },
+  b_fw: { cols: ['#ff4dd8', '#ffd24a', '#4dffff', '#8dff6b', '#ffffff'], n: 2.2, shape: 'star' },
+  rk_nova: { cols: ['#ffffff', '#ffd24a', '#ff7ac8', '#4de3ff', '#c9a4ff'], n: 2.6, shape: 'star' },
 };
 function ftDrawShape(ctx, q, x, y, r) {
   const sh = q.shape;
@@ -21095,7 +21324,7 @@ function ftDressInfo() {
   const rec = ftLoad(), id = FT.dChar, f = ftFS(rec, id), c = FortEngine.CHARS[id];
   document.getElementById('fdName').textContent = c.name;
   document.getElementById('fdStat').textContent = `${c.name} 기준 해금`;
-  document.getElementById('fdRec').innerHTML = `승 ${f.w} · 연승 ${f.s}<br>대인전 ${f.pw}승 · ${f.ps}연승`;
+  document.getElementById('fdRec').innerHTML = `승 ${f.w} · 연승 ${f.s}<br>PvP ${f.pw}승 · ${f.ps}연승`;
   FT.dEq = ftEqOf(rec, id);
 }
 function ftDressTabs() {
@@ -21112,8 +21341,9 @@ function ftDressGrid() {
   let h = `<button type="button" class="fd-it${cur ? '' : ' on'}" data-id=""><span class="fd-ico">🚫</span><b>해제</b><small>&nbsp;</small></button>`;
   h += FT_GEAR[sl].map(it => {
     const real = ftReal(rec, fid, it), ok = ftUnlocked(rec, fid, it), isNew = FT.dNew[fid + ':' + it.id];
-    const note = real ? (isNew ? '<em>NEW</em>' : '해금됨') : (FT_TEST_UNLOCK ? `<u>TEST</u> ${ftNeedTxt(it)}` : '🔒 ' + ftNeedTxt(it));
-    return `<button type="button" class="fd-it${cur === it.id ? ' on' : ''}${ok ? '' : ' lock'}" data-id="${it.id}"><span class="fd-ico">${it.ico}</span><b>${esc(it.n)}</b><small>${note}</small></button>`;
+    const rk = !!it.c.rk;
+    const note = real ? (isNew ? '<em>NEW</em>' : (rk ? '<s class="rk">RANKER</s>' : '해금됨')) : (FT_TEST_UNLOCK ? `<u>TEST</u> ${ftNeedTxt(it)}` : '🔒 ' + ftNeedTxt(it));
+    return `<button type="button" class="fd-it${cur === it.id ? ' on' : ''}${ok ? '' : ' lock'}${rk ? ' rk' : ''}" data-id="${it.id}"><span class="fd-ico">${ftIco(it)}</span><b>${esc(it.n)}</b><small>${note}</small></button>`;
   }).join('');
   el.innerHTML = h;
   el.querySelectorAll('button').forEach(b => {
@@ -21137,7 +21367,7 @@ function ftDressDraw() {
   const cx = 42, foot = 138, hH = 112;
   ftDrawBody(ctx, FT.dChar, eq, cx, foot, hH, 1.3, { t: t, active: true });
   const badge = ftGearById('badge', eq.badge);
-  if (badge) { ctx.font = '800 9px Jua, Pretendard, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffd24a'; ctx.fillText(badge.ico + ' ' + badge.n, cx, 16); }
+  if (badge) { ctx.font = '800 9px Jua, Pretendard, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffd24a'; const bl = ftBadgeLabel(badge), bw0 = ctx.measureText(bl).width; if (badge.ico === '@glove') { ftBadgeIcon(ctx, badge, cx - bw0 / 2 - 7, 13, 12); ctx.fillText(bl, cx + 6, 16); } else ctx.fillText(bl, cx, 16); }
   // 시험 발사: 기 모으기 → 발사(링/돌진) → 굵은 궤적 비행 → 폭발
   const cd = ftCastDef(eq.cast), cyc = (t * .5) % 1.8, w0 = .42, dur = 1.0;
   const P = u => ({ x: cx + 14 + u * 64, y: 96 - Math.sin(u * Math.PI) * 52 + u * 24 });
@@ -21163,6 +21393,51 @@ function ftDressDraw() {
     ctx.globalAlpha = 1;
   }
   ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+
+/* ══════════ 유저 랭킹 (서버) ══════════
+   랭킹 점수(RP) = 최고 STAGE x 100 + 최고 연승 x 40 + 누적 AI 승리 x 5
+   · 깊이(스테이지)를 가장 크게, 꾸준함(연승)과 누적(승리)을 보조로 본다. 한 번 크게 운이 좋은 것보다 오래 잘하는 쪽이 오른다.
+   · 서버 함수(fort_submit / fort_get_ranking)는 fort_ranking.sql 을 Supabase에서 실행해야 켜진다. 안 되어 있으면 안내 문구만 보인다. */
+function ftRP(r) { return (r.bestStage || 0) * 100 + (r.best || 0) * 40 + (r.wins || 0) * 5; }
+async function ftSubmitRank(rec) {
+  try {
+    if (typeof sb === 'undefined' || !sb || !gmMyNick) return false;
+    const { data, error } = await sb.rpc('fort_submit', { p_best_stage: rec.bestStage || 0, p_best_streak: rec.best || 0, p_wins: rec.wins || 0, p_games: rec.games || 0 });
+    if (error || (data && data.ok === false)) return false;
+    return true;
+  } catch (e) { return false; }
+}
+async function ftLoadBoard() {
+  const el = document.getElementById('ftRankBoard'); if (!el) return;
+  const tok = gmToken;
+  const head = `<div style="font-weight:800;margin-bottom:2px">🏆 유저 랭킹</div>
+    <div style="font-size:11.5px;color:var(--muted);line-height:1.6;margin-bottom:8px">랭킹 점수 = 최고 STAGE x 100 + 최고 연승 x 40 + 누적 승리 x 5<br>TOP 1 · TOP 3 · TOP 10 은 랭커 전용 꾸미기가 열려요</div>`;
+  if (typeof sb === 'undefined' || !sb) { el.innerHTML = head + '<div class="empty">랭킹 서버에 연결되지 않았어요.</div>'; return; }
+  el.innerHTML = head + '<div class="empty">불러오는 중…</div>';
+  try {
+    const { data, error } = await sb.rpc('fort_get_ranking', { p_limit: 100 });
+    if (tok !== gmToken || !document.getElementById('ftRankBoard')) return;
+    if (error) throw error;
+    const rows = Array.isArray(data) ? data : [];
+    const rec = ftLoad(); let my = 0;
+    rows.forEach((r, i) => { if (gmMyNick && r.nickname === gmMyNick) my = i + 1; });
+    if (rec.rank !== my) { rec.rank = my; rec.rankAt = Date.now(); ftSave(rec); ftRenderRank(); }
+    if (!rows.length) { el.innerHTML = head + '<div class="empty">아직 랭킹이 없어요. 첫 번째 랭커가 되어보세요!</div>'; return; }
+    const medal = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '위';
+    const top = +rows[0].rp || 1;
+    el.innerHTML = head + rows.slice(0, 30).map((r, i) => {
+      const me = gmMyNick && r.nickname === gmMyNick, pct = Math.max(5, Math.round(+r.rp / top * 100));
+      return `<div class="grank-row ${i === 0 ? 'top1' : ''}${me ? ' me' : ''}"><span class="gr-medal">${medal(i)}</span>
+        <div class="gr-wrap"><div class="gr-nick"><span class="gr-nk">${esc(r.nickname)}</span>${me ? ' <span style="font-size:11px;color:var(--key-deep)">나</span>' : ''}
+          <span style="font-size:11px;color:var(--dim);font-weight:600">STAGE ${r.best_stage} · ${r.best_streak}연승 · ${r.wins}승</span></div>
+          <div class="gr-bar"><span class="gr-fill" style="width:${pct}%"></span></div></div>
+        <span style="font-weight:900;color:${i === 0 ? 'var(--key-deep)' : 'var(--text)'}">${(+r.rp).toLocaleString()}<span style="font-size:11px;color:var(--dim)">RP</span></span></div>`;
+    }).join('') + (my > 30 ? `<div style="text-align:center;font-size:12.5px;margin-top:8px;color:var(--muted)">내 순위 <b style="color:var(--text)">${my}위</b></div>` : '');
+  } catch (e) {
+    if (document.getElementById('ftRankBoard')) el.innerHTML = head + '<div class="empty">랭킹을 불러오지 못했어요.<br>관리자가 fort_ranking.sql 을 실행해야 켜져요.</div>';
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -21360,8 +21635,8 @@ function ftOpenRules() {
       <b style="color:var(--text)">지형</b> 매 판 7가지 지형 중 하나가 랜덤으로 나와요. 엄폐물 뒤에서 맞으면 데미지 절반! 높은 곳에서 떨어지면 낙하 데미지가 있어요.<br>
       <b style="color:var(--text)">스킬</b> 때리고 맞을수록 에너지가 차요. 100%가 되면 선수 고유 스킬(분신술, 돈 폭우 등)을 쓸 수 있어요.<br>
       <b style="color:var(--text)">보급 드론</b> 3턴마다 드론이 날아와 랜덤 위치에 선물을 떨어뜨려요. 걸어가서 먹으면 회복, 실드, 파워샷, 더블샷, 이동력 중 하나!<br>
-      <b style="color:var(--text)">AI 대전</b> 스테이지는 끝이 없어요. 이길수록 AI가 강해지고 5스테이지마다 보스! 목숨은 3개, 지면 같은 스테이지에 재도전하고 목숨이 다 떨어지면 마지막 보스 다음 스테이지(체크포인트)부터 다시 시작해요. 보스를 잡으면 목숨이 1개 회복돼요.<br>
-      <b style="color:var(--text)">꾸미기</b> 공격 모션까지 9가지! 선수별로 따로 해금돼요. 결과 화면에서도 바로 꾸밀 수 있어요. 그 선수로 이긴 승리와 연승이 그 선수의 꾸미기를 열어 줘요. 2인 대결 승리는 대인전 전용 꾸미기를 열어 줘요.
+      <b style="color:var(--text)">AI 매칭</b> 스테이지는 끝이 없어요. 이길수록 AI가 강해지고 5스테이지마다 보스! 목숨은 3개, 지면 같은 스테이지에 재도전하고 목숨이 다 떨어지면 마지막 보스 다음 스테이지(체크포인트)부터 다시 시작해요. 보스를 잡으면 목숨이 1개 회복돼요.<br>
+      <b style="color:var(--text)">꾸미기</b> 공격 모션까지 9가지! 선수별로 따로 해금돼요. 결과 화면에서도 바로 꾸밀 수 있어요. 그 선수로 이긴 승리와 연승이 그 선수의 꾸미기를 열어 줘요. PvP 승리는 PvP 전용 꾸미기를 열어 줘요. 랭킹 상위권은 랭커 전용 꾸미기가 열려요.
     </div></div></div>`;
   ov.onclick = e => { if (e.target === ov) history.back(); };
   pushModal(ov);
@@ -21374,12 +21649,12 @@ function viewGameFort() {
   Object.assign(FT, { active: false, phase: 'title', st: null, flying: [], parts: [], pops: [], booms: [], bubbles: [], aiTween: null, dragging: false, drag: null, g: null, mode: 'ai', stage: 1, streak: 0, sel: [null, null], pick: null, shake: 0, flash: 0, hurt: 0, ko: null, cutin: null, keys: {}, cAnim: {}, drones: [], amb: null, tl: 0, cfg: null, hitstop: 0, lives: 3, cp: 1, nextStage: 1, cam: { x: 300, z: 1, up: 0 }, camFree: false, camOv: false, camTo: null, pan: null, atk: null, bolts: [], dressFrom: null, focus: null });
   FT.demo = FortEngine.newGame({ a: 'tusin', b: 'kingkong', rng: FortEngine.mulberry32(20261104), map: 'valley' });
   FT.vis = FT.demo.p.map(p => ({ x: p.x, y: p.y, hit: 0 }));
-  FT.rec = ftLoad();
+  FT.rec = ftLoad(); FT.hintDone = !!FT.rec.hintAng;
   FT.dress = false; FT.wallFlash = [0, 0]; FT.eqs = [{}, {}];
   if (navStale(__g)) return;
   const faces = ['tusin', 'kingkong', 'captainkorea'].map(id => `<img src="${ftArtSrc(id)}" alt="">`).join('');
   $app.innerHTML = `
-  <h1 class="page" style="gap:6px">🥊 블랙 케이지 <button class="bb-rules-btn-top" id="ftRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button><button class="bb-rules-btn-top" id="ftBackBtn" type="button" style="padding:5px 10px">게임 목록</button></h1>
+  <h1 class="page gm-h1">🥊 블랙 케이지 <button class="bb-rules-btn-top" id="ftRulesBtn" type="button">📖 설명서</button><button class="bb-rules-btn-top gm-listbtn" id="ftBackBtn" type="button">게임 목록</button></h1>
   <div id="gArea" class="ga-fort">
     <canvas id="gCanvas"></canvas>
     <div class="ghud"><div id="gHearts"></div><div id="gStageTag"></div><div id="gScore"></div></div>
@@ -21387,7 +21662,7 @@ function viewGameFort() {
     <div id="gPops"></div>
     <button class="g-mute" id="gMute">${gmMuted ? '🔇' : '🔊'}</button>
     <button class="g-full" id="gFull">⛶</button>
-    <button id="ftQuit" type="button" style="display:none">포기</button>
+    <button id="ftQuit" type="button" style="display:none" aria-label="포기" title="포기">${FT_FLAG_SVG}</button>
     <div id="ftCtl" style="display:none">
       <div class="ft-r1"><span class="ft-who" id="ftWho"></span><span class="ft-last" id="ftLast"></span>
         <span class="ft-stamw">이동력<i class="ft-stam"><b id="ftStam"></b></i></span></div>
@@ -21411,9 +21686,9 @@ function viewGameFort() {
       <div class="gt-sub">BLACK CAGE</div>
       <div class="ft-rank" id="ftRank"></div>
       <div class="gt-desc">선수마다 <b>다른 무기와 스킬</b>!<br>바람 읽고, 타이밍 맞추고, <b>턱</b>을 노려라</div>
-      <button class="g-start g-en" id="ftStartAi" type="button">AI 대전 시작</button>
-      <div class="ft-btnrow"><button class="ft-btn2" id="ftStartPvp" type="button">친구와 2인 대결</button>
-      <button class="ft-btn2 ft-dressb" id="ftDressBtn" type="button">꾸미기<i id="ftDressNew"></i></button></div>
+      <div class="ft-btnrow ft-mainrow"><button class="g-start g-en ft-mbtn" id="ftStartAi" type="button">AI 매칭</button>
+      <button class="g-start ft-mbtn ft-pvpb" id="ftStartPvp" type="button">PvP 매칭<small>준비 중</small></button></div>
+      <div class="ft-btnrow"><button class="ft-ibtn ft-dressb" id="ftDressBtn" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftDressNew"></i></button></div>
       <div class="gt-hint">끝없는 스테이지 · 5판마다 보스 · 선수별 꾸미기 해금</div>
     </div>
     <div id="ftSel" style="display:none"></div>
@@ -21421,9 +21696,10 @@ function viewGameFort() {
     <div id="gOver" style="display:none"></div>
   </div>
   <div class="card" id="ftRec"></div>
+  <div class="card" id="ftRankBoard"></div>
   <div class="sec-title">🧑‍🎤 출전 파이터와 무기</div>
   <div class="card" id="ftGuide"></div>`;
-  ftRenderRec(); ftRenderGuide(); ftRenderRank();
+  ftRenderRec(); ftRenderGuide(); ftRenderRank(); ftLoadBoard();
   const rb = document.getElementById('ftRulesBtn');
   rb.onpointerdown = e => e.stopPropagation();
   rb.onclick = e => { e.stopPropagation(); ftOpenRules(); };
@@ -21446,12 +21722,17 @@ function ftAskQuit() {
   if (!FT.st || FT.phase === 'over' || FT.paused) return;
   const ov = document.getElementById('gOver'); if (!ov) return;
   FT.paused = true;
-  ov.style.display = ''; ov.innerHTML = `<div class="go-ko">포기할까요?</div><div class="go-cmp">${FT.mode === 'ai' ? '지금 판은 기록되지 않고 처음 화면으로 돌아가요' : '2인 대결을 끝내고 처음 화면으로 돌아가요'}</div>
-    <button class="g-start" id="ftQCont" type="button">계속하기</button><button class="ft-btn2 ft-back" id="ftQYes" type="button">포기하고 나가기</button>`;
+  ov.style.display = ''; ov.innerHTML = `<div class="go-ko">포기할까요?</div><div class="go-cmp">${FT.mode === 'ai' ? '지금 포기하면 <b class="ft-red">패배로 기록</b>되고 처음 화면으로 돌아가요' : 'PvP를 끝내고 처음 화면으로 돌아가요'}</div>
+    <button class="g-start" id="ftQCont" type="button">계속하기</button><button class="ft-quitbtn" id="ftQYes" type="button">패배하고 나가기</button>`;
   const c = document.getElementById('ftQCont'), y = document.getElementById('ftQYes');
   c.onpointerdown = y.onpointerdown = e => e.stopPropagation();
   c.onclick = e => { e.stopPropagation(); FT.paused = false; ov.style.display = 'none'; };
-  y.onclick = e => { e.stopPropagation(); FT.paused = false; gmTimers.forEach(clearTimeout); gmTimers = []; ftShowTitle(); };
+  y.onclick = e => {
+    e.stopPropagation(); FT.paused = false; gmTimers.forEach(clearTimeout); gmTimers = [];
+    if (FT.mode === 'ai') { const rec = ftLoad(); rec.games++; ftSave(rec); FT.streak = 0; ftSubmitRank(rec).then(() => ftLoadBoard()); }
+    ftShowTitle();
+    if (FT.mode === 'ai') gmBanner('<div class="gb-round ft-toast" style="font-size:22px">기권패 처리됐어요</div>', 1500);
+  };
 }
 function ftShowTitle() {
   const $ = id => document.getElementById(id);
@@ -21473,8 +21754,8 @@ function ftRenderRec() {
   }).join('');
   el.innerHTML = `<div style="font-weight:800;margin-bottom:4px">🏅 내 기록</div>
     <div style="font-size:13.5px;color:var(--muted);line-height:1.7">최고 <b style="color:var(--text)">${r.best}연승</b> · 최고 도달 <b style="color:var(--text)">STAGE ${r.bestStage}</b> · AI 누적 승리 <b style="color:var(--text)">${r.wins}</b> · 총 ${r.games}판</div>
-    <table class="ft-tbl"><tr><th>선수</th><th>승</th><th>연승</th><th>대인승</th><th>대인연승</th><th>꾸미기</th></tr>${rows}</table>
-    <div style="font-size:11.5px;color:var(--muted);margin-top:6px">기록은 이 기기에 저장돼요. 대인전은 같은 기기에서 둘이 하는 2인 대결 기록이에요.</div>`;
+    <table class="ft-tbl"><tr><th>선수</th><th>승</th><th>연승</th><th>PvP승</th><th>PvP연승</th><th>꾸미기</th></tr>${rows}</table>
+    <div style="font-size:11.5px;color:var(--muted);margin-top:6px">내 기록은 이 기기에 저장되고, 로그인하면 랭킹에 올라가요. PvP 칸은 PvP 매칭이 열리면 채워져요.</div>`;
 }
 function ftStatBars(c) {
   const pr = c.proj, dmg = pr.dmg * (pr.split ? pr.split * pr.splitMul * .55 : 1) * (pr.direct > 1.2 ? 1.12 : 1);
@@ -21499,7 +21780,7 @@ function ftHud() {
   const hh = document.getElementById('gHearts'), s = document.getElementById('gScore');
   if (!hh || !s) return;
   if (FT.st && FT.mode === 'ai') { hh.innerHTML = `STAGE ${FT.stage}${FT.cfg && FT.cfg.boss ? ' BOSS' : ''} <i class="ft-hrt">${'♥'.repeat(FT.lives)}</i><i class="ft-hrt off">${'♥'.repeat(Math.max(0, 3 - FT.lives))}</i>`; s.innerHTML = `${FT.streak}<span>연승</span>`; }
-  else if (FT.st) { hh.textContent = '2인 대결'; s.innerHTML = ''; }
+  else if (FT.st) { hh.textContent = 'PvP'; s.innerHTML = ''; }
   else { hh.textContent = ''; s.innerHTML = ''; }
 }
 
@@ -21551,6 +21832,7 @@ function ftUseSkill(pi) {
   if (!FortEngine.useSkill(st, pi)) return false;
   ftDrain(); ftSyncCtl(); return true;
 }
+function ftHintDone() { if (FT.hintDone) return; FT.hintDone = true; try { const r = ftLoad(); r.hintAng = 1; ftSave(r); } catch (e) { } }
 function ftBindUI() {
   if (!window.__ftOri) {
     window.__ftOri = 1;
@@ -21583,7 +21865,7 @@ function ftBindUI() {
   fb.onclick = e => e.stopPropagation();
   $('ftStartAi').onclick = e => { e.stopPropagation(); gmCtx(); FT.mode = 'ai'; FT.stage = 1; FT.cp = 1; FT.lives = 3; FT.streak = 0; FT.foeOff = Math.floor(Math.random() * 6); ftShowSelect(0); };
   $('ftDressBtn').onclick = e => { e.stopPropagation(); gmCtx(); ftOpenDress(); };
-  $('ftStartPvp').onclick = e => { e.stopPropagation(); gmCtx(); FT.mode = 'pvp'; FT.stage = 1; FT.streak = 0; ftShowSelect(0); };
+  $('ftStartPvp').onclick = e => { e.stopPropagation(); gmCtx(); gmSnd('weak'); gmBanner('<div class="gb-round ft-toast" style="font-size:22px">PvP 매칭 준비 중<br><span style="font-size:13px;color:#ffd76e">실시간 대결은 서버 작업이 끝나면 열려요</span></div>', 1900); };
   // 화면 터치: 내 캐릭터 근처 드래그 = 각도 조준 / 그 밖의 드래그 = 카메라 이동 / 톡 누르기 = 그쪽으로 조준 / 미니맵 = 그 위치로 이동
   const cv = $('gCanvas');
   const aimFrom = e => {
@@ -21608,14 +21890,14 @@ function ftBindUI() {
     try { cv.setPointerCapture(e.pointerId); } catch (err) { }
     if (mr && px >= mr.x - 8 && px <= mr.x + mr.w + 8 && py >= mr.y - 6 && py <= mr.y + mr.h + 6) { FT.pan = { mode: 'mini' }; miniTo(px); return; }
     const v = FT.vis[FT.st.turn], sx = FT.ox + v.x * FT.sc, sy = FT.oy + (v.y - FortEngine.BODY_CY) * FT.sc;
-    const near = ftCanAct() && Math.hypot(px - sx, py - sy) < 95;
+    const near = ftCanAct() && Math.hypot(px - sx, py - sy) < Math.max(95, 78 * FT.sc + 30);
     FT.pan = { mode: near ? 'aim' : 'pan', x0: px, y0: py, lx: px, moved: false };
     if (near) { FT.dragging = true; aimFrom(e); }
   });
   cv.addEventListener('pointermove', e => {
     const P = FT.pan; if (!P) return;
     const r = cv.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
-    if (P.mode === 'aim') aimFrom(e);
+    if (P.mode === 'aim') { aimFrom(e); if (!FT.hintDone && Math.hypot(px - P.x0, py - P.y0) > 14) ftHintDone(); }
     else if (P.mode === 'mini') miniTo(px);
     else {
       if (!P.moved && Math.hypot(px - P.x0, py - P.y0) > 8) { P.moved = true; P.lx = px; }
@@ -21710,7 +21992,7 @@ function ftShowSelect(slot) {
   o.style.display = '';
   const rec = ftLoad();
   const head = FT.mode === 'pvp' ? `P${slot + 1} 파이터 선택` : '내 파이터 선택';
-  o.innerHTML = `<div class="ft-sel-top"><button class="ft-btn2 ft-back sm" id="ftSelBack" type="button">뒤로</button><div class="ft-sel-h">${head}</div><button class="ft-btn2 ft-dressb sm" id="ftSelDress" type="button">꾸미기</button></div>
+  o.innerHTML = `<div class="ft-sel-top"><button class="ft-ibtn ft-back" id="ftSelBack" type="button" aria-label="처음 화면" title="처음 화면">${FT_HOME_SVG}</button><div class="ft-sel-h">${head}</div><button class="ft-ibtn ft-dressb" id="ftSelDress" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}</button></div>
     <div class="ft-grid">${FortEngine.ORDER.map(id => {
     const c = FortEngine.CHARS[id], f = ftFS(rec, id);
     const dis = FT.mode === 'pvp' && slot === 1 && FT.sel[0] === id;
@@ -21900,8 +22182,8 @@ function ftZap(ctx, x, y, len) {
 }
 
 const FT_BOOM_COL = {
-  glove: ['#ffd76e', '#ffffff', '#e0332a'], staff: ['#ffd76e', '#fff2b0', '#c98c00'], cash: ['#5fbf6a', '#ffffff', '#ffd76e'],
-  plate: ['#9aa0ac', '#d8dbe2', '#6b7280'], shuriken: ['#cfe8ff', '#ffffff', '#7fb8ff'], shield: ['#e0332a', '#ffffff', '#1f4aa8'],
+  glove: ['#ffd76e', '#ffffff', '#3a3c48'], staff: ['#ffd76e', '#fff2b0', '#c98c00'], cash: ['#5fbf6a', '#ffffff', '#ffd76e'],
+  plate: ['#9aa0ac', '#d8dbe2', '#6b7280'], shuriken: ['#cfe8ff', '#ffffff', '#7fb8ff'], shield: ['#e0332a', '#ffffff', '#1f4aa8'], burger: ['#d99a4a', '#5fbf3a', '#e0332a'],
 };
 function ftBoom(x, y, r, big, kind, eq, ground) {
   const bT = ftTier('blast', eq && eq.blast);
@@ -22018,18 +22300,18 @@ function ftOver() {
         <div class="go-cmp">STAGE ${FT.stage} 클리어 — ${esc(oc.name)} 격파${lifeTxt}</div>
         <div class="go-grade">${FT.streak >= rec.best && FT.streak > 1 ? '🔥 최고 기록 경신 중!' : `${esc(E.CHARS[st.p[0].id].name)} 통산 ${me.w}승`}</div>
         ${nextInfo}@@<button class="g-start" id="ftNext" type="button">다음 상대</button>
-        <div class="ft-btnrow"><button class="ft-btn2" id="ftChange" type="button">파이터 변경</button><button class="ft-btn2 ft-dressb" id="ftOvDress" type="button">꾸미기<i id="ftOvNew"></i></button></div>
+        <div class="ft-btnrow"><button class="ft-btn2" id="ftChange" type="button">파이터 변경</button><button class="ft-ibtn ft-dressb" id="ftOvDress" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftOvNew"></i></button></div>
         <button class="ft-btn2 ft-back" id="ftHome" type="button">처음 화면</button>`;
       gmSnd('cheer');
     } else {
       FT.streak = 0; FT.lives--;
       const dead = FT.lives <= 0; if (dead) { FT.nextStage = FT.cp; FT.lives = 3; } else FT.nextStage = FT.stage;
       html = `<div class="go-ko">KO패… 링이 차갑다</div>
-        <div class="go-score">${dead ? '목숨 소진' : '남은 목숨 ' + '♥'.repeat(FT.lives)}</div>
+        <div class="go-score">${dead ? '목숨 소진' : '남은 목숨 <span class="ft-hrt">' + '♥'.repeat(FT.lives) + '</span>'}</div>
         <div class="go-cmp">${esc(oc.name)}에게 패배 (STAGE ${FT.stage})</div>
         <div class="go-grade">${dead ? `STAGE ${FT.cp}부터 다시 도전해요 (최고 ${rec.best}연승)` : `같은 스테이지에 재도전! (최고 ${rec.best}연승)`}</div>
         @@<button class="g-start" id="ftNext" type="button">다시 도전</button>
-        <div class="ft-btnrow"><button class="ft-btn2" id="ftChange" type="button">파이터 변경</button><button class="ft-btn2 ft-dressb" id="ftOvDress" type="button">꾸미기<i id="ftOvNew"></i></button></div>
+        <div class="ft-btnrow"><button class="ft-btn2" id="ftChange" type="button">파이터 변경</button><button class="ft-ibtn ft-dressb" id="ftOvDress" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftOvNew"></i></button></div>
         <button class="ft-btn2 ft-back" id="ftHome" type="button">처음 화면</button>`;
       gmSnd('over');
     }
@@ -22038,9 +22320,9 @@ function ftOver() {
     wf.pw++; wf.pc++; wf.ps = Math.max(wf.ps, wf.pc); lf.pc = 0;
     html = `<div class="go-ko">P${w + 1} 승리!</div>
       <div class="go-score" style="font-size:34px">${esc(wc.name)}</div>
-      <div class="go-cmp">대인전 ${wf.pw}승 · ${wf.pc}연승</div>
+      <div class="go-cmp">PvP ${wf.pw}승 · ${wf.pc}연승</div>
       @@<button class="g-start" id="ftNext" type="button">한 판 더!</button>
-      <div class="ft-btnrow"><button class="ft-btn2" id="ftChange" type="button">파이터 변경</button><button class="ft-btn2 ft-dressb" id="ftOvDress" type="button">꾸미기<i id="ftOvNew"></i></button></div>
+      <div class="ft-btnrow"><button class="ft-btn2" id="ftChange" type="button">파이터 변경</button><button class="ft-ibtn ft-dressb" id="ftOvDress" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftOvNew"></i></button></div>
       <button class="ft-btn2 ft-back" id="ftHome" type="button">처음 화면</button>`;
     gmSnd('cheer');
   }
@@ -22053,6 +22335,7 @@ function ftOver() {
     html = html.replace('@@', extra);
   }
   ftSave(rec); FT.rec = rec;
+  if (FT.mode === 'ai') ftSubmitRank(rec).then(() => ftLoadBoard());
   ov.style.display = ''; ov.innerHTML = html;
   ftRenderRec(); ftHud(); ftRenderRank();
   const nx = document.getElementById('ftNext'), ch = document.getElementById('ftChange'), hm = document.getElementById('ftHome'), od = document.getElementById('ftOvDress'), on = document.getElementById('ftOvNew');
@@ -22239,7 +22522,8 @@ function ftLayout() {
   const ov0 = land ? Math.min(22, ctlH * .45) : 0;   // 가로: 컨트롤 패널이 땅속 부분을 살짝 덮게 해서 세로를 더 확보
   const availH = Math.max(100, G.h - ctlH + ov0 - hudH);
   // 세로로 너무 긴 화면(세로 전체화면 등): 하늘만 넓어지지 않게 확대해서 보여준다(가로는 최소 360 월드폭 보장)
-  const base = Math.min(Math.max(G.w / FT_VIEWW, availH / 600), G.w / 360, availH / FT_SPAN), ov = Math.min(G.w / Wd, availH / FT_SPAN);
+  const span = land ? 300 : FT_SPAN;     // 폰 가로: 하늘을 더 보여줘서 덜 확대된 느낌으로
+  const base = Math.min(Math.max(G.w / FT_VIEWW, availH / 600), G.w / 360, availH / span), ov = Math.min(G.w / Wd, availH / span);
   const cam = FT.cam || (FT.cam = { x: Wd / 2, z: 1, up: 0 });
   const sc = base * cam.z, half = G.w / (2 * sc), m = 16 / sc, lo = half - m, hi = Wd - half + m;
   cam.x = lo > hi ? Wd / 2 : ftClamp(cam.x, lo, hi);
@@ -22274,11 +22558,12 @@ function ftCamUpdate(dt0) {
 function ftProj(ctx, kind, k) {
   ctx.lineWidth = Math.max(1.5, 1.6 * k); ctx.lineJoin = 'round';
   if (kind === 'glove') {
-    ctx.strokeStyle = '#7a1010';
-    ctx.fillStyle = '#fff'; ftRR(ctx, -11 * k, -5 * k, 8 * k, 10 * k, 2 * k); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#e0332a'; ctx.beginPath(); ctx.ellipse(2 * k, 0, 9 * k, 8 * k, 0, 0, 7); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#f26a5e'; ctx.beginPath(); ctx.ellipse(4 * k, -3 * k, 4 * k, 2.6 * k, -.3, 0, 7); ctx.fill();
-    ctx.fillStyle = '#c42a22'; ctx.beginPath(); ctx.ellipse(1 * k, 6 * k, 5 * k, 3 * k, 0, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#05050a';
+    ctx.fillStyle = '#f2f2f4'; ftRR(ctx, -11 * k, -5 * k, 8 * k, 10 * k, 2 * k); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#d4a017'; ctx.fillRect(-9.2 * k, -5 * k, 1.8 * k, 10 * k);
+    ctx.fillStyle = '#1b1b22'; ctx.beginPath(); ctx.ellipse(2 * k, 0, 9 * k, 8 * k, 0, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#4a4c5a'; ctx.beginPath(); ctx.ellipse(4 * k, -3 * k, 4 * k, 2.6 * k, -.3, 0, 7); ctx.fill();
+    ctx.fillStyle = '#101015'; ctx.beginPath(); ctx.ellipse(1 * k, 6 * k, 5 * k, 3 * k, 0, 0, 7); ctx.fill(); ctx.stroke();
   } else if (kind === 'staff') {
     ctx.strokeStyle = '#5a1208';
     ctx.fillStyle = '#c0281c'; ftRR(ctx, -20 * k, -3 * k, 40 * k, 6 * k, 3 * k); ctx.fill(); ctx.stroke();
@@ -22297,6 +22582,15 @@ function ftProj(ctx, kind, k) {
     for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4, rr = i % 2 ? 4 * k : 12 * k; ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
     ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#374151'; ctx.beginPath(); ctx.arc(0, 0, 2.4 * k, 0, 7); ctx.fill();
+  } else if (kind === 'burger') {
+    ctx.strokeStyle = '#4a2a0a';
+    ctx.fillStyle = '#d99a4a'; ctx.beginPath(); ctx.moveTo(-12 * k, -1 * k); ctx.bezierCurveTo(-12 * k, -12 * k, 12 * k, -12 * k, 12 * k, -1 * k); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fff2c4'; [-5, 0, 5].forEach(x => { ctx.beginPath(); ctx.ellipse(x * k, -6 * k, 1.1 * k, .6 * k, .4, 0, 7); ctx.fill(); });
+    ctx.fillStyle = '#5fbf3a'; ctx.beginPath(); ctx.moveTo(-13 * k, -1 * k); for (let i = 0; i <= 6; i++) ctx.lineTo((-13 + i * 26 / 6) * k, (i % 2 ? 3.2 : 1.2) * k); ctx.lineTo(13 * k, -1 * k); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#e0332a'; ftRR(ctx, -11 * k, 2.4 * k, 22 * k, 2.6 * k, 1 * k); ctx.fill();
+    ctx.fillStyle = '#ffd24a'; ctx.beginPath(); ctx.moveTo(-11 * k, 5 * k); ctx.lineTo(11 * k, 5 * k); ctx.lineTo(7 * k, 8 * k); ctx.lineTo(3 * k, 5.6 * k); ctx.lineTo(-2 * k, 8 * k); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#6a3a1a'; ftRR(ctx, -12 * k, 5.4 * k, 24 * k, 4.2 * k, 2 * k); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#d99a4a'; ftRR(ctx, -11 * k, 9.4 * k, 22 * k, 4.4 * k, 2.2 * k); ctx.fill(); ctx.stroke();
   } else if (kind === 'shield') {
     ctx.strokeStyle = '#1f2a44'; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, 12 * k, 0, 7); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#d11a2a'; ctx.beginPath(); ctx.arc(0, 0, 7 * k, Math.PI, 0); ctx.fill();
@@ -22305,8 +22599,8 @@ function ftProj(ctx, kind, k) {
     ctx.fillStyle = '#1f4aa8'; ctx.beginPath(); ctx.arc(-3.5 * k, 0, 3.5 * k, 0, 7); ctx.fill();
   }
 }
-const FT_TRAIL = { glove: '255,255,255', staff: '255,210,74', cash: '111,207,127', plate: '180,186,200', shuriken: '170,210,255', shield: '255,120,120' };
-const FT_SPIN = { glove: 9, staff: 0, cash: 7, plate: 6, shuriken: 22, shield: 5 };
+const FT_TRAIL = { glove: '255,255,255', staff: '255,210,74', cash: '111,207,127', plate: '180,186,200', shuriken: '170,210,255', shield: '255,120,120', burger: '255,190,90' };
+const FT_SPIN = { glove: 9, staff: 0, cash: 7, plate: 6, shuriken: 22, shield: 5, burger: 6 };
 
 /* ── 배경: 블랙컴뱃 경기장을 흐리게(초점 밖) + 어둡게 깔고, 가까운 철망/조명으로 깊이감을 만든다 ── */
 function ftBlurBg(img) {
@@ -22419,6 +22713,21 @@ function ftDraw() {
         ctx.strokeStyle = 'rgba(255,90,70,.85)'; ctx.lineWidth = 2;
         const lx = X(l.x), ly = Y(l.y), s = 5 * sc + 2;
         ctx.beginPath(); ctx.moveTo(lx - s, ly - s); ctx.lineTo(lx + s, ly + s); ctx.moveTo(lx + s, ly - s); ctx.lineTo(lx - s, ly + s); ctx.stroke();
+      }
+      {   // 각도 손잡이: 항상 보이는 작은 핸들 + (처음 하는 사람에게) 끌어보라는 안내
+        const R = 78 * sc, hint = !FT.hintDone && FT.mode === 'ai', ha = hint && !FT.dragging ? a + Math.sin(FT.t * 2.6) * .42 : a;
+        if (hint || FT.dragging) { ctx.save(); ctx.setLineDash([4, 6]); ctx.strokeStyle = `rgba(255,255,255,${FT.dragging ? .5 : .32})`; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(cx, cy, R, -Math.PI, 0); ctx.stroke(); ctx.restore(); }
+        const hx = cx + Math.cos(ha) * R, hy = cy - Math.sin(ha) * R, hr = Math.max(9, 8.5 * sc), pu = (FT.t * 1.6) % 1;
+        if (hint) { ctx.strokeStyle = `rgba(255,214,90,${.8 * (1 - pu)})`; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(hx, hy, hr + pu * 16, 0, 7); ctx.stroke(); }
+        ctx.fillStyle = hint ? '#ffd24a' : 'rgba(255,255,255,.88)'; ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(hx, hy, hr, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = 'rgba(40,30,10,.7)'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(hx - hr * .45, hy - hr * .2); ctx.lineTo(hx + hr * .45, hy - hr * .2); ctx.moveTo(hx - hr * .45, hy + hr * .25); ctx.lineTo(hx + hr * .45, hy + hr * .25); ctx.stroke();
+        if (hint && !FT.dragging) {
+          const tx = '끌어서 각도 조절', fs = 12.5; ctx.font = `800 ${fs}px Jua, Pretendard, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          const tw = ctx.measureText(tx).width + 20, bx = ftClamp(hx, tw / 2 + 6, w - tw / 2 - 6), by2 = Math.max(FT.hudH + 66, cy - 118 * sc - 40);
+          ctx.fillStyle = 'rgba(255,214,90,.96)'; ftRR(ctx, bx - tw / 2, by2 - 11, tw, 22, 11); ctx.fill();
+          ctx.fillStyle = '#2a1a02'; ctx.fillText(tx, bx, by2 + .5); ctx.textBaseline = 'bottom';
+        }
       }
       if (FT.dragging && FT.drag) {
         ctx.setLineDash([5, 5]); ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 1.5;
@@ -22789,12 +23098,12 @@ function ftDrawChar(ctx, i, active, X, Y, sc, st) {
   ctx.fillStyle = '#fff'; ctx.fillText(nm, sx, by - 3);
   const bd = ftGearById('badge', eq.badge);
   if (bd) {
-    const tx = `${bd.ico} ${bd.n}`; ctx.font = `800 ${Math.max(9, 10 * (sc * .5 + .55))}px Jua, Pretendard, sans-serif`;
-    const tw = ctx.measureText(tx).width + 12, ty = by - 25;
+    const tx = ftBadgeLabel(bd), gp = bd.ico === '@glove' ? 14 : 0; ctx.font = `800 ${Math.max(9, 10 * (sc * .5 + .55))}px Jua, Pretendard, sans-serif`;
+    const tw = ctx.measureText(tx).width + 12 + gp, ty = by - 25;
     const bT = ftTier('badge', eq.badge);
     if (bT >= 3) { const gg = ctx.createLinearGradient(sx - tw / 2, 0, sx + tw / 2, 0); const ph = (FT.t * .8) % 1; gg.addColorStop(0, '#6a4a05'); gg.addColorStop(Math.max(0, ph - .15), '#c98c00'); gg.addColorStop(ph, '#fff3b0'); gg.addColorStop(Math.min(1, ph + .15), '#c98c00'); gg.addColorStop(1, '#6a4a05'); ctx.save(); ctx.shadowColor = '#ffd24a'; ctx.shadowBlur = 10; ctx.fillStyle = gg; ftRR(ctx, sx - tw / 2, ty - 8, tw, 16, 8); ctx.fill(); ctx.restore(); ctx.strokeStyle = '#fff3b0'; ctx.lineWidth = 1.4; ctx.stroke(); }
     else { ctx.fillStyle = 'rgba(20,16,4,.78)'; ftRR(ctx, sx - tw / 2, ty - 7, tw, 14, 7); ctx.fill(); ctx.strokeStyle = '#f2c94c'; ctx.lineWidth = 1; ctx.stroke(); }
-    ctx.textBaseline = 'middle'; ctx.fillStyle = bT >= 3 ? '#2a1a02' : '#ffe08a'; ctx.fillText(tx, sx, ty + .5); ctx.textBaseline = 'bottom';
+    ctx.textBaseline = 'middle'; ctx.fillStyle = bT >= 3 ? '#2a1a02' : '#ffe08a'; ctx.fillText(tx, sx + gp / 2, ty + .5); if (gp) ftBadgeIcon(ctx, bd, sx - tw / 2 + 11, ty, 13); ctx.textBaseline = 'bottom';
   }
   if (active) {
     const my = by - (bd ? 47 : 26) + Math.sin(FT.t * 7) * 2.5;
@@ -23172,9 +23481,10 @@ function ftDrawWalls(ctx, w, h, X, Y, sc, floorY, Wd) {
       o = o || {};
       const label = o.ctaLabel || 'START';
       return `
-  <h1 class="page" style="gap:6px">🦁 블랙 퀴즈
-    <button class="bb-rules-btn-top" id="bqRulesBtn" type="button" style="padding:5px 10px">📖 설명서</button>
-    <button class="bb-rules-btn-top" id="bqMakeBtn" type="button" style="padding:5px 10px">📝 퀴즈 만들기</button><span style="font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;margin-left:auto;font-family:'Jua','Pretendard Variable',Pretendard,sans-serif">⏰️ 도전 횟수 <b style="color:#dc2626">매일 00:00 초기화</b></span></h1>
+  <h1 class="page gm-h1">🦁 블랙 퀴즈
+    <button class="bb-rules-btn-top" id="bqRulesBtn" type="button">📖 설명서</button>
+    <button class="bb-rules-btn-top" id="bqMakeBtn" type="button">📝 만들기</button><button class="bb-rules-btn-top gm-listbtn" type="button" onclick="gmGoList()">게임 목록</button></h1>
+  <div class="gm-subline">⏰️ 도전 횟수 <b>매일 00:00 초기화</b></div>
   <div class="bq-stage">
     <div class="bq-rays"></div>
     <div class="bq-dots l"></div><div class="bq-dots r"></div>
@@ -29544,7 +29854,7 @@ function ftDrawWalls(ctx, w, h, X, Y, sc, floorY, Wd) {
       // 이전에 골랐던 선수를 자동으로 미리 선택해두지 않는다 — 매번 직접 골라야 매칭 버튼을 누를 수 있다
       BB.phase = 'pick'; BB.mode = 'cpu'; BB.pickStep = 'me'; BB.me = null; BB.opp = null; BB.busy = false; BB.isBotSpar = false;
       if (navStale(__g)) return; $app.innerHTML = `
-  <h1 class="page">👊 블랙 배틀 <button class="bb-rules-btn-top" id="bbRulesBtnPick" type="button">📖 설명서</button></h1>
+  <h1 class="page gm-h1">👊 블랙 배틀 <button class="bb-rules-btn-top" id="bbRulesBtnPick" type="button">📖 설명서</button><button class="bb-rules-btn-top gm-listbtn" type="button" onclick="gmGoList()">게임 목록</button></h1>
   <div id="bbArea"></div>`;
       // 설명서(상성표) 버튼은 화면 최상단(타이틀 바)에 고정으로 하나만 두고, 픽/매칭 화면은 물론
       // 전투 중에도 같은 버튼으로 동일한 모달을 연다. 예전에는 전투 화면 안에도 별도 버튼이 있었지만
