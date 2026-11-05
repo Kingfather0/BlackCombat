@@ -12569,15 +12569,14 @@ body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82
 .ft-sel-top i { width: 58px; flex: 0 0 auto; }
 .ft-btn2.sm { font-size: 13px; padding: 5px 14px; box-shadow: 0 3px 0 rgba(0,0,0,.5); }
 
-/* 카메라 버튼(내 위치 / 상대 위치 / 전체 보기) */
-#ftCamBar { position: absolute; left: 8px; top: 82px; z-index: 7; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
-#ftCamBar button { font-family: 'Jua','Pretendard Variable',Pretendard,sans-serif; font-size: 11.5px; font-weight: 800; color: #e7e9ef; background: rgba(14,14,19,.78); border: 1.5px solid #5a6072; border-radius: 99px; padding: 4px 10px; cursor: pointer; touch-action: manipulation; }
-#ftCamBar button.on { color: #1a1405; background: #f2c94c; border-color: #f2c94c; }
+/* 카메라 버튼: 글자 없는 작은 아이콘(내 위치 / 상대 위치 / 전체 보기). 미니맵 왼쪽에 JS가 자리를 잡아 준다 */
+#ftCamBar { position: absolute; left: 70px; top: 47px; z-index: 7; display: flex; gap: 6px; transform: none; flex-direction: row; }
+#ftCamBar button { width: 28px; height: 28px; padding: 0; display: flex; align-items: center; justify-content: center; color: #cfd3df; background: rgba(14,14,19,.8); border: 1.5px solid #5a6072; border-radius: 50%; cursor: pointer; touch-action: manipulation; }
+#ftCamBar button svg { width: 16px; height: 16px; display: block; }
+#ftCamMe { color: #ffd24a; } #ftCamFoe { color: #ff6a5a; }
+#ftCamBar button.on { background: #f2c94c; border-color: #f2c94c; color: #1a1405; }
 .fd-tabs button { padding: 5px 1px; font-size: 11.5px; }
 .ga-fort #gOver .ft-btnrow { gap: 8px; }
-@media (orientation: landscape) and (max-height: 600px) { #ftCamBar { top: 66px; flex-direction: row; } #ftCamBar button { padding: 3px 8px; font-size: 11px; } }
-#ftCamBar, #ftCamBar { left: 50%; transform: translateX(-50%); top: 90px; flex-direction: row; align-items: center; }
-@media (orientation: landscape) and (max-height: 600px) { #ftCamBar { top: 84px; } }
 
   </style>
 </head>
@@ -20164,42 +20163,42 @@ var FortEngine = (function () {
       proj: { kind: 'glove', label: '정권 글러브', dmg: 29, rad: 32, spd: 1.0, gmul: 1.0, wmul: 1.0, direct: 1, carve: 1 },
       pTitle: '순둥이의 분노', pDesc: '가장 정직한 글러브. 체력 40% 이하가 되면 데미지 +30%, 폭발 범위 +4',
       taunt: '테이크다운? 그 전에 네가 먼저 누워 있을걸',
-      skill: { name: '분노 폭발', desc: '다음 발사 데미지 1.6배 · 폭발 범위 +10', mod: { dmg: 1.7, rad: 10 } },
+      skill: { name: '분노의 폭우', desc: '먹구름이 몰려와요! 글러브가 착탄 지점에 폭우처럼 9발 쏟아져요', mod: { dmg: 1.3, rad: 6 }, ult: { kind: 'glove', shots: 'rain9' } },
     },
     wumawang: {
-      id: 'wumawang', name: '우마왕', tag: '한 방 KO', hp: 90, move: 70, take: 1, passive: null,
-      proj: { kind: 'staff', label: '여의봉', dmg: 32, rad: 22, spd: 1.25, gmul: 1.6, wmul: 0.8, direct: 1.45, carve: 0.8 },
+      id: 'wumawang', name: '우마왕', tag: '한 방 KO', hp: 95, move: 70, take: 1, passive: null,
+      proj: { kind: 'staff', label: '여의봉', dmg: 32, rad: 24, spd: 1.25, gmul: 1.6, wmul: 0.8, direct: 1.45, carve: 0.8 },
       pTitle: '여의봉 일격', pDesc: '빠르게 꽂히는 여의봉! 직격하면 데미지 1.45배. 대신 폭발 범위가 아주 좁아요',
       taunt: '가드 올려라. 어차피 깨지겠지만',
-      skill: { name: '분신술', desc: '여의봉 3개를 부채꼴로 동시에 던져요', mod: { multi: [{ da: -8, pm: 1, dm: 0.8 }, { da: 0, pm: 1, dm: 0.8 }, { da: 8, pm: 1, dm: 0.8 }] } },
+      skill: { name: '천지개벽', desc: '여의봉 3개를 부채꼴로 던진 뒤, 하늘에서 거대 여의봉 3개가 연달아 내리꽂혀요', mod: { multi: [{ da: -8, pm: 1, dm: 0.7 }, { da: 0, pm: 1, dm: 0.7 }, { da: 8, pm: 1, dm: 0.7 }] }, ult: { kind: 'staff', shots: 'pillar3' } },
     },
     godfather: {
       id: 'godfather', name: 'gotfather', tag: '판 벌이기', hp: 96, move: 70, take: 1, passive: null,
-      proj: { kind: 'cash', label: '파이트머니 뭉치', dmg: 41, rad: 28, spd: 0.92, gmul: 0.8, wmul: 1.2, direct: 1, carve: 0.8, split: 3, splitMul: 0.82, splitSpread: 72 },
+      proj: { kind: 'cash', label: '파이트머니 뭉치', dmg: 39, rad: 28, spd: 0.92, gmul: 0.8, wmul: 1.2, direct: 1, carve: 0.8, split: 3, splitMul: 0.82, splitSpread: 72 },
       pTitle: '판 벌이기', pDesc: '던진 돈다발이 정점에서 3갈래로 흩어져요. 넓게 깔지만 한 장당 데미지는 낮고 바람에 팔랑거려요',
       taunt: '판돈은 내가 걸었다. 넌 누워서 구경해',
-      skill: { name: '돈 폭우', desc: '정점에서 5갈래로 쏟아지는 파이트머니', mod: { split: 5, splitMul: 0.72, splitSpread: 64 } },
+      skill: { name: '돈 폭우', desc: '정점에서 5갈래로 쏟아지고, 착탄 지점에 지폐 12장이 폭우처럼 내려요', mod: { split: 5, splitMul: 0.6, splitSpread: 64 }, ult: { kind: 'cash', shots: 'money12' } },
     },
     kingkong: {
       id: 'kingkong', name: '킹콩', tag: '묵직한 탱커', hp: 98, move: 40, take: 1, passive: null,
       proj: { kind: 'plate', label: '바벨 원판', dmg: 28, rad: 38, spd: 0.95, gmul: 1.1, wmul: 0.6, direct: 1, carve: 1.35 },
       pTitle: '하바스 2.0', pDesc: '묵직한 바벨 원판! 폭발이 크고 땅을 크게 파요. 대신 사거리가 짧고 이동이 둔해요',
       taunt: '체급 차이는 노력으로 안 넘어와',
-      skill: { name: '대지 강타', desc: '폭발 범위 +14, 땅을 크게 파고 데미지 1.2배', mod: { dmg: 1.2, rad: 14, carve: 1.7 } },
+      skill: { name: '운석 강타', desc: '착탄 지점에 거대 원판 운석이 떨어지고 파편이 사방에 튀어요', mod: { dmg: 1.1, rad: 8, carve: 1.4 }, ult: { kind: 'plate', shots: 'meteor' } },
     },
     sirasony: {
       id: 'sirasony', name: '시라소니', tag: '빠른 기동형', hp: 100, move: 125, take: 1, passive: null,
       proj: { kind: 'shuriken', label: '수리검', dmg: 36, rad: 25, spd: 1.2, gmul: 1.5, wmul: 0.4, direct: 1.2, carve: 0.7 },
       pTitle: '무패의 발놀림', pDesc: '바람을 거의 안 타는 빠른 수리검 + 이동력 최고. 대신 폭발 범위가 좁아요',
       taunt: '잡을 수 있으면 잡아봐. 못 잡겠지만',
-      skill: { name: '그림자 수리검', desc: '바람을 무시하는 수리검 2개를 동시에', mod: { wmul: 0, multi: [{ da: -3, pm: 0.96, dm: 0.92 }, { da: 3, pm: 1.04, dm: 0.92 }] } },
+      skill: { name: '그림자 난무', desc: '바람을 무시하는 수리검 2개 + 사방에서 수리검 8발이 날아와 꽂혀요', mod: { wmul: 0, multi: [{ da: -3, pm: 0.96, dm: 0.8 }, { da: 3, pm: 1.04, dm: 0.8 }] }, ult: { kind: 'shuriken', shots: 'ninja8' } },
     },
     captainkorea: {
       id: 'captainkorea', name: '캡틴 코리아', tag: '방패 반사', hp: 108, move: 100, take: 0.9, passive: null,
       proj: { kind: 'shield', label: '태극 방패', dmg: 36, rad: 32, spd: 1.0, gmul: 1.0, wmul: 0.9, direct: 1, carve: 1, bounce: 1 },
       pTitle: '방패 반사', pDesc: '땅에 한 번 튕긴 뒤 터지는 방패! 받는 데미지 20% 감소. 대신 한 방이 약해요',
       taunt: '방패가 왜 있는 줄 아냐? 네 주먹 받아주려고',
-      skill: { name: '태극 수호', desc: '체력 12 회복 + 다음 피격 60% 감소, 방패 데미지 1.15배', heal: 12, shield: true, mod: { dmg: 1.15 } },
+      skill: { name: '태극 수호', desc: '체력 12 회복 + 다음 피격 60% 감소, 착탄 지점에 방패 5개가 하늘에서 쏟아져요', heal: 12, shield: true, mod: { dmg: 1.05 }, ult: { kind: 'shield', shots: 'shield5' } },
     },
   };
   /* ── AI 전용 캐릭터(선수 아님) + 보스 ── */
@@ -20320,14 +20319,14 @@ var FortEngine = (function () {
   }
   /* 넓은 월드의 양옆에 지형지물을 더 깔아, 중간 지점에서도 엄폐와 고지대 싸움이 생기게 한다 */
   function addExtras(top, rng) {
-    [0.29, 0.71].forEach(function (fx) {
-      if (rng() < 0.12) return;
-      var cx = W * (fx + (rng() - 0.5) * 0.07), r = rng();
+    [0.23, 0.34, 0.66, 0.77].forEach(function (fx) {
+      if (rng() < 0.22) return;
+      var cx = W * (fx + (rng() - 0.5) * 0.05), r = rng();
       if (r < 0.42) mound(top, cx, 34 + rng() * 26, 34 + rng() * 44);
       else if (r < 0.74) shape(top, cx, 14 + rng() * 24, 30 + rng() * 10, 30 + rng() * 38);
       else shape(top, cx, 24 + rng() * 16, 28 + rng() * 8, -(24 + rng() * 22));
     });
-    if (rng() < 0.55) mound(top, W * (0.5 + (rng() - 0.5) * 0.12), 40 + rng() * 22, 20 + rng() * 26);
+    [0.44, 0.56].forEach(function (fx) { if (rng() < 0.6) mound(top, W * (fx + (rng() - 0.5) * 0.04), 36 + rng() * 22, 20 + rng() * 30); });
   }
 
   /* ── 새 게임 ── */
@@ -20497,6 +20496,39 @@ var FortEngine = (function () {
     return flight(st, pi, S, rec, null);
   }
 
+  /* ── 필살기: 스킬 장전 상태로 쏘면, 착탄 지점 하늘에서 선수마다 다른 공격이 쏟아진다 ──
+     dx 착탄점 기준 가로 위치 · dm 기본 데미지 배율 · ra 폭발 반경 가감 · cm 땅 파임 · dl 시작 지연(초) · T 낙하 시간 · sx 출발 가로 오프셋 */
+  function ultSpecs(name) {
+    var a = [], i;
+    if (name === 'rain9') for (i = 0; i < 9; i++) a.push({ dx: (i - 4) * 24, jit: 16, dm: 0.4, ra: -2, cm: 0.7, dl: ((i * 5) % 9) * 0.075, T: 0.5, sx: ((i % 3) - 1) * 30, wm: 0.2 });
+    else if (name === 'pillar3') [-70, 0, 70].forEach(function (d, k) { a.push({ dx: d, jit: 6, dm: 1.1, ra: 4, cm: 1.1, dl: k * 0.3, T: 0.42, sx: 0, wm: 0 }); });
+    else if (name === 'money12') for (i = 0; i < 12; i++) a.push({ dx: (i - 5.5) * 25, jit: 14, dm: 0.4, ra: -4, cm: 0.5, dl: ((i * 7) % 12) * 0.06, T: 0.6, sx: ((i % 4) - 1.5) * 30, wm: 0.9 });
+    else if (name === 'meteor') {
+      a.push({ dx: 0, jit: 0, dm: 1.1, ra: 24, cm: 2.0, dl: 0.2, T: 0.75, sx: -170, wm: 0 });
+      [-130, -70, 70, 130].forEach(function (d, k) { a.push({ dx: d, jit: 10, dm: 0.32, ra: -6, cm: 0.8, dl: 0.55 + k * 0.08, T: 0.5, sx: d * 0.4, wm: 0.2 }); });
+    }
+    else if (name === 'ninja8') for (i = 0; i < 8; i++) a.push({ dx: (i - 3.5) * 16, jit: 14, dm: 0.46, ra: -2, cm: 0.6, dl: i * 0.07, T: 0.5, sx: (i % 2 ? 1 : -1) * (210 + (i % 3) * 30), wm: 0 });
+    else if (name === 'shield5') for (i = 0; i < 5; i++) a.push({ dx: (i - 2) * 38, jit: 8, dm: 0.55, ra: 0, cm: 0.8, dl: i * 0.11, T: 0.6, sx: (i - 2) * -14, wm: 0.2 });
+    return a;
+  }
+  function ultFire(st, pi, p, c, all) {
+    var ul = c.skill.ult, specs = ultSpecs(ul.shots), rng = st.rng, out = [], ax = null, ay = 0, i, k;
+    for (i = 0; i < all.length; i++) if (!all[i].sky && all[i].type !== 'out') { ax = all[i].x; ay = all[i].y; break; }
+    if (ax === null) { ax = clamp(all[0].x, 30, W - 30); ay = surfaceY(st.top, ax); }
+    var base = c.proj.dmg * (p.dmgMul || 1) * (p.pwr ? 1.45 : 1), rad0 = c.proj.rad;
+    for (i = 0; i < specs.length; i++) {
+      var sp = specs[i], tx = clamp(ax + sp.dx + (rng() - 0.5) * (sp.jit || 0), 6, W - 6), ty = surfaceY(st.top, tx) - 8;
+      var sx = clamp(tx + (sp.sx || 0), -40, W + 40), sy = -150, T = sp.T, g = GRAV;
+      var e = { kind: ul.kind, dmg: base * sp.dm, rad: rad0 + sp.ra, spd: 1, gmul: 1, wmul: sp.wm, bounce: 0, split: 0, splitMul: 1, splitSpread: 0, direct: 1.2, carve: sp.cm, multi: null };
+      var rs = flight(st, pi, { x: sx, y: sy, vx: (tx - sx) / T, vy: (ty - sy - 0.5 * g * T * T) / T, e: e }, true, null);
+      for (k = 0; k < rs.length; k++) {
+        var r = rs[k]; r.by = pi; r.kind = e.kind; r.lane = 100 + i; r.dmg = e.dmg; r.rad = e.rad; r.direct = e.direct; r.carve = e.carve; r.sky = true; r.delay = sp.dl; r.ax = ax; r.ay = ay;
+        out.push(r);
+      }
+    }
+    return out;
+  }
+
   /* 발사: 투사체(들)의 궤적을 미리 계산해 돌려준다. 화면은 이 경로를 따라 애니메이션한 뒤 resolve 를 부른다 */
   function fire(st, pi, ang, pow) {
     var p = st.p[pi], e = effective(p), all = [];
@@ -20512,6 +20544,8 @@ var FortEngine = (function () {
         all.push(r);
       }
     }
+    var cc = CHARS[p.id];
+    if (p.skillOn && cc.skill && cc.skill.ult) { var ux = ultFire(st, pi, p, cc, all); for (var uk = 0; uk < ux.length; uk++) all.push(ux[uk]); }
     p.ang = ang; p.pow = pow;
     var used = { skill: p.skillOn, pwr: p.pwr, dbl: p.dbl };
     p.skillOn = false; p.pwr = false; p.dbl = false;
@@ -20949,6 +20983,20 @@ function ftTrailRGB(kind, i, t) {
   }
   return null;
 }
+/* 굵은 리본 궤적: pts[0] = 머리(가장 최근), 뒤로 갈수록 가늘어지며 사라진다. 광채 + 본체 + 흰 중심선 3겹 */
+function ftRibbon(ctx, pts, kind, t, wMax, baseRGB, tier, forceRGB) {
+  const n = pts.length; if (n < 2) return;
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  for (let k = n - 1; k >= 1; k--) {
+    const a = pts[k], b = pts[k - 1], u = 1 - k / n, wd = Math.max(1.2, wMax * Math.pow(u, .65));
+    const rgb = forceRGB || ftTrailRGB(kind, k, t) || baseRGB || '255,255,255';
+    ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]);
+    ctx.strokeStyle = `rgba(${rgb},${.14 + .16 * u})`; ctx.lineWidth = wd * 2.2; ctx.stroke();
+    ctx.strokeStyle = `rgba(${rgb},${.38 + .5 * u})`; ctx.lineWidth = wd; ctx.stroke();
+    ctx.strokeStyle = `rgba(255,255,255,${.65 * u * u})`; ctx.lineWidth = Math.max(.8, wd * .32); ctx.stroke();
+  }
+  ctx.restore();
+}
 /* 폭발 효과 */
 const FT_BLAST = {
   b_conf: { cols: ['#ff4d6d', '#ffd24a', '#4de3ff', '#8dff6b', '#c77dff'], n: 1.7, shape: 'sq' },
@@ -21051,18 +21099,23 @@ function ftDressDraw() {
   ftDrawBody(ctx, FT.dChar, eq, cx, foot, hH, 1.3, { t: t, active: true });
   const badge = ftGearById('badge', eq.badge);
   if (badge) { ctx.font = '800 9px Jua, Pretendard, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ffd24a'; ctx.fillText(badge.ico + ' ' + badge.n, cx, 16); }
-  // 시험 발사
-  const cyc = (t * .5) % 1.35, dur = 1.0;
+  // 시험 발사: 기 모으기 → 발사(링/돌진) → 굵은 궤적 비행 → 폭발
+  const cd = ftCastDef(eq.cast), cyc = (t * .5) % 1.8, w0 = .42, dur = 1.0;
   const P = u => ({ x: cx + 14 + u * 64, y: 96 - Math.sin(u * Math.PI) * 52 + u * 24 });
-  if (cyc < dur) {
-    const u = cyc / dur, p = P(u);
-    for (let k = 1; k <= 9; k++) { const q = P(Math.max(0, u - k * .03)), rgb = ftTrailRGB(eq.trail, k, t) || '255,255,255'; ctx.fillStyle = `rgba(${rgb},${.7 - k * .07})`; ctx.beginPath(); ctx.arc(q.x, q.y, 3.4 - k * .27, 0, 7); ctx.fill(); }
-    const cd = ftCastDef(eq.cast);
+  if (cyc < w0) {
+    const k = cyc / w0, R = (5 + 14 * k) * Math.min(1.6, cd.big), m = P(0);
+    const og = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, R * 1.6); og.addColorStop(0, 'rgba(255,255,255,.95)'); og.addColorStop(.4, `rgba(${cd.col[0]},.8)`); og.addColorStop(1, `rgba(${cd.col[cd.col.length - 1]},0)`);
+    ctx.fillStyle = og; ctx.beginPath(); ctx.arc(m.x, m.y, R * 1.6, 0, 7); ctx.fill();
+  } else if (cyc < w0 + dur) {
+    const u = (cyc - w0) / dur, p = P(u);
+    const rp = []; for (let k = 0; k < 26; k++) { const q = P(Math.max(0, u - k * .012)); rp.push([q.x, q.y]); }
+    const trT = ftTier('trail', eq.trail), wm = (trT >= 3 ? 11 : trT === 2 ? 9 : trT === 1 ? 7 : 3.5) * (1 + (cd.big - 1) * .4);
+    ftRibbon(ctx, rp, eq.trail, t, wm, '255,255,255', trT, null);
     if (cd.halo) { const gr = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 24 * cd.big); gr.addColorStop(0, `rgba(${cd.halo},.6)`); gr.addColorStop(1, `rgba(${cd.halo},0)`); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(p.x, p.y, 24 * cd.big, 0, 7); ctx.fill(); }
     ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(t * 8); ftProj(ctx, c.proj.kind, .8 * Math.min(1.7, cd.big)); ctx.restore();
     if (cd.rings && u < .35) for (let k = 0; k < cd.rings; k++) { const a2 = Math.max(0, u - k * .05) / .35; ctx.strokeStyle = `rgba(${cd.col[k % cd.col.length]},${.8 * (1 - a2)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx + 14, 96, 6 + a2 * 22, 0, 7); ctx.stroke(); }
   } else {
-    const k = (cyc - dur) / .35, p = P(1), pal = FT_BLAST[eq.blast];
+    const k = (cyc - w0 - dur) / .35, p = P(1), pal = FT_BLAST[eq.blast];
     const cols = pal ? pal.cols : ['#ffd76e', '#ffffff', '#e0332a'];
     for (let i = 0; i < 14 * (pal ? pal.n : 1); i++) {
       const a = i * 2.399, v = 16 + (i % 5) * 7, x = p.x + Math.cos(a) * v * k, y = p.y + Math.sin(a) * v * k - (pal && pal.up ? 14 * k : 0) + 10 * k * k;
@@ -21296,7 +21349,7 @@ function viewGameFort() {
     <button class="g-mute" id="gMute">${gmMuted ? '🔇' : '🔊'}</button>
     <button class="g-full" id="gFull">⛶</button>
     <button id="ftQuit" type="button" style="display:none">포기</button>
-    <div id="ftCamBar" style="display:none"><button id="ftCamMe" type="button">내 위치</button><button id="ftCamFoe" type="button">상대 위치</button><button id="ftCamAll" type="button">전체 보기</button></div>
+    <div id="ftCamBar" style="display:none"><button id="ftCamMe" type="button" aria-label="내 위치" title="내 위치"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7" r="4"/><path d="M4 21c0-5 3.5-8 8-8s8 3 8 8z"/></svg></button><button id="ftCamFoe" type="button" aria-label="상대 위치" title="상대 위치"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7" r="4"/><path d="M4 21c0-5 3.5-8 8-8s8 3 8 8z"/></svg></button><button id="ftCamAll" type="button" aria-label="전체 보기" title="전체 보기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div>
     <div id="ftCtl" style="display:none">
       <div class="ft-r1"><span class="ft-who" id="ftWho"></span><span class="ft-last" id="ftLast"></span>
         <span class="ft-stamw">이동력<i class="ft-stam"><b id="ftStam"></b></i></span></div>
@@ -21653,8 +21706,8 @@ function ftShowSelect(slot) {
   };
 }
 
-/* 월드 폭: 화면보다 훨씬 넓은 1000 (카메라가 내 위치를 따라다니고, 드래그/미니맵으로 둘러본다) */
-function ftPickW() { return 1000; }
+/* 월드 폭: 화면보다 훨씬 넓은 1500 (카메라가 내 위치를 따라다니고, 드래그/미니맵으로 둘러본다) */
+function ftPickW() { return 1500; }
 /* 장착한 꾸미기 중 아직 못 연 것은 걸러낸다(정식 버전에서 테스트 해금이 꺼졌을 때 대비) */
 function ftEquipFor(rec, id) {
   const eq = ftEqOf(rec, id);
@@ -21677,7 +21730,7 @@ function ftStartMatch() {
   FT.st = st; FT.vis = st.p.map(p => ({ x: p.x, y: p.y, hit: 0 }));
   FT.flying = []; FT.parts = []; FT.pops = []; FT.booms = []; FT.bubbles = []; FT.last = [null, null]; FT.aiTween = null; FT.g = null; FT.lastPow = 0;
   { const q = document.getElementById('ftQuit'); if (q) q.style.display = ''; const cb = document.getElementById('ftCamBar'); if (cb) cb.style.display = ''; }
-  FT.active = true; FT.paused = false; FT.cam = { x: st.p[0].x, z: 1, up: 0 }; FT.camFree = false; FT.camOv = false; FT.camTo = null; FT.pan = null; FT.atk = null; FT.bolts = []; FT.focus = null; FT.shake = 0; FT.flash = 0; FT.hurt = 0; FT.ko = null; FT.cutin = null; FT.cAnim = {}; FT.keys = {}; FT.tl = 0; FT.hitstop = 0;
+  FT.active = true; FT.paused = false; FT.cam = { x: st.p[0].x, z: 1, up: 0 }; FT.camFree = false; FT.camOv = false; FT.camTo = null; FT.pan = null; FT.atk = null; FT.bolts = []; FT.sky = null; FT.acc = null; FT.focus = null; FT.shake = 0; FT.flash = 0; FT.hurt = 0; FT.ko = null; FT.cutin = null; FT.cAnim = {}; FT.keys = {}; FT.tl = 0; FT.hitstop = 0;
   FT.amb = null;
   bbArmLeaveGuard();
   const g = document.getElementById('gOver'); if (g) g.style.display = 'none';
@@ -21706,6 +21759,7 @@ function ftBeginTurn(noWait) {
     gmDelay(() => { if (tok === gmToken && st === FT.st && !st.over) ftBeginTurn(true); }, 2000);
     return;
   }
+  if (FT.sky && !FT.sky.out) FT.sky.out = FT.t;
   FT.phase = 'aim'; FT.g = null; FT.camFree = false; FT.camOv = false; FT.camTo = null; FT.pan = null; FT.dragging = false; FT.drag = null;
   const pi = st.turn;
   FT.human = FT.mode === 'pvp' || pi === 0;
@@ -21747,9 +21801,15 @@ function ftFire() {
   const eq = FT.eqs[pi] || {}, cd = ftCastDef(eq.cast);
   const shots = E.fire(st, pi, p.ang, p.pow);
   FT.used = shots.used || {};
-  FT.flying = shots.map(s => ({ s, t: 0, done: false, def: cd }));
+  const ult = !!(FT.used.skill && E.CHARS[p.id].skill.ult);
+  FT.flying = shots.map(s => ({ s, t: 0, done: false, def: cd, res: false, hold: !!s.sky }));
+  FT.acc = { any: false, direct: false };
   FT.vis[pi].hit = 0;
-  FT.atk = { i: pi, t: 0, wind: cd.wind, def: cd, fired: false, tier: ftTier('cast', eq.cast) };
+  FT.atk = { i: pi, t: 0, wind: ult ? .85 : cd.wind, def: ult ? Object.assign({}, cd, { rings: 3, big: Math.max(cd.big, 1.7), shake: 12, flash: .45, col: FT_ULT[p.id].col }) : cd, fired: false, tier: ult ? 3 : ftTier('cast', eq.cast), ult };
+  if (ult) {                                              // 필살기: 하늘에 구름이 모이고 기가 폭발한다
+    FT.sky = { id: p.id, t: 0, out: 0, rain: 0 }; FT.shake = Math.max(FT.shake, 6); gmSnd('crash');
+    ftPop(p.x, p.y - 140, `필살 · ${E.CHARS[p.id].skill.name}!`, '#ffd24a', 30);
+  } else if (eq.cast) ftPop(p.x, p.y - 122, ftGearById('cast', eq.cast).n + '!', '#ffe08a', 22);
   ftSyncCtl();
 }
 /* 공격 모션 1단계: 기 모으기(웅크리며 에너지가 모인다). 꾸미기가 화려할수록 길고 크다 */
@@ -21759,7 +21819,7 @@ function ftMuzzle(pi) {
 }
 function ftWindupFx(A, dt0) {
   if (A.def.wind < .1) return;
-  const m = ftMuzzle(A.i), n = A.tier >= 3 ? 3 : A.tier >= 2 ? 2 : 1;
+  const m = ftMuzzle(A.i), n = A.ult ? 6 : A.tier >= 3 ? 3 : A.tier >= 2 ? 2 : 1;
   for (let k = 0; k < n; k++) {
     const q = Math.random() * 6.283, r = 48 + Math.random() * 34, c = A.def.col[(Math.random() * A.def.col.length) | 0];
     FT.parts.push({ x: m.x + Math.cos(q) * r, y: m.y + Math.sin(q) * r, vx: -Math.cos(q) * r / .2, vy: -Math.sin(q) * r / .2, life: .2, sz: 1.8 + Math.random() * 1.8, c: `rgb(${c})`, g: 0 });
@@ -21845,40 +21905,38 @@ function ftDrain() {
   return dropped;
 }
 
-function ftLand() {
-  const E = FortEngine, st = FT.st, tok = gmToken;
-  FT.phase = 'boom';
-  let anyHit = false, direct = false, cover = false;
-  const shooter = st.turn, seq = FT.eqs[shooter] || {};
-  FT.flying.forEach(f => {
-    const s = f.s, evs = E.resolve(st, s);
-    if (s.type === 'out') { ftPop(ftClamp(s.x, 40, st.W - 40), 90, '헛스윙!', '#cfd6e3', 16); return; }
-    ftBoom(s.x, s.y, s.rad, s.rad >= 34, s.kind, seq, s.type === 'ground' || s.type === 'wall');
-    evs.forEach(ev => {
-      anyHit = true; if (ev.direct) direct = true; if (ev.cover) cover = true;
-      const p = st.p[ev.idx];
-      FT.vis[ev.idx].hit = .45;
-      if (ev.idx === 0 || FT.mode === 'pvp') FT.hurt = Math.min(1, FT.hurt + .7);
-      if (ev.fall) { ftPop(p.x, p.y - 84, '낙하 -' + ev.dmg, '#ffb347', 18); return; }
-      ftPop(p.x + (Math.random() - .5) * 16, p.y - 84, (ev.direct ? '직격! ' : '') + '-' + ev.dmg, ev.direct ? '#ff3b3b' : '#ffb347', ev.direct ? 23 : 18);
-      if (ev.cover) ftPop(p.x, p.y - 108, '엄폐!', '#7fd0ff', 16);
-      if (ev.shield) ftPop(p.x, p.y - 124, '실드!', '#7fd0ff', 16);
-    });
-    FT.shake = Math.max(FT.shake, Math.min(14, s.rad / 3));
-    FT.focus = { x: s.x, y: s.y, until: FT.t + .9 };
+/* 발사체 하나가 땅/상대에 닿는 순간 처리: 폭발, 데미지 표시, 흔들림 */
+function ftResolveOne(f) {
+  const E = FortEngine, st = FT.st, s = f.s, seq = FT.eqs[st.turn] || {}; f.res = true;
+  const evs = E.resolve(st, s), acc = FT.acc || (FT.acc = { any: false, direct: false });
+  if (s.type === 'out') { if (!s.sky) ftPop(ftClamp(s.x, 40, st.W - 40), 90, '헛스윙!', '#cfd6e3', 16); return; }
+  ftBoom(s.x, s.y, s.rad, s.rad >= 34, s.kind, seq, s.type === 'ground' || s.type === 'wall');
+  evs.forEach(ev => {
+    acc.any = true; if (ev.direct) acc.direct = true;
+    const p = st.p[ev.idx];
+    FT.vis[ev.idx].hit = .45;
+    if (ev.idx === 0 || FT.mode === 'pvp') FT.hurt = Math.min(1, FT.hurt + (s.sky ? .25 : .7));
+    if (ev.fall) { ftPop(p.x, p.y - 84, '낙하 -' + ev.dmg, '#ffb347', 18); return; }
+    ftPop(p.x + (Math.random() - .5) * 26, p.y - 84 - (s.sky ? Math.random() * 26 : 0), (ev.direct ? '직격! ' : '') + '-' + ev.dmg, ev.direct ? '#ff3b3b' : '#ffb347', ev.direct ? 23 : 18);
+    if (ev.cover) ftPop(p.x, p.y - 108, '엄폐!', '#7fd0ff', 16);
+    if (ev.shield) ftPop(p.x, p.y - 124, '실드!', '#7fd0ff', 16);
+    if (ev.direct && !s.sky) { gmSnd('perfect'); gmVib([60, 40, 90]); FT.hitstop = .1; FT.shake = Math.max(FT.shake, 11); }
   });
+  FT.shake = Math.max(FT.shake, Math.min(s.sky ? 8 : 14, s.rad / 3));
+  FT.focus = { x: s.x, y: s.y, until: FT.t + .9 };
+  if (s.sky) gmSnd(s.rad >= 40 ? 'crash' : 'weak');
+}
+function ftLand() {
+  const st = FT.st, tok = gmToken, acc = FT.acc || { any: false, direct: false };
+  FT.phase = 'boom';
   FT.flying = [];
-  const falls = E.settle ? [] : [];
   ftDrain();
-  if (direct) { gmSnd('perfect'); gmVib([60, 40, 90]); FT.hitstop = .1; FT.shake = Math.max(FT.shake, 11); }
-  else if (anyHit) { gmSnd('good'); gmVib(40); }
-  else gmSnd('weak');
-  void cover; void falls;
+  if (!acc.direct) { if (acc.any) { gmSnd('good'); gmVib(40); } else gmSnd('weak'); }
   ftSyncCtl();
   if (st.over) { ftKO(); return; }
   gmDelay(() => {
     if (tok !== gmToken || st !== FT.st) return;
-    E.endTurn(st); ftBeginTurn();
+    FortEngine.endTurn(st); ftBeginTurn();
   }, 650);
 }
 
@@ -22057,12 +22115,19 @@ function ftUpdate(dt0, now) {
     if (!A.fired) { ftWindupFx(A, dt0); if (A.t >= A.wind) { A.fired = true; ftLaunch(); } }
     else if (A.t - A.wind > .5) FT.atk = null;
   }
+  if (FT.sky) { FT.sky.t += dt0; if (FT.sky.out && FT.t - FT.sky.out > .8) FT.sky = null; }
   if (FT.bolts && FT.bolts.length) { FT.bolts.forEach(b => { b.t += dt0; }); FT.bolts = FT.bolts.filter(b => b.t < .42); }
   if (FT.phase === 'fly') {
     let all = true;
     FT.flying.forEach(f => {
       if (FT.atk && !FT.atk.fired) { all = false; return; }
+      if (f.hold) {                                         // 필살기 하늘 공격은 본 발사가 착지한 뒤에 쏟아진다
+        if (FT.flying.every(q => q.s.sky || q.done)) { f.hold = false; f.t = -(f.s.delay || 0) * FT_PLAY; if (FT.sky && !FT.sky.rain) { FT.sky.rain = FT.t; FT.shake = Math.max(FT.shake, 8); FT.flash = Math.min(1, FT.flash + .5); gmSnd('crash'); } }
+        else { all = false; return; }
+      }
+      if (f.done) return;
       f.t += dt * FT_PLAY;
+      if (f.t < 0) { all = false; return; }
       const ci = Math.min(f.s.path.length - 1, Math.floor(f.t / E.DT));
       for (let i = Math.max(2, (f.lastI || 0) + 1); i <= ci && i < f.s.path.length; i++) {
         const a = f.s.path[i - 2], b = f.s.path[i - 1], c = f.s.path[i];
@@ -22077,6 +22142,7 @@ function ftUpdate(dt0, now) {
       ftCastTrail(f, ci);
       f.lastI = ci;
       if (ci >= f.s.path.length - 1) f.done = true;
+      if (f.done && !f.res) ftResolveOne(f);
       if (!f.done) all = false;
     });
     if (all && FT.flying.length) ftLand();
@@ -22152,9 +22218,9 @@ function ftCamUpdate(dt0) {
   if (!FT.st) { tx = Wd / 2; tz = ovz; }
   else if (FT.ko) { tx = st.p[FT.ko.idx].x; }
   else if (FT.phase === 'fly' && FT.flying.length && !waiting) {
-    let f = FT.flying[0]; FT.flying.forEach(q => { if (!q.done) f = q; });
-    const pa = f.s.path, pos = pa[ftClamp(Math.floor(f.t / E.DT), 0, pa.length - 1)];
-    tx = pos[0]; tu = upFor(pos[1], 1); rate = 9;
+    const main = FT.flying.filter(q => !q.s.sky && !q.done), sky = FT.flying.filter(q => q.s.sky);
+    if (main.length) { const f = main[main.length - 1], pa = f.s.path, pos = pa[ftClamp(Math.floor(f.t / E.DT), 0, pa.length - 1)]; tx = pos[0]; tu = upFor(pos[1], 1); rate = 9; }
+    else if (sky.length) { tx = sky[0].s.ax; tu = upFor(-70, 1); rate = 6; }
   } else if (FT.phase === 'boom' && FT.focus && FT.t < FT.focus.until) { tz = 1.1; tx = FT.focus.x; tu = upFor(FT.focus.y, 1.1) * .6; }
   else if (FT.camOv) { tx = Wd / 2; tz = ovz; }
   else if (FT.camFree) { tx = FT.camTo != null ? FT.camTo : cam.x; }
@@ -22252,6 +22318,7 @@ function ftDraw() {
   }
   const floorY = Y(E.BASE), cam = FT.cam;
   ftBackdrop(ctx, w, h, floorY, mcol, (cam.x - Wd / 2) * sc * .3);
+  if (FT.sky) ftDrawSky(ctx, w, h, floorY);
   ctx.save();
   // 지형
   const top = st.top;
@@ -22322,16 +22389,19 @@ function ftDraw() {
   // 비행 중인 무기
   if (FT.phase === 'fly') {
     const seq = FT.eqs[FT.st.turn] || {}, hot = FT.used && (FT.used.skill || FT.used.pwr);
+    const many = FT.flying.length > 4;
     FT.flying.forEach(f => {
+      if (f.hold || f.t < 0 || f.done) return;
       const kind = f.s.kind || 'glove', pa = f.s.path;
       const idx = Math.min(pa.length - 1, Math.floor(f.t / E.DT));
       const pos = pa[idx], col = FT_TRAIL[kind] || '255,255,255';
-      const trT = ftTier('trail', seq.trail), nT = trT >= 3 ? 26 : trT === 2 ? 18 : 12, df = f.def || FT_CAST0, big = df.big || 1;
-      for (let k = 1; k <= nT; k++) {
-        const q = pa[Math.max(0, idx - k * 2)], tc = ftTrailRGB(seq.trail, k, t) || col, fade = k / nT;
-        ctx.fillStyle = `rgba(${tc},${(.65 - fade * .6) * (trT >= 3 ? 1.15 : 1)})`;
-        ctx.beginPath(); ctx.arc(X(q[0]), Y(q[1]), Math.max(1.5, ((trT >= 3 ? 6.2 : 4.4) * (1 + (big - 1) * .6) * (1 - fade * .8)) * sc), 0, 7); ctx.fill();
-      }
+      const trT = ftTier('trail', seq.trail), df = f.def || FT_CAST0, big = df.big || 1;
+      // 굵은 리본 궤적: 꾸미기 등급이 높을수록 더 굵고 길고 화려하다
+      const nT = many ? 14 : trT >= 3 ? 44 : trT === 2 ? 34 : trT === 1 ? 26 : 14;
+      const wMax = (many ? 9 : trT >= 3 ? 34 : trT === 2 ? 25 : trT === 1 ? 18 : 8) * (1 + (big - 1) * .5) * (f.s.sky ? .7 : 1);
+      const rp = [];
+      for (let k = 0; k < nT; k++) { const q = pa[Math.max(0, idx - k * 2)]; rp.push([X(q[0]), Y(q[1])]); }
+      ftRibbon(ctx, rp, seq.trail, t, wMax * sc, col, trT, f.s.sky ? (FT_ULT[FT.st.turn >= 0 ? FT.st.p[FT.st.turn].id : ''] || {}).rgb : null);
       const px = X(pos[0]), py = Y(pos[1]);
       const gR = (22 * sc + 6) * big, gl = ctx.createRadialGradient(px, py, 0, px, py, gR);
       gl.addColorStop(0, df.halo ? `rgba(${df.halo},.62)` : hot ? 'rgba(255,200,80,.55)' : 'rgba(255,255,255,.28)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
@@ -22414,9 +22484,54 @@ function ftDraw() {
   if (FT.ko) ftDrawKO(ctx, w, h);
 }
 
+/* 필살기마다 하늘 연출이 다르다: 구름 색, 번개, 비 모양 */
+const FT_ULT = {
+  tusin: { col: ['255,90,70', '255,230,150', '255,255,255'], rgb: '255,110,90', sky: '38,30,46', cloud: '78,66,92', lit: 1, rain: 'line', rc: 'rgba(200,215,255,.8)' },
+  wumawang: { col: ['255,210,90', '255,120,60', '255,255,255'], rgb: '255,200,90', sky: '60,34,6', cloud: '190,130,40', lit: 1, rain: 'gold', rc: 'rgba(255,220,120,.9)' },
+  godfather: { col: ['120,230,140', '255,224,110', '255,255,255'], rgb: '120,230,140', sky: '12,48,26', cloud: '70,150,90', lit: 0, rain: 'bill', rc: '#6fcf7f' },
+  kingkong: { col: ['255,140,50', '255,220,110', '255,255,255'], rgb: '255,140,60', sky: '70,18,6', cloud: '120,50,24', lit: 0, rain: 'ember', rc: 'rgba(255,170,70,.9)' },
+  sirasony: { col: ['190,150,255', '255,255,255', '120,90,220'], rgb: '190,150,255', sky: '14,8,36', cloud: '48,30,92', lit: 0, rain: 'slash', rc: 'rgba(220,200,255,.9)' },
+  captainkorea: { col: ['120,190,255', '255,255,255', '255,90,90'], rgb: '140,200,255', sky: '10,30,70', cloud: '170,205,255', lit: 0, rain: 'star', rc: 'rgba(255,255,255,.9)' },
+};
+/* 하늘에 먹구름이 모이고(차징), 본 공격이 닿으면 비/지폐/수리검이 쏟아진다 */
+function ftDrawSky(ctx, w, h, floorY) {
+  const S = FT.sky, U = FT_ULT[S.id]; if (!U) return;
+  const ap = ftClamp(S.t / .6, 0, 1) * (S.out ? ftClamp(1 - (FT.t - S.out) / .8, 0, 1) : 1), top = FT.hudH, sk = w / 390;
+  let g = ctx.createLinearGradient(0, top, 0, floorY);
+  g.addColorStop(0, `rgba(${U.sky},${.82 * ap})`); g.addColorStop(.7, `rgba(${U.sky},${.4 * ap})`); g.addColorStop(1, `rgba(${U.sky},0)`);
+  ctx.fillStyle = g; ctx.fillRect(0, top, w, floorY - top);
+  // 구름: 하늘 위에서 내려와 퍼진다
+  ctx.save(); ctx.beginPath(); ctx.rect(0, top, w, floorY - top); ctx.clip();
+  for (let i = 0; i < 9; i++) {
+    const cx = ((i + .5) / 9) * (w + 80) - 40 + Math.sin(FT.t * .35 + i) * 14, cy = top + (22 + (i % 3) * 26 - (1 - ap) * 120) * Math.max(.8, sk * .9), r = (30 + (i % 4) * 8) * Math.max(.85, sk);
+    ctx.fillStyle = `rgba(${U.cloud},${.85 * ap})`;
+    [[0, 0, 1], [-.9, .25, .75], [.9, .25, .8], [-.4, -.3, .8], [.45, -.25, .7]].forEach(q => { ctx.beginPath(); ctx.arc(cx + q[0] * r, cy + q[1] * r, r * q[2], 0, 7); ctx.fill(); });
+    ctx.fillStyle = `rgba(0,0,0,${.18 * ap})`; ctx.beginPath(); ctx.ellipse(cx, cy + r * .55, r * 1.6, r * .35, 0, 0, 7); ctx.fill();
+  }
+  // 번개
+  if (U.lit && ap > .6 && Math.random() < .045) { FT.flash = Math.min(1, FT.flash + .35); FT.bolts.push({ x: 40 + Math.random() * 1400, y0: -200, y1: 260, t: .08 }); }
+  // 쏟아지는 비 (본 공격 착지 후)
+  if (S.rain) {
+    const rt = FT.t - S.rain, ra = ftClamp(1 - (rt - 1.4) / .9, 0, 1) * ftClamp(rt / .15, 0, 1);
+    if (ra > 0) {
+      ctx.globalAlpha = ra; ctx.strokeStyle = U.rc; ctx.fillStyle = U.rc; ctx.lineWidth = 2;
+      for (let i = 0; i < 46; i++) {
+        const x = ((i * 53.7 + FT.t * (U.rain === 'slash' ? 380 : 40)) % (w + 60)) - 20, y = top + (((i * 91.3) + FT.t * 760) % (floorY - top + 40)), L = 16 + (i % 3) * 9;
+        if (U.rain === 'line' || U.rain === 'gold' || U.rain === 'star') { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 3, y + L); ctx.stroke(); }
+        else if (U.rain === 'bill') { ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(FT.t * 6 + i) * .9); ctx.fillRect(-7, -4, 14, 8); ctx.restore(); }
+        else if (U.rain === 'ember') { ctx.beginPath(); ctx.arc(x, y, 2.4 + (i % 3), 0, 7); ctx.fill(); }
+        else { ctx.beginPath(); ctx.moveTo(x - L, y - L * .6); ctx.lineTo(x + L, y + L * .6); ctx.stroke(); }
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+  ctx.restore();
+}
+
 /* 미니맵: 맵 전체 모양 + 두 선수 위치 + 지금 보이는 구간. 누르거나 드래그하면 카메라가 그쪽으로 간다 */
 function ftDrawMini(ctx, w, h, st) {
-  const E = FortEngine, Wd = st.W, mw = Math.round(Math.min(w * .46, 210)), mh = 30, mx = Math.round((w - mw) / 2), my = FT.hudH + 8;
+  const E = FortEngine, Wd = st.W, mw = Math.round(Math.min(w * .4, 170)), mh = 30, mx = Math.round((w - mw) / 2 + 48), my = FT.hudH + 8;
+  { const bar = document.getElementById('ftCamBar'); if (bar) { const L = (mx - 12 - 96) + 'px', T = (my - 1) + 'px'; if (bar.style.left !== L) bar.style.left = L; if (bar.style.top !== T) bar.style.top = T; } }
   FT.miniRect = { x: mx, y: my, w: mw, h: mh };
   const pc = i => FT.mode === 'pvp' && i === 1 ? '#4de3ff' : i === 0 ? '#ffd24a' : '#ff5a4a';
   ctx.save();
