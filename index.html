@@ -20972,7 +20972,8 @@ if (typeof module !== 'undefined') module.exports = FortEngine;
      w 승리 · s 최고 연승 · pw PvP 승리 · ps PvP 최고 연승
    · 정식 버전: 조건을 달성해야 꾸미기가 해금된다.
    ══════════════════════════════════════════════════════════════════════ */
-const FT_STORE = 'ft_v1';
+const FT_STORE = 'ft_v2';   // 기록은 닉네임별로 따로 저장한다 (ft_v2:닉네임). 예전 테스트 기록(ft_v1)은 쓰지 않는다
+function ftKey() { return FT_STORE + ':' + ((typeof gmMyNick !== 'undefined' && gmMyNick) || ''); }
 const FT_SLOTS = [['aura', '오라'], ['glow', '윤곽 빛'], ['shine', '광택'], ['ring', '발밑 링'], ['trail', '궤적'], ['blast', '폭발'], ['cast', '모션'], ['badge', '칭호'], ['line', '도발']];
 const FT_GEAR = {
   aura: [
@@ -21068,14 +21069,13 @@ function ftTitle(w) { let t = FT_TITLES[0]; FT_TITLES.forEach(x => { if (w >= x[
 /* ── 기록 저장/불러오기 ── */
 function ftEmptyEq() { return { aura: '', glow: '', shine: '', ring: '', trail: '', blast: '', cast: '', badge: '', line: '' }; }
 function ftLoad() {
-  const d = { best: 0, wins: 0, games: 0, bestStage: 0, f: {}, eqf: {}, seen: [], rank: 0, rankAt: 0, hintAng: 0, cp: 1 };
+  const d = { best: 0, wins: 0, games: 0, bestStage: 0, f: {}, eqf: {}, seen: [], rank: 0, rankAt: 0, hintAng: 0, cp: 1, ts: 0 };
   try {
-    if (!localStorage.getItem(FT_STORE + '_live')) { localStorage.removeItem(FT_STORE); localStorage.setItem(FT_STORE + '_live', '1'); }   // 정식 오픈 첫 접속: 테스트 때 쌓인 이 기기 기록을 한 번만 비운다
-    const o = JSON.parse(localStorage.getItem(FT_STORE) || '{}');
+    const o = JSON.parse(localStorage.getItem(ftKey()) || '{}');
     d.best = +o.best || 0; d.bestStage = +o.bestStage || 0; d.wins = +o.wins || 0; d.games = +o.games || 0;
     if (o.f && typeof o.f === 'object') d.f = o.f;
     if (o.eqf && typeof o.eqf === 'object') d.eqf = o.eqf;
-    d.cp = Math.max(1, Math.min(500, +o.cp || 1)); d.rank = +o.rank || 0; d.rankAt = +o.rankAt || 0; d.hintAng = +o.hintAng || 0;
+    d.ts = +o.ts || 0; d.cp = Math.max(1, Math.min(500, +o.cp || 1)); d.rank = +o.rank || 0; d.rankAt = +o.rankAt || 0; d.hintAng = +o.hintAng || 0;
     if (Array.isArray(o.seen)) d.seen = o.seen.filter(x => typeof x === 'string');
   } catch (e) { }
   ftPruneEq(d);
@@ -21100,7 +21100,35 @@ async function ftSyncRank() {
     rec.rank = my; rec.rankAt = Date.now(); ftPruneEq(rec); ftSave(rec); return true;
   } catch (e) { return false; }
 }
-function ftSave(o) { try { localStorage.setItem(FT_STORE, JSON.stringify(o)); } catch (e) { } }
+function ftSave(o) { try { o.ts = Date.now(); localStorage.setItem(ftKey(), JSON.stringify(o)); } catch (e) { } ftPushSoon(); }
+/* ── 계정(카카오 로그인 닉네임) 기준 저장: 서버가 원본, 이 기기 저장은 캐시 ── */
+let ftPushT = 0, ftPushing = false;
+function ftPushSoon() {
+  if (typeof sb === 'undefined' || !sb || !gmMyNick) return;
+  clearTimeout(ftPushT); ftPushT = setTimeout(ftPushNow, 1500);
+}
+async function ftPushNow() {
+  if (ftPushing) { ftPushSoon(); return; }
+  try {
+    if (typeof sb === 'undefined' || !sb || !gmMyNick) return;
+    ftPushing = true; const o = ftLoad(); if (!o.ts) o.ts = Date.now();
+    await sb.rpc('fort_profile_put', { p_data: o, p_ts: o.ts });
+  } catch (e) { } finally { ftPushing = false; }
+}
+/* 서버 기록을 읽어 이 기기보다 새로우면 덮어쓴다. 서버에 없으면 이 기기 기록을 올린다. 바뀌었으면 true */
+async function ftSyncProfile() {
+  try {
+    if (typeof sb === 'undefined' || !sb || !gmMyNick) return false;
+    const key = ftKey(), nick = gmMyNick;
+    const { data, error } = await sb.rpc('fort_profile_get'); if (error || !data || data.ok === false) return false;
+    if (nick !== gmMyNick) return false;
+    const loc = ftLoad();
+    if (!data.exists) { if (loc.games > 0 || loc.wins > 0 || loc.cp > 1) ftPushNow(); return false; }
+    if ((+data.ts || 0) > (loc.ts || 0) && data.data && typeof data.data === 'object') { localStorage.setItem(key, JSON.stringify(data.data)); return true; }
+    if ((loc.ts || 0) > (+data.ts || 0)) ftPushNow();
+  } catch (e) { }
+  return false;
+}
 function ftFS(rec, id) {
   const f = rec.f[id] || (rec.f[id] = {});
   ['w', 's', 'pw', 'ps', 'pc'].forEach(k => { f[k] = +f[k] || 0; });
@@ -21977,6 +22005,7 @@ function viewGameFort() {
   <div class="sec-title">🧑‍🎤 파이터 특성</div>
   <div class="card" id="ftGuide"></div>`;
   ftRenderRec(); ftRenderGuide(); ftRenderRank(); ftLoadBoard();
+  ftSyncProfile().then(ch => { if (ch && document.getElementById('ftRec')) { ftRenderRec(); ftRenderRank(); } });
   ftTrimSprites(document.getElementById('gArea') || document);
   const rb = document.getElementById('ftRulesBtn');
   rb.onpointerdown = e => e.stopPropagation();
@@ -22035,6 +22064,7 @@ function ftShowTitle() {
   { const q = document.getElementById('ftQuit'); if (q) q.style.display = 'none'; } FT.ko = null; FT.cutin = null; FT.drones = []; FT.cAnim = {}; FT.bubbles = []; FT.sel = [null, null]; FT.dress = false;
   FT.vis = FT.demo.p.map(p => ({ x: p.x, y: p.y, hit: 0 }));
   bbDisarmLeaveGuard(); ftHud(); ftRenderRank(); ftRenderRec();
+  ftSyncProfile().then(ch => { if (ch && FT.phase === 'title') { ftRenderRec(); ftRenderRank(); } });
 }
 function ftRenderRec() {
   const el = document.getElementById('ftRec'); if (!el) return;
