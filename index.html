@@ -12769,6 +12769,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 #ftRankBoard .bb-lb-stat { white-space: nowrap; font-size: 13px; }
 #ftRankBoard .bb-lb-rate { display: inline !important; margin-left: 3px; font-size: 11px; white-space: nowrap; }
 #ftRankBoard .bb-lb-nick { white-space: nowrap; }
+#gTopFort{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 
   </style>
 </head>
@@ -21968,10 +21969,15 @@ function ftRR(ctx, x, y, w, h, r) {
 }
 
 /* 게임 메뉴 카드 아래 "내 최고 기록" 줄 */
-function ftMenuTop() {
+async function ftMenuTop() {
   const el = document.getElementById('gTopFort'); if (!el) return;
-  const r = ftLoad();
-  el.innerHTML = r.best > 0 ? `내 최고 <b>${r.best}연승</b> · STAGE ${r.bestStage} · 누적 ${r.wins}승${(() => { const a = FortEngine.ORDER.filter(id => ftFS(r, id).cp > 1).map(id => `${FortEngine.CHARS[id].name} ${ftFS(r, id).cp}`); return a.length ? ` · 체크포인트 ${a.join(', ')}` : ''; })()}` : '아직 기록 없음 — 첫 연승에 도전!';
+  try {
+    const { data, error } = await sb.rpc('fort_get_ranking', { p_limit: 1 });
+    if (error) throw error;
+    const r = Array.isArray(data) ? data[0] : null;
+    if (!r) { el.textContent = '아직 기록 없음 — P4P 1위에 도전!'; return; }
+    el.innerHTML = `P4P 🥇 <b style="color:var(--text)">${esc(r.nickname)}</b> STAGE ${r.best_stage} · ${r.best_streak}연승`;
+  } catch (e) { el.textContent = '랭킹 준비 중'; }
 }
 
 function ftOpenRules() {
