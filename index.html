@@ -12194,19 +12194,13 @@
     body[data-route="t"] .vc-sum-side.lead b { font-weight: 700; color: var(--text); }
     body[data-route="t"] .vc-sum-side small { font-size: 11.5px; color: var(--dim); font-variant-numeric: tabular-nums; }
     body[data-route="t"] .vc-sum-side.lead small { color: var(--muted); font-weight: 600; }
-    /* 2026-11-05: 전체 경기 — 정렬 토글 / 탑독·언더독 강조 / 국기·챔피언 왕관 */
-    body[data-route="t"] .vc-sum-row { position: relative; }
-    body[data-route="t"] .vc-sum-row.hb { padding-bottom: 11px; }
+    /* 2026-11-05: 전체 경기 — 국기·챔피언 왕관, 탑독 점 표시 (이름·숫자 스타일은 양쪽 동일) */
     body[data-route="t"] .vc-sum-row img.flag { width: 18px; height: 14px; border-radius: 2px; vertical-align: -2px; margin-right: 4px; object-fit: cover; }
     body[data-route="t"] .vc-crown { font-size: .92em; }
-    body[data-route="t"] .vc-sum-side b { font-weight: 500; color: var(--text); }
-    body[data-route="t"] .vc-sum-side small { color: var(--text); }
-    body[data-route="t"] .vc-sum-side img.flag { opacity: .8; }
-    body[data-route="t"] .vc-sum-side.lead b { font-weight: 800; color: var(--text); }
-    body[data-route="t"] .vc-sum-side.lead img.flag { opacity: 1; }
-    body[data-route="t"] .vc-sum-bar { position: absolute; left: 6px; right: 6px; bottom: 3px; height: 3px; border-radius: 2px; overflow: hidden; background: var(--vio); }
-    body[data-route="t"] .vc-sum-bar i { display: block; height: 100%; background: var(--teal); }
-    body[data-route="t"] .vc-sum-bar.zero { background: #ececf1; }
+    body[data-route="t"] .vc-sum-side b { font-weight: 700; color: var(--text); }
+    body[data-route="t"] .vc-sum-side small { font-weight: 600; color: var(--muted); }
+    body[data-route="t"] .vc-sum-side.lead b::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; background: var(--teal); }
+    body[data-route="t"] .vc-sum-side.b.lead b::before { background: var(--vio); }
     @media (max-width: 640px) {
       body[data-route="t"] .vc-sum-vote { grid-column: 2 / 4; gap: 6px; }
       body[data-route="t"] .vc-sum-side { flex-direction: column; gap: 0; align-items: flex-start; }
@@ -31431,7 +31425,7 @@
               var ps = c.querySelectorAll('.vc-pct'), pa = ps[0] ? tx(ps[0]) : '', pb = ps[1] ? tx(ps[1]) : '';
               var fmt = function (t) { var m = t.match(/(\d+)%\s*([\d,]+)\uBA85/); return m ? m[1] + '% \u00B7 ' + m[2] + '\uBA85' : t; };
               var na = parseInt(pa, 10) || 0, nb = parseInt(pb, 10) || 0, zero = !(na + nb), leadA = !zero && na >= nb, leadB = !zero && nb >= na, selA = cA0 && cA0.classList.contains('sel'), selB = cB0 && cB0.classList.contains('sel');
-              return '<div class="vc-sum-row hb' + (i === vcIdx ? ' cur' : '') + '" data-i="' + i + '"><span class="vc-sum-no">' + no + '</span><span class="vc-sum-div">' + dv + '</span><span class="vc-sum-vote"><span class="vc-sum-side a' + (leadA ? ' lead' : '') + (selA ? ' mine' : '') + '"><b>' + aH + '</b><small>' + fmt(pa) + '</small></span><i>vs</i><span class="vc-sum-side b' + (leadB ? ' lead' : '') + (selB ? ' mine' : '') + '"><b>' + bH + '</b><small>' + fmt(pb) + '</small></span></span><span class="vc-sum-bar ' + (zero ? 'zero' : (leadA && leadB) ? 'tie' : leadA ? 'la' : 'lb') + '"><i style="width:' + (zero ? 0 : na) + '%"></i></span></div>';
+              return '<div class="vc-sum-row' + (i === vcIdx ? ' cur' : '') + '" data-i="' + i + '"><span class="vc-sum-no">' + no + '</span><span class="vc-sum-div">' + dv + '</span><span class="vc-sum-vote"><span class="vc-sum-side a' + (leadA ? ' lead' : '') + (selA ? ' mine' : '') + '"><b>' + aH + '</b><small>' + fmt(pa) + '</small></span><i>vs</i><span class="vc-sum-side b' + (leadB ? ' lead' : '') + (selB ? ' mine' : '') + '"><b>' + bH + '</b><small>' + fmt(pb) + '</small></span></span></div>';
             }
             var pcts = c.querySelectorAll('.vc-pct'), pw = wa ? pcts[0] : wb ? pcts[1] : null; var pt = pw ? tx(pw).replace(/명.*$/, '').replace(/%.*/, '%') : '';
             var live = c.classList.contains('live');
@@ -31439,7 +31433,7 @@
             return '<div class="vc-sum-row' + (i === vcIdx ? ' cur' : '') + '" data-i="' + i + '"><span class="vc-sum-no">' + no + '</span><span class="vc-sum-div">' + dv + '</span><span class="vc-sum-vs"><b class="' + (wb ? 'lose' : '') + '">' + aH + '</b><i>vs</i><b class="' + (wa ? 'lose' : '') + '">' + bH + '</b></span>' + right + '</div>';
           }); if (vcSumDesc) rowArr.reverse(); var rowsH = rowArr.join('');
           var sortBar = '';
-          sum.innerHTML = '<div class="vc-sum-h">' + (isVote ? '\uC804\uCCB4 \uACBD\uAE30' : '\uC804\uCCB4 \uACBD\uAE30 \uACB0\uACFC') + '<span>' + (isVote ? '\uC810 = \uB0B4 \uC120\uD0DD \u00B7 ' : '') + '\uB204\uB974\uBA74 \uD574\uB2F9 \uACBD\uAE30 \uCE74\uB4DC\uB85C \uC774\uB3D9</span></div>' + sortBar + rowsH;
+          sum.innerHTML = '<div class="vc-sum-h">' + (isVote ? '\uC804\uCCB4 \uACBD\uAE30' : '\uC804\uCCB4 \uACBD\uAE30 \uACB0\uACFC') + '<span>' + (isVote ? '\uC810 = \uD0D1\uB3C5 \u00B7 ' : '') + '\uB204\uB974\uBA74 \uD574\uB2F9 \uACBD\uAE30 \uCE74\uB4DC\uB85C \uC774\uB3D9</span></div>' + sortBar + rowsH;
         } else if (sum) sum.remove();
         var foot = app.querySelector('.vc-foot');
         if (foot) {
