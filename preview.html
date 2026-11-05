@@ -12706,7 +12706,7 @@ h1.page.gm-h1 .gm-listbtn { margin-left: auto; }
 
 .ga-fort.ft-hudless .g-mute, .ga-fort.ft-hudless .g-full { top: 8px; }
 .ft-dressrow { margin: 0 0 2px; }
-body[data-route="game"] .gcard-fort .gc-new { background: var(--amber); color: #3d2a00; }
+body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; }
 
 #ftLobby .fl-promo { border: 0; border-radius: 999px; padding: 7px 11px; background: rgba(255,255,255,.14); color: #fff; font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap; }
 #ftLobby .fl-promo:active { background: rgba(255,255,255,.26); }
@@ -20219,7 +20219,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: var(--amber); color: #
       if (navStale(__g)) return; $app.innerHTML = `
   <a class="gcard gcard-fort" href="#/game/fort">
     <span class="gc-new">NEW</span>
-    <div class="gc-ico"><img src="${ftArtSrc('tusin')}" alt=""></div>
+    <div class="gc-ico"><img src="${ftArtSrc('godfather')}" alt=""></div>
     <div class="gc-b">
       <b>블랙 케이지</b>
       <span>WHO IS THE KING?!</span>
@@ -21766,6 +21766,11 @@ var FT = {
   cAnim: {}, drones: [], lives: 3, cp: 1, nextStage: 1, amb: null, eqs: [{}, {}], wallFlash: [0, 0], dress: false, used: null, gMax: 20,
 };
 function ftClamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+function ftNameOf(i, fallback) {
+  if (FT.mode === 'pvp' && FT.net && FT.net.players && FT.net.players[i]) return FT.net.players[i].nick;
+  if (FT.mode === 'ai' && i === 0 && typeof gmMyNick !== 'undefined' && gmMyNick) return gmMyNick;
+  return fallback;
+}
 function ftArtSrc(id) { return (typeof GM_ART_SRC !== 'undefined' && GM_ART_SRC[id]) || ''; }
 function hexA(hex, a) {
   const n = parseInt(hex.slice(1), 16);
@@ -23177,7 +23182,7 @@ function ftDrawMini(ctx, w, h, st) {
   st.p.forEach((p, i) => {
     if (p.dead || FT.ko) return;
     const v = FT.vis[i] || p, sx = FT.ox + v.x * FT.sc; if (sx > 12 && sx < w - 12) return;
-    const left = sx <= 12, nm = ((FT.mode === 'pvp' && FT.net && FT.net.players[i] ? FT.net.players[i].nick : E.CHARS[p.id].name).slice(0, 5)) + ' ' + Math.round(Math.abs(p.x - st.p[ref].x) / 10) + 'm', tw = ctx.measureText(nm).width + 22, ex = left ? 6 : w - 6 - tw, ey = ftClamp(FT.oy + (v.y - 50) * FT.sc, FT.hudH + 64, FT.bottom - 34);
+    const left = sx <= 12, nm = (ftNameOf(i, E.CHARS[p.id].name).slice(0, 5)) + ' ' + Math.round(Math.abs(p.x - st.p[ref].x) / 10) + 'm', tw = ctx.measureText(nm).width + 22, ex = left ? 6 : w - 6 - tw, ey = ftClamp(FT.oy + (v.y - 50) * FT.sc, FT.hudH + 64, FT.bottom - 34);
     ctx.fillStyle = 'rgba(8,10,16,.8)'; ftRR(ctx, ex, ey - 11, tw, 22, 11); ctx.fill(); ctx.strokeStyle = pc(i); ctx.lineWidth = 2; ctx.stroke();
     ctx.fillStyle = pc(i); ctx.beginPath(); if (left) { ctx.moveTo(ex + 5, ey); ctx.lineTo(ex + 12, ey - 5); ctx.lineTo(ex + 12, ey + 5); } else { ctx.moveTo(ex + tw - 5, ey); ctx.lineTo(ex + tw - 12, ey - 5); ctx.lineTo(ex + tw - 12, ey + 5); } ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText(nm, ex + (left ? 16 : 6), ey + .5);
@@ -23367,7 +23372,7 @@ function ftDrawChar(ctx, i, active, X, Y, sc, st) {
   const tag = (p.shield ? '🛡' : '') + (p.pwr ? '💥' : '') + (p.dbl ? '✌' : '') + (p.skillOn ? '⚡' : '');
   ctx.font = `800 ${Math.max(10, 11 * (sc * .5 + .55))}px Jua, Pretendard, sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-  const nm = `${FT.mode === 'pvp' && FT.net && FT.net.players[i] ? FT.net.players[i].nick : c.name}${tag ? ' ' + tag : ''}`;
+  const nm = `${ftNameOf(i, c.name)}${tag ? ' ' + tag : ''}`;
   ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.85)'; ctx.strokeText(nm, sx, by - 3);
   ctx.fillStyle = '#fff'; ctx.fillText(nm, sx, by - 3);
   const bd = ftGearById('badge', eq.badge);
@@ -30046,7 +30051,65 @@ function ftNetNoRec(st) {
     <hr class="sep" style="margin:10px 0 8px">
     <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px">🦁 블랙 퀴즈</div>
     <button class="btn xs" data-nick="${esc(nick)}" onclick="adminResetQuizAttempts(this)">이용 횟수·전적 완전 초기화</button>
+    <div id="wlqz-${idx}" style="margin-top:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:12.5px;font-weight:700;color:var(--muted)">공개 상태 불러오는 중…</span></div>
+    <hr class="sep" style="margin:10px 0 8px">
+    <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px">🏟️ 블랙 케이지 (서버 랭킹 기록)</div>
+    <div id="wlft-${idx}"><div class="empty" style="padding:4px 0">불러오는 중…</div></div>
   </div>`;
+      adminLoadPanelExtras(idx, nick);
+    }
+    /* 게임 관리 패널 보조: 블랙 퀴즈 공개/비공개 전환(전체 공통 설정) + 블랙 케이지 랭킹 기록 제어 */
+    async function adminLoadPanelExtras(idx, nick, onlyQuiz) {
+      const qz = document.getElementById('wlqz-' + idx);
+      if (qz) {
+        try {
+          const res = await sb.rpc('quiz_admin_pool_status', { p_pass: adminPass() });
+          if (res.error) throw res.error;
+          const pub = !!(res.data && res.data.public_enabled);
+          qz.innerHTML = `<span style="font-size:12.5px;font-weight:800">블랙 퀴즈 공개 상태: <b style="color:${pub ? 'var(--green)' : '#d69411'}">${pub ? '🌐 전체 공개' : '🔒 비공개'}</b></span>
+        <button class="btn xs ${pub ? '' : 'primary'}" onclick="adminQuizVisFromPanel(${pub ? 'false' : 'true'})">${pub ? '🔒 비공개로 전환' : '🌐 공개로 전환'}</button>`;
+        } catch (e) { qz.innerHTML = `<span style="font-size:12px;color:var(--dim)">공개 상태를 불러오지 못했습니다. (블랙퀴즈_패치.sql 확인)</span>`; }
+      }
+      const ft = document.getElementById('wlft-' + idx);
+      if (ft && !onlyQuiz) {
+        try {
+          const { data, error } = await sb.rpc('fort_admin_get', { p_pass: adminPass(), p_nick: nick });
+          if (error) throw error;
+          if (!data || data.ok === false) throw new Error((data && data.msg) || '권한이 없습니다.');
+          const F = [['best_stage', '최고 STAGE'], ['best_streak', '최고 연승'], ['wins', '누적 승리'], ['games', '총 판수']];
+          ft.innerHTML = `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px 8px">${F.map(f => `<div>
+          <div style="font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:3px">${f[1]}</div>
+          <input type="number" min="0" max="100000" step="1" value="${data[f[0]] || 0}" id="wlft-${idx}-${f[0]}" style="width:100%;background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:5px 6px;font-size:13px;box-sizing:border-box"></div>`).join('')}</div>
+        <div style="font-size:11.5px;color:var(--dim);margin-top:6px">${data.exists ? '랭킹에 등록된 유저예요.' : '아직 랭킹 기록이 없어요. 저장하면 새로 등록돼요.'} (PvP 전적은 각자 기기에 저장돼서 여기서 바꿀 수 없어요)</div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn xs primary" onclick="adminSaveFort(${idx}, this)" data-nick="${esc(nick)}">저장</button>
+          <button class="btn xs" onclick="adminResetFort(${idx}, this)" data-nick="${esc(nick)}">랭킹 기록 삭제</button></div>`;
+        } catch (e) {
+          const m = String((e && e.message) || '');
+          ft.innerHTML = `<div class="empty" style="padding:4px 0">${/function|not find/i.test(m) ? '관리자가 fort_admin.sql 을 먼저 실행해야 해요.' : esc(cleanErr(m))}</div>`;
+        }
+      }
+    }
+    async function adminQuizVisFromPanel(makePublic) {
+      if (!confirm(makePublic ? '블랙 퀴즈를 전체 공개할까요?\n모든 방문자에게 즉시 보이게 됩니다.' : '블랙 퀴즈를 비공개(점검 중)로 전환할까요?\n관리자 외에는 이용할 수 없게 됩니다.')) return;
+      const { data, error } = await sb.rpc('quiz_admin_set_visibility', { p_pass: adminPass(), p_public: makePublic, p_testers: null });
+      if (error || !data || data.ok === false) return toastMsg('⚠️ ' + (error ? cleanErr(error.message) : '권한이 없습니다.'));
+      toastMsg(makePublic ? '🌐 블랙 퀴즈를 전체 공개했습니다.' : '🔒 블랙 퀴즈를 비공개로 전환했습니다.');
+      document.querySelectorAll('[id^="wlqz-"]').forEach(el => { const i = el.id.slice(5); adminLoadPanelExtras(i, '', true); });
+    }
+    async function adminSaveFort(idx, btn) {
+      const nick = btn.dataset.nick, v = k => Math.max(0, Math.min(100000, parseInt((document.getElementById(`wlft-${idx}-${k}`) || {}).value, 10) || 0));
+      const { data, error } = await sb.rpc('fort_admin_set', { p_pass: adminPass(), p_nick: nick, p_best_stage: v('best_stage'), p_best_streak: v('best_streak'), p_wins: v('wins'), p_games: v('games') });
+      if (error || !data || data.ok === false) return toastMsg('⚠️ ' + (error ? cleanErr(error.message) : ((data && data.msg) || '저장에 실패했습니다.')));
+      toastMsg(`'${nick}' 님의 블랙 케이지 기록을 저장했습니다.`);
+    }
+    async function adminResetFort(idx, btn) {
+      const nick = btn.dataset.nick;
+      if (!confirm(`'${nick}' 님을 블랙 케이지 랭킹에서 삭제할까요?\n서버에 저장된 기록이 지워지고 되돌릴 수 없습니다.`)) return;
+      const { data, error } = await sb.rpc('fort_admin_reset', { p_pass: adminPass(), p_nick: nick });
+      if (error || !data || data.ok === false) return toastMsg('⚠️ ' + (error ? cleanErr(error.message) : ((data && data.msg) || '삭제에 실패했습니다.')));
+      toastMsg(`'${nick}' 님의 블랙 케이지 랭킹 기록을 삭제했습니다.`);
+      adminLoadPanelExtras(idx, nick);
     }
     async function adminResetQuizAttempts(btn) {
       const nick = btn.dataset.nick;
