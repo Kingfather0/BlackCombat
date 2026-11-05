@@ -12753,6 +12753,10 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 #ftCamBar button { width: 30px; height: 30px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; background: rgba(14,14,19,.6); border: 1.5px solid rgba(255,255,255,.45); cursor: pointer; }
 #ftCamBar button:active { transform: translateY(1px); background: rgba(14,14,19,.85); }
 
+/* 소리/전체화면: 결과/시작 화면(HUD 줄이 위에 붙는 상태)에서는 n연승 칸의 왼쪽으로 비켜 둔다 */
+.ga-fort.ft-hudless .g-full { top: 8px; right: calc(8px + var(--ft-scw, 0px) + 6px); }
+.ga-fort.ft-hudless .g-mute { top: 8px; right: calc(8px + var(--ft-scw, 0px) + 6px + 26px + 6px); }
+
   </style>
 </head>
 
@@ -21064,14 +21068,14 @@ function ftTitle(w) { let t = FT_TITLES[0]; FT_TITLES.forEach(x => { if (w >= x[
 /* ── 기록 저장/불러오기 ── */
 function ftEmptyEq() { return { aura: '', glow: '', shine: '', ring: '', trail: '', blast: '', cast: '', badge: '', line: '' }; }
 function ftLoad() {
-  const d = { best: 0, wins: 0, games: 0, bestStage: 0, f: {}, eqf: {}, seen: [], rank: 0, rankAt: 0, hintAng: 0 };
+  const d = { best: 0, wins: 0, games: 0, bestStage: 0, f: {}, eqf: {}, seen: [], rank: 0, rankAt: 0, hintAng: 0, cp: 1 };
   try {
     if (!localStorage.getItem(FT_STORE + '_live')) { localStorage.removeItem(FT_STORE); localStorage.setItem(FT_STORE + '_live', '1'); }   // 정식 오픈 첫 접속: 테스트 때 쌓인 이 기기 기록을 한 번만 비운다
     const o = JSON.parse(localStorage.getItem(FT_STORE) || '{}');
     d.best = +o.best || 0; d.bestStage = +o.bestStage || 0; d.wins = +o.wins || 0; d.games = +o.games || 0;
     if (o.f && typeof o.f === 'object') d.f = o.f;
     if (o.eqf && typeof o.eqf === 'object') d.eqf = o.eqf;
-    d.rank = +o.rank || 0; d.rankAt = +o.rankAt || 0; d.hintAng = +o.hintAng || 0;
+    d.cp = Math.max(1, Math.min(500, +o.cp || 1)); d.rank = +o.rank || 0; d.rankAt = +o.rankAt || 0; d.hintAng = +o.hintAng || 0;
     if (Array.isArray(o.seen)) d.seen = o.seen.filter(x => typeof x === 'string');
   } catch (e) { }
   ftPruneEq(d);
@@ -21878,7 +21882,7 @@ function ftRR(ctx, x, y, w, h, r) {
 function ftMenuTop() {
   const el = document.getElementById('gTopFort'); if (!el) return;
   const r = ftLoad();
-  el.innerHTML = r.best > 0 ? `내 최고 <b>${r.best}연승</b> · STAGE ${r.bestStage} · 누적 ${r.wins}승` : '아직 기록 없음 — 첫 연승에 도전!';
+  el.innerHTML = r.best > 0 ? `내 최고 <b>${r.best}연승</b> · STAGE ${r.bestStage} · 누적 ${r.wins}승${r.cp > 1 ? ` · 체크포인트 STAGE ${r.cp}` : ''}` : '아직 기록 없음 — 첫 연승에 도전!';
 }
 
 function ftOpenRules() {
@@ -22195,7 +22199,7 @@ function ftBindUI() {
   fb.onpointerup = release; fb.onpointercancel = release; fb.onlostpointercapture = release;
   fb.onclick = e => e.stopPropagation();
   $('ftLoginBtn').onclick = e => { e.stopPropagation(); gmCtx(); gmRequireLogin(); };
-  $('ftStartAi').onclick = e => { e.stopPropagation(); gmCtx(); if (!gmMyNick) { gmRequireLogin(); return; } FT.mode = 'ai'; FT.stage = 1; FT.cp = 1; FT.lives = 3; FT.streak = 0; FT.foeOff = Math.floor(Math.random() * 6); ftShowSelect(0); };
+  $('ftStartAi').onclick = e => { e.stopPropagation(); gmCtx(); if (!gmMyNick) { gmRequireLogin(); return; } FT.mode = 'ai'; FT.stage = FT.cp = Math.max(1, ftLoad().cp || 1); FT.lives = 3; FT.streak = 0; FT.foeOff = Math.floor(Math.random() * 6); ftShowSelect(0); };
   $('ftDressBtn').onclick = e => { e.stopPropagation(); gmCtx(); ftOpenDress(); };
   $('ftStartPvp').onclick = e => { e.stopPropagation(); gmCtx(); if (!gmMyNick) { gmRequireLogin(); return; } ftNetEnter(4); };
   // 화면 터치: 내 캐릭터 근처 드래그 = 각도 조준 / 그 밖의 드래그 = 카메라 이동 / 톡 누르기 = 그쪽으로 조준 / 미니맵 = 그 위치로 이동
@@ -22669,7 +22673,7 @@ function ftOver() {
     const oc = E.CHARS[st.p[1].id], me = ftFS(rec, st.p[0].id), cfg = FT.cfg || {};
     if (w === 0) {
       FT.streak++; rec.wins++; rec.best = Math.max(rec.best, FT.streak); me.w++; me.s = Math.max(me.s, FT.streak); rec.bestStage = Math.max(rec.bestStage || 0, FT.stage + 1);
-      let lifeTxt = ''; if (cfg.boss) { FT.cp = FT.stage + 1; if (FT.lives < 3) { FT.lives++; lifeTxt = ' · 목숨 +1'; } else lifeTxt = ' · 체크포인트 저장'; } FT.nextStage = FT.stage + 1;
+      let lifeTxt = ''; if (cfg.boss) { FT.cp = FT.stage + 1; rec.cp = FT.cp; if (FT.lives < 3) { FT.lives++; lifeTxt = ' · 목숨 +1'; } else lifeTxt = ' · 체크포인트 저장'; } FT.nextStage = FT.stage + 1;
       const nc = E.stageConfig(FT.stage + 1, FT.foeOff), nf = E.CHARS[nc.foe];
       nextInfo = `<div class="ft-next">다음 STAGE ${FT.stage + 1} · ${nc.boss ? '<b class="bos">BOSS</b> ' : ''}${esc(nf.name)}</div>`;
       html = `<div class="go-ko">${cfg.boss ? '보스 격파! 👑' : (st.p[1].vd ? '낙사 승리! 🏆' : 'KO 승리! 🏆')}</div>
@@ -22731,7 +22735,7 @@ function ftOver() {
   };
   ch.onclick = e => {
     e.stopPropagation();
-    FT.stage = 1; FT.cp = 1; FT.lives = 3; FT.streak = 0;     // 파이터를 바꾸면 스테이지와 연승이 처음부터
+    FT.stage = FT.cp = Math.max(1, ftLoad().cp || 1); FT.lives = 3; FT.streak = 0;     // 파이터를 바꾸면 연승은 처음부터, 스테이지는 저장된 체크포인트부터
     ov.style.display = 'none'; FT.sel = [null, null]; if (FT.mode === 'pvp') ftNetStop(); ftShowSelect(0);
   };
 }
@@ -22921,6 +22925,8 @@ function ftLayout() {
   FT.baseSc = base; FT.ovSc = ov;
   FT.sc = sc; FT.ox = G.w / 2 - cam.x * sc; FT.oy = hudH + availH - (E.H - 22) * sc + (cam.up || 0) * sc;
   FT.hudH = hudH; FT.land = land; FT.Wd = Wd; FT.bottom = hudH + availH;
+  { const ga = document.getElementById('gArea'), gs = document.getElementById('gScore');    // 소리/전체화면 버튼은 오른쪽 위 'n연승' 칸의 왼쪽에 붙인다
+    if (ga) { const sw = (gs ? gs.offsetWidth : 0) + 'px', hh = hudH + 'px'; if (FT.__sw !== sw) { FT.__sw = sw; ga.style.setProperty('--ft-scw', sw); } if (FT.__hh !== hh) { FT.__hh = hh; ga.style.setProperty('--ft-hh', hh); } } }
 }
 /* 카메라: 내 차례엔 내 위치로 줌인, 발사체를 따라가고, 착탄/드론 투하 지점을 보여준다. 드래그하면 자유 시점 */
 function ftCamUpdate(dt0) {
