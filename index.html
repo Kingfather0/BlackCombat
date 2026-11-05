@@ -14401,7 +14401,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       },
       {
         div: '언더그라운드', list: [
-          ['C', 'Godfather', '검정', 3, 0, 0, 'kr'], [1, '코리안 갱스터', '박원식', 16, 9, 1, 'kr'], [2, '조커', '정도한', 2, 9, 0, 'kr'],
+          ['C', '갓파더', '검정', 3, 0, 0, 'kr'], [1, '코리안 갱스터', '박원식', 16, 9, 1, 'kr'], [2, '조커', '정도한', 2, 9, 0, 'kr'],
           [3, 'KOKO', '소재호', 1, 1, 0, 'kr'], [4, 'The Lion', '오반', 0, 1, 0, 'kr'], [5, '사신', '김남신', 0, 1, 0, 'kr'],
           [6, '뚝배기사범', '호철', 0, 2, 0, 'kr']]
       },
@@ -20371,15 +20371,15 @@ var FortEngine = (function () {
       skill: { name: '분노의 폭우', desc: '먹구름이 몰려와요! 글러브가 착탄 지점에 폭우처럼 9발 쏟아져요', mod: { dmg: 1.3, rad: 6 }, ult: { kind: 'glove', shots: 'rain9' } },
     },
     wumawang: {
-      id: 'wumawang', name: '우마왕', tag: '한 방 KO', hp: 95, move: 70, take: 1, passive: null,
-      proj: { kind: 'staff', label: '여의봉', dmg: 32, rad: 24, spd: 1.25, gmul: 1.6, wmul: 0.8, direct: 1.45, carve: 0.8 },
+      id: 'wumawang', name: '우마왕', tag: '한 방 KO', hp: 100, move: 70, take: 1, passive: null,
+      proj: { kind: 'staff', label: '여의봉', dmg: 34, rad: 24, spd: 1.25, gmul: 1.6, wmul: 0.8, direct: 1.45, carve: 0.8 },
       pTitle: '여의봉 일격', pDesc: '빠르게 꽂히는 여의봉! 직격하면 데미지 1.45배. 대신 폭발 범위가 아주 좁아요',
       taunt: '가드 올려라. 어차피 깨지겠지만',
       skill: { name: '천지개벽', desc: '여의봉 3개를 부채꼴로 던진 뒤, 하늘에서 거대 여의봉 3개가 연달아 내리꽂혀요', mod: { multi: [{ da: -8, pm: 1, dm: 0.7 }, { da: 0, pm: 1, dm: 0.7 }, { da: 8, pm: 1, dm: 0.7 }] }, ult: { kind: 'staff', shots: 'pillar3' } },
     },
     godfather: {
-      id: 'godfather', name: 'gotfather', tag: '판 벌이기', hp: 96, move: 70, take: 1, passive: null,
-      proj: { kind: 'cash', label: '파이트머니 뭉치', dmg: 39, rad: 28, spd: 0.92, gmul: 0.8, wmul: 1.2, direct: 1, carve: 0.8, split: 3, splitMul: 0.82, splitSpread: 72 },
+      id: 'godfather', name: '갓파더', tag: '판 벌이기', hp: 96, move: 70, take: 1, passive: null,
+      proj: { kind: 'cash', label: '파이트머니 뭉치', dmg: 37, rad: 28, spd: 0.92, gmul: 0.8, wmul: 1.2, direct: 1, carve: 0.8, split: 3, splitMul: 0.82, splitSpread: 72 },
       pTitle: '판 벌이기', pDesc: '던진 돈다발이 정점에서 3갈래로 흩어져요. 넓게 깔지만 한 장당 데미지는 낮고 바람에 팔랑거려요',
       taunt: '판돈은 내가 걸었다. 넌 누워서 구경해',
       skill: { name: '돈 폭우', desc: '정점에서 5갈래로 쏟아지고, 착탄 지점에 지폐 12장이 폭우처럼 내려요', mod: { split: 5, splitMul: 0.6, splitSpread: 64 }, ult: { kind: 'cash', shots: 'money12' } },
@@ -20396,11 +20396,11 @@ var FortEngine = (function () {
       proj: { kind: 'shuriken', label: '수리검', dmg: 36, rad: 25, spd: 1.2, gmul: 1.5, wmul: 0.4, direct: 1.2, carve: 0.7 },
       pTitle: '무패의 발놀림', pDesc: '바람을 거의 안 타는 빠른 수리검 + 이동력 최고. 대신 폭발 범위가 좁아요',
       taunt: '잡을 수 있으면 잡아봐. 못 잡겠지만',
-      skill: { name: '그림자 난무', desc: '바람을 무시하는 수리검 2개 + 사방에서 수리검 8발이 날아와 꽂혀요', mod: { wmul: 0, multi: [{ da: -3, pm: 0.96, dm: 0.8 }, { da: 3, pm: 1.04, dm: 0.8 }] }, ult: { kind: 'shuriken', shots: 'ninja8' } },
+      skill: { name: '그림자 난무', desc: '바람을 무시하는 수리검 2개 + 사방에서 수리검 8발이 날아와 꽂혀요', mod: { wmul: 0, multi: [{ da: -3, pm: 0.96, dm: 0.6 }, { da: 3, pm: 1.04, dm: 0.6 }] }, ult: { kind: 'shuriken', shots: 'ninja8' } },
     },
     captainkorea: {
-      id: 'captainkorea', name: '캡틴 코리아', tag: '햄버거 반사', hp: 108, move: 100, take: 0.9, passive: null,
-      proj: { kind: 'burger', label: '햄버거', dmg: 36, rad: 32, spd: 1.0, gmul: 1.0, wmul: 0.9, direct: 1, carve: 1, bounce: 1 },
+      id: 'captainkorea', name: '캡틴 코리아', tag: '햄버거 반사', hp: 104, move: 100, take: 0.92, passive: null,
+      proj: { kind: 'burger', label: '햄버거', dmg: 34, rad: 32, spd: 1.0, gmul: 1.0, wmul: 0.9, direct: 1, carve: 1, bounce: 1 },
       pTitle: '햄버거 반사', pDesc: '땅에 한 번 튕긴 뒤 터지는 햄버거! 받는 데미지 20% 감소. 대신 한 방이 약해요',
       taunt: '햄버거 먹고 와도 너는 잡겠다',
       skill: { name: '햄버거 파티', desc: '체력 회복 + 다음 피격 60% 감소, 착탄 지점에 햄버거 5개가 하늘에서 쏟아져요', heal: 12, shield: true, mod: { dmg: 1.05 }, ult: { kind: 'burger', shots: 'shield5' } },
@@ -20745,12 +20745,12 @@ var FortEngine = (function () {
     var a = [], i;
     if (name === 'rain9') for (i = 0; i < 9; i++) a.push({ dx: (i - 4) * 24, jit: 16, dm: 0.4, ra: -2, cm: 0.7, dl: ((i * 5) % 9) * 0.075, T: 0.5, sx: ((i % 3) - 1) * 30, wm: 0.2 });
     else if (name === 'pillar3') [-70, 0, 70].forEach(function (d, k) { a.push({ dx: d, jit: 6, dm: 1.1, ra: 4, cm: 1.1, dl: k * 0.3, T: 0.42, sx: 0, wm: 0 }); });
-    else if (name === 'money12') for (i = 0; i < 12; i++) a.push({ dx: (i - 5.5) * 25, jit: 14, dm: 0.4, ra: -4, cm: 0.5, dl: ((i * 7) % 12) * 0.06, T: 0.6, sx: ((i % 4) - 1.5) * 30, wm: 0.9 });
+    else if (name === 'money12') for (i = 0; i < 12; i++) a.push({ dx: (i - 5.5) * 25, jit: 14, dm: 0.34, ra: -4, cm: 0.5, dl: ((i * 7) % 12) * 0.06, T: 0.6, sx: ((i % 4) - 1.5) * 30, wm: 0.9 });
     else if (name === 'meteor') {
-      a.push({ dx: 0, jit: 0, dm: 1.1, ra: 24, cm: 2.0, dl: 0.2, T: 0.75, sx: -170, wm: 0 });
+      a.push({ dx: 0, jit: 0, dm: 0.95, ra: 24, cm: 2.0, dl: 0.2, T: 0.75, sx: -170, wm: 0 });
       [-130, -70, 70, 130].forEach(function (d, k) { a.push({ dx: d, jit: 10, dm: 0.32, ra: -6, cm: 0.8, dl: 0.55 + k * 0.08, T: 0.5, sx: d * 0.4, wm: 0.2 }); });
     }
-    else if (name === 'ninja8') for (i = 0; i < 8; i++) a.push({ dx: (i - 3.5) * 16, jit: 14, dm: 0.46, ra: -2, cm: 0.6, dl: i * 0.07, T: 0.5, sx: (i % 2 ? 1 : -1) * (210 + (i % 3) * 30), wm: 0 });
+    else if (name === 'ninja8') for (i = 0; i < 8; i++) a.push({ dx: (i - 3.5) * 16, jit: 14, dm: 0.27, ra: -3, cm: 0.5, dl: i * 0.07, T: 0.5, sx: (i % 2 ? 1 : -1) * (210 + (i % 3) * 30), wm: 0 });
     else if (name === 'shield5') for (i = 0; i < 5; i++) a.push({ dx: (i - 2) * 38, jit: 8, dm: 0.55, ra: 0, cm: 0.8, dl: i * 0.11, T: 0.6, sx: (i - 2) * -14, wm: 0.2 });
     return a;
   }
@@ -30495,7 +30495,7 @@ function ftNetNoRec(st) {
       { nick: '시라소니', div: '페더급', art: 'sirasony', accent: '#8a8a8a', specialty: '방어' },
       { nick: '캡틴 코리아', div: '라이트급', art: 'captainkorea', accent: '#2f6fe0', specialty: '방어' },
       { nick: '킹콩', div: '미들급', art: 'kingkong', accent: '#e8a92a', specialty: '타격' },
-      { nick: 'Godfather', div: '언더그라운드', art: 'godfather', accent: '#2f6fd6', specialty: '태클' },
+      { nick: '갓파더', div: '언더그라운드', art: 'godfather', accent: '#2f6fd6', specialty: '태클' },
     ];
     // 선수가 "특기" 기술로 라운드에 승리했을 때 머리 위 말풍선에 띄우는 도발 멘트 (선수 닉네임 기준)
     const BB_TAUNT_TXT = {
@@ -30503,7 +30503,7 @@ function ftNetNoRec(st) {
       '우마왕': '가드 올려, 그래도 깨진다👊',
       '시라소니': '덤비는 건 좋은데, 수준부터 맞춰라😑',
       '캡틴 코리아': '햄버거 먹고 와도 너는 잡겠다🍔',
-      'Godfather': '내가 만든 판에서 내가 지는 그림은 없어🎩',
+      '갓파더': '내가 만든 판에서 내가 지는 그림은 없어🎩',
       '킹콩': '뭐노? 내로남불이노?🦍',
     };
     // 가위바위보형 3각 상성: 타격은 방어를 이기고, 방어는 태클을 이기고, 태클은 타격을 이긴다.
