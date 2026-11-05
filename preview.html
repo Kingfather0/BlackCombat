@@ -12577,6 +12577,27 @@ body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82
 .ga-fort .ghud .ft-hrt { font-style: normal; color: #ff3b4a; letter-spacing: 1px; text-shadow: 0 0 6px rgba(255,59,74,.35); }
 .ga-fort .ghud .ft-hrt.off { color: rgba(255,59,74,.25); text-shadow: none; }
 
+/* v4.6: 상단 박스 높이 통일(바람 박스와 동일 26px) + 화면 모드별 높이 최적화 */
+.ga-fort .ghud { top: 8px; left: 8px; right: 8px; align-items: center; }
+.ga-fort .ghud #gHearts, .ga-fort .ghud #gScore {
+  box-sizing: border-box; height: 26px; display: flex; align-items: center; justify-content: center;
+  padding: 0 10px; line-height: 1; white-space: nowrap; border-width: 2px;
+}
+.ga-fort .ghud #gHearts { font-size: 12.5px; }
+.ga-fort .ghud #gScore { font-size: 14px; min-width: 0; text-align: center; }
+.ga-fort .ghud #gScore span { font-size: 10px; margin-left: 3px; }
+/* PC: 창 높이에 맞춰 넓게 */
+@media (min-width: 900px) and (min-height: 700px) {
+  #gArea.ga-fort { height: clamp(540px, calc(100dvh - 150px), 820px); }
+}
+/* 전체화면: 가로/세로 모두 화면을 꽉 채움 (가로 화면 -64px 규칙 덮어쓰기) */
+#gArea.ga-fort:fullscreen, #gArea.ga-fort:-webkit-full-screen { height: 100vh !important; height: 100dvh !important; width: 100vw; min-height: 0; }
+#gArea.ga-fort.gm-pseudo-full { min-height: 0 !important; }
+/* 폰 가로(일반 화면): 상단 여백만 빼고 거의 화면 전체 */
+@media (orientation: landscape) and (max-height: 600px) {
+  #gArea.ga-fort { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; min-height: 0; margin: 0; border-radius: 0; z-index: 9999; }
+}
+
   </style>
 </head>
 
@@ -21520,6 +21541,15 @@ function ftUseSkill(pi) {
   ftDrain(); ftSyncCtl(); return true;
 }
 function ftBindUI() {
+  if (!window.__ftOri) {
+    window.__ftOri = 1;
+    const fix = () => setTimeout(() => {
+      const a = document.getElementById('gArea');
+      if (!a || !a.classList.contains('ga-fort')) return;
+      if (typeof gmCanvasInit === 'function') gmCanvasInit();
+    }, 250);
+    window.addEventListener('orientationchange', fix); window.addEventListener('resize', fix);
+  }
   const $ = id => document.getElementById(id);
   const tok = gmToken;
   const guard = fn => () => { if (tok === gmToken) fn(); };
@@ -22195,7 +22225,8 @@ function ftLayout() {
   const ctlH = (ctl && ctl.style.display !== 'none') ? ctl.offsetHeight : 0;
   const land = G.w > G.h * 1.15, hudH = land ? 34 : 40;
   const availH = Math.max(100, G.h - ctlH - hudH);
-  const base = Math.min(G.w / FT_VIEWW, availH / FT_SPAN), ov = Math.min(G.w / Wd, availH / FT_SPAN);
+  // 세로로 너무 긴 화면(세로 전체화면 등): 하늘만 넓어지지 않게 확대해서 보여준다(가로는 최소 360 월드폭 보장)
+  const base = Math.min(Math.max(G.w / FT_VIEWW, availH / 600), G.w / 360, availH / FT_SPAN), ov = Math.min(G.w / Wd, availH / FT_SPAN);
   const cam = FT.cam || (FT.cam = { x: Wd / 2, z: 1, up: 0 });
   const sc = base * cam.z, half = G.w / (2 * sc), m = 16 / sc, lo = half - m, hi = Wd - half + m;
   cam.x = lo > hi ? Wd / 2 : ftClamp(cam.x, lo, hi);
