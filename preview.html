@@ -12598,6 +12598,16 @@ body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82
   #gArea.ga-fort { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; min-height: 0; margin: 0; border-radius: 0; z-index: 9999; }
 }
 
+/* v4.7: 게임 화면과 아래 기록표 사이 여백 · 선택창 꾸미기 버튼 · 가로 컨트롤 압축 */
+#gArea.ga-fort { margin-bottom: 22px; }
+.ft-sel-top .ft-dressb { flex: 0 0 auto; }
+@media (orientation: landscape) and (max-height: 600px) {
+  #gArea.ga-fort { margin-bottom: 0; }
+  #ftCtl { padding: 4px 10px 5px; }
+  .ft-b, .ft-gauge, .ft-skill { height: 34px; }
+  .ft-fire { padding: 5px 14px !important; }
+}
+
   </style>
 </head>
 
@@ -21054,7 +21064,7 @@ function ftRenderRank() {
 function ftOpenDress() {
   const o = document.getElementById('ftDress'); if (!o) return;
   const rec = ftLoad();
-  FT.dress = true; FT.dSlot = FT.dSlot || 'aura'; FT.dChar = FT.dChar || FT.sel[0] || 'tusin'; FT.dDemo = 0; if (FT.dressFrom !== 'over') FT.dressFrom = null;
+  FT.dress = true; FT.dSlot = FT.dSlot || 'aura'; FT.dChar = FT.dChar || FT.sel[0] || 'tusin'; FT.dDemo = 0; if (FT.dressFrom !== 'over' && FT.dressFrom !== 'sel') FT.dressFrom = null;
   FT.dNew = {}; FortEngine.ORDER.forEach(id => { ftRealKeys(rec, id).forEach(k => { if (!rec.seen.includes(k)) FT.dNew[k] = 1; }); });
   rec.seen = Array.from(new Set(rec.seen.concat(...FortEngine.ORDER.map(id => ftRealKeys(rec, id))))); ftSave(rec);
   o.style.display = ''; const tt = document.getElementById('gTitle'); if (tt) tt.style.display = 'none';
@@ -21076,6 +21086,7 @@ function ftOpenDress() {
   document.getElementById('fdDone').onclick = e => {
     e.stopPropagation(); FT.dress = false; o.style.display = 'none';
     if (FT.dressFrom === 'over') { FT.dressFrom = null; const go = document.getElementById('gOver'); if (go) go.style.display = ''; ftRenderRec(); return; }
+    if (FT.dressFrom === 'sel') { FT.dressFrom = null; ftShowSelect(FT.selSlot || 0); return; }
     const t2 = document.getElementById('gTitle'); if (t2) t2.style.display = ''; ftRenderRank();
   };
   ftDressInfo(); ftDressTabs(); ftDressGrid();
@@ -21699,7 +21710,7 @@ function ftShowSelect(slot) {
   o.style.display = '';
   const rec = ftLoad();
   const head = FT.mode === 'pvp' ? `P${slot + 1} 파이터 선택` : '내 파이터 선택';
-  o.innerHTML = `<div class="ft-sel-top"><button class="ft-btn2 ft-back sm" id="ftSelBack" type="button">뒤로</button><div class="ft-sel-h">${head}</div><i></i></div>
+  o.innerHTML = `<div class="ft-sel-top"><button class="ft-btn2 ft-back sm" id="ftSelBack" type="button">뒤로</button><div class="ft-sel-h">${head}</div><button class="ft-btn2 ft-dressb sm" id="ftSelDress" type="button">꾸미기</button></div>
     <div class="ft-grid">${FortEngine.ORDER.map(id => {
     const c = FortEngine.CHARS[id], f = ftFS(rec, id);
     const dis = FT.mode === 'pvp' && slot === 1 && FT.sel[0] === id;
@@ -21709,6 +21720,7 @@ function ftShowSelect(slot) {
     <div class="ft-sel-d" id="ftSelD">파이터를 눌러 무기와 스킬을 확인하세요</div>
     <button class="g-start ft-go" id="ftGo" type="button" disabled>출전!</button>`;
   { const sb = document.getElementById('ftSelBack'); sb.onpointerdown = e => e.stopPropagation(); sb.onclick = e => { e.stopPropagation(); if (FT.mode === 'pvp' && slot === 1) { ftShowSelect(0); return; } ftShowTitle(); }; }
+  { const sd = document.getElementById('ftSelDress'); sd.onpointerdown = e => e.stopPropagation(); sd.onclick = e => { e.stopPropagation(); gmCtx(); FT.dressFrom = 'sel'; FT.dChar = FT.pick || FT.sel[0] || 'tusin'; o.style.display = 'none'; ftOpenDress(); }; }
   o.querySelectorAll('.ft-card').forEach(b => {
     b.onclick = e => {
       e.stopPropagation();
@@ -22223,8 +22235,9 @@ const FT_VIEWW = 560;     // 기본 화면에 보이는 월드 폭(월드 전체
 function ftLayout() {
   const E = FortEngine, st = FT.st || FT.demo, Wd = st.W || 600, ctl = document.getElementById('ftCtl');
   const ctlH = (ctl && ctl.style.display !== 'none') ? ctl.offsetHeight : 0;
-  const land = G.w > G.h * 1.15, hudH = land ? 34 : 40;
-  const availH = Math.max(100, G.h - ctlH - hudH);
+  const land = G.w > G.h * 1.15, hudH = land ? 28 : 40;
+  const ov0 = land ? Math.min(22, ctlH * .45) : 0;   // 가로: 컨트롤 패널이 땅속 부분을 살짝 덮게 해서 세로를 더 확보
+  const availH = Math.max(100, G.h - ctlH + ov0 - hudH);
   // 세로로 너무 긴 화면(세로 전체화면 등): 하늘만 넓어지지 않게 확대해서 보여준다(가로는 최소 360 월드폭 보장)
   const base = Math.min(Math.max(G.w / FT_VIEWW, availH / 600), G.w / 360, availH / FT_SPAN), ov = Math.min(G.w / Wd, availH / FT_SPAN);
   const cam = FT.cam || (FT.cam = { x: Wd / 2, z: 1, up: 0 });
@@ -22771,7 +22784,7 @@ function ftDrawChar(ctx, i, active, X, Y, sc, st) {
   const tag = (p.shield ? '🛡' : '') + (p.pwr ? '💥' : '') + (p.dbl ? '✌' : '') + (p.skillOn ? '⚡' : '');
   ctx.font = `800 ${Math.max(10, 11 * (sc * .5 + .55))}px Jua, Pretendard, sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-  const nm = `${c.name}  ${p.hp}${tag ? ' ' + tag : ''}`;
+  const nm = `${c.name}${tag ? ' ' + tag : ''}`;
   ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.85)'; ctx.strokeText(nm, sx, by - 3);
   ctx.fillStyle = '#fff'; ctx.fillText(nm, sx, by - 3);
   const bd = ftGearById('badge', eq.badge);
