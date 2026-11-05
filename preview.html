@@ -12433,7 +12433,7 @@
 
 /* 게임 메뉴 카드 */
 .gcard-fort .gc-ico { background: linear-gradient(135deg, #2a2a33, #0b0b10); }
-body[data-route="game"] .gcard-fort .gc-ico { background: #4e5060 !important; }
+body[data-route="game"] .gcard-fort .gc-ico { background: #e3e6f0 !important; }
 body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82%; height: 92%; }
 
 /* 칭호 / 꾸미기 버튼 */
@@ -12702,7 +12702,6 @@ h1.page.gm-h1 .gm-listbtn { margin-left: auto; }
 .ft-rkinfo { width: 28px; height: 28px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .ft-rkdesc { font-size: 11.5px; color: var(--muted); line-height: 1.6; margin-bottom: 8px; background: rgba(127,127,127,.1); border-radius: 8px; padding: 7px 10px; }
 
-.ft-flbot { font-size: 12px !important; opacity: .85; border-style: dashed !important; }
 
 .ga-fort.ft-hudless .g-mute, .ga-fort.ft-hudless .g-full { top: 8px; }
 .ft-dressrow { margin: 0 0 2px; }
@@ -20954,10 +20953,9 @@ if (typeof module !== 'undefined') module.exports = FortEngine;
      오라 · 윤곽 빛 · 광택 · 발밑 링 · 무기 궤적 · 폭발 · 칭호 · 도발 대사
    · 해금은 선수별로 따로 쌓인다 (투신으로 이긴 승리는 투신의 꾸미기만 열어 준다).
      w 승리 · s 최고 연승 · pw PvP 승리 · ps PvP 최고 연승
-   · FT_TEST_UNLOCK = true 인 동안(테스트 버전)에는 조건과 상관없이 전부 장착할 수 있다.
+   · 정식 버전: 조건을 달성해야 꾸미기가 해금된다.
    ══════════════════════════════════════════════════════════════════════ */
 const FT_STORE = 'ft_v1';
-const FT_TEST_UNLOCK = true;
 const FT_SLOTS = [['aura', '오라'], ['glow', '윤곽 빛'], ['shine', '광택'], ['ring', '발밑 링'], ['trail', '궤적'], ['blast', '폭발'], ['cast', '모션'], ['badge', '칭호'], ['line', '도발']];
 const FT_GEAR = {
   aura: [
@@ -21078,7 +21076,7 @@ function ftReal(rec, fid, it) {
   const f = ftFS(rec, fid);
   return Object.keys(it.c).every(k => f[k] >= it.c[k]);
 }
-function ftUnlocked(rec, fid, it) { return FT_TEST_UNLOCK || ftReal(rec, fid, it); }
+function ftUnlocked(rec, fid, it) { return ftReal(rec, fid, it); }
 function ftNeedTxt(it) {
   const k = Object.keys(it.c)[0], n = it.c[k];
   return k === 'rk' ? (n === 1 ? '랭킹 1위' : `랭킹 ${n}위 이내`) : k === 'w' ? `${n}승` : k === 's' ? `${n}연승` : k === 'pw' ? `PvP ${n}승` : `PvP ${n}연승`;
@@ -21470,7 +21468,7 @@ function ftDrawShape(ctx, q, x, y, r) {
 function ftRenderRank() {
   const el = document.getElementById('ftRank'); if (!el) return;
   const rec = ftLoad();
-  el.innerHTML = `<b>${ftTitle(rec.wins)}</b> · 총 ${rec.wins}승 · 최고 ${rec.best}연승` + (FT_TEST_UNLOCK ? ' · <em>테스트: 꾸미기 전부 해금</em>' : '');
+  el.innerHTML = `<b>${ftTitle(rec.wins)}</b> · 총 ${rec.wins}승 · 최고 ${rec.best}연승`;
   const n = ftNewCount(rec), nb = document.getElementById('ftDressNew'); if (nb) { nb.textContent = n ? String(n) : ''; nb.style.display = n ? '' : 'none'; }
 }
 function ftOpenDress() {
@@ -21526,7 +21524,7 @@ function ftDressGrid() {
   h += FT_GEAR[sl].map(it => {
     const real = ftReal(rec, fid, it), ok = ftUnlocked(rec, fid, it), isNew = FT.dNew[fid + ':' + it.id];
     const rk = !!it.c.rk;
-    const note = real ? (isNew ? '<em>NEW</em>' : (rk ? '<s class="rk">RANKER</s>' : '해금됨')) : (FT_TEST_UNLOCK ? `<u>TEST</u> ${ftNeedTxt(it)}` : '🔒 ' + ftNeedTxt(it));
+    const note = real ? (isNew ? '<em>NEW</em>' : (rk ? '<s class="rk">RANKER</s>' : '해금됨')) : '🔒 ' + ftNeedTxt(it);
     return `<button type="button" class="fd-it${cur === it.id ? ' on' : ''}${ok ? '' : ' lock'}${rk ? ' rk' : ''}" data-id="${it.id}"><span class="fd-ico">${ftIco(it)}</span><b>${esc(it.n)}</b><small>${note}</small></button>`;
   }).join('');
   el.innerHTML = h;
@@ -23566,7 +23564,7 @@ function ftNetRender() {
   if (n.phase === 'idle') {
     body = `<div class="fl-me"><img src="${ftArtSrc(c.id)}" alt=""><div><b>${esc(gmMyNick)}</b><span>${esc(c.name)} · ${esc(c.proj.label)}</span></div></div>
       <div class="fl-desc">최대 4명이 한 방에 모여요.<br>방장이 원하는 때 2명, 3명, 4명 누구와도 바로 시작할 수 있어요.<br>마지막까지 살아남으면 승리!</div>
-      <button class="g-start ft-go" id="flGo" type="button">매칭 시작</button>${FT_TEST_UNLOCK ? '<button class="ft-btn2 ft-flbot" id="flBot" type="button">테스트: 봇과 연습</button>' : ''}`;
+      <button class="g-start ft-go" id="flGo" type="button">매칭 시작</button>`;
   } else if (n.phase === 'find') {
     body = `<div class="fl-wait"><i class="fl-spin"></i>방을 찾는 중…</div>`;
   } else {
@@ -23580,7 +23578,6 @@ function ftNetRender() {
       <div class="fl-slots c${n.size}">${slots.join('')}</div>
       <div class="fl-desc">${cnt >= n.size ? '곧 시작해요!' : host ? (cnt >= 2 ? '원하는 때 시작 버튼을 누르세요. 4명이 다 모이면 자동으로 시작해요.' : '다른 유저가 들어오길 기다리는 중이에요. 이 화면을 켜 둬요.') : '방장이 시작하거나 4명이 다 모이면 시작해요.'}</div>
       ${host ? `<button class="g-start ft-go" id="flStart" type="button" ${cnt >= 2 ? '' : 'disabled'}>지금 시작 (${cnt}명)</button>` : ''}
-      ${FT_TEST_UNLOCK ? '<button class="ft-btn2 ft-flbot" id="flBot" type="button">테스트: 나머지를 봇으로 채워 시작</button>' : ''}
       <button class="ft-btn2" id="flLeave" type="button">나가기</button>`;
   }
   o.innerHTML = `<div class="ft-sel-top">${back}<div class="ft-sel-h">PvP 매칭</div><button class="fl-promo" id="flPromo" type="button">📢 블붕이 홍보</button></div><div class="fl-body">${body}</div>`;
@@ -23589,25 +23586,12 @@ function ftNetRender() {
   o.querySelectorAll('button').forEach(b => { b.onpointerdown = stop; });
   $('flPromo').onclick = e => { stop(e); gmCtx(); if (typeof bbShowPromoteConfirm === 'function') bbShowPromoteConfirm('블랙 케이지 한판 하실분?!🔥🔥', location.origin + location.pathname + '#/game/fort'); };
   $('flBack').onclick = e => { stop(e); if (n.phase === 'wait') ftNetLeaveLobby(); o.style.display = 'none'; ftNetStop(); ftShowSelect(0); };
-  { const fb = $('flBot'); if (fb) fb.onclick = e => { stop(e); gmCtx(); ftNetBots(); }; }
   if (n.phase === 'idle') {
     $('flGo').onclick = e => { stop(e); gmCtx(); ftNetFind(); };
   } else if (n.phase === 'wait') {
     $('flLeave').onclick = e => { stop(e); ftNetLeaveLobby(); n.phase = 'idle'; n.room = null; ftNetRender(); };
     const sb2 = $('flStart'); if (sb2) sb2.onclick = async e => { stop(e); sb2.disabled = true; const r = await ftRpc('fort_pvp_start', { p_room: n.room }); if (!r.ok) { ftNetToast(esc(r.msg || '시작하지 못했어요')); return; } ftNetGot(r); };
   }
-}
-/* 테스트 빌드 전용: 혼자서 2~4인 대결을 확인할 수 있게 나머지 자리를 봇으로 채운다(서버 없이 이 기기에서만 진행) */
-function ftNetBots() {
-  const n = FT.net; if (!n) return;
-  ftNetLeaveLobby();
-  const size = n.size, pool = FortEngine.ORDER.filter(c => c !== n.char).sort(() => Math.random() - .5);
-  const players = [{ nick: gmMyNick || '나', char: n.char, eq: {} }];
-  for (let i = 1; i < size; i++) players.push({ nick: 'BOT' + i, char: pool[i - 1], eq: {} });
-  Object.assign(n, { local: true, players, me: 0, seed: (Math.random() * 2e9) | 0, phase: 'game', room: null, dead: false });
-  FT.skill = .6;
-  const lb = document.getElementById('ftLobby'); if (lb) lb.style.display = 'none';
-  ftStartMatch();
 }
 async function ftNetFind() {
   const n = FT.net; if (!n) return;
