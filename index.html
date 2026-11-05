@@ -12756,6 +12756,9 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 /* 소리/전체화면: 결과/시작 화면(HUD 줄이 위에 붙는 상태)에서는 n연승 칸의 왼쪽으로 비켜 둔다 */
 .ga-fort.ft-hudless .g-full { top: 8px; right: calc(8px + var(--ft-scw, 0px) + 6px); }
 .ga-fort.ft-hudless .g-mute { top: 8px; right: calc(8px + var(--ft-scw, 0px) + 6px + 26px + 6px); }
+/* 선택한 파이터의 노란 외곽선이 잘리지 않도록 격자 안쪽 여백을 넉넉히 */
+.ft-grid { padding: 10px 8px !important; }
+.ft-card.on { transform: none; }
 
   </style>
 </head>
@@ -20344,6 +20347,9 @@ var FortEngine = (function () {
      proj.kind  무기 종류(화면 그림도 달라진다)
      dmg 데미지 · rad 폭발 반경 · spd 탄속 배율 · gmul 중력 배율 · wmul 바람 민감도
      bounce 땅에서 튕기는 횟수 · split 정점에서 갈라지는 개수 · direct 직격 배율 · carve 땅 파임 배율 */
+  var CARVE_DEPTH = 0.75;   // 구덩이 깊이 배율(1=예전)
+  var CARVE_CAP = 34;   // 한 발로 한 곳이 더 파이는 최대 깊이
+  var CARVE_RF = 0.75;   // 구덩이 크기 배율(1=예전)
   var VOID_Y = 326;   // 지형이 이 높이(바닥)까지 파이면 구멍 — 서 있던 선수는 낙사
   var HP_MUL = 1.3;   // 체력 배율 (한 판이 너무 빨리 끝나지 않게)
   var CHARS = {
@@ -20785,8 +20791,8 @@ var FortEngine = (function () {
     var x0 = Math.max(0, Math.floor(cx - r)), x1 = Math.min(W - 1, Math.ceil(cx + r));
     for (var x = x0; x <= x1; x++) {
       var dx = x - cx, s = Math.sqrt(Math.max(0, r * r - dx * dx));
-      var bottom = cy + s;
-      if (top[x] < bottom) top[x] = Math.min(bottom, H - 12);
+      var bottom = cy + s * CARVE_DEPTH;
+      if (top[x] < bottom) top[x] = Math.min(bottom, top[x] + CARVE_CAP, H - 12);
     }
     relaxCut(top, x0 - 40, x1 + 40);             // 구덩이 벽이 절벽이 되지 않게: 파인 곳을 메우지 않고, 위쪽 가장자리가 무너져 비탈이 된다
   }
@@ -20823,7 +20829,7 @@ var FortEngine = (function () {
       }
       // 직격(캐릭터)이나 벽에 닿아 터진 경우에도 땅에 닿은 것처럼 파이게 한다: 폭발 중심을 최소한 지면 높이로 내린다
       var cxx = clamp(shot.x, 0, W - 1);
-      carve(st.top, cxx, Math.max(shot.y, surfaceY(st.top, cxx)), shot.rad * 0.92 * (shot.carve || 1) * (shot.type === 'ground' ? 1 : 0.85));
+      carve(st.top, cxx, Math.max(shot.y, surfaceY(st.top, cxx)), shot.rad * 0.92 * CARVE_RF * (shot.carve || 1) * (shot.type === 'ground' ? 1 : 0.85));
       settle(st).forEach(function (f) { evs.push(f); });
       st.crates.forEach(function (cr) { cr.y = surfaceY(st.top, cr.x); });
       st.lastImpact[shot.by] = { x: shot.x, y: shot.y };
@@ -21071,7 +21077,8 @@ function ftEmptyEq() { return { aura: '', glow: '', shine: '', ring: '', trail: 
 function ftLoad() {
   const d = { best: 0, wins: 0, games: 0, bestStage: 0, f: {}, eqf: {}, seen: [], rank: 0, rankAt: 0, hintAng: 0, cp: 1, ts: 0 };
   try {
-    const o = JSON.parse(localStorage.getItem(ftKey()) || '{}');
+    let raw = localStorage.getItem(ftKey()); if (!raw && gmMyNick && !(typeof sb !== 'undefined' && sb)) raw = localStorage.getItem('ft_v1');   // 서버 없이 쓸 때는 예전 기록을 그대로 보여준다
+    const o = JSON.parse(raw || '{}');
     d.best = +o.best || 0; d.bestStage = +o.bestStage || 0; d.wins = +o.wins || 0; d.games = +o.games || 0;
     if (o.f && typeof o.f === 'object') d.f = o.f;
     if (o.eqf && typeof o.eqf === 'object') d.eqf = o.eqf;
@@ -21122,8 +21129,12 @@ async function ftSyncProfile() {
     const key = ftKey(), nick = gmMyNick;
     const { data, error } = await sb.rpc('fort_profile_get'); if (error || !data || data.ok === false) return false;
     if (nick !== gmMyNick) return false;
+    let migrated = false;
+    if (!data.exists) {      // 예전(기기 저장, ft_v1) 기록이 있으면 처음 로그인한 계정으로 한 번만 옮겨 와서 유지한다
+      try { const old = localStorage.getItem('ft_v1'); if (old && !localStorage.getItem(key)) { localStorage.setItem(key, old); localStorage.removeItem('ft_v1'); migrated = true; } } catch (e) { }
+    }
     const loc = ftLoad();
-    if (!data.exists) { if (loc.games > 0 || loc.wins > 0 || loc.cp > 1) ftPushNow(); return false; }
+    if (!data.exists) { if (loc.games > 0 || loc.wins > 0 || loc.cp > 1) ftPushNow(); return migrated; }
     if ((+data.ts || 0) > (loc.ts || 0) && data.data && typeof data.data === 'object') { localStorage.setItem(key, JSON.stringify(data.data)); return true; }
     if ((loc.ts || 0) > (+data.ts || 0)) ftPushNow();
   } catch (e) { }
