@@ -12569,6 +12569,16 @@ body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82
 .ft-sel-top i { width: 58px; flex: 0 0 auto; }
 .ft-btn2.sm { font-size: 13px; padding: 5px 14px; box-shadow: 0 3px 0 rgba(0,0,0,.5); }
 
+/* 카메라 버튼(내 위치 / 상대 위치 / 전체 보기) */
+#ftCamBar { position: absolute; left: 8px; top: 82px; z-index: 7; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+#ftCamBar button { font-family: 'Jua','Pretendard Variable',Pretendard,sans-serif; font-size: 11.5px; font-weight: 800; color: #e7e9ef; background: rgba(14,14,19,.78); border: 1.5px solid #5a6072; border-radius: 99px; padding: 4px 10px; cursor: pointer; touch-action: manipulation; }
+#ftCamBar button.on { color: #1a1405; background: #f2c94c; border-color: #f2c94c; }
+.fd-tabs button { padding: 5px 1px; font-size: 11.5px; }
+.ga-fort #gOver .ft-btnrow { gap: 8px; }
+@media (orientation: landscape) and (max-height: 600px) { #ftCamBar { top: 66px; flex-direction: row; } #ftCamBar button { padding: 3px 8px; font-size: 11px; } }
+#ftCamBar, #ftCamBar { left: 50%; transform: translateX(-50%); top: 90px; flex-direction: row; align-items: center; }
+@media (orientation: landscape) and (max-height: 600px) { #ftCamBar { top: 84px; } }
+
   </style>
 </head>
 
@@ -20135,7 +20145,8 @@ var FortEngine = (function () {
   var W = 600, H = 340;           // 월드 크기(논리 좌표)
   var GRAV = 300;                 // 기본 중력
   var WIND_ACC = 44;              // 바람 1.0 일 때 가로 가속도
-  var VMAX = 470;                 // 파워 100% 기본 탄속
+  var VBASE = 470, VMAX = 470;    // 파워 100% 기본 탄속 (월드가 넓을수록 √배로 빨라져 사거리가 비례한다)
+  var SLOPE = 1.6;                // 지형 최대 경사(약 58도). 이보다 가파른 곳은 자동으로 완만하게 깎인다
   var BODY_R = 23;                // 캐릭터 피격 반경
   var BODY_CY = 33;               // 발바닥에서 몸 중심까지 높이
   function zoom(c) { var ch = CHARS[c.id]; return (ch && ch.size) || 1; }   // 보스는 몸집이 커서 피격 범위도 크다
@@ -20300,26 +20311,52 @@ var FortEngine = (function () {
     return top[i] * (1 - f) + top[i + 1] * f;
   }
 
+  /* 경사 제한: 어느 곳이든 걸어서 오르내릴 수 있게, 가파른 절벽을 완만한 비탈로 만든다 */
+  function relax(top, a, b) {
+    a = Math.max(1, a | 0); b = Math.min(W - 1, b | 0);
+    var x;
+    for (x = a; x <= b; x++) if (top[x] > top[x - 1] + SLOPE) top[x] = top[x - 1] + SLOPE;
+    for (x = b - 1; x >= Math.max(0, a - 1); x--) if (top[x] > top[x + 1] + SLOPE) top[x] = top[x + 1] + SLOPE;
+  }
+  /* 넓은 월드의 양옆에 지형지물을 더 깔아, 중간 지점에서도 엄폐와 고지대 싸움이 생기게 한다 */
+  function addExtras(top, rng) {
+    [0.29, 0.71].forEach(function (fx) {
+      if (rng() < 0.12) return;
+      var cx = W * (fx + (rng() - 0.5) * 0.07), r = rng();
+      if (r < 0.42) mound(top, cx, 34 + rng() * 26, 34 + rng() * 44);
+      else if (r < 0.74) shape(top, cx, 14 + rng() * 24, 30 + rng() * 10, 30 + rng() * 38);
+      else shape(top, cx, 24 + rng() * 16, 28 + rng() * 8, -(24 + rng() * 22));
+    });
+    if (rng() < 0.55) mound(top, W * (0.5 + (rng() - 0.5) * 0.12), 40 + rng() * 22, 20 + rng() * 26);
+  }
+
   /* ── 새 게임 ── */
   function newGame(opts) {
     var rng = opts.rng || Math.random;
-    W = clamp(Math.round(opts.W || 600), 600, 720);
-    var map = genTerrain(rng, opts.map), top = map.top;
+    var FW = clamp(Math.round(opts.W || 600), 600, 1400), K = FW / 600;
+    VMAX = VBASE * Math.sqrt(K);
+    W = 600;                                              // 지형은 기본 폭(600)으로 만든 뒤 가로로 늘린다 → 경사가 완만해진다
+    var map = genTerrain(rng, opts.map), base = map.top;
+    W = FW;
+    var top = new Float32Array(W), x0;
+    for (x0 = 0; x0 < W; x0++) { var u = x0 / K, iu = Math.min(598, Math.floor(u)), fu = u - iu; top[x0] = base[iu] * (1 - fu) + base[iu + 1] * fu; }
+    if (K > 1.05) { addExtras(top, rng); for (x0 = 0; x0 < W; x0++) top[x0] = clamp(top[x0], 90, H - 40); }
+    relax(top, 1, W - 1);
     function mk(id, x, face) {
       var c = CHARS[id];
       return {
         id: id, x: x, y: surfaceY(top, x), hp: c.hp, maxHp: c.hp,
-        stam: c.move, ang: face > 0 ? 50 : 130, pow: 60, face: face, dead: false,
+        stam: c.move * K, maxStam: c.move * K, ang: face > 0 ? 50 : 130, pow: 60, face: face, dead: false,
         energy: 20, skillOn: false, shield: false, pwr: false, dbl: false, dmgMul: 1,
       };
     }
-    var xa = 55 + rng() * 45, xb = W - 55 - rng() * 45;
+    var xa = (55 + rng() * 45) * K, xb = W - (55 + rng() * 45) * K;
     var pa = mk(opts.a, xa, 1), pb = mk(opts.b, xb, -1);
     if (opts.hpMulB) { pb.hp = pb.maxHp = Math.round(pb.hp * opts.hpMulB); }
     if (opts.dmgMulB) pb.dmgMul = opts.dmgMulB;
     return {
       top: top, W: W, map: { id: map.id, name: map.name, col: map.col }, p: [pa, pb],
-      turn: opts.first || 0, wind: (rng() - 0.5) * 2.0, over: false, winner: -1, turnNo: 0, crates: [], crateId: 0, events: [],
+      mk: K, turn: opts.first || 0, wind: (rng() - 0.5) * 2.0, over: false, winner: -1, turnNo: 0, crates: [], crateId: 0, events: [],
       shots: 0, lastImpact: [null, null], rng: rng,
     };
   }
@@ -20353,10 +20390,10 @@ var FortEngine = (function () {
     if (nx < 8 || nx > W - 8) return false;
     if (Math.abs(nx - o.x) < 34) return false;
     var ny = surfaceY(st.top, nx);
-    if (p.y - ny > 3.8) return false;            // 아주 가파른 절벽만 못 올라간다(웬만한 언덕은 오를 수 있다)
-    if (ny - p.y > 8) return false;              // 벼랑은 걸어 내려갈 수 없다
+    if (p.y - ny > 2.4) return false;            // 지형 경사가 1.6 이하로 깎여 있어 웬만한 비탈은 다 오른다(수직 절벽만 불가)
+    if (ny - p.y > 9) return false;
     var rise = Math.max(0, p.y - ny);            // 오르막일수록 힘이 더 든다
-    p.stam = Math.max(0, p.stam - (0.5 + rise * 0.45));
+    p.stam = Math.max(0, p.stam - (0.5 + rise * 0.34));
     p.x = nx; p.y = ny; p.face = dir;
     for (var ci = st.crates.length - 1; ci >= 0; ci--) {
       var cr = st.crates[ci];
@@ -20490,6 +20527,7 @@ var FortEngine = (function () {
       var bottom = cy + s;
       if (top[x] < bottom) top[x] = Math.min(bottom, H - 12);
     }
+    relax(top, x0 - 40, x1 + 40);                // 구덩이 벽도 걸어서 오르내릴 수 있게
   }
 
   /* 착탄 처리: 지형 파괴 + 데미지. 이벤트 목록을 돌려준다 */
@@ -20538,7 +20576,7 @@ var FortEngine = (function () {
     if (st.over) return;
     st.turn = 1 - st.turn;
     var p = st.p[st.turn];
-    p.stam = CHARS[p.id].move;
+    p.stam = p.maxStam;
     p.energy = Math.min(100, p.energy + 10);
     st.turnNo++;
     if (st.turnNo % 3 === 0 && st.crates.length < 2) spawnCrate(st);
@@ -20563,7 +20601,7 @@ var FortEngine = (function () {
     else if (type === 'shield') p.shield = true;
     else if (type === 'power') p.pwr = true;
     else if (type === 'dbl') p.dbl = true;
-    else if (type === 'stam') p.stam = CHARS[p.id].move;
+    else if (type === 'stam') p.stam = p.maxStam;
   }
   function useSkill(st, pi) {
     var p = st.p[pi], c = CHARS[p.id];
@@ -20626,11 +20664,13 @@ var FortEngine = (function () {
       plan.skill = skill; plan.quick = !!quick;
       return plan;
     }
-    var li = st.lastImpact[1 - pi];
+    var K = st.mk || 1, li = st.lastImpact[1 - pi], o = st.p[1 - pi], dist = Math.abs(o.x - p.x), want = 440 + 100 * (K - 1);
     if (li && Math.hypot(li.x - p.x, li.y - p.y) < 75 && p.stam > 8) {
       var dir = p.x >= li.x ? 1 : -1;
-      if (p.x < 70) dir = 1; if (p.x > W - 70) dir = -1;
-      plan.dir = dir; plan.steps = Math.min(p.stam, 18 + Math.floor(rng() * 28));
+      if (p.x < 70 * K) dir = 1; if (p.x > W - 70 * K) dir = -1;
+      plan.dir = dir; plan.steps = Math.min(p.stam, (18 + Math.floor(rng() * 28)) * K);
+    } else if (dist > want + 40 && p.stam > 8) {      // 넓은 월드: 너무 멀면 사정거리 안으로 걸어 들어간다
+      plan.dir = o.x >= p.x ? 1 : -1; plan.steps = Math.min(p.stam * 1.6, dist - want);
     }
     plan.skill = skill; plan.quick = !!quick;
     return plan;
@@ -20647,7 +20687,7 @@ var FortEngine = (function () {
   }
 
   return {
-    zoom: zoom, W: W, H: H, BASE: BASE, GRAV: GRAV, BODY_R: BODY_R, BODY_CY: BODY_CY, VMAX: VMAX, DT: DT,
+    zoom: zoom, W: W, H: H, BASE: BASE, GRAV: GRAV, BODY_R: BODY_R, BODY_CY: BODY_CY, VMAX: VMAX, DT: DT, SLOPE: SLOPE,
     CHARS: CHARS, ORDER: ORDER, MAP_IDS: MAP_IDS,
     mulberry32: mulberry32, genTerrain: genTerrain, surfaceY: surfaceY, useSkill: useSkill, stageConfig: stageConfig, ITEMS: ITEMS, FOES: FOES, BOSSES: BOSSES,
     newGame: newGame, effective: effective, moveStep: moveStep, settle: settle,
@@ -20668,7 +20708,7 @@ if (typeof module !== 'undefined') module.exports = FortEngine;
    ══════════════════════════════════════════════════════════════════════ */
 const FT_STORE = 'ft_v1';
 const FT_TEST_UNLOCK = true;
-const FT_SLOTS = [['aura', '오라'], ['glow', '윤곽 빛'], ['shine', '광택'], ['ring', '발밑 링'], ['trail', '궤적'], ['blast', '폭발'], ['badge', '칭호'], ['line', '도발']];
+const FT_SLOTS = [['aura', '오라'], ['glow', '윤곽 빛'], ['shine', '광택'], ['ring', '발밑 링'], ['trail', '궤적'], ['blast', '폭발'], ['cast', '모션'], ['badge', '칭호'], ['line', '도발']];
 const FT_GEAR = {
   aura: [
     { id: 'fire', n: '불꽃 오라', ico: '🔥', c: { w: 5 } }, { id: 'ice', n: '서리 오라', ico: '❄️', c: { s: 3 } },
@@ -20693,6 +20733,10 @@ const FT_GEAR = {
     { id: 'b_conf', n: '컨페티 폭발', ico: '🎉', c: { w: 2 } }, { id: 'b_star', n: '별빛 폭발', ico: '🌟', c: { s: 3 } },
     { id: 'b_flame', n: '화염 폭발', ico: '🔥', c: { w: 8 } }, { id: 'b_bolt', n: '번개 폭발', ico: '⚡', c: { w: 14 } },
     { id: 'b_heart', n: '하트 폭발', ico: '💖', c: { pw: 2 } }, { id: 'b_coin', n: '금화 폭발', ico: '💰', c: { s: 6 } }],
+  cast: [
+    { id: 'c_burst', n: '기합 폭발', ico: '💥', c: { w: 2 } }, { id: 'c_wave', n: '충격파 발사', ico: '🌀', c: { s: 2 } },
+    { id: 'c_flame', n: '불꽃 폭주', ico: '🔥', c: { w: 12 } }, { id: 'c_bolt', n: '낙뢰 일격', ico: '⚡', c: { w: 25 } },
+    { id: 'c_gold', n: '황금 폭죽', ico: '🎆', c: { s: 8 } }, { id: 'c_roar', n: '포효 일격', ico: '🦁', c: { pw: 6 } }],
   badge: [
     { id: 'g_rookie', n: '링 새내기', ico: '🥊', c: { w: 1 } }, { id: 'g_star', n: '샌드백 단골', ico: '⭐', c: { w: 3 } },
     { id: 'g_fire', n: '불주먹', ico: '🔥', c: { w: 8 } }, { id: 'g_skull', n: '턱 사냥꾼', ico: '💀', c: { w: 20 } },
@@ -20708,7 +20752,7 @@ const FT_TITLES = [[0, '연습생'], [1, '신인'], [3, '루키'], [5, '파이�
 function ftTitle(w) { let t = FT_TITLES[0]; FT_TITLES.forEach(x => { if (w >= x[0]) t = x; }); return t[1]; }
 
 /* ── 기록 저장/불러오기 ── */
-function ftEmptyEq() { return { aura: '', glow: '', shine: '', ring: '', trail: '', blast: '', badge: '', line: '' }; }
+function ftEmptyEq() { return { aura: '', glow: '', shine: '', ring: '', trail: '', blast: '', cast: '', badge: '', line: '' }; }
 function ftLoad() {
   const d = { best: 0, wins: 0, games: 0, bestStage: 0, f: {}, eqf: {}, seen: [] };
   try {
@@ -20756,18 +20800,31 @@ function ftNewCount(rec) {
 /* AI 상대(선수 아님)의 꾸미기: 스테이지가 오를수록 화려해진다 */
 function ftFoeEq(id, cfg) {
   const e = ftEmptyEq();
-  if (cfg.boss) { e.aura = ({ b_titan: 'fire', b_phantom: 'shadow', b_lord: 'volt' })[id] || 'fire'; e.glow = 'red'; e.ring = 'r_red'; e.badge = 'g_skull'; return e; }
+  if (cfg.boss) { e.aura = ({ b_titan: 'fire', b_phantom: 'shadow', b_lord: 'volt' })[id] || 'fire'; e.glow = 'red'; e.ring = 'r_red'; e.badge = 'g_skull'; e.cast = ({ b_titan: 'c_flame', b_phantom: 'c_bolt', b_lord: 'c_roar' })[id] || 'c_wave'; return e; }
   const st = FT.stage;
   if (st >= 4) e.ring = 'r_red';
   if (st >= 7) e.glow = 'red';
   if (st >= 9) e.aura = 'fire';
+  if (st >= 3) e.cast = st >= 8 ? 'c_wave' : 'c_burst';
   return e;
 }
 
 /* 어려운 조건일수록 더 화려한 3단계(전설) 연출 */
-const FT_T3 = { aura: ['gold', 'volt', 'shadow'], glow: ['rainbow', 'gold'], shine: ['chrome', 'neon', 'goldp'], ring: ['r_rain', 'r_star'], trail: ['t_rain', 't_neon', 't_gold'], blast: ['b_bolt', 'b_coin', 'b_heart', 'b_flame'], badge: ['g_crown', 'g_trophy', 'g_lion', 'g_sword', 'g_skull'] };
-const FT_T2 = { aura: ['fire', 'ice'], glow: ['cyan', 'red'], shine: ['sweep'], ring: ['r_blue', 'r_red'], trail: ['t_bolt'], blast: ['b_star'], badge: ['g_fire', 'g_star'] };
+const FT_T3 = { aura: ['gold', 'volt', 'shadow'], glow: ['rainbow', 'gold'], shine: ['chrome', 'neon', 'goldp'], ring: ['r_rain', 'r_star'], trail: ['t_rain', 't_neon', 't_gold'], blast: ['b_bolt', 'b_coin', 'b_heart', 'b_flame'], badge: ['g_crown', 'g_trophy', 'g_lion', 'g_sword', 'g_skull'], cast: ['c_flame', 'c_bolt', 'c_gold', 'c_roar'] };
+const FT_T2 = { aura: ['fire', 'ice'], glow: ['cyan', 'red'], shine: ['sweep'], ring: ['r_blue', 'r_red'], trail: ['t_bolt'], blast: ['b_star'], badge: ['g_fire', 'g_star'], cast: ['c_wave'] };
 function ftTier(slot, id) { if (!id) return 0; return (FT_T3[slot] || []).includes(id) ? 3 : (FT_T2[slot] || []).includes(id) ? 2 : 1; }
+
+/* 공격 모션: 기 모으는 시간(wind, 초) · 돌진 거리(lunge) · 무기 크기 배율(big) · 화면 흔들림 · 충격파 링 수 · 후광 색 · 추가 연출 */
+const FT_CAST0 = { wind: .06, lunge: 4, big: 1, shake: 2, rings: 0, flash: 0, col: ['255,240,180', '255,210,74'] };
+const FT_CAST = {
+  c_burst: { wind: .16, lunge: 6, big: 1.35, shake: 5, flash: .2, rings: 1, col: ['255,246,200', '255,210,74'], halo: '255,214,100' },
+  c_wave: { wind: .24, lunge: 8, big: 1.55, shake: 8, flash: .25, rings: 3, col: ['170,225,255', '255,255,255', '120,190,255'], halo: '150,210,255' },
+  c_flame: { wind: .32, lunge: 9, big: 1.9, shake: 10, flash: .35, rings: 2, col: ['255,150,50', '255,220,110'], halo: '255,120,40', pillar: 1, pt: 'fire' },
+  c_bolt: { wind: .34, lunge: 9, big: 1.8, shake: 12, flash: .5, rings: 2, col: ['150,220,255', '255,255,255'], halo: '130,210,255', bolt: 1, pt: 'zap' },
+  c_gold: { wind: .3, lunge: 8, big: 1.9, shake: 8, flash: .3, rings: 2, col: ['255,224,110', '255,255,255'], halo: '255,210,80', coins: 1, pt: 'gold' },
+  c_roar: { wind: .38, lunge: 10, big: 1.85, shake: 13, flash: .4, rings: 3, col: ['255,90,70', '255,230,120', '255,255,255'], halo: '255,90,70', text: '포효!', tcol: '#ffb347', pt: 'fire' },
+};
+function ftCastDef(id) { return (id && FT_CAST[id]) || FT_CAST0; }
 
 /* ══════════ 효과 그리기 ══════════ */
 function ftHsl(h, s, l, a) { return `hsla(${Math.round(h) % 360},${s}%,${l}%,${a === undefined ? 1 : a})`; }
@@ -20921,7 +20978,7 @@ function ftRenderRank() {
 function ftOpenDress() {
   const o = document.getElementById('ftDress'); if (!o) return;
   const rec = ftLoad();
-  FT.dress = true; FT.dSlot = FT.dSlot || 'aura'; FT.dChar = FT.dChar || FT.sel[0] || 'tusin'; FT.dDemo = 0;
+  FT.dress = true; FT.dSlot = FT.dSlot || 'aura'; FT.dChar = FT.dChar || FT.sel[0] || 'tusin'; FT.dDemo = 0; if (FT.dressFrom !== 'over') FT.dressFrom = null;
   FT.dNew = {}; FortEngine.ORDER.forEach(id => { ftRealKeys(rec, id).forEach(k => { if (!rec.seen.includes(k)) FT.dNew[k] = 1; }); });
   rec.seen = Array.from(new Set(rec.seen.concat(...FortEngine.ORDER.map(id => ftRealKeys(rec, id))))); ftSave(rec);
   o.style.display = ''; const tt = document.getElementById('gTitle'); if (tt) tt.style.display = 'none';
@@ -20942,6 +20999,7 @@ function ftOpenDress() {
   document.getElementById('fdNext').onclick = e => { e.stopPropagation(); nav(1); };
   document.getElementById('fdDone').onclick = e => {
     e.stopPropagation(); FT.dress = false; o.style.display = 'none';
+    if (FT.dressFrom === 'over') { FT.dressFrom = null; const go = document.getElementById('gOver'); if (go) go.style.display = ''; ftRenderRec(); return; }
     const t2 = document.getElementById('gTitle'); if (t2) t2.style.display = ''; ftRenderRank();
   };
   ftDressInfo(); ftDressTabs(); ftDressGrid();
@@ -20999,7 +21057,10 @@ function ftDressDraw() {
   if (cyc < dur) {
     const u = cyc / dur, p = P(u);
     for (let k = 1; k <= 9; k++) { const q = P(Math.max(0, u - k * .03)), rgb = ftTrailRGB(eq.trail, k, t) || '255,255,255'; ctx.fillStyle = `rgba(${rgb},${.7 - k * .07})`; ctx.beginPath(); ctx.arc(q.x, q.y, 3.4 - k * .27, 0, 7); ctx.fill(); }
-    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(t * 8); ftProj(ctx, c.proj.kind, .8); ctx.restore();
+    const cd = ftCastDef(eq.cast);
+    if (cd.halo) { const gr = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 24 * cd.big); gr.addColorStop(0, `rgba(${cd.halo},.6)`); gr.addColorStop(1, `rgba(${cd.halo},0)`); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(p.x, p.y, 24 * cd.big, 0, 7); ctx.fill(); }
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(t * 8); ftProj(ctx, c.proj.kind, .8 * Math.min(1.7, cd.big)); ctx.restore();
+    if (cd.rings && u < .35) for (let k = 0; k < cd.rings; k++) { const a2 = Math.max(0, u - k * .05) / .35; ctx.strokeStyle = `rgba(${cd.col[k % cd.col.length]},${.8 * (1 - a2)})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx + 14, 96, 6 + a2 * 22, 0, 7); ctx.stroke(); }
   } else {
     const k = (cyc - dur) / .35, p = P(1), pal = FT_BLAST[eq.blast];
     const cols = pal ? pal.cols : ['#ffd76e', '#ffffff', '#e0332a'];
@@ -21199,14 +21260,16 @@ function ftOpenRules() {
       <b style="color:var(--text)">목표</b> 번갈아 무기를 던져 상대 체력을 0으로 만들면 KO 승리!<br>
       <b style="color:var(--text)">제한 시간</b> 내 차례는 20초. 시간이 끝나면 차례가 넘어가요. 충전 중이면 그 순간의 파워로 발사돼요.<br>
       <b style="color:var(--text)">조작(PC)</b> A/D 이동 · W/S 각도 · 스페이스를 누르고 있다가 떼면 발사 · E 스킬<br>
-      <b style="color:var(--text)">조작(모바일)</b> 이동/각도 버튼, 화면 드래그로 각도, 충전 버튼을 꾹 눌렀다가 떼면 발사<br>
+      <b style="color:var(--text)">조작(모바일)</b> 이동/각도 버튼, 내 캐릭터 근처 드래그로 각도, 충전 버튼을 꾹 눌렀다가 떼면 발사<br>
+      <b style="color:var(--text)">언덕</b> 웬만한 비탈은 걸어서 오르내릴 수 있어요. 오르막은 이동력이 더 들어요.<br>
       <b style="color:var(--text)">바람</b> 순풍이면 파워를 줄이고, 맞바람이면 파워를 올려야 해요. 무기마다 바람을 타는 정도가 달라요.<br>
-      <b style="color:var(--text)">케이지 벽</b> 화면 양쪽 끝이 철망 벽이에요. 한 번 튕기고, 두 번째 벽에서 터져요.<br>
+      <b style="color:var(--text)">넓은 맵 · 카메라</b> 맵은 화면보다 훨씬 넓어요. 내 차례엔 내 위치가 크게 보이고, 화면을 드래그하면 맵을 둘러볼 수 있어요. 위쪽 미니맵을 누르거나 '상대 위치' · '전체 보기' 버튼으로 적을 찾으세요. 내 캐릭터 가까이를 드래그하면 각도 조준, 화면을 톡 누르면 그쪽으로 조준해요.<br>
+      <b style="color:var(--text)">케이지 벽</b> 맵 양쪽 끝이 철망 벽이에요. 한 번 튕기고, 두 번째 벽에서 터져요.<br>
       <b style="color:var(--text)">지형</b> 매 판 7가지 지형 중 하나가 랜덤으로 나와요. 엄폐물 뒤에서 맞으면 데미지 절반! 높은 곳에서 떨어지면 낙하 데미지가 있어요.<br>
       <b style="color:var(--text)">스킬</b> 때리고 맞을수록 에너지가 차요. 100%가 되면 선수 고유 스킬(분신술, 돈 폭우 등)을 쓸 수 있어요.<br>
       <b style="color:var(--text)">보급 드론</b> 3턴마다 드론이 날아와 랜덤 위치에 선물을 떨어뜨려요. 걸어가서 먹으면 회복, 실드, 파워샷, 더블샷, 이동력 중 하나!<br>
       <b style="color:var(--text)">AI 대전</b> 스테이지는 끝이 없어요. 이길수록 AI가 강해지고 5스테이지마다 보스! 목숨은 3개, 지면 같은 스테이지에 재도전하고 목숨이 다 떨어지면 마지막 보스 다음 스테이지(체크포인트)부터 다시 시작해요. 보스를 잡으면 목숨이 1개 회복돼요.<br>
-      <b style="color:var(--text)">꾸미기</b> 선수별로 따로 해금돼요. 그 선수로 이긴 승리와 연승이 그 선수의 꾸미기를 열어 줘요. 2인 대결 승리는 대인전 전용 꾸미기를 열어 줘요.
+      <b style="color:var(--text)">꾸미기</b> 공격 모션까지 9가지! 선수별로 따로 해금돼요. 결과 화면에서도 바로 꾸밀 수 있어요. 그 선수로 이긴 승리와 연승이 그 선수의 꾸미기를 열어 줘요. 2인 대결 승리는 대인전 전용 꾸미기를 열어 줘요.
     </div></div></div>`;
   ov.onclick = e => { if (e.target === ov) history.back(); };
   pushModal(ov);
@@ -21216,7 +21279,7 @@ function viewGameFort() {
   const __g = __navGen;
   gmToken++; gmClear(); gmCurGame = 'fort';
   G.mode = 'fortpage'; G.parts = [];
-  Object.assign(FT, { active: false, phase: 'title', st: null, flying: [], parts: [], pops: [], booms: [], bubbles: [], aiTween: null, dragging: false, drag: null, g: null, mode: 'ai', stage: 1, streak: 0, sel: [null, null], pick: null, shake: 0, flash: 0, hurt: 0, ko: null, cutin: null, keys: {}, cAnim: {}, drones: [], amb: null, tl: 0, cfg: null, hitstop: 0, lives: 3, cp: 1, nextStage: 1 });
+  Object.assign(FT, { active: false, phase: 'title', st: null, flying: [], parts: [], pops: [], booms: [], bubbles: [], aiTween: null, dragging: false, drag: null, g: null, mode: 'ai', stage: 1, streak: 0, sel: [null, null], pick: null, shake: 0, flash: 0, hurt: 0, ko: null, cutin: null, keys: {}, cAnim: {}, drones: [], amb: null, tl: 0, cfg: null, hitstop: 0, lives: 3, cp: 1, nextStage: 1, cam: { x: 300, z: 1, up: 0 }, camFree: false, camOv: false, camTo: null, pan: null, atk: null, bolts: [], dressFrom: null, focus: null });
   FT.demo = FortEngine.newGame({ a: 'tusin', b: 'kingkong', rng: FortEngine.mulberry32(20261104), map: 'valley' });
   FT.vis = FT.demo.p.map(p => ({ x: p.x, y: p.y, hit: 0 }));
   FT.rec = ftLoad();
@@ -21233,6 +21296,7 @@ function viewGameFort() {
     <button class="g-mute" id="gMute">${gmMuted ? '🔇' : '🔊'}</button>
     <button class="g-full" id="gFull">⛶</button>
     <button id="ftQuit" type="button" style="display:none">포기</button>
+    <div id="ftCamBar" style="display:none"><button id="ftCamMe" type="button">내 위치</button><button id="ftCamFoe" type="button">상대 위치</button><button id="ftCamAll" type="button">전체 보기</button></div>
     <div id="ftCtl" style="display:none">
       <div class="ft-r1"><span class="ft-who" id="ftWho"></span><span class="ft-last" id="ftLast"></span>
         <span class="ft-stamw">이동력<i class="ft-stam"><b id="ftStam"></b></i></span></div>
@@ -21302,6 +21366,7 @@ function ftShowTitle() {
   const $ = id => document.getElementById(id);
   ['ftSel', 'gOver', 'ftDress'].forEach(i => { const e = $(i); if (e) e.style.display = 'none'; });
   const ctl = $('ftCtl'); if (ctl) ctl.style.display = 'none';
+  { const cb = $('ftCamBar'); if (cb) cb.style.display = 'none'; }
   const t = $('gTitle'); if (t) t.style.display = '';
   FT.phase = 'title'; FT.st = null; FT.active = false; FT.paused = false; FT.flying = [];
   { const q = document.getElementById('ftQuit'); if (q) q.style.display = 'none'; } FT.ko = null; FT.cutin = null; FT.drones = []; FT.cAnim = {}; FT.bubbles = []; FT.sel = [null, null]; FT.dress = false;
@@ -21419,7 +21484,7 @@ function ftBindUI() {
   $('ftStartAi').onclick = e => { e.stopPropagation(); gmCtx(); FT.mode = 'ai'; FT.stage = 1; FT.cp = 1; FT.lives = 3; FT.streak = 0; FT.foeOff = Math.floor(Math.random() * 6); ftShowSelect(0); };
   $('ftDressBtn').onclick = e => { e.stopPropagation(); gmCtx(); ftOpenDress(); };
   $('ftStartPvp').onclick = e => { e.stopPropagation(); gmCtx(); FT.mode = 'pvp'; FT.stage = 1; FT.streak = 0; ftShowSelect(0); };
-  // 화면 드래그로 각도 조준
+  // 화면 터치: 내 캐릭터 근처 드래그 = 각도 조준 / 그 밖의 드래그 = 카메라 이동 / 톡 누르기 = 그쪽으로 조준 / 미니맵 = 그 위치로 이동
   const cv = $('gCanvas');
   const aimFrom = e => {
     if (!ftCanAct()) return;
@@ -21433,13 +21498,41 @@ function ftBindUI() {
     FT.drag = { x: px, y: py };
     ftSyncCtl();
   };
+  const miniTo = px => {
+    const mr = FT.miniRect; if (!mr || !FT.st) return;
+    FT.cam.x = ftClamp((px - mr.x) / mr.w, 0, 1) * FT.st.W; FT.camFree = true; FT.camOv = false; FT.camTo = null; ftCamBtns();
+  };
   cv.addEventListener('pointerdown', e => {
-    if (!ftCanAct()) return;
-    FT.dragging = true; try { cv.setPointerCapture(e.pointerId); } catch (err) { } aimFrom(e);
+    if (!FT.st || FT.paused || (FT.phase !== 'aim' && FT.phase !== 'gauge')) return;
+    const r = cv.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top, mr = FT.miniRect;
+    try { cv.setPointerCapture(e.pointerId); } catch (err) { }
+    if (mr && px >= mr.x - 8 && px <= mr.x + mr.w + 8 && py >= mr.y - 6 && py <= mr.y + mr.h + 6) { FT.pan = { mode: 'mini' }; miniTo(px); return; }
+    const v = FT.vis[FT.st.turn], sx = FT.ox + v.x * FT.sc, sy = FT.oy + (v.y - FortEngine.BODY_CY) * FT.sc;
+    const near = ftCanAct() && Math.hypot(px - sx, py - sy) < 95;
+    FT.pan = { mode: near ? 'aim' : 'pan', x0: px, y0: py, lx: px, moved: false };
+    if (near) { FT.dragging = true; aimFrom(e); }
   });
-  cv.addEventListener('pointermove', e => { if (FT.dragging) aimFrom(e); });
-  const endDrag = () => { FT.dragging = false; FT.drag = null; };
+  cv.addEventListener('pointermove', e => {
+    const P = FT.pan; if (!P) return;
+    const r = cv.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
+    if (P.mode === 'aim') aimFrom(e);
+    else if (P.mode === 'mini') miniTo(px);
+    else {
+      if (!P.moved && Math.hypot(px - P.x0, py - P.y0) > 8) { P.moved = true; P.lx = px; }
+      if (P.moved) { FT.cam.x -= (px - P.lx) / FT.sc; P.lx = px; FT.camFree = true; FT.camOv = false; FT.camTo = null; ftCamBtns(); }
+    }
+  });
+  const endDrag = e => {
+    const P = FT.pan; FT.pan = null; FT.dragging = false; FT.drag = null;
+    if (P && P.mode === 'pan' && !P.moved && e && e.type === 'pointerup') aimFrom(e);      // 톡 누르면 그쪽으로 조준
+  };
   cv.addEventListener('pointerup', endDrag); cv.addEventListener('pointercancel', endDrag);
+  // 카메라 버튼: 내 위치 / 상대 위치 / 전체 보기
+  const camMe = $('ftCamMe'), camFoe = $('ftCamFoe'), camAll = $('ftCamAll');
+  [camMe, camFoe, camAll].forEach(b => { b.onpointerdown = e => e.stopPropagation(); });
+  camMe.onclick = e => { e.stopPropagation(); FT.camFree = false; FT.camOv = false; FT.camTo = null; ftCamBtns(); };
+  camFoe.onclick = e => { e.stopPropagation(); if (!FT.st) return; const o = FT.vis[1 - FT.st.turn]; FT.camOv = false; FT.camFree = true; FT.camTo = o.x; ftCamBtns(); };
+  camAll.onclick = e => { e.stopPropagation(); FT.camOv = !FT.camOv; if (!FT.camOv) { FT.camFree = false; FT.camTo = null; } ftCamBtns(); };
   // 키보드: A/D 이동, W/S 각도, 스페이스 충전(떼면 발사), E 스킬 (방향키도 가능). 한글 입력 상태에서도 되도록 e.code 로 판별
   const keyMap = { KeyA: 'l', ArrowLeft: 'l', KeyD: 'r', ArrowRight: 'r', KeyW: 'u', ArrowUp: 'u', KeyS: 'dn', ArrowDown: 'dn' };
   if (FT.keyFn) document.removeEventListener('keydown', FT.keyFn);
@@ -21466,6 +21559,10 @@ function ftBindUI() {
   window.addEventListener('blur', () => { FT.keys = {}; });
 }
 
+function ftCamBtns() {
+  const a = document.getElementById('ftCamAll'); if (a) a.classList.toggle('on', !!FT.camOv);
+  const m = document.getElementById('ftCamMe'); if (m) m.classList.toggle('on', !FT.camFree && !FT.camOv);
+}
 /* 바람: 쏘는 쪽 기준으로 순풍/맞바람 */
 function ftWindInfo(st, pi) {
   const me = st.p[pi], o = st.p[1 - pi], dir = o.x >= me.x ? 1 : -1, rel = st.wind * dir, v = Math.abs(st.wind) * 10;
@@ -21482,7 +21579,7 @@ function ftSyncCtl() {
   ctl.classList.toggle('gauge', FT.phase === 'gauge');
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
   set('ftAng', Math.round(p.ang));
-  const sb = document.getElementById('ftStam'); if (sb) sb.style.width = Math.round(100 * p.stam / c.move) + '%';
+  const sb = document.getElementById('ftStam'); if (sb) sb.style.width = Math.round(100 * p.stam / (p.maxStam || c.move)) + '%';
   set('ftWho', FT.mode === 'ai' ? (pi === 0 ? `내 차례 · ${c.name}` : `상대 차례 · ${c.name}`) : `P${pi + 1} 차례 · ${c.name}`);
   const w = ftWindInfo(st, pi), l = FT.last[pi];
   set('ftLast', w.kind === 'calm' ? (l ? `직전 ${l.ang}도 · 파워 ${l.pow}` : `무기 · ${c.proj.label}`) : `${w.hint}${l ? ` · 직전 ${l.ang}도/${l.pow}` : ''}`);
@@ -21556,12 +21653,8 @@ function ftShowSelect(slot) {
   };
 }
 
-/* 화면 크기에 맞춰 월드 폭 결정: 가로 화면이면 넓게(600~720), 항상 양 끝이 케이지 벽이 되도록 */
-function ftPickW() {
-  const ctl = document.getElementById('ftCtl'), ctlH = ctl ? ctl.offsetHeight : 120, land = G.w > G.h * 1.15;
-  const availH = Math.max(100, G.h - ctlH - (land ? 34 : 40));
-  return ftClamp(Math.round((G.w - 44) / (availH / FT_SPAN)), 600, 720);
-}
+/* 월드 폭: 화면보다 훨씬 넓은 1000 (카메라가 내 위치를 따라다니고, 드래그/미니맵으로 둘러본다) */
+function ftPickW() { return 1000; }
 /* 장착한 꾸미기 중 아직 못 연 것은 걸러낸다(정식 버전에서 테스트 해금이 꺼졌을 때 대비) */
 function ftEquipFor(rec, id) {
   const eq = ftEqOf(rec, id);
@@ -21583,8 +21676,8 @@ function ftStartMatch() {
   FT.eqs = FT.mode === 'ai' ? [ftEquipFor(rec0, a), ftFoeEq(b, cfg)] : [ftEquipFor(rec0, a), ftEquipFor(rec0, b)];
   FT.st = st; FT.vis = st.p.map(p => ({ x: p.x, y: p.y, hit: 0 }));
   FT.flying = []; FT.parts = []; FT.pops = []; FT.booms = []; FT.bubbles = []; FT.last = [null, null]; FT.aiTween = null; FT.g = null; FT.lastPow = 0;
-  { const q = document.getElementById('ftQuit'); if (q) q.style.display = ''; }
-  FT.active = true; FT.paused = false; FT.cam = { x: 0, y: 0, z: 1 }; FT.focus = null; FT.shake = 0; FT.flash = 0; FT.hurt = 0; FT.ko = null; FT.cutin = null; FT.cAnim = {}; FT.keys = {}; FT.tl = 0; FT.hitstop = 0;
+  { const q = document.getElementById('ftQuit'); if (q) q.style.display = ''; const cb = document.getElementById('ftCamBar'); if (cb) cb.style.display = ''; }
+  FT.active = true; FT.paused = false; FT.cam = { x: st.p[0].x, z: 1, up: 0 }; FT.camFree = false; FT.camOv = false; FT.camTo = null; FT.pan = null; FT.atk = null; FT.bolts = []; FT.focus = null; FT.shake = 0; FT.flash = 0; FT.hurt = 0; FT.ko = null; FT.cutin = null; FT.cAnim = {}; FT.keys = {}; FT.tl = 0; FT.hitstop = 0;
   FT.amb = null;
   bbArmLeaveGuard();
   const g = document.getElementById('gOver'); if (g) g.style.display = 'none';
@@ -21613,7 +21706,7 @@ function ftBeginTurn(noWait) {
     gmDelay(() => { if (tok === gmToken && st === FT.st && !st.over) ftBeginTurn(true); }, 2000);
     return;
   }
-  FT.phase = 'aim'; FT.g = null;
+  FT.phase = 'aim'; FT.g = null; FT.camFree = false; FT.camOv = false; FT.camTo = null; FT.pan = null; FT.dragging = false; FT.drag = null;
   const pi = st.turn;
   FT.human = FT.mode === 'pvp' || pi === 0;
   FT.tl = FT.human ? FT.tmax : 0; FT.tick = Math.ceil(FT.tl);
@@ -21648,19 +21741,64 @@ function ftFire() {
   const st = FT.st; if (!st || (FT.phase !== 'aim' && FT.phase !== 'gauge')) return;
   const E = FortEngine, pi = st.turn, p = st.p[pi];
   FT.phase = 'fly'; FT.g = null; FT.tl = 0;
+  FT.camFree = false; FT.camOv = false; FT.camTo = null; FT.pan = null; FT.dragging = false; FT.drag = null;
   FT.last[pi] = { ang: Math.round(p.ang), pow: Math.round(p.pow) };
   FT.lastPow = p.pow;
+  const eq = FT.eqs[pi] || {}, cd = ftCastDef(eq.cast);
   const shots = E.fire(st, pi, p.ang, p.pow);
   FT.used = shots.used || {};
-  FT.flying = shots.map(s => ({ s, t: 0, done: false }));
+  FT.flying = shots.map(s => ({ s, t: 0, done: false, def: cd }));
   FT.vis[pi].hit = 0;
-  FT.shake = Math.max(FT.shake, 2);
-  // 발사 섬광
-  const a = p.ang * Math.PI / 180, mx = p.x + Math.cos(a) * 20, my = p.y - E.BODY_CY - Math.sin(a) * 20;
-  for (let i = 0; i < 9; i++) { const q = a + (Math.random() - .5) * 1.1, v = 60 + Math.random() * 120; FT.parts.push({ x: mx, y: my, vx: Math.cos(q) * v, vy: -Math.sin(q) * v, life: .25 + Math.random() * .15, sz: 1.6 + Math.random() * 1.6, c: i % 2 ? '#fff6c8' : '#ffd24a', g: 0 }); }
-  FT.booms.push({ x: mx, y: my, r: 12, t: .25, kind: 'flash' });
-  gmCtx(); gmSnd('swish');
+  FT.atk = { i: pi, t: 0, wind: cd.wind, def: cd, fired: false, tier: ftTier('cast', eq.cast) };
   ftSyncCtl();
+}
+/* 공격 모션 1단계: 기 모으기(웅크리며 에너지가 모인다). 꾸미기가 화려할수록 길고 크다 */
+function ftMuzzle(pi) {
+  const E = FortEngine, p = FT.st.p[pi], v = FT.vis[pi], a = p.ang * Math.PI / 180;
+  return { a, x: v.x + Math.cos(a) * 20, y: v.y - E.BODY_CY - Math.sin(a) * 20 };
+}
+function ftWindupFx(A, dt0) {
+  if (A.def.wind < .1) return;
+  const m = ftMuzzle(A.i), n = A.tier >= 3 ? 3 : A.tier >= 2 ? 2 : 1;
+  for (let k = 0; k < n; k++) {
+    const q = Math.random() * 6.283, r = 48 + Math.random() * 34, c = A.def.col[(Math.random() * A.def.col.length) | 0];
+    FT.parts.push({ x: m.x + Math.cos(q) * r, y: m.y + Math.sin(q) * r, vx: -Math.cos(q) * r / .2, vy: -Math.sin(q) * r / .2, life: .2, sz: 1.8 + Math.random() * 1.8, c: `rgb(${c})`, g: 0 });
+  }
+  if (A.tier >= 3) FT.shake = Math.max(FT.shake, 2.2);
+}
+/* 공격 모션 2단계: 발사! 섬광 + 충격파 링 + 화면 흔들림 + (불기둥 / 낙뢰 / 금화 / 포효) */
+function ftLaunch() {
+  const A = FT.atk, st = FT.st; if (!A || !st) return;
+  const E = FortEngine, d = A.def, p = st.p[A.i], m = ftMuzzle(A.i), a = m.a;
+  FT.shake = Math.max(FT.shake, d.shake || 2);
+  const nF = 9 + Math.round((d.big - 1) * 22);
+  for (let i = 0; i < nF; i++) { const q = a + (Math.random() - .5) * 1.1, v = 60 + Math.random() * 120 * d.big; FT.parts.push({ x: m.x, y: m.y, vx: Math.cos(q) * v, vy: -Math.sin(q) * v, life: .25 + Math.random() * .2, sz: (1.6 + Math.random() * 1.6) * (1 + (d.big - 1) * .5), c: i % 2 ? '#fff6c8' : '#ffd24a', g: 0 }); }
+  FT.booms.push({ x: m.x, y: m.y, r: 12 * d.big, t: .25, kind: 'flash' });
+  for (let k = 0; k < (d.rings || 0); k++) FT.booms.push({ x: m.x, y: m.y, r: 22 + k * 10, t: -k * .08, kind: 'ring', col: d.col[k % d.col.length] });
+  if (d.flash) FT.flash = Math.min(1, FT.flash + d.flash);
+  if (d.pillar) for (let i = 0; i < 44; i++) FT.parts.push({ x: p.x + (Math.random() - .5) * 26, y: p.y - 4, vx: (Math.random() - .5) * 60, vy: -120 - Math.random() * 240, life: .5 + Math.random() * .4, sz: 3 + Math.random() * 4.5, c: i % 3 ? '#ff9a3a' : '#ffe08a', g: -80 });
+  if (d.bolt) { (FT.bolts || (FT.bolts = [])).push({ x: m.x, y0: m.y - 380, y1: m.y, t: 0 }); gmSnd('crash'); }
+  if (d.coins) for (let i = 0; i < 30; i++) { const q = Math.random() * 6.283, v = 70 + Math.random() * 190; FT.parts.push({ x: m.x, y: m.y, vx: Math.cos(q) * v, vy: Math.sin(q) * v - 90, life: .8 + Math.random() * .5, sz: 2.4 + Math.random() * 2, c: i % 2 ? '#ffd24a' : '#fff3b0', shape: i % 3 ? 'coin' : 'star', rot: Math.random() * 6, vr: 10, g: 300 }); }
+  if (d.text) { ftPop(p.x, p.y - 112, d.text, d.tcol || '#ffb347', 28); gmVib([30, 20, 50]); }
+  gmCtx(); gmSnd('swish');
+}
+/* 날아가는 동안 무기 주변에 흩뿌려지는 효과 */
+function ftCastTrail(f, ci) {
+  const d = f.def, q = f.s.path[ci]; if (!d || !d.pt || !q || FT.parts.length > 520 || Math.random() > .8) return;
+  const r = Math.random;
+  if (d.pt === 'fire') FT.parts.push({ x: q[0], y: q[1], vx: (r() - .5) * 40, vy: -20 - r() * 50, life: .5, sz: 3 + r() * 3.4, c: r() < .5 ? '#ff9a3a' : '#ffd86a', g: -30 });
+  else if (d.pt === 'zap') FT.parts.push({ x: q[0] + (r() - .5) * 14, y: q[1] + (r() - .5) * 14, vx: (r() - .5) * 60, vy: (r() - .5) * 60, life: .3, sz: 2.6, c: '#cfeaff', shape: 'bolt', rot: r() * 6, vr: 0, g: 0 });
+  else if (d.pt === 'gold') FT.parts.push({ x: q[0], y: q[1], vx: (r() - .5) * 50, vy: -10 - r() * 40, life: .6, sz: 2.4, c: '#ffd24a', shape: r() < .5 ? 'star' : 'coin', rot: r() * 6, vr: 10, g: 60 });
+}
+function ftZap(ctx, x, y, len) {
+  ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  for (let k = 0; k < 3; k++) {
+    let cx = x, cy = y, a = Math.random() * 6.283;
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    for (let j = 0; j < 3; j++) { a += (Math.random() - .5) * 2; cx += Math.cos(a) * len * .4; cy += Math.sin(a) * len * .4; ctx.lineTo(cx, cy); }
+    ctx.strokeStyle = 'rgba(150,215,255,.9)'; ctx.lineWidth = 3; ctx.stroke(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2; ctx.stroke();
+  }
+  ctx.restore();
 }
 
 const FT_BOOM_COL = {
@@ -21688,7 +21826,7 @@ function ftDrain() {
   const evs = st.events.splice(0, st.events.length);
   let dropped = false;
   evs.forEach(ev => {
-    if (ev.type === 'drop') { FT.cAnim[ev.crate.id] = { t: 0, landed: false, from: ev.crate.from, tx: ev.crate.x }; FT.drones.push({ t: 0, from: ev.crate.from, tx: ev.crate.x }); gmSnd('swish'); ftPop(ev.crate.x, 70, '보급 드론 출동!', '#ffd24a', 17); dropped = true; }
+    if (ev.type === 'drop') { FT.cAnim[ev.crate.id] = { t: 0, landed: false, from: ev.crate.from, tx: ev.crate.x }; FT.drones.push({ t: 0, from: ev.crate.from, tx: ev.crate.x }); gmSnd('swish'); ftPop(ev.crate.x, 70, '보급 드론 출동!', '#ffd24a', 17); dropped = true; FT.focus = { x: ev.crate.x, y: 200, until: FT.t + 2.1 }; }
     else if (ev.type === 'pick') {
       const it = FT_ITEM_TXT[ev.item] || ['획득', '#fff'];
       ftPop(ev.x, ev.y - 54, it[0], it[1], 19); gmSnd('perfect'); gmVib(25);
@@ -21765,7 +21903,7 @@ function ftOver() {
   const st = FT.st, E = FortEngine; if (!st) return;
   FT.phase = 'over'; FT.active = false; bbDisarmLeaveGuard();
   const ctl = document.getElementById('ftCtl'); if (ctl) ctl.style.display = 'none';
-  { const q = document.getElementById('ftQuit'); if (q) q.style.display = 'none'; }
+  { const q = document.getElementById('ftQuit'); if (q) q.style.display = 'none'; const cb = document.getElementById('ftCamBar'); if (cb) cb.style.display = 'none'; }
   const ov = document.getElementById('gOver'); if (!ov) return;
   const w = st.winner, rec = ftLoad();
   const involved = FT.mode === 'ai' ? [st.p[0].id] : [st.p[0].id, st.p[1].id];
@@ -21784,7 +21922,7 @@ function ftOver() {
         <div class="go-cmp">STAGE ${FT.stage} 클리어 — ${esc(oc.name)} 격파${lifeTxt}</div>
         <div class="go-grade">${FT.streak >= rec.best && FT.streak > 1 ? '🔥 최고 기록 경신 중!' : `${esc(E.CHARS[st.p[0].id].name)} 통산 ${me.w}승`}</div>
         ${nextInfo}@@<button class="g-start" id="ftNext" type="button">다음 상대</button>
-        <button class="ft-btn2" id="ftChange" type="button">파이터 변경</button>
+        <div class="ft-btnrow"><button class="ft-btn2" id="ftChange" type="button">파이터 변경</button><button class="ft-btn2 ft-dressb" id="ftOvDress" type="button">꾸미기<i id="ftOvNew"></i></button></div>
         <button class="ft-btn2 ft-back" id="ftHome" type="button">처음 화면</button>`;
       gmSnd('cheer');
     } else {
@@ -21795,7 +21933,7 @@ function ftOver() {
         <div class="go-cmp">${esc(oc.name)}에게 패배 (STAGE ${FT.stage})</div>
         <div class="go-grade">${dead ? `STAGE ${FT.cp}부터 다시 도전해요 (최고 ${rec.best}연승)` : `같은 스테이지에 재도전! (최고 ${rec.best}연승)`}</div>
         @@<button class="g-start" id="ftNext" type="button">다시 도전</button>
-        <button class="ft-btn2" id="ftChange" type="button">파이터 변경</button>
+        <div class="ft-btnrow"><button class="ft-btn2" id="ftChange" type="button">파이터 변경</button><button class="ft-btn2 ft-dressb" id="ftOvDress" type="button">꾸미기<i id="ftOvNew"></i></button></div>
         <button class="ft-btn2 ft-back" id="ftHome" type="button">처음 화면</button>`;
       gmSnd('over');
     }
@@ -21806,7 +21944,7 @@ function ftOver() {
       <div class="go-score" style="font-size:34px">${esc(wc.name)}</div>
       <div class="go-cmp">대인전 ${wf.pw}승 · ${wf.pc}연승</div>
       @@<button class="g-start" id="ftNext" type="button">한 판 더!</button>
-      <button class="ft-btn2" id="ftChange" type="button">파이터 변경</button>
+      <div class="ft-btnrow"><button class="ft-btn2" id="ftChange" type="button">파이터 변경</button><button class="ft-btn2 ft-dressb" id="ftOvDress" type="button">꾸미기<i id="ftOvNew"></i></button></div>
       <button class="ft-btn2 ft-back" id="ftHome" type="button">처음 화면</button>`;
     gmSnd('cheer');
   }
@@ -21814,14 +21952,17 @@ function ftOver() {
     const fresh = [];
     involved.forEach(id => { ftRealKeys(rec, id).forEach(k => { if (!before[id].includes(k)) { const it = ftGearById(FT_SLOTS.map(s => s[0]).find(sl => ftGearById(sl, k.split(':')[1])), k.split(':')[1]); if (it) fresh.push(`${E.CHARS[id].name} · ${it.n}`); } }); });
     let extra = '';
-    if (fresh.length) extra = `<div class="ft-unlock">🎁 새 꾸미기 해금! <b>${fresh.slice(0, 4).map(esc).join(', ')}${fresh.length > 4 ? ' 외 ' + (fresh.length - 4) + '개' : ''}</b><br><small>시작 화면의 꾸미기에서 장착하세요</small></div>`;
+    if (fresh.length) extra = `<div class="ft-unlock">🎁 새 꾸미기 해금! <b>${fresh.slice(0, 4).map(esc).join(', ')}${fresh.length > 4 ? ' 외 ' + (fresh.length - 4) + '개' : ''}</b><br><small>아래 꾸미기 버튼에서 바로 장착하세요</small></div>`;
     else if (FT.mode === 'ai') { const g = ftNextGoal(rec, st.p[0].id); if (g) extra = `<div class="ft-goal">다음 해금 · ${esc(ftGoalTxt(g))}</div>`; }
     html = html.replace('@@', extra);
   }
   ftSave(rec); FT.rec = rec;
   ov.style.display = ''; ov.innerHTML = html;
   ftRenderRec(); ftHud(); ftRenderRank();
-  const nx = document.getElementById('ftNext'), ch = document.getElementById('ftChange'), hm = document.getElementById('ftHome');
+  const nx = document.getElementById('ftNext'), ch = document.getElementById('ftChange'), hm = document.getElementById('ftHome'), od = document.getElementById('ftOvDress'), on = document.getElementById('ftOvNew');
+  { const n = ftNewCount(rec); if (on) { on.textContent = n ? String(n) : ''; on.style.display = n ? '' : 'none'; } }
+  od.onpointerdown = e => e.stopPropagation();
+  od.onclick = e => { e.stopPropagation(); gmCtx(); FT.dressFrom = 'over'; FT.dChar = st.p[0].id; ov.style.display = 'none'; ftOpenDress(); };
   nx.onpointerdown = e => e.stopPropagation();
   ch.onpointerdown = e => e.stopPropagation();
   hm.onpointerdown = e => e.stopPropagation();
@@ -21911,9 +22052,16 @@ function ftUpdate(dt0, now) {
     ftSyncCtl();
     if (k >= 1) { FT.aiTween = null; gmDelay(() => { if (FT.st === st && FT.phase === 'aim') ftFire(); }, 120); }
   }
+  if (FT.atk) {
+    const A = FT.atk; A.t += dt0;
+    if (!A.fired) { ftWindupFx(A, dt0); if (A.t >= A.wind) { A.fired = true; ftLaunch(); } }
+    else if (A.t - A.wind > .5) FT.atk = null;
+  }
+  if (FT.bolts && FT.bolts.length) { FT.bolts.forEach(b => { b.t += dt0; }); FT.bolts = FT.bolts.filter(b => b.t < .42); }
   if (FT.phase === 'fly') {
     let all = true;
     FT.flying.forEach(f => {
+      if (FT.atk && !FT.atk.fired) { all = false; return; }
       f.t += dt * FT_PLAY;
       const ci = Math.min(f.s.path.length - 1, Math.floor(f.t / E.DT));
       for (let i = Math.max(2, (f.lastI || 0) + 1); i <= ci && i < f.s.path.length; i++) {
@@ -21926,6 +22074,7 @@ function ftUpdate(dt0, now) {
         }
       }
       if (FT.eqs[FT.st.turn] && ftTier('trail', FT.eqs[FT.st.turn].trail) >= 3 && ci < f.s.path.length && Math.random() < .6) { const q = f.s.path[ci], tc = ftTrailRGB(FT.eqs[FT.st.turn].trail, Math.floor(Math.random() * 8), FT.t) || '255,255,255'; FT.parts.push({ x: q[0], y: q[1], vx: (Math.random() - .5) * 50, vy: (Math.random() - .5) * 50, life: .5, sz: 1.6 + Math.random() * 1.6, c: `rgb(${tc})`, shape: 'star', rot: 0, vr: 8, g: 40 }); }
+      ftCastTrail(f, ci);
       f.lastI = ci;
       if (ci >= f.s.path.length - 1) f.done = true;
       if (!f.done) all = false;
@@ -21969,6 +22118,7 @@ function ftUpdate(dt0, now) {
   if (!FT.amb) FT.amb = Array.from({ length: 14 }, (_, i) => ({ u: Math.random(), v: Math.random(), p: Math.random() * 6.28, s: .6 + Math.random() * .8 }));
   const cfg = FT_AMB[st.map ? st.map.id : 'block'] || FT_AMB.block;
   FT.amb.forEach(a => { a.u += cfg.vx * a.s * dt0 / 400; a.v += cfg.vy * a.s * dt0 / 300; if (a.u > 1.05) a.u = -.05; if (a.u < -.05) a.u = 1.05; if (a.v > 1.05) a.v = -.05; if (a.v < -.05) a.v = 1.05; });
+  ftCamUpdate(dt0);
 }
 const FT_AMB = {
   block: { c: '#f2c94c', vx: 8, vy: -6, r: 1.4, a: .5 }, fortress: { c: '#ff8a3a', vx: 6, vy: -34, r: 1.6, a: .8 },
@@ -21977,13 +22127,41 @@ const FT_AMB = {
   ridge: { c: '#ffd5a0', vx: -16, vy: 10, r: 1.7, a: .6 },
 };
 
+const FT_VIEWW = 560;     // 기본 화면에 보이는 월드 폭(월드 전체는 1000). 줌인된 상태가 기본이다
 function ftLayout() {
   const E = FortEngine, st = FT.st || FT.demo, Wd = st.W || 600, ctl = document.getElementById('ftCtl');
   const ctlH = (ctl && ctl.style.display !== 'none') ? ctl.offsetHeight : 0;
-  const land = G.w > G.h * 1.15, hudH = land ? 34 : 40, wS = 22;
+  const land = G.w > G.h * 1.15, hudH = land ? 34 : 40;
   const availH = Math.max(100, G.h - ctlH - hudH);
-  const sc = Math.min((G.w - wS * 2) / Wd, availH / FT_SPAN);
-  FT.sc = sc; FT.ox = (G.w - Wd * sc) / 2; FT.oy = hudH + availH - (E.H - 22) * sc; FT.hudH = hudH; FT.land = land; FT.Wd = Wd; FT.bottom = hudH + availH;
+  const base = Math.min(G.w / FT_VIEWW, availH / FT_SPAN), ov = Math.min(G.w / Wd, availH / FT_SPAN);
+  const cam = FT.cam || (FT.cam = { x: Wd / 2, z: 1, up: 0 });
+  const sc = base * cam.z, half = G.w / (2 * sc), m = 16 / sc, lo = half - m, hi = Wd - half + m;
+  cam.x = lo > hi ? Wd / 2 : ftClamp(cam.x, lo, hi);
+  FT.baseSc = base; FT.ovSc = ov;
+  FT.sc = sc; FT.ox = G.w / 2 - cam.x * sc; FT.oy = hudH + availH - (E.H - 22) * sc + (cam.up || 0) * sc;
+  FT.hudH = hudH; FT.land = land; FT.Wd = Wd; FT.bottom = hudH + availH;
+}
+/* 카메라: 내 차례엔 내 위치로 줌인, 발사체를 따라가고, 착탄/드론 투하 지점을 보여준다. 드래그하면 자유 시점 */
+function ftCamUpdate(dt0) {
+  const E = FortEngine, st = FT.st || FT.demo; if (!st || !G.w) return;
+  ftLayout();
+  const cam = FT.cam, Wd = st.W, base = FT.baseSc, ovz = FT.ovSc / base;
+  const upFor = (py, z) => ftClamp((E.H - 22) - py - (FT.bottom - FT.hudH - 56) / (base * z), 0, 430);
+  let tx = cam.x, tz = 1, tu = 0, rate = 5;
+  const waiting = FT.atk && !FT.atk.fired;
+  if (!FT.st) { tx = Wd / 2; tz = ovz; }
+  else if (FT.ko) { tx = st.p[FT.ko.idx].x; }
+  else if (FT.phase === 'fly' && FT.flying.length && !waiting) {
+    let f = FT.flying[0]; FT.flying.forEach(q => { if (!q.done) f = q; });
+    const pa = f.s.path, pos = pa[ftClamp(Math.floor(f.t / E.DT), 0, pa.length - 1)];
+    tx = pos[0]; tu = upFor(pos[1], 1); rate = 9;
+  } else if (FT.phase === 'boom' && FT.focus && FT.t < FT.focus.until) { tz = 1.1; tx = FT.focus.x; tu = upFor(FT.focus.y, 1.1) * .6; }
+  else if (FT.camOv) { tx = Wd / 2; tz = ovz; }
+  else if (FT.camFree) { tx = FT.camTo != null ? FT.camTo : cam.x; }
+  else { const ap = st.p[st.turn], v = (FT.vis && FT.vis[st.turn]) || ap; tx = v.x + ap.face * 60; }
+  const kd = Math.min(1, dt0 * rate);
+  cam.x += (tx - cam.x) * kd; cam.z += (tz - cam.z) * kd; cam.up = (cam.up || 0) + (tu - (cam.up || 0)) * kd;
+  cam.z = ftClamp(cam.z, Math.min(ovz, 1), 1.4);
 }
 
 /* ── 무기별 그림 (원점 기준, k = 화면 배율) ── */
@@ -22050,8 +22228,9 @@ function ftBackdrop(ctx, w, h, floorY, mapCol, par) {
   ctx.restore();
   // 먼 철망(깊이감): 은은한 마름모 격자 + 상단 레일
   const fh = Math.max(50, Math.min(120, floorY * .34)), fy = floorY - fh;
+  const mp = ((par * .5) % 14 + 14) % 14;
   ctx.save(); ctx.beginPath(); ctx.rect(0, fy, w, fh); ctx.clip(); ctx.strokeStyle = 'rgba(200,210,235,.10)'; ctx.lineWidth = 1;
-  for (let k = -fh; k < w + fh; k += 14) { ctx.beginPath(); ctx.moveTo(k - par * .5, fy); ctx.lineTo(k + fh - par * .5, floorY); ctx.stroke(); ctx.beginPath(); ctx.moveTo(k + fh - par * .5, fy); ctx.lineTo(k - par * .5, floorY); ctx.stroke(); }
+  for (let k = -fh; k < w + fh; k += 14) { ctx.beginPath(); ctx.moveTo(k - mp, fy); ctx.lineTo(k + fh - mp, floorY); ctx.stroke(); ctx.beginPath(); ctx.moveTo(k + fh - mp, fy); ctx.lineTo(k - mp, floorY); ctx.stroke(); }
   ctx.restore();
   ctx.fillStyle = 'rgba(210,215,230,.22)'; ctx.fillRect(0, fy - 2, w, 3);
 }
@@ -22071,29 +22250,18 @@ function ftDraw() {
     const lp = st.p[FT.ko.idx], cx = X(lp.x), cy = Y(lp.y) - 30 * sc;
     ctx.translate(cx, cy); ctx.scale(z, z); ctx.translate(-cx, -cy);
   }
-  const floorY = Y(E.BASE);
-  // 카메라: 발사체를 따라가고 착탄 지점을 확대한다 (벽이 화면 밖으로 밀려 나가지 않게 이동 범위를 제한)
-  const cam = FT.cam || (FT.cam = { x: 0, y: 0, z: 1 }), cx0 = w / 2, cy0 = (FT.hudH + FT.bottom) / 2;
-  let tz = 1, tx = 0, ty = 0;
-  if (FT.st && FT.phase === 'fly' && FT.flying.length) {
-    let f = FT.flying[0]; FT.flying.forEach(q => { if (!q.done) f = q; });
-    const pos = f.s.path[Math.min(f.s.path.length - 1, Math.floor(f.t / E.DT))]; tz = 1.3; tx = X(pos[0]) - cx0; ty = Y(pos[1]) - cy0;
-  } else if (FT.st && FT.phase === 'boom' && FT.focus && FT.t < FT.focus.until) { tz = 1.22; tx = X(FT.focus.x) - cx0; ty = Y(FT.focus.y) - cy0; }
-  if (FT.ko || FT.paused) { tz = 1; tx = 0; ty = 0; }
-  const kd = Math.min(1, (FT.t - (FT.lastDraw || FT.t)) * 5.5); FT.lastDraw = FT.t;
-  cam.z += (tz - cam.z) * kd; cam.x += (tx - cam.x) * kd; cam.y += (ty - cam.y) * kd;
-  const mxs = cx0 * (1 - 1 / cam.z), mys = (FT.bottom - FT.hudH) / 2 * (1 - 1 / cam.z);
-  cam.x = ftClamp(cam.x, -mxs, mxs); cam.y = ftClamp(cam.y, -mys, mys);
-  ftBackdrop(ctx, w, h, floorY, mcol, cam.x);
-  ctx.save(); ctx.translate(cx0, cy0); ctx.scale(cam.z, cam.z); ctx.translate(-cx0 - cam.x, -cy0 - cam.y);
+  const floorY = Y(E.BASE), cam = FT.cam;
+  ftBackdrop(ctx, w, h, floorY, mcol, (cam.x - Wd / 2) * sc * .3);
+  ctx.save();
   // 지형
   const top = st.top;
+  const xl = Math.min(-10, X(0) - 10), xr = Math.max(w + 10, X(Wd - 1) + 10);
   const path = () => {
-    ctx.beginPath(); ctx.moveTo(-10, Y(top[0]));
+    ctx.beginPath(); ctx.moveTo(xl, Y(top[0]));
     for (let x = 0; x < Wd; x += 2) ctx.lineTo(X(x), Y(top[x]));
-    ctx.lineTo(X(Wd - 1), Y(top[Wd - 1])); ctx.lineTo(w + 10, Y(top[Wd - 1]));
+    ctx.lineTo(X(Wd - 1), Y(top[Wd - 1])); ctx.lineTo(xr, Y(top[Wd - 1]));
   };
-  path(); ctx.lineTo(w + 10, h + 10); ctx.lineTo(-10, h + 10); ctx.closePath();
+  path(); ctx.lineTo(xr, h + 10); ctx.lineTo(xl, h + 10); ctx.closePath();
   const mat = ctx.createLinearGradient(0, Y(60), 0, h);
   mat.addColorStop(0, 'rgba(36,36,42,.98)'); mat.addColorStop(1, 'rgba(10,10,13,.99)');
   ctx.fillStyle = mat; ctx.fill();
@@ -22102,7 +22270,7 @@ function ftDraw() {
   ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1;
   for (let yy = 60; yy < E.H + 40; yy += 13) { ctx.beginPath(); ctx.moveTo(0, Y(yy)); ctx.lineTo(w, Y(yy)); ctx.stroke(); }
   ctx.restore();
-  ctx.save(); path(); ctx.lineTo(w + 10, h + 10); ctx.lineTo(-10, h + 10); ctx.closePath(); ctx.clip(); path(); ctx.lineWidth = 18 * sc; ctx.lineJoin = 'round'; ctx.strokeStyle = hexA(mcol, .2); ctx.stroke(); path(); ctx.lineWidth = 6 * sc; ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.stroke(); ctx.restore();
+  ctx.save(); path(); ctx.lineTo(xr, h + 10); ctx.lineTo(xl, h + 10); ctx.closePath(); ctx.clip(); path(); ctx.lineWidth = 18 * sc; ctx.lineJoin = 'round'; ctx.strokeStyle = hexA(mcol, .2); ctx.stroke(); path(); ctx.lineWidth = 6 * sc; ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.stroke(); ctx.restore();
   path(); ctx.lineWidth = Math.max(3, 5 * sc); ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.stroke();
   path(); ctx.lineWidth = Math.max(1.6, 2.5 * sc); ctx.strokeStyle = mcol; ctx.stroke();
   ftDrawAmb(ctx, w, h, floorY, mcol, st);
@@ -22158,16 +22326,16 @@ function ftDraw() {
       const kind = f.s.kind || 'glove', pa = f.s.path;
       const idx = Math.min(pa.length - 1, Math.floor(f.t / E.DT));
       const pos = pa[idx], col = FT_TRAIL[kind] || '255,255,255';
-      const trT = ftTier('trail', seq.trail), nT = trT >= 3 ? 26 : trT === 2 ? 18 : 12;
+      const trT = ftTier('trail', seq.trail), nT = trT >= 3 ? 26 : trT === 2 ? 18 : 12, df = f.def || FT_CAST0, big = df.big || 1;
       for (let k = 1; k <= nT; k++) {
         const q = pa[Math.max(0, idx - k * 2)], tc = ftTrailRGB(seq.trail, k, t) || col, fade = k / nT;
         ctx.fillStyle = `rgba(${tc},${(.65 - fade * .6) * (trT >= 3 ? 1.15 : 1)})`;
-        ctx.beginPath(); ctx.arc(X(q[0]), Y(q[1]), Math.max(1.5, ((trT >= 3 ? 6.2 : 4.4) * (1 - fade * .8)) * sc), 0, 7); ctx.fill();
+        ctx.beginPath(); ctx.arc(X(q[0]), Y(q[1]), Math.max(1.5, ((trT >= 3 ? 6.2 : 4.4) * (1 + (big - 1) * .6) * (1 - fade * .8)) * sc), 0, 7); ctx.fill();
       }
       const px = X(pos[0]), py = Y(pos[1]);
-      const gl = ctx.createRadialGradient(px, py, 0, px, py, 22 * sc + 6);
-      gl.addColorStop(0, hot ? 'rgba(255,200,80,.55)' : 'rgba(255,255,255,.28)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(px, py, 22 * sc + 6, 0, 7); ctx.fill();
+      const gR = (22 * sc + 6) * big, gl = ctx.createRadialGradient(px, py, 0, px, py, gR);
+      gl.addColorStop(0, df.halo ? `rgba(${df.halo},.62)` : hot ? 'rgba(255,200,80,.55)' : 'rgba(255,255,255,.28)'); gl.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(px, py, gR, 0, 7); ctx.fill();
       if (py < FT.hudH + 4) {                       // 화면 위로 벗어났을 때 위치 표시
         ctx.fillStyle = '#ffd24a'; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
         const ix = ftClamp(px, 14, w - 14), iy = FT.hudH + 8;
@@ -22177,11 +22345,27 @@ function ftDraw() {
       ctx.save(); ctx.translate(px, py);
       if (kind === 'staff') { const pr = pa[Math.max(0, idx - 1)]; ctx.rotate(Math.atan2(pos[1] - pr[1], pos[0] - pr[0])); }
       else ctx.rotate(f.t * (FT_SPIN[kind] || 8));
-      ftProj(ctx, kind, Math.max(1, sc * 1.25)); ctx.restore();
+      ftProj(ctx, kind, Math.max(1, sc * 1.25) * big); ctx.restore();
+      if (df.bolt) ftZap(ctx, px, py, 18 * big * sc);
     });
   }
+  if (FT.atk && !FT.atk.fired && FT.st) {                 // 기 모으기: 총구에 에너지 구슬이 커진다
+    const A = FT.atk, m = ftMuzzle(A.i), k = ftClamp(A.t / Math.max(.01, A.wind), 0, 1), R = (8 + 24 * k) * A.def.big * sc, c0 = A.def.col[0], c1 = A.def.col[A.def.col.length - 1];
+    const og = ctx.createRadialGradient(X(m.x), Y(m.y), 0, X(m.x), Y(m.y), R * 1.6);
+    og.addColorStop(0, 'rgba(255,255,255,.95)'); og.addColorStop(.35, `rgba(${c0},.8)`); og.addColorStop(1, `rgba(${c1},0)`);
+    ctx.fillStyle = og; ctx.beginPath(); ctx.arc(X(m.x), Y(m.y), R * 1.6, 0, 7); ctx.fill();
+  }
+  if (FT.bolts) FT.bolts.forEach(b => {                     // 낙뢰: 하늘에서 내리꽂는 번개
+    const k = b.t / .42, seed = Math.floor(b.t * 40), pts = [];
+    for (let i = 0; i <= 9; i++) { const u = i / 9, jx = (i === 0 || i === 9) ? 0 : Math.sin(seed * 12.9 + i * 78.2) * 22; pts.push([X(b.x + jx), Y(b.y0 + (b.y1 - b.y0) * u)]); }
+    ctx.save(); ctx.globalAlpha = 1 - k; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]));
+    ctx.strokeStyle = 'rgba(120,200,255,.85)'; ctx.lineWidth = 9 * sc + 3; ctx.stroke(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 3 * sc + 1; ctx.stroke(); ctx.restore();
+  });
   // 폭발
   FT.booms.forEach(b => {
+    if (b.t < 0) return;
+    if (b.kind === 'ring') { const k = b.t / .5; ctx.strokeStyle = `rgba(${b.col},${.85 * (1 - k)})`; ctx.lineWidth = Math.max(1.5, 5 * (1 - k) * sc + 1); ctx.beginPath(); ctx.arc(X(b.x), Y(b.y), b.r * sc * (.4 + k * 2.4), 0, 7); ctx.stroke(); return; }
     if (b.kind === 'flash') { const k = b.t / .25; ctx.fillStyle = `rgba(255,240,180,${.8 * (1 - k)})`; ctx.beginPath(); ctx.arc(X(b.x), Y(b.y), b.r * sc * (1 + k), 0, 7); ctx.fill(); return; }
     const k = b.t / .5, r = b.r * sc * (.35 + k * .9), cols = (FT_BLAST[b.blast] ? FT_BLAST[b.blast].cols : null) || FT_BOOM_COL[b.kind] || FT_BOOM_COL.glove;
     const c0 = cols[0].length === 7 ? cols[0] : '#ffd76e', c2 = (cols[cols.length - 1] || '#e0332a').length === 7 ? cols[cols.length - 1] : '#e0332a';
@@ -22225,8 +22409,43 @@ function ftDraw() {
   if (FT.hurt > 0) { const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .3, w / 2, h / 2, Math.max(w, h) * .7); g.addColorStop(0, 'rgba(255,0,0,0)'); g.addColorStop(1, `rgba(255,20,20,${.5 * FT.hurt})`); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); }
   if (FT.st) ftDrawWind(ctx, w, FT.st);
   if (FT.st) ftDrawTimer(ctx, w);
+  if (FT.st) ftDrawMini(ctx, w, h, FT.st);
   if (FT.cutin) ftDrawCutin(ctx, w, h);
   if (FT.ko) ftDrawKO(ctx, w, h);
+}
+
+/* 미니맵: 맵 전체 모양 + 두 선수 위치 + 지금 보이는 구간. 누르거나 드래그하면 카메라가 그쪽으로 간다 */
+function ftDrawMini(ctx, w, h, st) {
+  const E = FortEngine, Wd = st.W, mw = Math.round(Math.min(w * .46, 210)), mh = 30, mx = Math.round((w - mw) / 2), my = FT.hudH + 8;
+  FT.miniRect = { x: mx, y: my, w: mw, h: mh };
+  const pc = i => FT.mode === 'pvp' && i === 1 ? '#4de3ff' : i === 0 ? '#ffd24a' : '#ff5a4a';
+  ctx.save();
+  ctx.fillStyle = 'rgba(8,10,16,.72)'; ftRR(ctx, mx - 3, my - 3, mw + 6, mh + 6, 8); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth = 1; ctx.stroke();
+  const y0 = 80, y1 = E.H - 20, sy = v => ftClamp(my + (v - y0) / (y1 - y0) * mh, my, my + mh);
+  ctx.beginPath(); ctx.moveTo(mx, my + mh);
+  for (let px = 0; px <= mw; px += 2) ctx.lineTo(mx + px, sy(st.top[Math.min(Wd - 1, Math.floor(px / mw * Wd))]));
+  ctx.lineTo(mx + mw, my + mh); ctx.closePath(); ctx.fillStyle = 'rgba(170,178,198,.55)'; ctx.fill();
+  st.crates.forEach(cr => { ctx.fillStyle = '#f2c94c'; ctx.fillRect(mx + cr.x / Wd * mw - 2, sy(cr.y) - 5, 4, 4); });
+  const half = w / (2 * FT.sc), vx0 = Math.max(mx, mx + (FT.cam.x - half) / Wd * mw), vx1 = Math.min(mx + mw, mx + (FT.cam.x + half) / Wd * mw);
+  ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1.5; ctx.strokeRect(vx0, my + 1, Math.max(2, vx1 - vx0), mh - 2);
+  st.p.forEach((p, i) => {
+    if (p.dead) return;
+    const v = FT.vis[i] || p, x = mx + v.x / Wd * mw, y = ftClamp(sy(v.y) - 3, my + 3, my + mh - 3);
+    ctx.fillStyle = pc(i); ctx.beginPath(); ctx.arc(x, y, 3.8, 0, 7); ctx.fill(); ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.stroke();
+  });
+  ctx.restore();
+  // 화면 밖에 있는 선수 표시: 가장자리에 이름과 거리
+  const dist = Math.round(Math.abs(st.p[0].x - st.p[1].x) / 10);
+  ctx.font = `800 11px Jua, Pretendard, sans-serif`; ctx.textBaseline = 'middle';
+  st.p.forEach((p, i) => {
+    if (p.dead || FT.ko) return;
+    const v = FT.vis[i] || p, sx = FT.ox + v.x * FT.sc; if (sx > 12 && sx < w - 12) return;
+    const left = sx <= 12, nm = (E.CHARS[p.id].name.slice(0, 5)) + ' ' + dist + 'm', tw = ctx.measureText(nm).width + 22, ex = left ? 6 : w - 6 - tw, ey = ftClamp(FT.oy + (v.y - 50) * FT.sc, FT.hudH + 64, FT.bottom - 34);
+    ctx.fillStyle = 'rgba(8,10,16,.8)'; ftRR(ctx, ex, ey - 11, tw, 22, 11); ctx.fill(); ctx.strokeStyle = pc(i); ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = pc(i); ctx.beginPath(); if (left) { ctx.moveTo(ex + 5, ey); ctx.lineTo(ex + 12, ey - 5); ctx.lineTo(ex + 12, ey + 5); } else { ctx.moveTo(ex + tw - 5, ey); ctx.lineTo(ex + tw - 12, ey - 5); ctx.lineTo(ex + tw - 12, ey + 5); } ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.fillText(nm, ex + (left ? 16 : 6), ey + .5);
+  });
 }
 
 function ftDrawAmb(ctx, w, h, floorY, mcol, st) {
@@ -22383,7 +22602,14 @@ function ftDrawChar(ctx, i, active, X, Y, sc, st) {
     gr.addColorStop(0, 'rgba(255,200,60,.5)'); gr.addColorStop(1, 'rgba(255,90,30,0)'); ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(sx, sy - 30 * sc * z, r * 1.3, 0, 7); ctx.fill();
   }
   if (ko) { ctx.save(); ctx.translate(sx, sy); ctx.rotate(ko.rot * ko.dir); ctx.translate(-sx, -sy); }
-  ftDrawBody(ctx, p.id, eq, sx, sy, hH, 0, { t: FT.t, active, bob, shk, hit: v.hit, flip: true });
+  const A = FT.atk && FT.atk.i === i && FT.st ? FT.atk : null; let ax = 0, sqx = 1, sqy = 1;
+  if (A) {
+    if (!A.fired) { const k = ftClamp(A.t / Math.max(.01, A.wind), 0, 1); ax = -p.face * A.def.lunge * .6 * k * sc; sqy = 1 - .09 * k; sqx = 1 + .06 * k; }
+    else { const u = ftClamp((A.t - A.wind) / .28, 0, 1), d = (1 - u) * (1 - u); ax = p.face * A.def.lunge * 1.3 * d * sc; sqy = 1 + .07 * d; sqx = 1 - .05 * d; }
+    ctx.save(); ctx.translate(sx + ax, sy); ctx.scale(sqx, sqy); ctx.translate(-(sx + ax), -sy);
+  }
+  ftDrawBody(ctx, p.id, eq, sx + ax, sy, hH, 0, { t: FT.t, active, bob, shk, hit: v.hit, flip: true });
+  if (A) ctx.restore();
   if (ko) ctx.restore();
   if (!FT.st || ko) return;
   const bw = 60 * sc * (z > 1 ? 1.1 : 1) + 8, bh = Math.max(6, 7 * sc), bx = sx - bw / 2, by = sy - hH * z - 14 * sc;
