@@ -12335,7 +12335,6 @@
 .ga-fort #ftNext, .ga-fort .ft-go { font-size: 21px; padding: 8px 24px; }
 .ft-faces { display: flex; align-items: flex-end; justify-content: center; gap: 4px; height: 96px; margin-bottom: 2px; }
 .ft-faces img { height: 92px; width: auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,.7)); }
-.ft-faces img:nth-child(2) { height: 84px; }
 .ft-btn2 {
   font-family: 'Jua','Pretendard Variable',Pretendard,sans-serif; font-size: 15px; font-weight: 800; cursor: pointer;
   background: transparent; color: #f2c94c; border: 2px solid #f2c94c; border-radius: 99px; padding: 9px 20px;
@@ -12434,7 +12433,7 @@
 
 /* 게임 메뉴 카드 */
 .gcard-fort .gc-ico { background: linear-gradient(135deg, #2a2a33, #0b0b10); }
-body[data-route="game"] .gcard-fort .gc-ico { background: #17171d !important; }
+body[data-route="game"] .gcard-fort .gc-ico { background: #4e5060 !important; }
 body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82%; height: 92%; }
 
 /* 칭호 / 꾸미기 버튼 */
@@ -12492,8 +12491,7 @@ body[data-route="game"] .gcard-fort .gc-ico img { object-fit: contain; width: 82
   .ft-fire { padding: 7px 14px !important; min-width: 118px; font-size: 16px !important; }
   .ga-fort .ft-sb { display: none; }
   .ga-fort #gTitle { gap: 4px; }
-  .ft-faces { height: 56px; } .ft-faces img { height: 54px; } .ft-faces img:nth-child(2) { height: 50px; }
-  .ga-fort #gTitle .gt-name { font-size: 28px; }
+  .ft-faces { height: 56px; } .ft-faces img { height: 54px; }   .ga-fort #gTitle .gt-name { font-size: 28px; }
   .ga-fort #gTitle .gt-desc { font-size: 12px; line-height: 1.4; }
   .ga-fort .g-start { font-size: 20px; padding: 7px 24px; }
   .ft-grid { grid-template-columns: repeat(6, 1fr); }
@@ -12655,7 +12653,6 @@ h1.page.gm-h1 .gm-listbtn { margin-left: auto; }
 
 .ga-fort .ghud #gHearts:empty, .ga-fort .ghud #gScore:empty { display: none; }
 .ft-toast { background: rgba(10,10,16,.88); border: 2px solid #f2c94c; border-radius: 14px; padding: 10px 18px; line-height: 1.5; }
-.ft-card[data-id="sirasony"] img { transform: scale(.88); transform-origin: 50% 100%; }
 
 /* PvP 대기실 / 결과 순위 */
 #ftLobby { position: absolute; inset: 0; z-index: 9; box-sizing: border-box; overflow: hidden; padding: 10px 12px 12px; background: linear-gradient(180deg, rgba(8,8,12,.9), rgba(8,8,12,.97)); color: #fff; text-align: center; display: flex; flex-direction: column; gap: 8px; font-family: 'Jua','Pretendard Variable',Pretendard,sans-serif; }
@@ -12697,6 +12694,23 @@ h1.page.gm-h1 .gm-listbtn { margin-left: auto; }
 .ft-pvprow { gap: 6px; }
 .ga-fort .ft-pvprow .g-start.ft-mbtn { flex: 1 1 0; min-width: 0; padding-left: 4px; padding-right: 4px; font-size: 15px; }
 
+.ft-card img { object-fit: contain; object-position: 50% 100%; }
+.fd-h { justify-content: flex-start; }
+.fd-h b { flex: 1 1 auto; }
+.fd-h .ft-back { width: 34px; height: 34px; flex: 0 0 34px; }
+.ft-rkh { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.ft-rkinfo { width: 28px; height: 28px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.ft-rkdesc { font-size: 11.5px; color: var(--muted); line-height: 1.6; margin-bottom: 8px; background: rgba(127,127,127,.1); border-radius: 8px; padding: 7px 10px; }
+
+.ft-flbot { font-size: 12px !important; opacity: .85; border-style: dashed !important; }
+
+.ga-fort.ft-hudless .g-mute, .ga-fort.ft-hudless .g-full { top: 8px; }
+.ft-dressrow { margin: 0 0 2px; }
+body[data-route="game"] .gc-new { background: var(--amber) !important; color: #3d2a00 !important; font-weight: 800; border-radius: 999px; padding: 2px 7px; letter-spacing: .03em; }
+
+#ftLobby .fl-promo { border: 0; border-radius: 999px; padding: 7px 11px; background: rgba(255,255,255,.14); color: #fff; font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap; }
+#ftLobby .fl-promo:active { background: rgba(255,255,255,.26); }
+
   </style>
 </head>
 
@@ -12713,7 +12727,7 @@ h1.page.gm-h1 .gm-listbtn { margin-left: auto; }
         <a href="#/meetup" data-nav="meetup">쉐어<span class="nav-new">NEW</span></a>
         <a href="#/jokbo" data-nav="fighters">선수</a>
         <a href="#/ranking" data-nav="ranking">격잘알</a>
-        <a href="#/game" data-nav="game">게임</a>
+        <a href="#/game" data-nav="game">게임<span class="nav-new">NEW</span></a>
       </nav>
     </div>
     <div class="visitor-bar" id="visitorBar">
@@ -20180,20 +20194,20 @@ h1.page.gm-h1 .gm-listbtn { margin-left: auto; }
     <span class="gc-go">PLAY</span>
   </a>`;
       if (navStale(__g)) return; $app.innerHTML = `
-  <span id="gQuizCardWrap" style="display:none">${card('#/game/quiz', 'idle', '블랙 퀴즈', '오늘의 블붕이 시험!', 'gTopQuiz', 'quiz')}</span>
-  ${card('#/game/run', 'run', '블랙 러닝', '점프·더블점프로 장애물을 뚫고 달려라!', 'gTopRun', 'run')}
-  ${card('#/game/punch', 'punch', '블랙 펀칭', '타이밍에 딱 맞춰 최강 펀치 10방!', 'gTopPunch', 'punch')}
-  ${card('#/game/grow', 'jump', '블랙 점핑', '발판을 통통 밟고 하늘 끝까지!', 'gTopGrow', 'grow')}
   <a class="gcard gcard-fort" href="#/game/fort">
     <span class="gc-new">NEW</span>
     <div class="gc-ico"><img src="${ftArtSrc('tusin')}" alt=""></div>
     <div class="gc-b">
       <b>블랙 케이지</b>
-      <span>선수마다 다른 무기를 던져라! 타이밍 게이지로 KO 노리는 케이지 포격전</span>
+      <span>WHO IS THE KING?!</span>
       <span class="gc-top" id="gTopFort">불러오는 중…</span>
     </div>
     <span class="gc-go">PLAY</span>
   </a>
+  <span id="gQuizCardWrap" style="display:none">${card('#/game/quiz', 'idle', '블랙 퀴즈', '오늘의 블붕이 시험!', 'gTopQuiz', 'quiz')}</span>
+  ${card('#/game/run', 'run', '블랙 러닝', '점프·더블점프로 장애물을 뚫고 달려라!', 'gTopRun', 'run')}
+  ${card('#/game/punch', 'punch', '블랙 펀칭', '타이밍에 딱 맞춰 최강 펀치 10방!', 'gTopPunch', 'punch')}
+  ${card('#/game/grow', 'jump', '블랙 점핑', '발판을 통통 밟고 하늘 끝까지!', 'gTopGrow', 'grow')}
   <a class="gcard gcard-battle" href="#/game/battle">
     <div class="gc-ico">${bbCycleHtml('icon')}</div>
     <div class="gc-b">
@@ -20909,7 +20923,7 @@ const FT_GEAR = {
     { id: 'bubble', n: '비눗방울 오라', ico: '🫧', c: { w: 6 } }, { id: 'music', n: '리듬 오라', ico: '🎵', c: { s: 4 } },
     { id: 'plasma', n: '플라즈마 오라', ico: '🔮', c: { w: 25 } }, { id: 'money', n: '돈다발 오라', ico: '💵', c: { w: 35 } },
     { id: 'galaxy', n: '은하 오라', ico: '🌌', c: { s: 10 } }, { id: 'sun', n: '태양 오라', ico: '☀️', c: { w: 50 } },
-    { id: 'rk_crown', n: '왕관의 후광', ico: '👑', c: { rk: 1 } }],
+    { id: 'rk_crown', n: '갓파더 후광', ico: '👑', c: { rk: 1 } }],
   glow: [
     { id: 'wht', n: '화이트 윤곽', ico: '@dot:#ffffff', c: { w: 1 } }, { id: 'red', n: '레드 윤곽', ico: '@dot:#ff3b3b', c: { w: 3 } },
     { id: 'cyan', n: '시안 윤곽', ico: '@dot:#4de3ff', c: { s: 2 } }, { id: 'gold', n: '골드 윤곽', ico: '@dot:#ffd24a', c: { w: 10 } },
@@ -20918,7 +20932,7 @@ const FT_GEAR = {
     { id: 'purple', n: '퍼플 윤곽', ico: '@dot:#b58cff', c: { w: 6 } }, { id: 'orange', n: '오렌지 윤곽', ico: '@dot:#ff9a3a', c: { w: 8 } },
     { id: 'blue', n: '블루 윤곽', ico: '@dot:#4d7bff', c: { w: 12 } }, { id: 'mint', n: '민트 윤곽', ico: '@dot:#6ff0c0', c: { s: 4 } },
     { id: 'sunset', n: '선셋 윤곽', ico: '🌇', c: { w: 20 } }, { id: 'pulse', n: '네온 펄스 윤곽', ico: '💠', c: { s: 8 } },
-    { id: 'rk_holo', n: '홀로그램 윤곽', ico: '🪩', c: { rk: 10 } }],
+    { id: 'rk_holo', n: '갓파더 윤곽', ico: '🪩', c: { rk: 10 } }],
   shine: [
     { id: 'sweep', n: '반짝 광택', ico: '💫', c: { w: 2 } }, { id: 'goldp', n: '황금 도금', ico: '🥇', c: { s: 4 } },
     { id: 'chrome', n: '크롬 도금', ico: '🪞', c: { w: 20 } }, { id: 'neon', n: '네온 광택', ico: '💜', c: { pw: 1 } },
@@ -20926,7 +20940,7 @@ const FT_GEAR = {
     { id: 'emerald', n: '에메랄드 광택', ico: '💚', c: { s: 5 } }, { id: 'ruby', n: '루비 광택', ico: '❤️', c: { w: 16 } },
     { id: 'sapphire', n: '사파이어 광택', ico: '💙', c: { w: 22 } }, { id: 'obsid', n: '흑요석 광택', ico: '🖤', c: { w: 28 } },
     { id: 'holo', n: '홀로그램 광택', ico: '🌈', c: { w: 35 } }, { id: 'lava', n: '용암 광택', ico: '🌋', c: { w: 45 } },
-    { id: 'rk_diamond', n: '다이아몬드 광택', ico: '💎', c: { rk: 10 } }],
+    { id: 'rk_diamond', n: '갓파더 광택', ico: '💎', c: { rk: 10 } }],
   ring: [
     { id: 'r_gold', n: '골드 링', ico: '@ring:#ffd24a', c: { w: 1 } }, { id: 'r_red', n: '레드 링', ico: '@ring:#ff4638', c: { w: 4 } },
     { id: 'r_blue', n: '블루 링', ico: '@ring:#4dc8ff', c: { s: 2 } }, { id: 'r_star', n: '스타 링', ico: '⭐', c: { pw: 2 } },
@@ -20935,7 +20949,7 @@ const FT_GEAR = {
     { id: 'r_purple', n: '퍼플 링', ico: '@ring:#b58cff', c: { w: 7 } }, { id: 'r_dash', n: '대시 링', ico: '⭕', c: { w: 5 } },
     { id: 'r_double', n: '더블 링', ico: '🎯', c: { w: 11 } }, { id: 'r_ice', n: '서리 링', ico: '🧊', c: { s: 5 } },
     { id: 'r_heart', n: '하트 링', ico: '💗', c: { w: 14 } }, { id: 'r_fire', n: '불꽃 링', ico: '🔥', c: { w: 18 } },
-    { id: 'rk_throne', n: '왕좌의 링', ico: '🏯', c: { rk: 1 } }],
+    { id: 'rk_throne', n: '갓파더 링', ico: '🏯', c: { rk: 1 } }],
   trail: [
     { id: 't_spark', n: '불꽃 궤적', ico: '🧨', c: { w: 1 } }, { id: 't_bolt', n: '번개 궤적', ico: '🌩️', c: { s: 2 } },
     { id: 't_gold', n: '황금 궤적', ico: '🪙', c: { w: 6 } }, { id: 't_neon', n: '네온 궤적', ico: '🎆', c: { w: 12 } },
@@ -20944,7 +20958,7 @@ const FT_GEAR = {
     { id: 't_ice', n: '서리 궤적', ico: '🧊', c: { w: 7 } }, { id: 't_sun', n: '선셋 궤적', ico: '🌇', c: { w: 10 } },
     { id: 't_crim', n: '진홍 궤적', ico: '🍒', c: { w: 16 } }, { id: 't_toxic', n: '맹독 궤적', ico: '☣️', c: { w: 22 } },
     { id: 't_galaxy', n: '은하 궤적', ico: '🌌', c: { s: 9 } }, { id: 't_mono', n: '흑백 궤적', ico: '🎞️', c: { w: 30 } },
-    { id: 'rk_comet', n: '혜성 궤적', ico: '☄️', c: { rk: 3 } }],
+    { id: 'rk_comet', n: '갓파더 궤적', ico: '☄️', c: { rk: 3 } }],
   blast: [
     { id: 'b_conf', n: '컨페티 폭발', ico: '🎉', c: { w: 2 } }, { id: 'b_star', n: '별빛 폭발', ico: '🌟', c: { s: 3 } },
     { id: 'b_flame', n: '화염 폭발', ico: '🔥', c: { w: 8 } }, { id: 'b_bolt', n: '번개 폭발', ico: '⚡', c: { w: 14 } },
@@ -20953,7 +20967,7 @@ const FT_GEAR = {
     { id: 'b_snow', n: '눈꽃 폭발', ico: '❄️', c: { s: 4 } }, { id: 'b_pixel', n: '픽셀 폭발', ico: '👾', c: { s: 7 } },
     { id: 'b_money', n: '지폐 폭발', ico: '💸', c: { w: 18 } }, { id: 'b_rain', n: '무지개 폭발', ico: '🌈', c: { w: 24 } },
     { id: 'b_ghost', n: '유령 폭발', ico: '👻', c: { w: 32 } }, { id: 'b_fw', n: '불꽃놀이 폭발', ico: '🎇', c: { w: 40 } },
-    { id: 'rk_nova', n: '초신성 폭발', ico: '💫', c: { rk: 10 } }],
+    { id: 'rk_nova', n: '갓파더 폭발', ico: '💫', c: { rk: 10 } }],
   cast: [
     { id: 'c_burst', n: '기합 폭발', ico: '💥', c: { w: 2 } }, { id: 'c_wave', n: '충격파 발사', ico: '🌀', c: { s: 2 } },
     { id: 'c_flame', n: '불꽃 폭주', ico: '🔥', c: { w: 12 } }, { id: 'c_bolt', n: '낙뢰 일격', ico: '⚡', c: { w: 25 } },
@@ -20962,7 +20976,7 @@ const FT_GEAR = {
     { id: 'c_heart', n: '사랑의 한 방', ico: '💘', c: { w: 10 } }, { id: 'c_fw', n: '불꽃놀이 일격', ico: '🎇', c: { w: 16 } },
     { id: 'c_shadow', n: '암흑 질주', ico: '🌑', c: { w: 28 } }, { id: 'c_sun', n: '태양 강림', ico: '☀️', c: { w: 38 } },
     { id: 'c_dragon', n: '용의 포효', ico: '🐉', c: { s: 12 } },
-    { id: 'rk_meteor', n: '혜성 강림', ico: '☄️', c: { rk: 3 } }],
+    { id: 'rk_meteor', n: '갓파더 강림', ico: '☄️', c: { rk: 3 } }],
   badge: [
     { id: 'g_rookie', n: '블린이', ico: '@glove', c: { w: 1 } }, { id: 'g_star', n: '샌드백 단골', ico: '⭐', c: { w: 3 } },
     { id: 'g_fire', n: '불빠따', ico: '🔥', c: { w: 8 } }, { id: 'g_skull', n: '턱 사냥꾼', ico: '💀', c: { w: 20 } },
@@ -21072,7 +21086,7 @@ const FT_CAST = {
   c_shadow: { wind: .36, lunge: 14, big: 1.9, shake: 12, flash: .3, rings: 3, col: ['170,90,255', '60,20,110', '255,255,255'], halo: '150,70,255', text: '그림자!', tcol: '#caa6ff', pt: 'zap' },
   c_sun: { wind: .4, lunge: 10, big: 2.05, shake: 14, flash: .6, rings: 4, col: ['255,230,120', '255,150,50', '255,255,255'], halo: '255,200,80', pillar: 1, text: '태양!', tcol: '#ffe08a', pt: 'fire' },
   c_dragon: { wind: .42, lunge: 11, big: 2.0, shake: 15, flash: .45, rings: 4, col: ['120,255,170', '255,230,110', '255,255,255'], halo: '110,240,150', pillar: 1, bolt: 1, text: '승천!', tcol: '#8dff9a', pt: 'fire' },
-  rk_meteor: { wind: .42, lunge: 12, big: 2.2, shake: 16, flash: .6, rings: 4, col: ['170,225,255', '120,150,255', '255,255,255'], halo: '150,200,255', comet: 1, text: '혜성!', tcol: '#bfe4ff', pt: 'comet' },
+  rk_meteor: { wind: .46, lunge: 13, big: 2.4, shake: 20, flash: .75, rings: 5, col: ['255,60,40', '255,150,60', '255,255,255'], halo: '255,50,30', comet: 1, pt: 'comet' },
 };
 function ftCastDef(id) { return (id && FT_CAST[id]) || FT_CAST0; }
 
@@ -21169,10 +21183,32 @@ function ftDrawCrownAura(ctx, cx, foot, k, t) {
   ctx.strokeStyle = 'rgba(190,160,255,.5)'; ctx.lineWidth = Math.max(1, k * .02); ctx.beginPath(); ctx.ellipse(cx, hy - k * .1, k * .33, k * .1, 0, 0, 7); ctx.stroke();
   for (let i = 0; i < 6; i++) { const ph = (t * .3 + i / 6) % 1, x = cx + Math.sin(i * 2.7) * k * .4, y = foot - ph * k * 1.4; ctx.globalAlpha = Math.sin(ph * Math.PI) * .8; ftAuraShape(ctx, 'star', x, y, k * .028, 0, '#ffffff'); }
   ctx.globalAlpha = 1; ctx.restore();
-  const cy = foot - k * 1.0 + Math.sin(t * 3) * k * .02, w = k * .22;      // 머리 위 왕관
-  ctx.fillStyle = '#ffd24a'; ctx.strokeStyle = '#8a5a05'; ctx.lineWidth = Math.max(1, k * .02);
-  ctx.beginPath(); ctx.moveTo(cx - w, cy); ctx.lineTo(cx - w * 1.05, cy - w * .8); ctx.lineTo(cx - w * .5, cy - w * .35); ctx.lineTo(cx, cy - w * 1.0); ctx.lineTo(cx + w * .5, cy - w * .35); ctx.lineTo(cx + w * 1.05, cy - w * .8); ctx.lineTo(cx + w, cy); ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#ff4d6d'; ctx.beginPath(); ctx.arc(cx, cy - w * .35, w * .13, 0, 7); ctx.fill();
+  ftDrawCrown(ctx, cx, foot - k * 1.0 + Math.sin(t * 3) * k * .02, k * .24, t);
+}
+/* 왕관: 금속 그라데이션 + 다섯 뾰족 끝의 진주 + 보석 띠 + 반짝임 */
+function ftDrawCrown(ctx, cx, by, w, t) {
+  ctx.save(); ctx.translate(cx, by); ctx.lineJoin = 'round';
+  const H = w * 1.15, bh = w * .42;                   // 전체 높이 / 띠 높이
+  const gold = ctx.createLinearGradient(0, -H, 0, 0); gold.addColorStop(0, '#fff3b0'); gold.addColorStop(.35, '#ffd24a'); gold.addColorStop(.75, '#e0a21a'); gold.addColorStop(1, '#a86d08');
+  const pts = [[-w, 0], [-w * 1.0, -H * .82], [-w * .55, -H * .42], [-w * .28, -H * 1.0], [0, -H * .5], [w * .28, -H * 1.0], [w * .55, -H * .42], [w * 1.0, -H * .82], [w, 0]];
+  ctx.fillStyle = gold; ctx.strokeStyle = '#7a4a05'; ctx.lineWidth = Math.max(1, w * .07);
+  ctx.beginPath(); pts.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.fill(); ctx.stroke();
+  // 안쪽 벨벳(붉은 천)
+  ctx.fillStyle = 'rgba(190,30,60,.85)'; ctx.beginPath(); ctx.moveTo(-w * .55, -H * .42); ctx.lineTo(-w * .28, -H * .98); ctx.lineTo(0, -H * .5); ctx.lineTo(w * .28, -H * .98); ctx.lineTo(w * .55, -H * .42); ctx.lineTo(w * .5, -bh); ctx.lineTo(-w * .5, -bh); ctx.closePath(); ctx.globalAlpha = .55; ctx.fill(); ctx.globalAlpha = 1;
+  // 아래 띠
+  const bg = ctx.createLinearGradient(0, -bh, 0, 0); bg.addColorStop(0, '#ffe58a'); bg.addColorStop(.5, '#e8ac22'); bg.addColorStop(1, '#8f5a06');
+  ctx.fillStyle = bg; ctx.beginPath(); ctx.rect(-w * 1.04, -bh, w * 2.08, bh); ctx.fill(); ctx.stroke();
+  // 끝 진주
+  [[-w, -H * .82], [-w * .28, -H * 1.0], [w * .28, -H * 1.0], [w, -H * .82]].forEach(q => { const r = w * .1; const pg = ctx.createRadialGradient(q[0] - r * .3, q[1] - r * .3, 0, q[0], q[1], r); pg.addColorStop(0, '#fff'); pg.addColorStop(1, '#cfe3ff'); ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(q[0], q[1] - r * .4, r, 0, 7); ctx.fill(); ctx.stroke(); });
+  { const r = w * .11, q = [0, -H * .5]; const pg = ctx.createRadialGradient(q[0] - r * .3, q[1] - r * .3, 0, q[0], q[1], r); pg.addColorStop(0, '#fff'); pg.addColorStop(1, '#cfe3ff'); ctx.fillStyle = pg; ctx.beginPath(); ctx.arc(q[0], q[1] - r * .5, r, 0, 7); ctx.fill(); ctx.stroke(); }
+  // 띠의 보석: 가운데 큰 루비 + 양옆 사파이어/에메랄드
+  const gem = (x, y, r, c0, c1) => { const g = ctx.createRadialGradient(x - r * .3, y - r * .3, 0, x, y, r); g.addColorStop(0, c0); g.addColorStop(1, c1); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r * .85, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r * .85, y); ctx.closePath(); ctx.fill(); ctx.stroke(); };
+  gem(0, -bh * .5, bh * .42, '#ffb3c4', '#d1123c'); gem(-w * .55, -bh * .5, bh * .28, '#bfe0ff', '#1f5fd0'); gem(w * .55, -bh * .5, bh * .28, '#c4ffd8', '#14a85a');
+  // 반짝이는 별빛
+  const sp = (Math.sin(t * 4) + 1) / 2; ctx.globalAlpha = .4 + .6 * sp; ctx.fillStyle = '#fff';
+  const sx = w * .62, sy = -H * .75, sr = w * (.1 + .08 * sp);
+  ctx.beginPath(); ctx.moveTo(sx, sy - sr * 2); ctx.lineTo(sx + sr * .4, sy - sr * .4); ctx.lineTo(sx + sr * 2, sy); ctx.lineTo(sx + sr * .4, sy + sr * .4); ctx.lineTo(sx, sy + sr * 2); ctx.lineTo(sx - sr * .4, sy + sr * .4); ctx.lineTo(sx - sr * 2, sy); ctx.lineTo(sx - sr * .4, sy - sr * .4); ctx.closePath(); ctx.fill();
+  ctx.restore();
 }
 function ftDrawAura(ctx, kind, cx, foot, k, t, tier) {
   if (!kind) return;
@@ -21383,7 +21419,7 @@ function ftOpenDress() {
   FT.dNew = {}; FortEngine.ORDER.forEach(id => { ftRealKeys(rec, id).forEach(k => { if (!rec.seen.includes(k)) FT.dNew[k] = 1; }); });
   rec.seen = Array.from(new Set(rec.seen.concat(...FortEngine.ORDER.map(id => ftRealKeys(rec, id))))); ftSave(rec);
   o.style.display = ''; const tt = document.getElementById('gTitle'); if (tt) tt.style.display = 'none';
-  o.innerHTML = `<div class="fd-h"><b>내 파이터 꾸미기</b><span id="fdStat"></span></div>
+  o.innerHTML = `<div class="fd-h"><button class="ft-ibtn ft-back" id="fdHome" type="button" aria-label="처음 화면" title="처음 화면">${FT_HOME_SVG}</button><b>내 파이터 꾸미기</b><span id="fdStat"></span></div>
     <div class="fd-main">
       <div class="fd-prev"><canvas id="ftPrev"></canvas>
         <div class="fd-nav"><button type="button" id="fdPrev">이전</button><b id="fdName"></b><button type="button" id="fdNext">다음</button></div>
@@ -21393,7 +21429,8 @@ function ftOpenDress() {
     <button class="g-start ft-go" id="fdDone" type="button">완료</button>`;
   const cv = document.getElementById('ftPrev'), dpr = Math.min(2, window.devicePixelRatio || 1);
   cv.width = 130 * dpr; cv.height = 150 * dpr;
-  ['fdPrev', 'fdNext', 'fdDone'].forEach(id => { document.getElementById(id).onpointerdown = e => e.stopPropagation(); });
+  document.getElementById('fdHome').onclick = e => { e.stopPropagation(); FT.dress = false; FT.dressFrom = null; o.style.display = 'none'; ftShowTitle(); };
+  ['fdPrev', 'fdNext', 'fdDone', 'fdHome'].forEach(id => { document.getElementById(id).onpointerdown = e => e.stopPropagation(); });
   const ids = FortEngine.ORDER;
   const nav = d => { const i = ids.indexOf(FT.dChar); FT.dChar = ids[(i + d + ids.length) % ids.length]; ftDressInfo(); ftDressGrid(); gmSnd('ding'); };
   document.getElementById('fdPrev').onclick = e => { e.stopPropagation(); nav(-1); };
@@ -21495,13 +21532,14 @@ async function ftSubmitRank(rec) {
     return true;
   } catch (e) { return false; }
 }
+function ftRkHead(h) { setTimeout(() => { const b = document.getElementById('ftRkInfo'), d = document.getElementById('ftRkDesc'); if (b && d && !b.__b) { b.__b = 1; b.onclick = e => { e.stopPropagation(); d.style.display = d.style.display === 'none' ? '' : 'none'; }; } }, 0); return h; }
 async function ftLoadBoard() {
   const el = document.getElementById('ftRankBoard'); if (!el) return;
   const tok = gmToken;
-  const head = `<div style="font-weight:800;margin-bottom:2px">🏆 유저 랭킹</div>
-    <div style="font-size:11.5px;color:var(--muted);line-height:1.6;margin-bottom:8px">랭킹 점수 = 최고 STAGE x 100 + 최고 연승 x 40 + 누적 승리 x 5<br>TOP 1 · TOP 3 · TOP 10 은 랭커 전용 꾸미기가 열려요</div>`;
-  if (typeof sb === 'undefined' || !sb) { el.innerHTML = head + '<div class="empty">랭킹 서버에 연결되지 않았어요.</div>'; return; }
-  el.innerHTML = head + '<div class="empty">불러오는 중…</div>';
+  const head = `<div class="ft-rkh"><b>🏆 유저 랭킹</b><button class="ft-ibtn ft-rkinfo" id="ftRkInfo" type="button" aria-label="설명서" title="설명서"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".6" fill="currentColor"/></svg></button></div>
+    <div class="ft-rkdesc" id="ftRkDesc" style="display:none">랭킹 점수 = 최고 STAGE x 100 + 최고 연승 x 40 + 누적 승리 x 5<br>TOP 1 · TOP 3 · TOP 10 은 랭커 전용 꾸미기가 열려요</div>`;
+  if (typeof sb === 'undefined' || !sb) { el.innerHTML = ftRkHead(head) + '<div class="empty">랭킹 서버에 연결되지 않았어요.</div>'; return; }
+  el.innerHTML = ftRkHead(head) + '<div class="empty">불러오는 중…</div>';
   try {
     const { data, error } = await sb.rpc('fort_get_ranking', { p_limit: 100 });
     if (tok !== gmToken || !document.getElementById('ftRankBoard')) return;
@@ -21510,10 +21548,10 @@ async function ftLoadBoard() {
     const rec = ftLoad(); let my = 0;
     rows.forEach((r, i) => { if (gmMyNick && r.nickname === gmMyNick) my = i + 1; });
     if (rec.rank !== my) { rec.rank = my; rec.rankAt = Date.now(); ftSave(rec); ftRenderRank(); }
-    if (!rows.length) { el.innerHTML = head + '<div class="empty">아직 랭킹이 없어요. 첫 번째 랭커가 되어보세요!</div>'; return; }
+    if (!rows.length) { el.innerHTML = ftRkHead(head) + '<div class="empty">아직 랭킹이 없어요. 첫 번째 랭커가 되어보세요!</div>'; return; }
     const medal = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1) + '위';
     const top = +rows[0].rp || 1;
-    el.innerHTML = head + rows.slice(0, 30).map((r, i) => {
+    el.innerHTML = ftRkHead(head) + rows.slice(0, 30).map((r, i) => {
       const me = gmMyNick && r.nickname === gmMyNick, pct = Math.max(5, Math.round(+r.rp / top * 100));
       return `<div class="grank-row ${i === 0 ? 'top1' : ''}${me ? ' me' : ''}"><span class="gr-medal">${medal(i)}</span>
         <div class="gr-wrap"><div class="gr-nick"><span class="gr-nk">${esc(r.nickname)}</span>${me ? ' <span style="font-size:11px;color:var(--key-deep)">나</span>' : ''}
@@ -21522,7 +21560,7 @@ async function ftLoadBoard() {
         <span style="font-weight:900;color:${i === 0 ? 'var(--key-deep)' : 'var(--text)'}">${(+r.rp).toLocaleString()}<span style="font-size:11px;color:var(--dim)">RP</span></span></div>`;
     }).join('') + (my > 30 ? `<div style="text-align:center;font-size:12.5px;margin-top:8px;color:var(--muted)">내 순위 <b style="color:var(--text)">${my}위</b></div>` : '');
   } catch (e) {
-    if (document.getElementById('ftRankBoard')) el.innerHTML = head + '<div class="empty">랭킹을 불러오지 못했어요.<br>관리자가 fort_ranking.sql 을 실행해야 켜져요.</div>';
+    if (document.getElementById('ftRankBoard')) el.innerHTML = ftRkHead(head) + '<div class="empty">랭킹을 불러오지 못했어요.<br>관리자가 fort_ranking.sql 을 실행해야 켜져요.</div>';
   }
 }
 
@@ -21733,12 +21771,12 @@ function viewGameFort() {
   gmToken++; gmClear(); gmCurGame = 'fort';
   G.mode = 'fortpage'; G.parts = [];
   Object.assign(FT, { active: false, phase: 'title', st: null, flying: [], parts: [], pops: [], booms: [], bubbles: [], aiTween: null, dragging: false, drag: null, g: null, mode: 'ai', stage: 1, streak: 0, sel: [null, null], pick: null, shake: 0, flash: 0, hurt: 0, ko: null, cutin: null, keys: {}, cAnim: {}, drones: [], amb: null, tl: 0, cfg: null, hitstop: 0, lives: 3, cp: 1, nextStage: 1, cam: { x: 300, z: 1, up: 0 }, camFree: false, camOv: false, camTo: null, pan: null, atk: null, bolts: [], dressFrom: null, focus: null });
-  FT.demo = FortEngine.newGame({ a: 'tusin', b: 'kingkong', rng: FortEngine.mulberry32(20261104), map: 'valley' });
+  FT.demo = FortEngine.newGame({ a: 'captainkorea', b: 'kingkong', rng: FortEngine.mulberry32(20261104), map: 'valley' });
   FT.vis = FT.demo.p.map(p => ({ x: p.x, y: p.y, hit: 0 }));
   FT.rec = ftLoad(); FT.hintDone = !!FT.rec.hintAng;
   FT.dress = false; FT.wallFlash = [0, 0]; FT.eqs = [{}, {}];
   if (navStale(__g)) return;
-  const faces = ['tusin', 'kingkong', 'captainkorea'].map(id => `<img src="${ftArtSrc(id)}" alt="">`).join('');
+  const faces = ['tusin', 'sirasony', 'godfather'].map(id => `<img src="${ftArtSrc(id)}" alt="">`).join('');
   $app.innerHTML = `
   <h1 class="page gm-h1">🥊 블랙 케이지 <button class="bb-rules-btn-top" id="ftRulesBtn" type="button">📖 설명서</button><button class="bb-rules-btn-top gm-listbtn" id="ftBackBtn" type="button">게임 목록</button></h1>
   <div id="gArea" class="ga-fort">
@@ -21767,15 +21805,19 @@ function viewGameFort() {
       </div>
     </div>
     <div id="gTitle">
+      <div class="ft-btnrow ft-dressrow" id="ftDressRow"><button class="ft-ibtn ft-dressb" id="ftDressBtn" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftDressNew"></i></button></div>
       <div class="ft-faces">${faces}</div>
       <div class="gt-name">블랙 케이지</div>
       <div class="gt-sub">BLACK CAGE</div>
       <div class="ft-rank" id="ftRank"></div>
       <div class="gt-desc">선수마다 <b>다른 무기와 스킬</b>!<br>바람 읽고, 타이밍 맞추고, <b>턱</b>을 노려라</div>
+      <div id="ftModes">
       <div class="ft-btnrow ft-mainrow"><button class="g-start g-en ft-mbtn" id="ftStartAi" type="button">AI 매칭</button></div>
-      <div class="ft-btnrow ft-mainrow ft-pvprow"><button class="g-start ft-mbtn ft-pvpb" id="ftStartPvp2" data-n="2" type="button">2인 매칭</button><button class="g-start ft-mbtn ft-pvpb" id="ftStartPvp3" data-n="3" type="button">3인 매칭</button><button class="g-start ft-mbtn ft-pvpb" id="ftStartPvp4" data-n="4" type="button">4인 매칭</button></div>
-      <div class="ft-btnrow"><button class="ft-ibtn ft-dressb" id="ftDressBtn" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftDressNew"></i></button></div>
-      <div class="gt-hint">끝없는 스테이지 · 5판마다 보스 · 선수별 꾸미기 해금</div>
+      <div class="ft-btnrow ft-mainrow"><button class="g-start ft-mbtn ft-pvpb" id="ftStartPvp" type="button">PvP 매칭</button></div>
+      </div>
+      <div class="ft-btnrow ft-mainrow" id="ftLoginRow" style="display:none"><button class="g-start g-en ft-mbtn" id="ftLoginBtn" type="button">로그인</button></div>
+      <div class="gt-hint" id="ftLoginHint" style="display:none">블랙 케이지는 로그인해야 이용할 수 있어요</div>
+      <div class="gt-hint" id="ftModeHint">끝없는 스테이지 · 5판마다 보스 · 선수별 꾸미기 해금</div>
     </div>
     <div id="ftSel" style="display:none"></div>
     <div id="ftLobby" style="display:none"></div>
@@ -21865,7 +21907,16 @@ function ftRenderGuide() {
 }
 
 /* ── 화면 상단 HUD ── */
+/* 로그인 전에는 다른 게임처럼 로그인 버튼만 보인다 */
+function ftSyncLogin() {
+  const ok = !!gmMyNick, $ = id => document.getElementById(id); if (!$('ftModes')) return;
+  $('ftModes').style.display = ok ? '' : 'none'; $('ftModeHint').style.display = ok ? '' : 'none';
+  { const dr = $('ftDressRow'); if (dr) dr.style.display = ok ? '' : 'none'; }
+  { const ga = $('gArea'); if (ga) ga.classList.toggle('ft-hudless', !FT.st); }
+  $('ftLoginRow').style.display = ok ? 'none' : ''; $('ftLoginHint').style.display = ok ? 'none' : '';
+}
 function ftHud() {
+  ftSyncLogin();
   const hh = document.getElementById('gHearts'), s = document.getElementById('gScore');
   if (!hh || !s) return;
   if (FT.st && FT.mode === 'ai') { hh.innerHTML = `STAGE ${FT.stage}${FT.cfg && FT.cfg.boss ? ' BOSS' : ''} <i class="ft-hrt">${'♥'.repeat(FT.lives)}</i><i class="ft-hrt off">${'♥'.repeat(Math.max(0, 3 - FT.lives))}</i>`; s.innerHTML = `${FT.streak}<span>연승</span>`; }
@@ -21954,9 +22005,10 @@ function ftBindUI() {
   const release = e => { e.stopPropagation(); if (FT.phase === 'gauge' && FT.human) ftStopGauge(); };
   fb.onpointerup = release; fb.onpointercancel = release; fb.onlostpointercapture = release;
   fb.onclick = e => e.stopPropagation();
-  $('ftStartAi').onclick = e => { e.stopPropagation(); gmCtx(); FT.mode = 'ai'; FT.stage = 1; FT.cp = 1; FT.lives = 3; FT.streak = 0; FT.foeOff = Math.floor(Math.random() * 6); ftShowSelect(0); };
+  $('ftLoginBtn').onclick = e => { e.stopPropagation(); gmCtx(); gmRequireLogin(); };
+  $('ftStartAi').onclick = e => { e.stopPropagation(); gmCtx(); if (!gmMyNick) { gmRequireLogin(); return; } FT.mode = 'ai'; FT.stage = 1; FT.cp = 1; FT.lives = 3; FT.streak = 0; FT.foeOff = Math.floor(Math.random() * 6); ftShowSelect(0); };
   $('ftDressBtn').onclick = e => { e.stopPropagation(); gmCtx(); ftOpenDress(); };
-  [2, 3, 4].forEach(k => { $('ftStartPvp' + k).onclick = e => { e.stopPropagation(); gmCtx(); ftNetEnter(k); }; });
+  $('ftStartPvp').onclick = e => { e.stopPropagation(); gmCtx(); if (!gmMyNick) { gmRequireLogin(); return; } ftNetEnter(4); };
   // 화면 터치: 내 캐릭터 근처 드래그 = 각도 조준 / 그 밖의 드래그 = 카메라 이동 / 톡 누르기 = 그쪽으로 조준 / 미니맵 = 그 위치로 이동
   const cv = $('gCanvas');
   const aimFrom = e => {
@@ -22076,6 +22128,25 @@ function ftGaugeDom() {
 }
 
 /* ── 파이터 선택 ── */
+/* 파이터 그림마다 여백이 달라 크기가 들쭉날쭉하므로, 투명 여백을 잘라내고 같은 칸에 꽉 채워 그린다 */
+const FT_TRIM = {};
+function ftTrimSprites(root) {
+  root.querySelectorAll('.ft-card').forEach(card => {
+    const id = card.dataset.id, img = card.querySelector('img'); if (!img) return;
+    if (FT_TRIM[id]) { img.src = FT_TRIM[id]; return; }
+    const im = new Image(); im.onload = () => {
+      try {
+        const cv = document.createElement('canvas'), w = im.naturalWidth, h = im.naturalHeight; cv.width = w; cv.height = h;
+        const cx = cv.getContext('2d'); cx.drawImage(im, 0, 0); const d = cx.getImageData(0, 0, w, h).data;
+        let x0 = w, x1 = 0, y0 = h, y1 = 0;
+        for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (d[(y * w + x) * 4 + 3] > 24) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+        if (x1 <= x0 || y1 <= y0) return;
+        const c2 = document.createElement('canvas'); c2.width = x1 - x0 + 1; c2.height = y1 - y0 + 1; c2.getContext('2d').drawImage(cv, x0, y0, c2.width, c2.height, 0, 0, c2.width, c2.height);
+        FT_TRIM[id] = c2.toDataURL('image/png'); img.src = FT_TRIM[id];
+      } catch (e) { }
+    }; im.src = ftArtSrc(id);
+  });
+}
 function ftShowSelect(slot) {
   FT.phase = 'sel'; FT.selSlot = slot; FT.pick = null;
   const t = document.getElementById('gTitle'); if (t) t.style.display = 'none';
@@ -22094,6 +22165,7 @@ function ftShowSelect(slot) {
     <button class="g-start ft-go" id="ftGo" type="button" disabled>${FT.mode === 'pvp' ? '다음' : '출전!'}</button>`;
   { const sb = document.getElementById('ftSelBack'); sb.onpointerdown = e => e.stopPropagation(); sb.onclick = e => { e.stopPropagation(); ftShowTitle(); }; }
   { const sd = document.getElementById('ftSelDress'); sd.onpointerdown = e => e.stopPropagation(); sd.onclick = e => { e.stopPropagation(); gmCtx(); FT.dressFrom = 'sel'; FT.dChar = FT.pick || FT.sel[0] || 'tusin'; o.style.display = 'none'; ftOpenDress(); }; }
+  ftTrimSprites(o);
   o.querySelectorAll('.ft-card').forEach(b => {
     b.onclick = e => {
       e.stopPropagation();
@@ -22180,7 +22252,7 @@ function ftBeginTurn(noWait) {
   if (FT.mode === 'pvp' && FT.net) { FT.net.mv = []; FT.net.sk = 0; }
   FT.tl = FT.human ? FT.tmax : 0; FT.tick = Math.ceil(FT.tl);
   ftDrain(); ftSyncCtl();
-  if (!FT.human) { if (FT.mode === 'pvp') ftNetPump(); else ftAiTurn(); }
+  if (!FT.human) { if (FT.mode === 'pvp' && !(FT.net && FT.net.local)) ftNetPump(); else ftAiTurn(); }
 }
 
 function ftAiTurn() {
@@ -22253,7 +22325,7 @@ function ftLaunch() {
   for (let k = 0; k < (d.rings || 0); k++) FT.booms.push({ x: m.x, y: m.y, r: 22 + k * 10, t: -k * .08, kind: 'ring', col: d.col[k % d.col.length] });
   if (d.flash) FT.flash = Math.min(1, FT.flash + d.flash);
   if (d.pillar) for (let i = 0; i < 44; i++) FT.parts.push({ x: p.x + (Math.random() - .5) * 26, y: p.y - 4, vx: (Math.random() - .5) * 60, vy: -120 - Math.random() * 240, life: .5 + Math.random() * .4, sz: 3 + Math.random() * 4.5, c: i % 3 ? '#ff9a3a' : '#ffe08a', g: -80 });
-  if (d.comet) for (let i = 0; i < 14; i++) { const ox = -260 - Math.random() * 220, oy = -300 - Math.random() * 120; FT.parts.push({ x: m.x + ox, y: m.y + oy, vx: -ox * 2.2, vy: -oy * 2.2, life: .45 + Math.random() * .12, sz: 2.4 + Math.random() * 2.6, c: i % 3 ? '#bfe4ff' : '#ffffff', g: 0, shape: 'bolt', rot: Math.atan2(-oy, -ox), vr: 0 }); }
+  if (d.comet) { (FT.meteors || (FT.meteors = [])); for (let i = 0; i < 7; i++) FT.meteors.push({ tx: m.x + (i - 3) * 46 + (Math.random() - .5) * 20, ty: m.y + 30 + Math.random() * 30, t: -i * .06, big: i === 3 }); FT.shake = Math.max(FT.shake, 14); }
   if (d.bolt) { (FT.bolts || (FT.bolts = [])).push({ x: m.x, y0: m.y - 380, y1: m.y, t: 0 }); gmSnd('crash'); }
   if (d.coins) for (let i = 0; i < 30; i++) { const q = Math.random() * 6.283, v = 70 + Math.random() * 190; FT.parts.push({ x: m.x, y: m.y, vx: Math.cos(q) * v, vy: Math.sin(q) * v - 90, life: .8 + Math.random() * .5, sz: 2.4 + Math.random() * 2, c: i % 2 ? '#ffd24a' : '#fff3b0', shape: i % 3 ? 'coin' : 'star', rot: Math.random() * 6, vr: 10, g: 300 }); }
   if (d.text) { ftPop(p.x, p.y - 112, d.text, d.tcol || '#ffb347', 28); gmVib([30, 20, 50]); }
@@ -22360,7 +22432,7 @@ function ftLand() {
   ftDrain();
   if (!acc.direct) { if (acc.any) { gmSnd('good'); gmVib(40); } else gmSnd('weak'); }
   ftSyncCtl();
-  if (FT.mode === 'pvp' && FT.net) { ftNetLand(st); return; }
+  if (FT.mode === 'pvp' && FT.net && !FT.net.local) { ftNetLand(st); return; }
   if (st.over) { ftKO(); return; }
   gmDelay(() => {
     if (tok !== gmToken || st !== FT.st) return;
@@ -22426,7 +22498,7 @@ function ftOver() {
     }
   } else {
     const me = FT.net ? FT.net.me : 0, mf = ftFS(rec, st.p[me].id), won = w === me;
-    if (won) { mf.pw++; mf.pc++; mf.ps = Math.max(mf.ps, mf.pc); } else mf.pc = 0;
+    if (FT.net && FT.net.local) { /* 봇 연습은 기록하지 않는다 */ } else if (won) { mf.pw++; mf.pc++; mf.ps = Math.max(mf.ps, mf.pc); } else mf.pc = 0;
     const place = [w].concat(st.order.slice().reverse().filter(i => i !== w)), myPlace = place.indexOf(me) + 1;
     const rows = place.map((i, k) => `<div class="ft-place${i === me ? ' me' : ''}"><i>${k + 1}</i><span>${esc(FT.net && FT.net.players[i] ? FT.net.players[i].nick : 'P' + (i + 1))}</span><em>${esc(E.CHARS[st.p[i].id].name)}</em></div>`).join('');
     html = `<div class="go-ko">${won ? 'PvP 승리! 🏆' : `${myPlace}위`}</div>
@@ -22492,6 +22564,7 @@ const FT_PLAY = 1.8;
 const FT_SPAN = 235;      // 땅 위로 항상 보이는 최소 높이(월드 단위)
 function ftUpdate(dt0, now) {
   const E = FortEngine, st = FT.st || FT.demo; FT.t += dt0;
+  if (FT.phase === 'title' && Math.floor(FT.t) !== FT._lg) { FT._lg = Math.floor(FT.t); ftSyncLogin(); }
   if (!st) return;
   let dt = dt0;
   if (FT.ko) { FT.ko.t += dt0; if (FT.ko.t < 1.3) dt = dt0 * .35; }
@@ -22523,7 +22596,7 @@ function ftUpdate(dt0, now) {
         FT.phase = 'boom'; FT.dragging = false; FT.drag = null; FT.keys = {};
         ftPop(p.x, p.y - 90, '시간 끌다 졸았다!', '#ff8a6a', 22); gmSnd('weak');
         ftSyncCtl();
-        gmDelay(() => { if (tok !== gmToken || s0 !== FT.st || s0.over) return; if (FT.mode === 'pvp' && FT.net) { E.endTurn(s0); ftNetPublishEnd(true); ftBeginTurn(); return; } E.endTurn(s0); ftBeginTurn(); }, 700);
+        gmDelay(() => { if (tok !== gmToken || s0 !== FT.st || s0.over) return; if (FT.mode === 'pvp' && FT.net && !FT.net.local) { E.endTurn(s0); ftNetPublishEnd(true); ftBeginTurn(); return; } E.endTurn(s0); ftBeginTurn(); }, 700);
       }
     }
   }
@@ -22550,6 +22623,10 @@ function ftUpdate(dt0, now) {
     else if (A.t - A.wind > .5) FT.atk = null;
   }
   if (FT.sky) { FT.sky.t += dt0; if (FT.sky.out && FT.t - FT.sky.out > .8) FT.sky = null; }
+  if (FT.meteors && FT.meteors.length) {
+    FT.meteors.forEach(q => { const was = q.t; q.t += dt0; if (was < .38 && q.t >= .38 && !q.hit) { q.hit = 1; for (let k = 0; k < (q.big ? 26 : 12); k++) { const a = Math.random() * 6.283, v = 60 + Math.random() * 240; FT.parts.push({ x: q.tx, y: q.ty, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 120, life: .6 + Math.random() * .5, sz: 2 + Math.random() * 3, c: k % 3 ? '#ff5a3c' : '#ffd08a', g: 300 }); } FT.booms.push({ x: q.tx, y: q.ty, r: q.big ? 34 : 20, t: 0, kind: 'ring', col: '255,70,40' }); } });
+    FT.meteors = FT.meteors.filter(q => q.t < .6);
+  }
   if (FT.bolts && FT.bolts.length) { FT.bolts.forEach(b => { b.t += dt0; }); FT.bolts = FT.bolts.filter(b => b.t < .42); }
   if (FT.phase === 'fly') {
     let all = true;
@@ -22887,6 +22964,16 @@ function ftDraw() {
     og.addColorStop(0, 'rgba(255,255,255,.95)'); og.addColorStop(.35, `rgba(${c0},.8)`); og.addColorStop(1, `rgba(${c1},0)`);
     ctx.fillStyle = og; ctx.beginPath(); ctx.arc(X(m.x), Y(m.y), R * 1.6, 0, 7); ctx.fill();
   }
+  if (FT.meteors) FT.meteors.forEach(q => {                 // 혜성 강림: 붉은 불덩이가 사선으로 내리꽂힌다
+    if (q.t < 0) return; const k = Math.min(1, q.t / .38), fade = q.t > .38 ? Math.max(0, 1 - (q.t - .38) / .2) : 1;
+    const dx = 520, dy = 640, hx = X(q.tx - dx * (1 - k)), hy = Y(q.ty - dy * (1 - k)), tx = X(q.tx - dx * (1 - Math.max(0, k - .35))), ty = Y(q.ty - dy * (1 - Math.max(0, k - .35)));
+    ctx.save(); ctx.globalAlpha = fade; ctx.lineCap = 'round';
+    const lg = ctx.createLinearGradient(tx, ty, hx, hy); lg.addColorStop(0, 'rgba(255,40,20,0)'); lg.addColorStop(.6, 'rgba(255,90,40,.7)'); lg.addColorStop(1, 'rgba(255,230,190,.95)');
+    ctx.strokeStyle = lg; ctx.lineWidth = (q.big ? 20 : 12) * sc + 3; ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(hx, hy); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = (q.big ? 6 : 3.5) * sc + 1; ctx.beginPath(); ctx.moveTo(tx + (hx - tx) * .4, ty + (hy - ty) * .4); ctx.lineTo(hx, hy); ctx.stroke();
+    const gr = ctx.createRadialGradient(hx, hy, 0, hx, hy, (q.big ? 30 : 18) * sc + 6); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.4, 'rgba(255,120,60,.8)'); gr.addColorStop(1, 'rgba(255,40,20,0)');
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(hx, hy, (q.big ? 30 : 18) * sc + 6, 0, 7); ctx.fill(); ctx.restore();
+  });
   if (FT.bolts) FT.bolts.forEach(b => {                     // 낙뢰: 하늘에서 내리꽂는 번개
     const k = b.t / .42, seed = Math.floor(b.t * 40), pts = [];
     for (let i = 0; i <= 9; i++) { const u = i / 9, jx = (i === 0 || i === 9) ? 0 : Math.sin(seed * 12.9 + i * 78.2) * 22; pts.push([X(b.x + jx), Y(b.y0 + (b.y1 - b.y0) * u)]); }
@@ -23339,7 +23426,7 @@ function ftNetApply(sn) {
 
 /* ══════════ 입장 / 대기실 ══════════ */
 function ftNetEnter(size) {
-  FT_NET_SIZE = size || FT_NET_SIZE;
+  FT_NET_SIZE = 4;
   if (!ftNetOK()) { ftNetToast('PvP는 로그인 후 이용할 수 있어요', '카카오 로그인 후 다시 눌러주세요'); return; }
   FT.mode = 'pvp'; FT.sel = [null, null]; FT.net = null;
   ftShowSelect(0);
@@ -23351,7 +23438,7 @@ function ftNetStop() {
 function ftNetLobby() {
   const o = document.getElementById('ftLobby'); if (!o) return;
   ftNetStop();
-  FT.net = { phase: 'idle', size: FT_NET_SIZE, me: -1, players: [], char: FT.sel[0], tok: gmToken, actSeen: 0, snapNo: 0, snap: null, mv: [], sk: 0 };
+  FT.net = { phase: 'idle', size: 4, me: -1, players: [], char: FT.sel[0], tok: gmToken, actSeen: 0, snapNo: 0, snap: null, mv: [], sk: 0 };
   const ts = document.getElementById('gTitle'); if (ts) ts.style.display = 'none';
   const so = document.getElementById('ftSel'); if (so) so.style.display = 'none';
   o.style.display = ''; ftNetFind();
@@ -23363,10 +23450,8 @@ function ftNetRender() {
   let body = '';
   if (n.phase === 'idle') {
     body = `<div class="fl-me"><img src="${ftArtSrc(c.id)}" alt=""><div><b>${esc(gmMyNick)}</b><span>${esc(c.name)} · ${esc(c.proj.label)}</span></div></div>
-      <div class="fl-lab">몇 명이서 할까요?</div>
-      <div class="fl-sizes">${[2, 3, 4].map(k => `<button type="button" data-n="${k}" class="${n.size === k ? 'on' : ''}"><b>${k}인</b><small>${k === 2 ? '1 대 1' : k === 3 ? '3인 난투' : '4인 난투'}</small></button>`).join('')}</div>
-      <div class="fl-desc">같은 인원을 고른 유저끼리 이어져요.<br>인원이 다 모이면 바로 시작하고, 기다리기 싫으면 방장이 2명 이상일 때 먼저 시작할 수 있어요.<br>마지막까지 살아남으면 승리!</div>
-      <button class="g-start ft-go" id="flGo" type="button">매칭 시작</button>`;
+      <div class="fl-desc">최대 4명이 한 방에 모여요.<br>방장이 원하는 때 2명, 3명, 4명 누구와도 바로 시작할 수 있어요.<br>마지막까지 살아남으면 승리!</div>
+      <button class="g-start ft-go" id="flGo" type="button">매칭 시작</button>${FT_TEST_UNLOCK ? '<button class="ft-btn2 ft-flbot" id="flBot" type="button">테스트: 봇과 연습</button>' : ''}`;
   } else if (n.phase === 'find') {
     body = `<div class="fl-wait"><i class="fl-spin"></i>방을 찾는 중…</div>`;
   } else {
@@ -23376,24 +23461,38 @@ function ftNetRender() {
         : `<div class="fl-slot"><i class="fl-spin sm"></i><span>기다리는 중</span></div>`);
     }
     const cnt = n.players.length, host = n.host === gmMyNick;
-    body = `<div class="fl-lab">${n.size}인 대기실 <em>${cnt}/${n.size}</em></div>
+    body = `<div class="fl-lab">PvP 대기실 <em>${cnt}/${n.size}</em></div>
       <div class="fl-slots c${n.size}">${slots.join('')}</div>
-      <div class="fl-desc">${cnt >= n.size ? '곧 시작해요!' : host ? (cnt >= 2 ? '기다려도 좋고, 지금 있는 사람끼리 바로 시작해도 돼요.' : '다른 유저가 들어오길 기다리는 중이에요. 이 화면을 켜 둬요.') : '방장이 시작하거나 인원이 다 모이면 시작해요.'}</div>
+      <div class="fl-desc">${cnt >= n.size ? '곧 시작해요!' : host ? (cnt >= 2 ? '원하는 때 시작 버튼을 누르세요. 4명이 다 모이면 자동으로 시작해요.' : '다른 유저가 들어오길 기다리는 중이에요. 이 화면을 켜 둬요.') : '방장이 시작하거나 4명이 다 모이면 시작해요.'}</div>
       ${host ? `<button class="g-start ft-go" id="flStart" type="button" ${cnt >= 2 ? '' : 'disabled'}>지금 시작 (${cnt}명)</button>` : ''}
+      ${FT_TEST_UNLOCK ? '<button class="ft-btn2 ft-flbot" id="flBot" type="button">테스트: 나머지를 봇으로 채워 시작</button>' : ''}
       <button class="ft-btn2" id="flLeave" type="button">나가기</button>`;
   }
-  o.innerHTML = `<div class="ft-sel-top">${back}<div class="ft-sel-h">PvP 매칭</div><span class="ft-sel-sp"></span></div><div class="fl-body">${body}</div>`;
+  o.innerHTML = `<div class="ft-sel-top">${back}<div class="ft-sel-h">PvP 매칭</div><button class="fl-promo" id="flPromo" type="button">📢 블붕이 홍보</button></div><div class="fl-body">${body}</div>`;
   const $ = id => document.getElementById(id);
   const stop = e => e.stopPropagation();
   o.querySelectorAll('button').forEach(b => { b.onpointerdown = stop; });
+  $('flPromo').onclick = e => { stop(e); gmCtx(); if (typeof bbShowPromoteConfirm === 'function') bbShowPromoteConfirm('블랙 케이지 한판 하실분?!🔥🔥', location.origin + location.pathname + '#/game/fort'); };
   $('flBack').onclick = e => { stop(e); if (n.phase === 'wait') ftNetLeaveLobby(); o.style.display = 'none'; ftNetStop(); ftShowSelect(0); };
+  { const fb = $('flBot'); if (fb) fb.onclick = e => { stop(e); gmCtx(); ftNetBots(); }; }
   if (n.phase === 'idle') {
-    o.querySelectorAll('.fl-sizes button').forEach(b => { b.onclick = e => { stop(e); n.size = FT_NET_SIZE = +b.dataset.n; gmSnd('ding'); ftNetRender(); }; });
     $('flGo').onclick = e => { stop(e); gmCtx(); ftNetFind(); };
   } else if (n.phase === 'wait') {
     $('flLeave').onclick = e => { stop(e); ftNetLeaveLobby(); n.phase = 'idle'; n.room = null; ftNetRender(); };
     const sb2 = $('flStart'); if (sb2) sb2.onclick = async e => { stop(e); sb2.disabled = true; const r = await ftRpc('fort_pvp_start', { p_room: n.room }); if (!r.ok) { ftNetToast(esc(r.msg || '시작하지 못했어요')); return; } ftNetGot(r); };
   }
+}
+/* 테스트 빌드 전용: 혼자서 2~4인 대결을 확인할 수 있게 나머지 자리를 봇으로 채운다(서버 없이 이 기기에서만 진행) */
+function ftNetBots() {
+  const n = FT.net; if (!n) return;
+  ftNetLeaveLobby();
+  const size = n.size, pool = FortEngine.ORDER.filter(c => c !== n.char).sort(() => Math.random() - .5);
+  const players = [{ nick: gmMyNick || '나', char: n.char, eq: {} }];
+  for (let i = 1; i < size; i++) players.push({ nick: 'BOT' + i, char: pool[i - 1], eq: {} });
+  Object.assign(n, { local: true, players, me: 0, seed: (Math.random() * 2e9) | 0, phase: 'game', room: null, dead: false });
+  FT.skill = .6;
+  const lb = document.getElementById('ftLobby'); if (lb) lb.style.display = 'none';
+  ftStartMatch();
 }
 async function ftNetFind() {
   const n = FT.net; if (!n) return;
@@ -23483,14 +23582,14 @@ function ftNetForce(d) {
 
 /* ══════════ 내 행동 올리기 ══════════ */
 function ftNetPublishFire(p) {
-  const n = FT.net, st = FT.st; if (!n || !st) return;
+  const n = FT.net, st = FT.st; if (!n || !st || n.local) return;
   const act = { ang: p.ang, pow: p.pow, sk: n.sk ? 1 : 0, mv: n.mv };
   const turnNo = st.turnNo;
   const send = async (k) => { const r = await ftRpc('fort_pvp_fire', { p_room: n.room, p_turn_no: turnNo, p_action: act }); if (!r.ok && k < 2 && !n.dead && /오류|fetch|network|Failed/i.test(r.msg || '')) setTimeout(() => send(k + 1), 800); };
   send(0);
 }
 function ftNetPublishEnd(skipped) {
-  const n = FT.net, st = FT.st; if (!n || !st) return;
+  const n = FT.net, st = FT.st; if (!n || !st || n.local) return;
   const snap = ftNetSnap(st), alive = st.p.map(p => !p.dead), turnNo = st.turnNo - (st.over ? 0 : 1);
   const send = async (k) => { const r = await ftRpc('fort_pvp_end', { p_room: n.room, p_turn_no: turnNo, p_snap: snap, p_alive: alive, p_skipped: !!skipped }); if (!r.ok && k < 3 && !n.dead && !/차례가 아니|진행 중이 아니/.test(r.msg || '')) setTimeout(() => send(k + 1), 800); };
   send(0);
@@ -30300,8 +30399,8 @@ function ftNetLand(st) {
        받은 사람이 누르자마자 곧장 매칭 화면으로 이동할 수 있게 하기 위함이다. */
     const BB_PROMOTE_TEXT = '블랙 배틀 한판 하실분?!🔥🔥';
     const BB_PROMOTE_URL = location.origin + location.pathname + '#/game/battle';
-    function bbPromoteInChat() {
-      const text = BB_PROMOTE_TEXT, url = BB_PROMOTE_URL;
+    function bbPromoteInChat(pt, pu) {
+      const text = pt || BB_PROMOTE_TEXT, url = pu || BB_PROMOTE_URL;
       // 안드로이드에서 다운로드한 index.html을 다운로드 앱(Downloads)으로 직접 열면 주소가
       // content://...가 되는데, 이렇게 origin이 없는 상태에서 navigator.share()를 호출하면 일부
       // 기기(특히 안드로이드 크롬)에서 응답 없이 렌더러 자체가 죽어버리는 것이 실제로 확인됐다.
@@ -30331,14 +30430,14 @@ function ftNetLand(st) {
     }
     /* "잡담방 홍보" 버튼을 누르면 바로 공유 시트/클립보드로 보내지 않고, 실제로 전달될 문구를
        미리 보여준 뒤 보낼지 취소할지 확인받는다 */
-    function bbShowPromoteConfirm() {
+    function bbShowPromoteConfirm(pt, pu) {
       const ov = document.createElement('div');
       ov.className = 'modal-ov bb-confirm-ov';
       ov.innerHTML = `<div class="bb-confirm">
     <div class="bb-confirm-ic">📢</div>
     <div class="bb-confirm-t">블붕이에 홍보할까요?</div>
     <div class="bb-confirm-b">아래 메시지가 그대로 전달돼요.</div>
-    <div class="bb-promote-preview">${esc(BB_PROMOTE_TEXT)}<br>${esc(BB_PROMOTE_URL)}</div>
+    <div class="bb-promote-preview">${esc(pt || BB_PROMOTE_TEXT)}<br>${esc(pu || BB_PROMOTE_URL)}</div>
     <div class="bb-confirm-actions">
       <button type="button" class="bb-confirm-btn cancel">취소</button>
       <button type="button" class="bb-confirm-btn ok">보내기</button>
@@ -30351,7 +30450,7 @@ function ftNetLand(st) {
       okBtn.onpointerdown = e => e.stopPropagation();
       okBtn.onclick = e => {
         e.stopPropagation();
-        const method = bbPromoteInChat();
+        const method = bbPromoteInChat(pt, pu);
         if (method === 'manual') {
           // 공유 시트도 클립보드도 쓸 수 없는 환경 — 팝업을 바로 닫지 않고, 문구를 계속 보여준 채로
           // 직접 선택해서 복사할 수 있게 "보내기" 버튼을 숨기고 "닫기"만 남긴다
