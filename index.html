@@ -12748,6 +12748,11 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 .ft-rktabs button { flex: 1; padding: 8px 0; border-radius: 10px; border: 1.5px solid var(--border); background: #fff; color: var(--muted, #6b7280); font-weight: 800; font-size: 13px; cursor: pointer; }
 .ft-rktabs button.on { background: var(--key-deep, #2f7fe0); border-color: var(--key-deep, #2f7fe0); color: #fff; }
 
+/* 화면 확대/축소 버튼 */
+#ftCamBar { position: absolute; left: 8px; top: 84px; z-index: 7; display: flex; flex-direction: column; gap: 6px; }
+#ftCamBar button { width: 30px; height: 30px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; background: rgba(14,14,19,.6); border: 1.5px solid rgba(255,255,255,.45); cursor: pointer; }
+#ftCamBar button:active { transform: translateY(1px); background: rgba(14,14,19,.85); }
+
   </style>
 </head>
 
@@ -21921,6 +21926,7 @@ function viewGameFort() {
     <button class="g-mute" id="gMute">${gmMuted ? '🔇' : '🔊'}</button>
     <button class="g-full" id="gFull">⛶</button>
     <button id="ftQuit" type="button" style="display:none" aria-label="포기" title="포기">${FT_FLAG_SVG}</button>
+    <div id="ftCamBar" style="display:none"><button type="button" id="ftZin" aria-label="화면 확대" title="화면 확대"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/><path d="M7.5 10.5h6M10.5 7.5v6"/></svg></button><button type="button" id="ftZout" aria-label="화면 축소" title="화면 축소"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/><path d="M7.5 10.5h6"/></svg></button></div>
     <div id="ftCtl" style="display:none">
       <div class="ft-r1"><span class="ft-who" id="ftWho"></span><span class="ft-last" id="ftLast"></span>
         <span class="ft-stamw">이동력<i class="ft-stam"><b id="ftStam"></b></i></span></div>
@@ -22110,6 +22116,11 @@ function ftMove(dir) {
   if (!ftCanAct()) return;
   let moved = 0;
   for (let i = 0; i < 3; i++) { if (FortEngine.moveStep(FT.st, FT.st.turn, dir, true)) moved++; else break; if (FT.st.p[FT.st.turn].dead) break; }
+  if (!moved) {      // 이동력이 없거나 막혀서 못 걸어도 방향 전환(바라보기 + 각도 뒤집기)은 된다
+    const pp = FT.st.p[FT.st.turn];
+    if (!pp.dead && pp.face !== dir) { pp.face = dir; if ((dir < 0 && pp.ang < 90) || (dir > 0 && pp.ang > 90)) pp.ang = 180 - pp.ang; pp._s = dir; ftSyncCtl(); }
+    return;
+  }
   if (moved) {
     if (FT.mode === 'pvp' && FT.net) { const L = FT.net.mv, e = L[L.length - 1]; if (e && e[0] === dir) e[1] += moved; else L.push([dir, moved]); }
     if (Math.random() < .35) { const p = FT.st.p[FT.st.turn]; FT.parts.push({ x: p.x - dir * 6, y: p.y - 2, vx: -dir * 20, vy: -22, life: .4, sz: 2.4, c: '#b8ad9c', g: 60 }); }
@@ -22164,6 +22175,8 @@ function ftBindUI() {
   const $ = id => document.getElementById(id);
   const tok = gmToken;
   const guard = fn => () => { if (tok === gmToken) fn(); };
+  { const zi = $('ftZin'), zo = $('ftZout'); [zi, zo].forEach(b => { if (b) { b.onpointerdown = e => e.stopPropagation(); b.onclick = e => e.stopPropagation(); } });
+    if (zi) zi.onclick = e => { e.stopPropagation(); ftZoomBy(1.15); }; if (zo) zo.onclick = e => { e.stopPropagation(); ftZoomBy(1 / 1.15); }; }
   ftHold($('ftML'), guard(() => ftMove(-1)));
   ftHold($('ftMR'), guard(() => ftMove(1)));
   ftHold($('ftAm'), guard(() => ftUD(-1)));
@@ -22886,6 +22899,12 @@ const FT_AMB = {
 };
 
 const FT_VIEWW = 560;     // 기본 화면에 보이는 월드 폭(월드 전체는 1000). 줌인된 상태가 기본이다
+try { var __zk = parseFloat(localStorage.getItem('ft_zk')); if (__zk > .5 && __zk < 1.7) FT.zk = __zk; } catch (e) { }
+function ftIsFull() { return !!(document.fullscreenElement || document.webkitFullscreenElement || document.querySelector('.gm-pseudo-full')); }
+function ftZoomBy(f) {
+  let k = ftClamp((FT.zk || 1) * f, .55, 1.6); if (Math.abs(k - 1) < .04) k = 1; FT.zk = k;
+  try { localStorage.setItem('ft_zk', String(k)); } catch (e) { }
+}
 function ftLayout() {
   const E = FortEngine, st = FT.st || FT.demo, Wd = st.W || 600, ctl = document.getElementById('ftCtl');
   const ctlH = (ctl && ctl.style.display !== 'none') ? ctl.offsetHeight : 0;
@@ -22894,9 +22913,10 @@ function ftLayout() {
   const availH = Math.max(100, G.h - ctlH + ov0 - hudH);
   // 세로로 너무 긴 화면(세로 전체화면 등): 하늘만 넓어지지 않게 확대해서 보여준다(가로는 최소 360 월드폭 보장)
   const span = land ? 300 : FT_SPAN;     // 폰 가로: 하늘을 더 보여줘서 덜 확대된 느낌으로
-  const base = Math.min(Math.max(G.w / FT_VIEWW, availH / 600), G.w / 360, availH / span), ov = Math.min(G.w / Wd, availH / span);
+  let base = Math.min(Math.max(G.w / FT_VIEWW, availH / 600), G.w / 360, availH / span), ov = Math.min(G.w / Wd, availH / span);
   const cam = FT.cam || (FT.cam = { x: Wd / 2, z: 1, up: 0 });
-  const sc = base * cam.z, half = G.w / (2 * sc), m = 16 / sc, lo = half - m, hi = Wd - half + m;
+  const zf = (ftIsFull() ? .78 : 1) * (FT.zk || 1);   // 전체화면은 기본으로 조금 축소, 사용자 확대/축소 버튼 배율을 곱한다
+  base *= zf; const sc = base * cam.z, half = G.w / (2 * sc), m = 16 / sc, lo = half - m, hi = Wd - half + m;
   cam.x = lo > hi ? Wd / 2 : ftClamp(cam.x, lo, hi);
   FT.baseSc = base; FT.ovSc = ov;
   FT.sc = sc; FT.ox = G.w / 2 - cam.x * sc; FT.oy = hudH + availH - (E.H - 22) * sc + (cam.up || 0) * sc;
