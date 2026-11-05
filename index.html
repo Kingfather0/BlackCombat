@@ -12199,23 +12199,17 @@
     /* 2026-11-05: 전체 경기 — 정렬 토글 / 탑독·언더독 강조 / 국기·챔피언 왕관 */
     body[data-route="t"] .vc-sum-row { position: relative; }
     body[data-route="t"] .vc-sum-row.hb { padding-bottom: 11px; }
-    body[data-route="t"] .vc-sum-tools { display: flex; justify-content: flex-end; padding: 6px 0 4px; }
-    body[data-route="t"] .vc-sort { display: inline-flex; background: #ececf1; border-radius: 8px; padding: 2px; gap: 2px; }
-    body[data-route="t"] .vc-sort-btn { border: none; background: transparent; color: var(--dim); font: inherit; font-size: 12px; font-weight: 600; padding: 5px 11px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
-    body[data-route="t"] .vc-sort-btn.on { background: #fff; color: var(--text); font-weight: 800; box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
     body[data-route="t"] .vc-sum-row img.flag { width: 18px; height: 14px; border-radius: 2px; vertical-align: -2px; margin-right: 4px; object-fit: cover; }
     body[data-route="t"] .vc-crown { font-size: .92em; }
-    body[data-route="t"] .vc-sum-side b { font-weight: 500; color: var(--dim); }
-    body[data-route="t"] .vc-sum-side small { color: #a4a4ae; }
-    body[data-route="t"] .vc-sum-side img.flag { opacity: .55; }
+    body[data-route="t"] .vc-sum-side b { font-weight: 500; color: var(--muted); }
+    body[data-route="t"] .vc-sum-side img.flag { opacity: .8; }
     body[data-route="t"] .vc-sum-side.lead b { font-weight: 800; color: var(--text); }
     body[data-route="t"] .vc-sum-side.lead img.flag { opacity: 1; }
-    body[data-route="t"] .vc-sum-side.lead small { background: #16161c; color: #fff; font-weight: 700; padding: 1px 7px; border-radius: 99px; }
-    body[data-route="t"] .vc-sum-bar { position: absolute; left: 6px; right: 6px; bottom: 3px; height: 4px; border-radius: 2px; overflow: hidden; background: #dcdce3; }
-    body[data-route="t"] .vc-sum-bar i { display: block; height: 100%; background: #16161c; }
-    body[data-route="t"] .vc-sum-bar.lb { background: #16161c; }
-    body[data-route="t"] .vc-sum-bar.lb i { background: #dcdce3; }
-    body[data-route="t"] .vc-sum-bar.tie { background: #16161c; }
+    body[data-route="t"] .vc-sum-bar { position: absolute; left: 6px; right: 6px; bottom: 3px; height: 3px; border-radius: 2px; overflow: hidden; background: #ececf1; }
+    body[data-route="t"] .vc-sum-bar i { display: block; height: 100%; background: #b3b7c6; }
+    body[data-route="t"] .vc-sum-bar.lb { background: #b3b7c6; }
+    body[data-route="t"] .vc-sum-bar.lb i { background: #ececf1; }
+    body[data-route="t"] .vc-sum-bar.tie { background: #b3b7c6; }
     body[data-route="t"] .vc-sum-bar.tie i { box-shadow: 2px 0 0 #fff; }
     @media (max-width: 640px) {
       body[data-route="t"] .vc-sum-vote { grid-column: 2 / 4; gap: 6px; }
@@ -31369,7 +31363,7 @@
       }
       // 투표 화면: 카드 하나씩 보여주고 위의 경기 번호로 넘긴다 — 고르면 다음 미선택 경기로 자동 이동
       var vcIdx = 0, vcBusy = false, vcLiveKey = "";
-      var vcSumDesc = false; try { vcSumDesc = localStorage.getItem('vcSumDesc') === '1'; } catch (e) {}
+      var vcSumDesc = true;
       function vcNav(app) {
         if (vcBusy) return; vcBusy = true; setTimeout(function () { vcBusy = false; }, 0);
         var grid = app.querySelector('.vote-grid'); if (!grid) return;
@@ -31428,7 +31422,7 @@
         // 결과/대기 상태: 카드 아래에 전체 경기 결과를 한눈에 보는 목록 (행을 누르면 그 경기 카드로 이동)
         var sum = app.querySelector('.vc-sum');
         if (cards.length) {
-          if (!sum) { sum = document.createElement('div'); sum.className = 'vc-sum'; var ft0 = app.querySelector('.vc-foot'); (ft0 || grid).insertAdjacentElement('afterend', sum); sum.addEventListener('click', function (e) { var sb = e.target.closest('.vc-sort-btn'); if (sb) { vcSumDesc = sb.dataset.sort === 'desc'; try { localStorage.setItem('vcSumDesc', vcSumDesc ? '1' : '0'); } catch (e2) {} vcNav(app); return; } var r = e.target.closest('.vc-sum-row'); if (!r) return; vcIdx = +r.dataset.i; vcNav(app); var tgt = grid; app.querySelectorAll('.sec-title').forEach(function (t) { if (t.compareDocumentPosition(grid) & Node.DOCUMENT_POSITION_FOLLOWING) tgt = t; }); var hh = (document.querySelector('header') || {}).offsetHeight || 0; window.scrollTo({ top: tgt.getBoundingClientRect().top + window.scrollY - hh - 10, behavior: 'smooth' }); }); }
+          if (!sum) { sum = document.createElement('div'); sum.className = 'vc-sum'; var ft0 = app.querySelector('.vc-foot'); (ft0 || grid).insertAdjacentElement('afterend', sum); sum.addEventListener('click', function (e) { var r = e.target.closest('.vc-sum-row'); if (!r) return; vcIdx = +r.dataset.i; vcNav(app); var tgt = grid; app.querySelectorAll('.sec-title').forEach(function (t) { if (t.compareDocumentPosition(grid) & Node.DOCUMENT_POSITION_FOLLOWING) tgt = t; }); var hh = (document.querySelector('header') || {}).offsetHeight || 0; window.scrollTo({ top: tgt.getBoundingClientRect().top + window.scrollY - hh - 10, behavior: 'smooth' }); }); }
           var tx = function (el) { return el ? el.textContent.replace(/\s+/g, ' ').trim() : ''; };
           var rowArr = cards.map(function (c, i) {
             var no = tx(c.querySelector('.no > span:first-child')).replace(/\s.*$/, ''), dv = tx(c.querySelector('.match-div')).replace(/\u{1F451}/gu, '').trim();
@@ -31448,7 +31442,7 @@
             var right = wa || wb ? '<span class="vc-sum-win">\u{1F3C6} ' + (wa ? a : b) + ' \uC2B9</span><span class="vc-sum-pct">' + (pt ? pt + ' \uC801\uC911' : '') + '</span>' : (live ? '<span class="vc-sum-live">\uACBD\uAE30 \uC9C4\uD589 \uC911</span>' : '<span class="vc-sum-wait">\uACB0\uACFC \uB300\uAE30</span>');
             return '<div class="vc-sum-row' + (i === vcIdx ? ' cur' : '') + '" data-i="' + i + '"><span class="vc-sum-no">' + no + '</span><span class="vc-sum-div">' + dv + '</span><span class="vc-sum-vs"><b class="' + (wb ? 'lose' : '') + '">' + aH + '</b><i>vs</i><b class="' + (wa ? 'lose' : '') + '">' + bH + '</b></span>' + right + '</div>';
           }); if (vcSumDesc) rowArr.reverse(); var rowsH = rowArr.join('');
-          var sortBar = '<div class="vc-sum-tools"><div class="vc-sort"><button type="button" class="vc-sort-btn' + (vcSumDesc ? '' : ' on') + '" data-sort="asc">1경기부터</button><button type="button" class="vc-sort-btn' + (vcSumDesc ? ' on' : '') + '" data-sort="desc">마지막 경기부터</button></div></div>';
+          var sortBar = '';
           sum.innerHTML = '<div class="vc-sum-h">' + (isVote ? '\uC804\uCCB4 \uACBD\uAE30' : '\uC804\uCCB4 \uACBD\uAE30 \uACB0\uACFC') + '<span>' + (isVote ? '\uC810 = \uB0B4 \uC120\uD0DD \u00B7 ' : '') + '\uB204\uB974\uBA74 \uD574\uB2F9 \uACBD\uAE30 \uCE74\uB4DC\uB85C \uC774\uB3D9</span></div>' + sortBar + rowsH;
         } else if (sum) sum.remove();
         var foot = app.querySelector('.vc-foot');
