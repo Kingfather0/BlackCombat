@@ -12733,6 +12733,11 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 .ft-rkinfo:active { color: var(--muted, #6b7280); }
 #ftRankBoard .bb-lb-stat { text-align: right; line-height: 1.25; }
 #ftRankBoard .bb-lb-rate { display: block; font-size: 11px; font-weight: 600; }
+/* 선물상자(꾸미기) 버튼은 핑크 계열 */
+.ft-ibtn.ft-dressb { background: rgba(255,126,182,.14); color: #ff8fc2; border-color: #ff8fc2; box-shadow: 0 3px 0 rgba(120,20,70,.8); }
+.ft-ibtn.ft-dressb:active { box-shadow: 0 0 0 rgba(120,20,70,.8); }
+@keyframes ftShopGlow { 0%,100% { box-shadow: 0 3px 0 #a3185f, 0 0 8px rgba(255,120,185,.5); } 50% { box-shadow: 0 3px 0 #a3185f, 0 0 18px rgba(255,140,200,.95); } }
+#ftDressBtn { background: linear-gradient(180deg, #ff9ccb, #f0589c 60%, #d93a82); border-color: #ffe0ef; color: #fff; text-shadow: 0 1px 0 rgba(120,20,70,.5); }
 
   </style>
 </head>
@@ -20321,7 +20326,7 @@ var FortEngine = (function () {
      proj.kind  무기 종류(화면 그림도 달라진다)
      dmg 데미지 · rad 폭발 반경 · spd 탄속 배율 · gmul 중력 배율 · wmul 바람 민감도
      bounce 땅에서 튕기는 횟수 · split 정점에서 갈라지는 개수 · direct 직격 배율 · carve 땅 파임 배율 */
-  var HP_MUL = 2;   // 체력 배율 (한 판이 너무 빨리 끝나지 않게)
+  var HP_MUL = 1.5;   // 체력 배율 (한 판이 너무 빨리 끝나지 않게)
   var CHARS = {
     tusin: {
       id: 'tusin', name: '투신', tag: '정석 포격수', hp: 100, move: 70, take: 1, passive: 'rage',
@@ -20363,7 +20368,7 @@ var FortEngine = (function () {
       proj: { kind: 'burger', label: '햄버거', dmg: 36, rad: 32, spd: 1.0, gmul: 1.0, wmul: 0.9, direct: 1, carve: 1, bounce: 1 },
       pTitle: '햄버거 반사', pDesc: '땅에 한 번 튕긴 뒤 터지는 햄버거! 받는 데미지 20% 감소. 대신 한 방이 약해요',
       taunt: '햄버거 먹고 와도 너는 잡겠다',
-      skill: { name: '햄버거 파티', desc: '체력 12 회복 + 다음 피격 60% 감소, 착탄 지점에 햄버거 5개가 하늘에서 쏟아져요', heal: 12, shield: true, mod: { dmg: 1.05 }, ult: { kind: 'shield', shots: 'shield5' } },
+      skill: { name: '햄버거 파티', desc: '체력 18 회복 + 다음 피격 60% 감소, 착탄 지점에 햄버거 5개가 하늘에서 쏟아져요', heal: 12, shield: true, mod: { dmg: 1.05 }, ult: { kind: 'burger', shots: 'shield5' } },
     },
   };
   /* ── AI 전용 캐릭터(선수 아님) + 보스 ── */
@@ -20515,7 +20520,7 @@ var FortEngine = (function () {
     function mk(id, x, face) {
       var c = CHARS[id];
       return {
-        id: id, x: x, y: surfaceY(top, x), hp: c.hp * HP_MUL, maxHp: c.hp * HP_MUL,
+        id: id, x: x, y: surfaceY(top, x), hp: Math.round(c.hp * HP_MUL), maxHp: Math.round(c.hp * HP_MUL),
         stam: c.move * K, maxStam: c.move * K, ang: face > 0 ? 50 : 130, pow: 60, face: face, dead: false,
         energy: 20, skillOn: false, shield: false, pwr: false, dbl: false, dmgMul: 1,
       };
@@ -20826,7 +20831,7 @@ var FortEngine = (function () {
   }
   function applyItem(st, pi, type) {
     var p = st.p[pi];
-    if (type === 'hp') p.hp = Math.min(p.maxHp, p.hp + 28 * HP_MUL);
+    if (type === 'hp') p.hp = Math.min(p.maxHp, p.hp + Math.round(28 * HP_MUL));
     else if (type === 'shield') p.shield = true;
     else if (type === 'power') p.pwr = true;
     else if (type === 'dbl') p.dbl = true;
@@ -20836,7 +20841,7 @@ var FortEngine = (function () {
     var p = st.p[pi], c = CHARS[p.id];
     if (st.over || p.skillOn || p.energy < 100 || !c.skill) return false;
     p.energy = 0; p.skillOn = true;
-    if (c.skill.heal) p.hp = Math.min(p.maxHp, p.hp + c.skill.heal * HP_MUL);
+    if (c.skill.heal) p.hp = Math.min(p.maxHp, p.hp + Math.round(c.skill.heal * HP_MUL));
     if (c.skill.shield) p.shield = true;
     st.events.push({ type: 'skill', idx: pi });
     return true;
@@ -20921,7 +20926,7 @@ var FortEngine = (function () {
     mulberry32: mulberry32, genTerrain: genTerrain, surfaceY: surfaceY, useSkill: useSkill, stageConfig: stageConfig, ITEMS: ITEMS, FOES: FOES, BOSSES: BOSSES,
     newGame: newGame, effective: effective, moveStep: moveStep, settle: settle,
     trace: trace, fire: fire, resolve: resolve, endTurn: endTurn,
-    aiPlan: aiPlan, aiAim: aiAim, bestShot: bestShot, nearest: nearest, aliveCount: aliveCount,
+    aiPlan: aiPlan, aiAim: aiAim, bestShot: bestShot, nearest: nearest, HP_MUL: HP_MUL, aliveCount: aliveCount,
   };
 })();
 if (typeof module !== 'undefined') module.exports = FortEngine;
@@ -21965,7 +21970,7 @@ function ftRenderGuide() {
       <div class="ft-gw">무기 · ${esc(c.proj.label)}</div>
       <div class="ft-gp"><b>${esc(c.pTitle)}</b> ${esc(c.pDesc)}</div>
       <div class="ft-gp"><b>스킬 · ${esc(c.skill.name)}</b> ${esc(c.skill.desc)}</div>
-      <div class="ft-gs">체력 ${c.hp} · 데미지 ${c.proj.dmg} · 범위 ${c.proj.rad} · 이동 ${c.move}</div></div></div>`;
+      <div class="ft-gs">체력 ${Math.round(c.hp * FortEngine.HP_MUL)} · 데미지 ${c.proj.dmg} · 범위 ${c.proj.rad} · 이동 ${c.move}</div></div></div>`;
   }).join('');
 }
 
@@ -22314,6 +22319,7 @@ function ftBeginTurn(noWait) {
   FT.human = FT.mode === 'pvp' ? (!!FT.net && pi === FT.net.me) : pi === 0;
   if (FT.mode === 'pvp' && FT.net) { FT.net.mv = []; FT.net.sk = 0; }
   FT.tl = FT.human ? FT.tmax : 0; FT.tick = Math.ceil(FT.tl);
+  FT.tDead = FT.human ? Date.now() + FT.tmax * 1000 : 0; FT.tOnline = !!(FT.mode === 'pvp' && FT.net && !FT.net.local);   // 온라인은 실제 시계 기준(화면을 벗어나도 시간은 흐른다)
   ftDrain(); ftSyncCtl();
   if (!FT.human) { if (FT.mode === 'pvp' && !(FT.net && FT.net.local)) ftNetPump(); else ftAiTurn(); }
 }
@@ -22433,7 +22439,7 @@ function ftBoom(x, y, r, big, kind, eq, ground) {
 function ftPop(x, y, txt, c, size) { FT.pops.push({ x, y, txt, c: c || '#e0332a', size: size || 18, t: 0 }); }
 
 /* 이벤트(상자 투하/획득/파괴, 스킬 발동)를 화면 연출로 바꾼다 */
-const FT_ITEM_TXT = { hp: ['+28 회복', '#5fe08a'], shield: ['실드 획득', '#7fd0ff'], power: ['파워샷 장전', '#ffb347'], dbl: ['더블샷 장전', '#d9a6ff'], stam: ['이동력 회복', '#9ad0ff'] };
+const FT_ITEM_TXT = { hp: ['+42 회복', '#5fe08a'], shield: ['실드 획득', '#7fd0ff'], power: ['파워샷 장전', '#ffb347'], dbl: ['더블샷 장전', '#d9a6ff'], stam: ['이동력 회복', '#9ad0ff'] };
 function ftDrain() {
   const st = FT.st; if (!st || !st.events.length) return false;
   const evs = st.events.splice(0, st.events.length);
@@ -22648,8 +22654,9 @@ function ftUpdate(dt0, now) {
     if (v.hit > 0) v.hit = Math.max(0, v.hit - dt0);
   });
   // 내 차례 제한 시간
-  if (FT.st && !FT.paused && FT.human && (FT.phase === 'aim' || FT.phase === 'gauge') && !FT.st.over && !FT.aiTween) {
-    FT.tl -= dt0;
+  if (FT.st && FT.paused && FT.tDead && !FT.tOnline) FT.tDead += dt0 * 1000;   // 연습(AI) 모드의 포기 팝업 중에는 시간이 멈춘다
+  if (FT.st && (!FT.paused || (FT.tDead && FT.tOnline)) && FT.human && (FT.phase === 'aim' || FT.phase === 'gauge') && !FT.st.over && !FT.aiTween) {
+    FT.tl = FT.tDead ? (FT.tDead - Date.now()) / 1000 : FT.tl - dt0;
     const sec = Math.ceil(FT.tl);
     if (sec !== FT.tick) { FT.tick = sec; if (sec <= 5 && sec > 0) { gmSnd('count'); gmVib(15); } }
     if (FT.tl <= 0) {
@@ -23362,8 +23369,15 @@ function ftDrawChar(ctx, i, active, X, Y, sc, st) {
   if (A) ctx.restore();
   if (ko) ctx.restore();
   if (!FT.st || ko) return;
-  const bw = 60 * sc * (z > 1 ? 1.1 : 1) + 8, bh = Math.max(6, 7 * sc), bx = sx - bw / 2, by = sy - hH * z - 14 * sc;
-  const bb = sy + 7 * sc;   // HP 막대는 발밑에 둔다 (오라와 겹치지 않게)
+  const bw = 60 * sc * (z > 1 ? 1.1 : 1) + 8, bh = Math.max(6, 7 * sc), bx = sx - bw / 2, byTop = sy - hH * z - 14 * sc;
+  // 닉네임+HP 막대는 항상 최상단: 오라가 있으면 오라 위, 칭호가 있으면 칭호 위
+  const auraH = eq && eq.aura && eq.aura !== 'none' ? (eq.aura === 'rk_crown' ? .58 : .26) * hH * z : 0;
+  const bd = ftGearById('badge', eq.badge); let ty = byTop - auraH - 4;   // 칭호 중심 y (머리/오라 바로 위)
+  let by = bd ? ty - 7 - 12 * sc : byTop - auraH;                         // HP 막대 윗변
+  { const mr = FT.miniRect; let lim = FT.hudH + 20;
+    if (mr && sx > mr.x - 50 && sx < mr.x + mr.w + 50) lim = Math.max(lim, mr.y + mr.h + 20);   // 미니맵과도 겹치지 않게
+    if (by < lim) { const sh = lim - by; by += sh; ty += sh; } }   // 화면 위로 잘리면 통째로 내려서 보이게
+  const bb = by;
   ctx.fillStyle = 'rgba(0,0,0,.7)'; ftRR(ctx, bx - 1.5, bb - 1.5, bw + 3, bh + 3 + 4, 4); ctx.fill();
   const r = ftClamp(p.hp / p.maxHp, 0, 1);
   ctx.fillStyle = r > .5 ? '#3ecf5a' : r > .25 ? '#f2b32a' : '#e0332a';
@@ -23377,17 +23391,16 @@ function ftDrawChar(ctx, i, active, X, Y, sc, st) {
   const nm = `${ftNameOf(i, c.name)}${tag ? ' ' + tag : ''}`;
   ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.85)'; ctx.strokeText(nm, sx, by - 3);
   ctx.fillStyle = '#fff'; ctx.fillText(nm, sx, by - 3);
-  const bd = ftGearById('badge', eq.badge);
   if (bd) {
     const tx = ftBadgeLabel(bd), gp = bd.ico === '@glove' ? 14 : 0; ctx.font = `800 ${Math.max(9, 10 * (sc * .5 + .55))}px Jua, Pretendard, sans-serif`;
-    const tw = ctx.measureText(tx).width + 12 + gp, ty = by - 25;
+    const tw = ctx.measureText(tx).width + 12 + gp;
     const bT = ftTier('badge', eq.badge);
     if (bT >= 3) { const gg = ctx.createLinearGradient(sx - tw / 2, 0, sx + tw / 2, 0); const ph = (FT.t * .8) % 1; gg.addColorStop(0, '#6a4a05'); gg.addColorStop(Math.max(0, ph - .15), '#c98c00'); gg.addColorStop(ph, '#fff3b0'); gg.addColorStop(Math.min(1, ph + .15), '#c98c00'); gg.addColorStop(1, '#6a4a05'); ctx.save(); ctx.shadowColor = '#ffd24a'; ctx.shadowBlur = 10; ctx.fillStyle = gg; ftRR(ctx, sx - tw / 2, ty - 8, tw, 16, 8); ctx.fill(); ctx.restore(); ctx.strokeStyle = '#fff3b0'; ctx.lineWidth = 1.4; ctx.stroke(); }
     else { ctx.fillStyle = 'rgba(20,16,4,.78)'; ftRR(ctx, sx - tw / 2, ty - 7, tw, 14, 7); ctx.fill(); ctx.strokeStyle = '#f2c94c'; ctx.lineWidth = 1; ctx.stroke(); }
     ctx.textBaseline = 'middle'; ctx.fillStyle = bT >= 3 ? '#2a1a02' : '#ffe08a'; ctx.fillText(tx, sx + gp / 2, ty + .5); if (gp) ftBadgeIcon(ctx, bd, sx - tw / 2 + 11, ty, 13); ctx.textBaseline = 'bottom';
   }
   if (active) {
-    const my = by - (bd ? 47 : 26) + Math.sin(FT.t * 7) * 2.5;
+    const my = Math.max(FT.hudH + 6, by - 24) + Math.sin(FT.t * 7) * 2.5;
     ctx.fillStyle = '#f2b32a'; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(sx - 6, my - 7); ctx.lineTo(sx + 6, my - 7); ctx.lineTo(sx, my + 1); ctx.closePath(); ctx.stroke(); ctx.fill();
   }
@@ -23429,7 +23442,7 @@ function ftDrawWalls(ctx, w, h, X, Y, sc, floorY, Wd) {
    · 시드가 같아서 모든 화면의 시작 상태(지형/위치/바람)가 똑같다.
    · 내 차례: 이동/스킬/각도/파워를 fort_pvp_fire 로 올리고, 끝나면 지형·체력 스냅샷을 fort_pvp_end 로 올린다.
    · 남의 차례: 올라온 행동을 그대로 재생하고, 끝나면 스냅샷으로 상태를 맞춘다(기기마다 계산이 미세하게 달라도 어긋나지 않게).
-   · 접속이 끊긴 차례는 50초 뒤 누구나 넘기고(fort_pvp_skip), 2번 연속이면 탈락한다. */
+   · 접속이 끊긴 차례는 24초 뒤 누구나 넘긴다(fort_pvp_skip, 탈락 없음). */
 FT.net = null;
 let FT_NET_SIZE = 2;
 const FT_NET_POLL = 1000;
@@ -23623,8 +23636,8 @@ function ftNetOnRoom(d) {
     if (d.turn_no > st.turnNo) ftNetForce(d);
     else if (d.turn_no === st.turnNo && d.turn !== st.turn && d.status === 'playing') { st.turn = d.turn; ftBeginTurn(); }
   }
-  // 차례인 사람이 사라졌다면(50초 무응답) 누구나 넘긴다
-  if (!st.over && d.status === 'playing' && d.turn !== n.me && d.age > 50 && !n.skipSent) { n.skipSent = d.turn_no; ftRpc('fort_pvp_skip', { p_room: n.room, p_turn_no: d.turn_no }); }
+  // 차례인 사람이 사라졌다면(24초 무응답) 누구나 넘긴다
+  if (!st.over && d.status === 'playing' && d.turn !== n.me && d.age > 24 && !n.skipSent) { n.skipSent = d.turn_no; ftRpc('fort_pvp_skip', { p_room: n.room, p_turn_no: d.turn_no }); }
   if (n.skipSent && n.skipSent !== d.turn_no) n.skipSent = 0;
 }
 function ftNetKill(i, why) {
