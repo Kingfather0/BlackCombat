@@ -12694,6 +12694,9 @@ h1.page.gm-h1 .gm-listbtn { margin-left: auto; }
 .ft-place em { font-style: normal; font-size: 11.5px; color: #8d93a3; }
 @media (max-height: 420px) { .fl-me img { height: 38px; } .fl-slot { min-height: 54px; } .fl-slot img { height: 28px; } .fl-body { gap: 5px; } .fl-desc { font-size: 11px; } }
 
+.ft-pvprow { gap: 6px; }
+.ga-fort .ft-pvprow .g-start.ft-mbtn { flex: 1 1 0; min-width: 0; padding-left: 4px; padding-right: 4px; font-size: 15px; }
+
   </style>
 </head>
 
@@ -21769,8 +21772,8 @@ function viewGameFort() {
       <div class="gt-sub">BLACK CAGE</div>
       <div class="ft-rank" id="ftRank"></div>
       <div class="gt-desc">선수마다 <b>다른 무기와 스킬</b>!<br>바람 읽고, 타이밍 맞추고, <b>턱</b>을 노려라</div>
-      <div class="ft-btnrow ft-mainrow"><button class="g-start g-en ft-mbtn" id="ftStartAi" type="button">AI 매칭</button>
-      <button class="g-start ft-mbtn ft-pvpb" id="ftStartPvp" type="button">PvP 매칭<small>2~4인</small></button></div>
+      <div class="ft-btnrow ft-mainrow"><button class="g-start g-en ft-mbtn" id="ftStartAi" type="button">AI 매칭</button></div>
+      <div class="ft-btnrow ft-mainrow ft-pvprow"><button class="g-start ft-mbtn ft-pvpb" id="ftStartPvp2" data-n="2" type="button">2인 매칭</button><button class="g-start ft-mbtn ft-pvpb" id="ftStartPvp3" data-n="3" type="button">3인 매칭</button><button class="g-start ft-mbtn ft-pvpb" id="ftStartPvp4" data-n="4" type="button">4인 매칭</button></div>
       <div class="ft-btnrow"><button class="ft-ibtn ft-dressb" id="ftDressBtn" type="button" aria-label="꾸미기" title="꾸미기">${FT_GIFT_SVG}<i id="ftDressNew"></i></button></div>
       <div class="gt-hint">끝없는 스테이지 · 5판마다 보스 · 선수별 꾸미기 해금</div>
     </div>
@@ -21953,7 +21956,7 @@ function ftBindUI() {
   fb.onclick = e => e.stopPropagation();
   $('ftStartAi').onclick = e => { e.stopPropagation(); gmCtx(); FT.mode = 'ai'; FT.stage = 1; FT.cp = 1; FT.lives = 3; FT.streak = 0; FT.foeOff = Math.floor(Math.random() * 6); ftShowSelect(0); };
   $('ftDressBtn').onclick = e => { e.stopPropagation(); gmCtx(); ftOpenDress(); };
-  $('ftStartPvp').onclick = e => { e.stopPropagation(); gmCtx(); ftNetEnter(); };
+  [2, 3, 4].forEach(k => { $('ftStartPvp' + k).onclick = e => { e.stopPropagation(); gmCtx(); ftNetEnter(k); }; });
   // 화면 터치: 내 캐릭터 근처 드래그 = 각도 조준 / 그 밖의 드래그 = 카메라 이동 / 톡 누르기 = 그쪽으로 조준 / 미니맵 = 그 위치로 이동
   const cv = $('gCanvas');
   const aimFrom = e => {
@@ -23335,7 +23338,8 @@ function ftNetApply(sn) {
 }
 
 /* ══════════ 입장 / 대기실 ══════════ */
-function ftNetEnter() {
+function ftNetEnter(size) {
+  FT_NET_SIZE = size || FT_NET_SIZE;
   if (!ftNetOK()) { ftNetToast('PvP는 로그인 후 이용할 수 있어요', '카카오 로그인 후 다시 눌러주세요'); return; }
   FT.mode = 'pvp'; FT.sel = [null, null]; FT.net = null;
   ftShowSelect(0);
@@ -23350,7 +23354,7 @@ function ftNetLobby() {
   FT.net = { phase: 'idle', size: FT_NET_SIZE, me: -1, players: [], char: FT.sel[0], tok: gmToken, actSeen: 0, snapNo: 0, snap: null, mv: [], sk: 0 };
   const ts = document.getElementById('gTitle'); if (ts) ts.style.display = 'none';
   const so = document.getElementById('ftSel'); if (so) so.style.display = 'none';
-  o.style.display = ''; ftNetRender();
+  o.style.display = ''; ftNetFind();
 }
 function ftNetRender() {
   const o = document.getElementById('ftLobby'), n = FT.net; if (!o || !n) return;
