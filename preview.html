@@ -12736,6 +12736,10 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 
 .ga-fort #gOver .ft-ovicons { gap: 16px; margin-top: 10px; padding: 6px 10px 8px; justify-content: center; flex-wrap: nowrap; }
 .ft-ibtn.ft-chg { color: #cfe3ff; border-color: #7fb4ff; background: rgba(127,180,255,.10); box-shadow: 0 3px 0 rgba(20,40,90,.8); }
+/* 꾸미기 상점: 선택 표시는 노란 테두리 대신 배경색으로 */
+.fd-it.on, .fd-it.rk.on { border-color: #2e3240; box-shadow: none; background: linear-gradient(180deg, #2563eb, #1d3f9e); }
+.fd-it.on small, .fd-it.on b { color: #fff; }
+.fd-it.rk.on { border-color: #b8860b; }
 
   </style>
 </head>
@@ -20585,7 +20589,7 @@ var FortEngine = (function () {
     var ix = Math.max(0, Math.min(W - 1, nx | 0));
     if (ny >= VOID_Y || st.top[ix] >= VOID_Y || st.top[Math.min(W - 1, ix + 1)] >= VOID_Y) {   // 바닥까지 뚫린 구멍: 사람이 걸어 들어가면 낙사(AI는 피한다)
       if (!allowVoid) return false;
-      p.x = nx; p.y = ny; p.hp = 0; p.dead = true; st.order.push(pi); p.face = dir;
+      p.x = nx; p.y = ny; p.hp = 0; p.dead = true; p.vd = true; st.order.push(pi); p.face = dir;
       st.events.push({ type: 'void', idx: pi });
       if (aliveCount(st) <= 1) { st.over = true; for (var wi = 0; wi < st.p.length; wi++) if (!st.p[wi].dead) st.winner = wi; }
       return true;
@@ -20607,7 +20611,7 @@ var FortEngine = (function () {
       var p = st.p[i], ny = surfaceY(st.top, p.x), drop = ny - p.y;
       p.y = ny;
       if (!p.dead && ny >= VOID_Y) {                 // 발밑 땅이 바닥까지 다 파이면 구멍으로 떨어져 낙사
-        p.hp = 0; p.dead = true; st.order.push(i);
+        p.hp = 0; p.dead = true; p.vd = true; st.order.push(i);
         falls.push({ idx: i, dmg: 0, direct: false, fall: true, voidDeath: true, ko: true });
         continue;
       }
@@ -20933,7 +20937,7 @@ var FortEngine = (function () {
   }
 
   return {
-    zoom: zoom, W: W, H: H, BASE: BASE, GRAV: GRAV, BODY_R: BODY_R, BODY_CY: BODY_CY, VMAX: VMAX, DT: DT, SLOPE: SLOPE,
+    zoom: zoom, W: W, H: H, BASE: BASE, VOID_Y: VOID_Y, GRAV: GRAV, BODY_R: BODY_R, BODY_CY: BODY_CY, VMAX: VMAX, DT: DT, SLOPE: SLOPE,
     CHARS: CHARS, ORDER: ORDER, MAP_IDS: MAP_IDS,
     mulberry32: mulberry32, genTerrain: genTerrain, surfaceY: surfaceY, useSkill: useSkill, stageConfig: stageConfig, ITEMS: ITEMS, FOES: FOES, BOSSES: BOSSES,
     newGame: newGame, effective: effective, moveStep: moveStep, settle: settle,
@@ -22477,7 +22481,7 @@ function ftDrain() {
       ftPop(ev.x, ev.y - 54, it[0], it[1], 19); gmSnd('perfect'); gmVib(25);
       for (let i = 0; i < 16; i++) { const a = Math.random() * 6.28, v = 40 + Math.random() * 110; FT.parts.push({ x: ev.x, y: ev.y - 10, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 50, life: .6 + Math.random() * .3, sz: 1.6 + Math.random() * 1.8, c: i % 2 ? it[1] : '#fff3b0', shape: 'star', rot: 0, vr: 6, g: 120 }); }
     } else if (ev.type === 'void') {
-      const vp = st.p[ev.idx]; ftPop(vp.x, vp.y - 84, 'TKO!', '#ff4d6d', 24); gmSnd('crash'); gmVib([80, 40, 100]);
+      const vp = st.p[ev.idx]; ftPop(vp.x, vp.y - 84, '낙사!', '#ff4d6d', 24); gmSnd('crash'); gmVib([80, 40, 100]);
       if (!st.over) ftDeathFx(ev.idx);
     } else if (ev.type === 'crate_break') {
       for (let i = 0; i < 12; i++) FT.parts.push({ x: ev.x, y: ev.y - 8, vx: (Math.random() - .5) * 180, vy: -60 - Math.random() * 120, life: .8, sz: 2 + Math.random() * 2, c: i % 2 ? '#e0467f' : '#ffc4e0', shape: 'sq', rot: 0, vr: 9 });
@@ -22504,7 +22508,7 @@ function ftResolveOne(f) {
     const p = st.p[ev.idx];
     FT.vis[ev.idx].hit = .45;
     if (FT.mode === 'pvp' ? (FT.net && ev.idx === FT.net.me) : ev.idx === 0) FT.hurt = Math.min(1, FT.hurt + (s.sky ? .25 : .7));
-    if (ev.voidDeath) { ftPop(p.x, p.y - 84, 'TKO!', '#ff4d6d', 24); gmSnd('crash'); return; }
+    if (ev.voidDeath) { ftPop(p.x, p.y - 84, '낙사!', '#ff4d6d', 24); gmSnd('crash'); return; }
     if (ev.fall) { ftPop(p.x, p.y - 84, '낙하 -' + ev.dmg, '#ffb347', 18); return; }
     ftPop(p.x + (Math.random() - .5) * 26, p.y - 84 - (s.sky ? Math.random() * 26 : 0), (ev.direct ? '직격! ' : '') + '-' + ev.dmg, ev.direct ? '#ff3b3b' : '#ffb347', ev.direct ? 23 : 18);
     if (ev.cover) ftPop(p.x, p.y - 108, '엄폐!', '#7fd0ff', 16);
@@ -22544,7 +22548,7 @@ function ftKO() {
   const st = FT.st, E = FortEngine, w = st.winner, l = st.p.length === 2 ? 1 - w : (st.order.length ? st.order[st.order.length - 1] : (w + 1) % st.p.length);
   FT.phase = 'ko'; FT.g = null; FT.tl = 0;
   const lp = st.p[l], wp = st.p[w];
-  FT.ko = { t: 0, idx: l, win: w, ox: 0, oy: 0, vx: (lp.x >= wp.x ? 1 : -1) * 150, vy: -300, rot: 0, dir: lp.x >= wp.x ? 1 : -1, landed: false, done: false };
+  FT.ko = { txt: lp.vd ? '낙사!' : 'K.O.', t: 0, idx: l, win: w, ox: 0, oy: 0, vx: (lp.x >= wp.x ? 1 : -1) * 150, vy: -300, rot: 0, dir: lp.x >= wp.x ? 1 : -1, landed: false, done: false };
   FT.shake = 22; FT.flash = 1; FT.hitstop = .12;
   gmSnd('crash'); gmVib([120, 60, 160]);
   const cols = ['#ff4d6d', '#ffd24a', '#4de3ff', '#8dff6b', '#c77dff', '#ffffff'];
@@ -22575,7 +22579,7 @@ function ftOver() {
       let lifeTxt = ''; if (cfg.boss) { FT.cp = FT.stage + 1; if (FT.lives < 3) { FT.lives++; lifeTxt = ' · 목숨 +1'; } else lifeTxt = ' · 체크포인트 저장'; } FT.nextStage = FT.stage + 1;
       const nc = E.stageConfig(FT.stage + 1, FT.foeOff), nf = E.CHARS[nc.foe];
       nextInfo = `<div class="ft-next">다음 STAGE ${FT.stage + 1} · ${nc.boss ? '<b class="bos">BOSS</b> ' : ''}${esc(nf.name)}</div>`;
-      html = `<div class="go-ko">${cfg.boss ? '보스 격파! 👑' : 'KO 승리! 🏆'}</div>
+      html = `<div class="go-ko">${cfg.boss ? '보스 격파! 👑' : (st.p[1].vd ? '낙사 승리! 🏆' : 'KO 승리! 🏆')}</div>
         <div class="go-score">${FT.streak}<span>연승</span></div>
         <div class="go-cmp">STAGE ${FT.stage} 클리어 — ${esc(oc.name)} 격파${lifeTxt}</div>
         <div class="go-grade">${FT.streak >= rec.best && FT.streak > 1 ? '🔥 최고 기록 경신 중!' : `${esc(E.CHARS[st.p[0].id].name)} 통산 ${me.w}승`}</div>
@@ -22585,7 +22589,7 @@ function ftOver() {
     } else {
       FT.streak = 0; FT.lives--;
       const dead = FT.lives <= 0; if (dead) { FT.nextStage = FT.cp; FT.lives = 3; } else FT.nextStage = FT.stage;
-      html = `<div class="go-ko">KO패… 링이 차갑다</div>
+      html = `<div class="go-ko">${st.p[0].vd ? '낙사… 링이 차갑다' : 'KO패… 링이 차갑다'}</div>
         <div class="go-score">${dead ? '목숨 소진' : '남은 목숨 <span class="ft-hrt">' + '♥'.repeat(FT.lives) + '</span>'}</div>
         <div class="go-cmp">${esc(oc.name)}에게 패배 (STAGE ${FT.stage})</div>
         <div class="go-grade">${dead ? `STAGE ${FT.cp}부터 다시 도전해요 (최고 ${rec.best}연승)` : `같은 스테이지에 재도전! (최고 ${rec.best}연승)`}</div>
@@ -22944,12 +22948,19 @@ function ftDraw() {
   // 지형
   const top = st.top;
   const xl = Math.min(-10, X(0) - 10), xr = Math.max(w + 10, X(Wd - 1) + 10);
-  const path = () => {
-    ctx.beginPath(); ctx.moveTo(xl, Y(top[0]));
-    for (let x = 0; x < Wd; x += 2) ctx.lineTo(X(x), Y(top[x]));
-    ctx.lineTo(X(Wd - 1), Y(top[Wd - 1])); ctx.lineTo(xr, Y(top[Wd - 1]));
+  // 바닥까지 뚫린 구멍(낙사 구간)은 선도 면도 완전히 끊어서 진짜 구멍처럼 보이게 한다
+  const VY = E.VOID_Y;
+  const runs = []; { let s = -1; for (let x = 0; x < Wd; x++) { const hole = top[x] >= VY; if (!hole && s < 0) s = x; if ((hole || x === Wd - 1) && s >= 0) { runs.push([s, hole ? x - 1 : x]); s = -1; } } }
+  const runPath = (r, closeIt) => {
+    const a = r[0], b = r[1], x0 = a === 0 ? xl : X(a), x1 = b === Wd - 1 ? xr : X(b);
+    ctx.moveTo(x0, Y(top[a]));
+    for (let x = a; x <= b; x += 2) ctx.lineTo(X(x), Y(top[x]));
+    ctx.lineTo(X(b), Y(top[b])); ctx.lineTo(x1, Y(top[b]));
+    if (closeIt) { ctx.lineTo(x1, h + 10); ctx.lineTo(x0, h + 10); ctx.closePath(); }
   };
-  path(); ctx.lineTo(xr, h + 10); ctx.lineTo(xl, h + 10); ctx.closePath();
+  const path = () => { ctx.beginPath(); runs.forEach(r => runPath(r, false)); };
+  const pathFill = () => { ctx.beginPath(); runs.forEach(r => runPath(r, true)); };
+  pathFill();
   const mat = ctx.createLinearGradient(0, Y(60), 0, h);
   mat.addColorStop(0, 'rgba(36,36,42,.98)'); mat.addColorStop(1, 'rgba(10,10,13,.99)');
   ctx.fillStyle = mat; ctx.fill();
@@ -22958,7 +22969,7 @@ function ftDraw() {
   ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1;
   for (let yy = 60; yy < E.H + 40; yy += 13) { ctx.beginPath(); ctx.moveTo(0, Y(yy)); ctx.lineTo(w, Y(yy)); ctx.stroke(); }
   ctx.restore();
-  ctx.save(); path(); ctx.lineTo(xr, h + 10); ctx.lineTo(xl, h + 10); ctx.closePath(); ctx.clip(); path(); ctx.lineWidth = 18 * sc; ctx.lineJoin = 'round'; ctx.strokeStyle = hexA(mcol, .2); ctx.stroke(); path(); ctx.lineWidth = 6 * sc; ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.stroke(); ctx.restore();
+  ctx.save(); pathFill(); ctx.clip(); path(); ctx.lineWidth = 18 * sc; ctx.lineJoin = 'round'; ctx.strokeStyle = hexA(mcol, .2); ctx.stroke(); path(); ctx.lineWidth = 6 * sc; ctx.strokeStyle = 'rgba(255,255,255,.07)'; ctx.stroke(); ctx.restore();
   path(); ctx.lineWidth = Math.max(3, 5 * sc); ctx.lineJoin = 'round'; ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.stroke();
   path(); ctx.lineWidth = Math.max(1.6, 2.5 * sc); ctx.strokeStyle = mcol; ctx.stroke();
   ftDrawAmb(ctx, w, h, floorY, mcol, st);
@@ -23312,9 +23323,9 @@ function ftDrawKO(ctx, w, h) {
   ctx.translate(cx, cy); ctx.rotate(-.07);
   ctx.font = `800 ${fs}px Jua, Pretendard, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.globalAlpha = ftClamp((t - .05) * 8, 0, 1);
-  ctx.lineJoin = 'round'; ctx.lineWidth = fs * .16; ctx.strokeStyle = '#2a0805'; ctx.strokeText('K.O.', 0, 0);
+  ctx.lineJoin = 'round'; ctx.lineWidth = fs * .16; ctx.strokeStyle = '#2a0805'; ctx.strokeText(k.txt || 'K.O.', 0, 0);
   const g = ctx.createLinearGradient(0, -fs / 2, 0, fs / 2); g.addColorStop(0, '#fff3b0'); g.addColorStop(.5, '#ffd24a'); g.addColorStop(1, '#e0332a');
-  ctx.fillStyle = g; ctx.fillText('K.O.', 0, 0);
+  ctx.fillStyle = g; ctx.fillText(k.txt || 'K.O.', 0, 0);
   ctx.restore();
 }
 
