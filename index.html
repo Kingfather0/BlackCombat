@@ -21084,10 +21084,28 @@ function ftTitle(w) { let t = FT_TITLES[0]; FT_TITLES.forEach(x => { if (w >= x[
 
 /* ── 기록 저장/불러오기 ── */
 function ftEmptyEq() { return { aura: '', glow: '', shine: '', ring: '', trail: '', blast: '', cast: '', badge: '', line: '' }; }
+/* 기록이 하나라도 쌓여 있는지(빈 기록과 구분) */
+function ftHasProgress(o) {
+  if (!o || typeof o !== 'object') return false;
+  if ((+o.games || 0) > 0 || (+o.wins || 0) > 0 || (+o.bestStage || 0) > 0 || (+o.best || 0) > 0 || (+o.cp || 0) > 1) return true;
+  return Object.keys(o.f || {}).some(k => { const f = o.f[k]; return f && ((+f.w || 0) > 0 || (+f.s || 0) > 0 || (+f.pw || 0) > 0 || (+f.ps || 0) > 0 || (+f.cp || 0) > 1); });
+}
+/* 예전(기기 저장, ft_v1) 기록은 이 기기에서 처음 로그인한 계정으로 한 번 옮긴다. 이 계정 기록이 비어 있을 때만 덮고, 원본은 백업으로 남겨 둔다 */
+function ftLegacyMigrate() {
+  if (typeof gmMyNick === 'undefined' || !gmMyNick) return;
+  try {
+    if (localStorage.getItem('ft_v1_taken')) return;
+    const old = localStorage.getItem('ft_v1'); if (!old) return;
+    let cur = null; try { cur = JSON.parse(localStorage.getItem(ftKey()) || 'null'); } catch (e) { }
+    if (!ftHasProgress(cur)) localStorage.setItem(ftKey(), old);
+    localStorage.setItem('ft_v1_taken', gmMyNick);
+  } catch (e) { }
+}
 function ftLoad() {
   const d = { best: 0, wins: 0, games: 0, bestStage: 0, f: {}, eqf: {}, seen: [], rank: 0, rankAt: 0, hintAng: 0, cp: 1, ts: 0 };
   try {
-    let raw = localStorage.getItem(ftKey()); if (!raw && gmMyNick && !(typeof sb !== 'undefined' && sb)) raw = localStorage.getItem('ft_v1');   // 서버 없이 쓸 때는 예전 기록을 그대로 보여준다
+    ftLegacyMigrate();
+    let raw = localStorage.getItem(ftKey());
     const o = JSON.parse(raw || '{}');
     d.best = +o.best || 0; d.bestStage = +o.bestStage || 0; d.wins = +o.wins || 0; d.games = +o.games || 0;
     if (o.f && typeof o.f === 'object') d.f = o.f;
@@ -21143,14 +21161,22 @@ async function ftSyncProfile() {
     const key = ftKey(), nick = gmMyNick;
     const { data, error } = await sb.rpc('fort_profile_get'); if (error || !data || data.ok === false) return false;
     if (nick !== gmMyNick) return false;
-    let migrated = false;
-    if (!data.exists) {      // 예전(기기 저장, ft_v1) 기록이 있으면 처음 로그인한 계정으로 한 번만 옮겨 와서 유지한다
-      try { const old = localStorage.getItem('ft_v1'); if (old && !localStorage.getItem(key)) { localStorage.setItem(key, old); localStorage.removeItem('ft_v1'); migrated = true; } } catch (e) { }
+    const loc = ftLoad(), sp = data.exists && data.data && typeof data.data === 'object' ? data.data : null;
+    const lp = ftHasProgress(loc), spp = ftHasProgress(sp);
+    if (lp && !spp) { ftSave(ftLoad()); return false; }      // 새 시각으로 다시 저장해서 서버의 빈 기록을 덮는다                         // 서버엔 빈 기록뿐: 이 기기 기록이 우선
+    if (spp && !lp) { localStorage.setItem(key, JSON.stringify(sp)); return true; }
+    if (spp && lp) {
+      if ((+data.ts || 0) > (loc.ts || 0)) { localStorage.setItem(key, JSON.stringify(sp)); return true; }
+      if ((loc.ts || 0) > (+data.ts || 0)) ftPushNow();
+      return false;
     }
-    const loc = ftLoad();
-    if (!data.exists) { if (loc.games > 0 || loc.wins > 0) ftPushNow(); return migrated; }
-    if ((+data.ts || 0) > (loc.ts || 0) && data.data && typeof data.data === 'object') { localStorage.setItem(key, JSON.stringify(data.data)); return true; }
-    if ((loc.ts || 0) > (+data.ts || 0)) ftPushNow();
+    // 양쪽 다 비어 있음: 서버 랭킹에 내 기록이 있으면 그 수치로 복구한다(파이터별 세부 기록은 복구되지 않는다)
+    const rk = await sb.rpc('fort_get_ranking', { p_limit: 200 });
+    const row = rk && Array.isArray(rk.data) ? rk.data.find(r => r.nickname === nick) : null;
+    if (row && nick === gmMyNick) {
+      const o = ftLoad(); o.bestStage = +row.best_stage || 0; o.best = +row.best_streak || 0; o.wins = +row.wins || 0; o.games = Math.max(o.wins, +row.wins || 0);
+      ftSave(o); return true;
+    }
   } catch (e) { }
   return false;
 }
