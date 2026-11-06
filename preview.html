@@ -12431,6 +12431,12 @@
 .ft-gp b { font-size: 12.5px; color: #c4410f; margin-right: 3px; }
 .ft-gs { font-size: 11px; color: #8a94a6; }
 
+/* 블랙 베데타 */
+.gcard-legion .gc-ico { background: linear-gradient(135deg, #3a0d14, #0b0b10); display: flex; align-items: center; justify-content: center; font-size: 36px; }
+body[data-route="game"] .gcard-legion .gc-ico { background: #2a0d12 !important; }
+body[data-route="game"] .gcard-legion .gc-new { background: #e0222d; color: #fff; }
+#lgWrap { height: min(76vh, 760px); height: min(76dvh, 760px); aspect-ratio: 9 / 16; max-width: 100%; margin: 6px auto 0; border-radius: 12px; overflow: hidden; background: #000; }
+#lgFrame { width: 100%; height: 100%; border: 0; display: block; }
 /* 게임 메뉴 카드 */
 .gcard-fort .gc-ico { background: linear-gradient(135deg, #2a2a33, #0b0b10); }
 body[data-route="game"] .gcard-fort .gc-ico { background: #e3e6f0 !important; }
@@ -20205,6 +20211,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       if (sub === 'battle') return viewGameBattle();
       if (sub === 'quiz') return viewGameQuiz();
       if (sub === 'fort') return viewGameFort();
+      if (sub === 'legion') return viewGameLegion();
       return viewGameMenu();
     }
     function viewGameMenu() {
@@ -20230,6 +20237,16 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       <b>블랙 케이지</b>
       <span>WHO IS THE KING?!</span>
       <span class="gc-top" id="gTopFort">불러오는 중…</span>
+    </div>
+    <span class="gc-go">PLAY</span>
+  </a>
+  <a class="gcard gcard-legion" href="#/game/legion">
+    <span class="gc-new">NEW</span>
+    <div class="gc-ico"><span>🎭</span></div>
+    <div class="gc-b">
+      <b>블랙 베데타</b>
+      <span>모두가 갓파더! 군단을 키워 돌파하라</span>
+      <span class="gc-top">고척스카이돔 한정</span>
     </div>
     <span class="gc-go">PLAY</span>
   </a>
@@ -21856,6 +21873,16 @@ function ftOpenRules() {
   pushModal(ov);
 }
 
+/* ── 블랙 베데타 (선수 군단) — 별도 파일 legion.html 을 화면에 끼워 넣는다 ── */
+function viewGameLegion() {
+  const __g = __navGen;
+  gmToken++; gmClear(); gmCurGame = 'legion';
+  if (navStale(__g)) return;
+  $app.innerHTML = `
+  <h1 class="page gm-h1">🎭 블랙 베데타 <button class="bb-rules-btn-top gm-listbtn" id="lgBack" type="button">게임 목록</button></h1>
+  <div id="lgWrap"><iframe id="lgFrame" src="legion.html" allow="fullscreen" title="블랙 베데타"></iframe></div>`;
+  const b = document.getElementById('lgBack'); if (b) b.onclick = () => { location.hash = '#/game'; };
+}
 function viewGameFort() {
   const __g = __navGen;
   gmToken++; gmClear(); gmCurGame = 'fort';
