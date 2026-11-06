@@ -20331,8 +20331,9 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         set('gTopRun', fmt(top('run'), '점'));
         set('gTopPunch', fmt(top('punch'), 'kg'));
         set('gTopGrow', fmt(top('grow'), '점'));
+        { const lg = top('legion'); set('gTopLegion', lg ? `이번 주 🥇 <b>${esc(lg.nickname)}</b> · ${(+lg.combo || 0)}스테이지` : '아직 기록 없음 — 1위에 도전!'); }
       } catch (e) {
-        set('gTopRun', '랭킹 준비 중'); set('gTopPunch', '랭킹 준비 중'); set('gTopGrow', '랭킹 준비 중');
+        set('gTopRun', '랭킹 준비 중'); set('gTopPunch', '랭킹 준비 중'); set('gTopGrow', '랭킹 준비 중'); set('gTopLegion', '랭킹 준비 중');
       }
     }
     // 블랙 배틀은 미니게임 3종과 달리 주간 리셋이 없는 누적 전적이므로, 게임 메뉴 카드에는

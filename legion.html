@@ -467,7 +467,7 @@ function gateTrick(o,stage){
 }
 function gateTrickUpdate(o,dt){
   if(o.done||!o.tr)return;
-  if(dt<0){o.wn=0;return;}   // 이 게이트보다 먼저 일반 몬스터/군단 충돌과 싸워야 하면 움직일 이유가 없으니 가만히 둔다
+  if(dt<0){o.wn=0;if(o.ao>0)o.ao=Math.max(0,o.ao-.0175*4.2);return;}   // 이 게이트보다 먼저 일반 몬스터/군단 충돌과 싸워야 하면 움직일 이유가 없으니 가만히 둔다
   if(o.tr==='solo'){if(o.y>-40&&o.y<SQ_Y-240)o.ph+=dt*o.sp;o.cx=W/2+(W/2-o.cw/2-8)*Math.sin(o.ph);const L=o.cx<W/2;o.l=L?o.card:o.none;o.r=L?o.none:o.card;return;}
   if(o.ao>0)o.ao=Math.max(0,o.ao-dt*4.2);
   if(o.tr==='hide'){o.hide=o.y<SQ_Y-330;return;}
@@ -479,11 +479,12 @@ function startStage(){
   const g=G;
   const st=genStage(g.stage,g.ideal,g.pool);
   g.idealLeft=st.idealLeft;
-  g.speed=Math.min(400,100+g.stage*14);g.y0=null;
+  g.speed=Math.min(270,100+g.stage*11);g.y0=null;   // 카드를 읽을 수 있는 선에서 상한
+  const gsp=Math.round(210+Math.max(0,g.speed-150)*.9);   // 빨라질수록 카드 간격도 벌려 읽을 시간을 확보
   let y=-70;
   g.objs=st.ev.map(e=>{
     const o={t:e.t,y,done:false};
-    if(e.t==='G'){o.l=e.l;o.r=e.r;y-=210;if(e.solo){o.solo=1;o.card=e.l;o.none=e.r;}gateTrick(o,g.stage);}
+    if(e.t==='G'){o.l=e.l;o.r=e.r;y-=gsp;if(e.solo){o.solo=1;o.card=e.l;o.none=e.r;}gateTrick(o,g.stage);}
     else{o.hp=e.hp;o.mhp=e.hp;o.fl=0;o.seed=Math.floor(Math.random()*997);y-=(e.t==='C'?320:250);}
     return o;
   });
@@ -837,7 +838,8 @@ const SCRIPTS=[[0,1,0,1,99],[1,2,1,2,99],[0,2,4,99],[3,0,9,99],[6,1,6,0,99],[2,1
 const LAPX=[4,6,9,14,15,10,12];
 // ===== 보스 탄막 (슈팅 게임처럼 피하기) =====
 function bossShoot(dt){
-  const hitK=(G.state==='fight')?.125:.065;
+  const HS=1+Math.min(1.6,.045*(G.stage-1));   // 스테이지가 오를수록 한 방이 더 아프다 (22스테이지 ≈ ×1.95)
+  const hitK=((G.state==='fight')?.125:.065)*HS;
   const g=G,b=g.boss,fight=g.state==='fight';
   g.inv-=dt;if(g.hurt>0)g.hurt-=dt;
   const bx=b.x||W/2;
@@ -846,9 +848,9 @@ function bossShoot(dt){
     g.bcd-=dt;if(g.stun>0)g.stun-=dt;
     if(g.bcd<=0){
       const enr=fight?(g.ph>=2?.62:g.ph>=1?.8:1):1;
-      g.bcd=Math.max(.7,2.0-0.05*g.stage)*Math.pow(.92,lap)*rand(.85,1.15)*enr*(fight?.9:1);
+      g.bcd=Math.max(.5,2.0-0.07*g.stage)*Math.pow(.92,lap)*rand(.85,1.15)*enr*(fight?.9:1);
       const sx=bx,sy=b.y+(fight?20:30);
-      const sp=Math.min(390,165+g.stage*6)*(1+.06*lap);
+      const sp=Math.min(520,165+g.stage*11)*(1+.06*lap);
       const kinds=[0,1];if(g.stage>=3)kinds.push(2);if(g.stage>=6)kinds.push(3);if(g.stage>=8)kinds.push(4);if(g.stage>=12)kinds.push(5);
       const bi=(g.stage-1)%15;
       // 보스전: 보스마다 정해진 패턴 순서가 반복된다 → 외워서 공략. 큰 패턴 뒤에는 보스가 잠깐 멍해져서(딜타임) 공격 기회가 온다.
@@ -876,9 +878,9 @@ function bossShoot(dt){
           const fromL=Math.random()<.5,top=b.y+110,bot=SQ_Y+40,py=SQ_Y+(g.oy||0),gy=Math.max(top+60,Math.min(bot-60,py+rand(-80,80)));
           for(let y=top;y<=bot;y+=36){if(Math.abs(y-gy)<62)continue;g.eb.push({x:fromL?-12:W+12,y,vx:(fromL?1:-1)*sp*.85,vy:0,r:8,c:'#ff8a3c'});}
         }else if(k===0){            // 조준탄: 붉은 조준선이 먼저 뜨고 잠시 뒤 발사
-          const cnt=g.stage>=10?5:3,aimX=g.x,aimY=SQ_Y+(g.oy||0);
-          g.tele.push({sx,sy,tx:aimX,ty:aimY,t:0,dur:.55});
-          g.pend.push({t:.55,fn:()=>{const bb=g.boss;for(let i=0;i<cnt;i++){const tx=aimX+(i-(cnt-1)/2)*34,dy=Math.max(60,aimY-sy),dx=tx-sx,l=Math.hypot(dx,dy);orb(sx,sy,dx/l*sp*1.05,dy/l*sp*1.05,'#ff3b47');}ring(sx,sy,'#ff3b47',true);}});
+          const cnt=g.stage>=20?7:g.stage>=10?5:3,aimX=g.x,aimY=SQ_Y+(g.oy||0),td=Math.max(.32,.55-.012*g.stage);   // 높은 스테이지일수록 조준선이 짧다
+          g.tele.push({sx,sy,tx:aimX,ty:aimY,t:0,dur:td});
+          g.pend.push({t:td,fn:()=>{const bb=g.boss;for(let i=0;i<cnt;i++){const tx=aimX+(i-(cnt-1)/2)*34,dy=Math.max(60,aimY-sy),dx=tx-sx,l=Math.hypot(dx,dy);orb(sx,sy,dx/l*sp*1.05,dy/l*sp*1.05,'#ff3b47');}ring(sx,sy,'#ff3b47',true);}});
         }else if(k===1){      // 부채꼴
           const cnt=5+Math.min(4,Math.floor(g.stage/6))*2/2|0;
           for(let i=0;i<cnt;i++){const a=(i-(cnt-1)/2)*0.34;orb(sx,sy,Math.sin(a)*sp,Math.cos(a)*sp,'#c06bff');}
@@ -903,7 +905,8 @@ function bossShoot(dt){
         }
       };
       const k0=pick();fire(k0);
-      if(fight&&g.ph>=1&&k0<4)fire([0,1,2,3][Math.floor(rand(0,4))]);      // 분노 단계: 가벼운 패턴은 하나 더
+      if(fight&&g.ph>=1&&k0<4)fire([0,1,2,3][Math.floor(rand(0,4))]);
+      else if(fight&&k0<4&&g.stage>=10&&Math.random()<Math.min(.7,(g.stage-8)*.045))fire([0,1,2,3][Math.floor(rand(0,4))]);   // 높은 스테이지: 패턴이 겹쳐서 날아온다      // 분노 단계: 가벼운 패턴은 하나 더
       if([6,9,10,12,13,15].includes(k0))g.bcd+=1.1;
       if(k0===99)g.bcd=2.0;
       b.fl=.1;ring(sx,sy,'#ff3b47',true);g.flash.push({x:sx,y:sy,t:.1,col:'#ff3b47',s:1.6});
@@ -944,12 +947,12 @@ function bossShoot(dt){
   // 장판: 붉은 원이 차오르다 폭발
   for(const a of g.aoe){a.t+=dt;
     if(!a.boom&&a.t>=a.warn){a.boom=true;g.shake=Math.max(g.shake,.5);ring(a.x,a.y,'#ff7a3c',true);burst(a.x,a.y,'#ffb04a',22);boom();
-      const dx=g.x-a.x,dy=pyy-a.y;if(g.inv<=0&&dx*dx+dy*dy<(a.r+pr0*.6)*(a.r+pr0*.6)){if(damage(fight?.17:.09))return;}}}
+      const dx=g.x-a.x,dy=pyy-a.y;if(g.inv<=0&&dx*dx+dy*dy<(a.r+pr0*.6)*(a.r+pr0*.6)){if(damage((fight?.17:.09)*HS))return;}}}
   g.aoe=g.aoe.filter(a=>a.t<a.warn+.4);
   // 회전 레이저
   if(g.sw){const w=g.sw;w.t+=dt;
     if(w.t>w.warn){const a=w.a0+(w.a1-w.a0)*Math.min(1,(w.t-w.warn)/w.dur),ux=Math.cos(a),uy=Math.sin(a),px=g.x-w.x,py2=pyy-w.y,al=px*ux+py2*uy,dd=Math.abs(px*uy-py2*ux);
-      if(g.inv<=0&&al>0&&dd<14+pr0*.7){if(damage(fight?.2:.1))return;}}
+      if(g.inv<=0&&al>0&&dd<14+pr0*.7){if(damage((fight?.2:.1)*HS))return;}}
     if(w.t>w.warn+w.dur+.15)g.sw=null;}
   // 물결 탄막
   if(g.sn){const n=g.sn;n.t-=dt;n.c-=dt;
@@ -966,7 +969,7 @@ function bossShoot(dt){
   }
   for(const bm of g.beams){
     bm.t+=dt;
-    if(bm.t>bm.warn&&bm.t<bm.warn+bm.on&&g.inv<=0&&Math.abs(g.x-bm.x)<bm.w/2+Math.min(sqR(),26)*.7){if(damage(fight?.2:.1))return;}
+    if(bm.t>bm.warn&&bm.t<bm.warn+bm.on&&g.inv<=0&&Math.abs(g.x-bm.x)<bm.w/2+Math.min(sqR(),26)*.7){if(damage((fight?.2:.1)*HS))return;}
   }
   g.beams=g.beams.filter(bm=>bm.t<bm.warn+bm.on+.15);
   g.eb=g.eb.filter(e=>!e.dead&&e.y<H+20&&e.y>-60&&e.x>-30&&e.x<W+30);
@@ -1011,7 +1014,7 @@ function update(dt){
     if(g.laserT>0){g.laserT-=dt;laserTick(dt);}
     if(g.y0===null)g.y0=g.boss.y;
     const prog=Math.max(0,Math.min(1,(g.boss.y-g.y0)/Math.max(1,190-g.y0)));
-    g.spd=g.speed*(1+.45*prog);const mv=g.spd*dt;
+    g.spd=g.speed*(1+.3*prog);const mv=g.spd*dt;
     const slowF=1-0.15*(g.sk.slow+leader.slowBase);
     for(const o of g.objs){if(o.t==='G')gateTrickUpdate(o,o.done?0:(g.objs.some(x=>!x.done&&(x.t==='C'||x.t==='M')&&x.y>o.y)?-1:dt));o.y+=o.t==='M'?mv*slowF:mv;if(o.fl>0)o.fl-=dt;if(o.t==='G'){if(o.l.fl>0)o.l.fl-=dt;if(o.r.fl>0)o.r.fl-=dt;}}
     g.boss.y=Math.min(190,g.boss.y+mv);if(g.boss.fl>0)g.boss.fl-=dt;
@@ -1508,6 +1511,7 @@ function draw(){
 
   for(const o of g.objs){
     if(o.y<-100||o.y>H+100)continue;
+    if(o.done&&(g.state==='clash'||g.state==='intro'||g.state==='fight'||g.state==='win'))continue;   // 보스전에서는 지나온 카드가 화면에 남지 않게
     if(o.t==='G'){
       if(o.done)ctx.globalAlpha=.3;
       if(o.solo){const pa=ctx.globalAlpha,cw=o.cw,hit=Math.abs(g.x-o.cx)<cw/2+4;ctx.globalAlpha=pa*(hit?1:.8);drawGate(o.card,o.cx-cw/2,o.cx+cw/2,o.y);ctx.globalAlpha=pa;}
