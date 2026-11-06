@@ -22087,7 +22087,7 @@ function viewGameLegion() {
   $app.innerHTML = `
   <h1 class="page gm-h1">블랙 벤데타 <button class="bb-rules-btn-top" id="gRulesBtn" type="button">📖 설명서</button><button class="bb-rules-btn-top gm-listbtn" type="button" onclick="gmGoList()">게임 목록</button></h1>
   <div class="gm-subline">⏰️ 주간 랭킹 리셋까지 <b>${gmResetLeft()}</b></div>
-  <div id="gArea" class="ga-legion"><iframe id="lgFrame" src="legion.html?v=11062045" allow="fullscreen" title="블랙 벤데타" onload="try{this.contentWindow.postMessage({type:'legion-hof',tier:window.__lgHof||''},'*');lgSendAuth()}catch(e){}"></iframe></div>
+  <div id="gArea" class="ga-legion"><iframe id="lgFrame" src="legion.html?v=${Date.now()}" allow="fullscreen" title="블랙 벤데타" onload="try{this.contentWindow.postMessage({type:'legion-hof',tier:window.__lgHof||''},'*');lgSendAuth()}catch(e){}"></iframe></div>
   <div class="card" id="gSubmit" style="display:none;margin-top:14px"></div>
   <div class="sec-title" style="justify-content:space-between">🏆 이번 주 랭킹
     <input id="gRankSearch" placeholder="닉네임 검색 (순위 보기)" oninput="filterGameRank(this.value)" style="flex:1;max-width:180px;min-width:120px;box-sizing:border-box;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:6px 10px;color:var(--text);outline:none;font-size:12.5px;font-weight:600">
