@@ -33616,11 +33616,13 @@ function ftNetNoRec(st) {
       const c = MT_CATS.find(x => x.k === p.category);
       const tags = [];
       if (p.gender) tags.push(`<span>${esc(p.gender)} · ${esc(p.age_group)}</span>`);
-      if (p.gender_pref === '동성만') tags.push('<span class="pf">동성만 모집</span>');
-      else if (p.gender_pref === '남자' || p.gender_pref === '여자') tags.push(`<span class="pf">${p.gender_pref}만 모집</span>`);
-      else tags.push('<span class="pf">모집 성별 무관</span>');
-      if (p.age_prefs && p.age_prefs.length) tags.push(`<span class="pf">${esc(mtPrefs(p).join('·'))} 모집</span>`);
-      else tags.push('<span class="pf">모집 연령대 무관</span>');
+      if (p.category !== 'ticket') {
+        if (p.gender_pref === '동성만') tags.push('<span class="pf">동성만 모집</span>');
+        else if (p.gender_pref === '남자' || p.gender_pref === '여자') tags.push(`<span class="pf">${p.gender_pref}만 모집</span>`);
+        else tags.push('<span class="pf">모집 성별 무관</span>');
+        if (p.age_prefs && p.age_prefs.length) tags.push(`<span class="pf">${esc(mtPrefs(p).join('·'))} 모집</span>`);
+        else tags.push('<span class="pf">모집 연령대 무관</span>');
+      }
       let facts = '', hi = '';
       if (p.category === 'watch') {
         facts = [`내 인원 <b>${p.my_people || 1}명</b>`, `모집 <b>${p.people}명</b>`, `확정 <b>${p.approved}명</b>`];
@@ -33881,7 +33883,7 @@ function ftNetNoRec(st) {
       const multi = p.category === 'watch' || (p.category === 'carpool' && p.cp_kind === '모집');
       const left = mtLeft(p);
       const ov = mtModal('참여 신청', `<div class="mt-form c-${p.category}" id="mt-ap">
-      <div class="mt-sum">${esc(mtTitle(p))}<br><span class="mt-dim">${esc(p.author_nick)}${p.gender ? ' · ' + esc(p.gender) + ' · ' + esc(p.age_group) : ''}${p.gender_pref === '동성만' ? ' · 동성만 모집' : p.gender_pref === '남자' || p.gender_pref === '여자' ? ' · ' + p.gender_pref + '만 모집' : ' · 모집 성별 무관'}${p.age_prefs && p.age_prefs.length ? ' · ' + esc(mtPrefs(p).join('·')) + ' 모집' : ' · 모집 연령대 무관'}</span></div>
+      <div class="mt-sum">${esc(mtTitle(p))}<br><span class="mt-dim">${esc(p.author_nick)}${p.gender ? ' · ' + esc(p.gender) + ' · ' + esc(p.age_group) : ''}${p.gender_pref === '동성만' ? ' · 동성만 모집' : p.gender_pref === '남자' || p.gender_pref === '여자' ? ' · ' + p.gender_pref + '만 모집' : (p.category === 'ticket' ? '' : ' · 모집 성별 무관')}${p.age_prefs && p.age_prefs.length ? ' · ' + esc(mtPrefs(p).join('·')) + ' 모집' : (p.category === 'ticket' ? '' : ' · 모집 연령대 무관')}</span></div>
       ${isT ? '' : `<div class="mt-f2"><div class="mt-f"><label>내 성별</label>${mtChoices('gender', ['남자', '여자'], prof.gender)}</div>
         <div class="mt-f"><label>내 나이대</label>${mtChoices('age', MT_AGE, prof.age)}</div></div>`}
       ${multi ? `<div class="mt-f"><label>신청 인원 <small>나를 포함 · 남은 자리 ${left}명</small></label>${mtNumChips('party', [1, 2, 3], 1, Math.max(left, 1), n => n + '명')}</div>` : ''}
