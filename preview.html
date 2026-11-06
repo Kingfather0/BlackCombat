@@ -12431,12 +12431,13 @@
 .ft-gp b { font-size: 12.5px; color: #c4410f; margin-right: 3px; }
 .ft-gs { font-size: 11px; color: #8a94a6; }
 
-/* 블랙 베데타 */
-.gcard-legion .gc-ico { background: linear-gradient(135deg, #3a0d14, #0b0b10); display: flex; align-items: center; justify-content: center; font-size: 36px; }
-body[data-route="game"] .gcard-legion .gc-ico { background: #2a0d12 !important; }
-body[data-route="game"] .gcard-legion .gc-new { background: #e0222d; color: #fff; }
-#lgWrap { height: min(76vh, 760px); height: min(76dvh, 760px); aspect-ratio: 9 / 16; max-width: 100%; margin: 6px auto 0; border-radius: 12px; overflow: hidden; background: #000; }
-#lgFrame { width: 100%; height: 100%; border: 0; display: block; }
+/* 블랙 벤데타 */
+.gcard-legion .gc-ico { background: #fbe7ea; display: flex; align-items: center; justify-content: center; }
+body[data-route="game"] .gcard-legion .gc-ico { background: #fbe7ea !important; }
+.gcard-legion .gc-ico img, body[data-route="game"] .gcard-legion .gc-ico img { object-fit: contain; width: 86%; height: 92%; }
+.gcard-legion .gc-new, body[data-route="game"] .gcard-legion .gc-new { background: #2f7fe0; color: #fff; }
+#gArea.ga-legion { height: clamp(480px, calc(100dvh - 250px), 760px); background: #0b0b10; cursor: default; touch-action: auto; }
+#gArea.ga-legion iframe { width: 100%; height: 100%; border: 0; display: block; }
 /* 게임 메뉴 카드 */
 .gcard-fort .gc-ico { background: linear-gradient(135deg, #2a2a33, #0b0b10); }
 body[data-route="game"] .gcard-fort .gc-ico { background: #e3e6f0 !important; }
@@ -20230,6 +20231,16 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     <span class="gc-go">PLAY</span>
   </a>`;
       if (navStale(__g)) return; $app.innerHTML = `
+  <a class="gcard gcard-legion" href="#/game/legion">
+    <span class="gc-new">NEW</span>
+    <div class="gc-ico"><img src="data:image/webp;base64,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" alt=""></div>
+    <div class="gc-b">
+      <b>블랙 벤데타</b>
+      <span>모두가 갓파더! 군단을 키워 돌파하라</span>
+      <span class="gc-top" id="gTopLegion">🥇 불러오는 중…</span>
+    </div>
+    <span class="gc-go">PLAY</span>
+  </a>
   <a class="gcard gcard-fort" href="#/game/fort">
     <span class="gc-new">NEW</span>
     <div class="gc-ico"><img src="${ftArtSrc('godfather')}" alt=""></div>
@@ -20237,16 +20248,6 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       <b>블랙 케이지</b>
       <span>WHO IS THE KING?!</span>
       <span class="gc-top" id="gTopFort">불러오는 중…</span>
-    </div>
-    <span class="gc-go">PLAY</span>
-  </a>
-  <a class="gcard gcard-legion" href="#/game/legion">
-    <span class="gc-new">NEW</span>
-    <div class="gc-ico"><span>🎭</span></div>
-    <div class="gc-b">
-      <b>블랙 베데타</b>
-      <span>모두가 갓파더! 군단을 키워 돌파하라</span>
-      <span class="gc-top">고척스카이돔 한정</span>
     </div>
     <span class="gc-go">PLAY</span>
   </a>
@@ -21873,15 +21874,50 @@ function ftOpenRules() {
   pushModal(ov);
 }
 
-/* ── 블랙 베데타 (선수 군단) — 별도 파일 legion.html 을 화면에 끼워 넣는다 ── */
+/* ── 블랙 벤데타 (선수 군단) — 게임 본체는 별도 파일 legion.html, 기록은 postMessage 로 받아 서버(game_scores, game='legion')에 저장 ── */
+function legionRule() { return `<b style="color:var(--text)">목표</b> 고척스카이돔에 몰려오는 군단을 뚫고 최대한 깊은 스테이지까지! 하얀 가면을 쓴 군단이 점점 불어납니다.<br>
+<b style="color:var(--text)">조작</b> 좌우로 드래그해 위치를 잡아요. 내가 서 있는 쪽 게이트만 쏴서 키울 수 있어요.<br>
+<b style="color:var(--text)">게이트</b> ＋·× 는 군단이 늘고, －·÷ 는 줄어요. 쏠수록 숫자가 올라가요. 동료 합류칸은 선수를 합류시켜요.<br>
+<b style="color:var(--text)">군단 충돌 · 보스</b> 스테이지마다 적 군단과 부딪히고 보스와 싸워요. 보스의 탄막은 피하세요!<br>
+<b style="color:var(--text)">강화</b> 보스를 깨면 강화 하나를 골라요. 15스테이지 뒤에는 보스가 더 강해져 돌아옵니다.<br>
+<b style="color:var(--text)">블랙머니</b> 깊이 갈수록 많이 받고, 꾸미기 상점에서 가면·군기·오라 등을 살 수 있어요. 중간에 포기하면 기록과 블랙머니가 저장되지 않아요.<br>
+<b style="color:var(--text)">점수</b> 클리어한 스테이지 × 1000 + 격파 수`; }
+async function lgOnMsg(e) {
+  const fr = document.getElementById('lgFrame');
+  if (gmCurGame !== 'legion' || !fr || e.source !== fr.contentWindow) return;
+  const d = e.data || {};
+  if (d.type === 'legion-exit') { location.hash = '#/game'; return; }
+  if (d.type !== 'legion-score') return;
+  const sub = document.getElementById('gSubmit'); if (!sub) return;
+  sub.style.display = '';
+  if (!(d.score > 0)) { sub.style.display = 'none'; return; }
+  if (!gmMyNick) { sub.innerHTML = '<div class="empty">로그인하면 기록이 랭킹에 등록돼요.</div>'; return; }
+  sub.innerHTML = `<div style="font-weight:800">👤 ${esc(gmMyNick)} — 기록 자동 등록 중… ⏳</div>`;
+  const { data, error } = await sb.rpc('submit_game_score', { p_nickname: gmMyNick, p_pin: '', p_score: d.score, p_combo: d.stage || 0, p_kos: d.kills || 0, p_game: 'legion' });
+  if (error) { sub.innerHTML = `<div class="msg err" style="display:block">${/function|not find|game/i.test(error.message || '') ? '블랙 벤데타 랭킹은 관리자 SQL 설정이 필요해요.' : cleanErr(error.message)}</div>`; return; }
+  if (!data || data.ok === false) { sub.innerHTML = `<div class="msg err" style="display:block">${(data && data.msg) || '기록 등록에 실패했습니다.'}</div>`; return; }
+  sub.innerHTML = `<div style="font-weight:800;margin-bottom:6px">${data.improved ? `📣 앤 뉴~!! <span style="color:#c62828">${esc(gmMyNick)}</span> 이번 주 신기록!` : '📣 앤 스틸~ 기존 기록이 방어에 성공했습니다'}</div>
+    <div style="font-size:14px">👤 <b>${esc(gmMyNick)}</b> 이번 주 최고 기록: <b style="color:var(--key-deep)">${(+data.score).toLocaleString()}점</b></div>`;
+  loadGameRank(gameWeekKey(svrNow()), 'legion');
+}
 function viewGameLegion() {
   const __g = __navGen;
-  gmToken++; gmClear(); gmCurGame = 'legion';
+  gmToken++; gmClear(); gmCurGame = 'legion'; gmCurRule = legionRule();
   if (navStale(__g)) return;
+  const wk = gameWeekKey(svrNow());
+  if (!window.__lgBound) { window.__lgBound = true; window.addEventListener('message', lgOnMsg); }
   $app.innerHTML = `
-  <h1 class="page gm-h1">🎭 블랙 베데타 <button class="bb-rules-btn-top gm-listbtn" id="lgBack" type="button">게임 목록</button></h1>
-  <div id="lgWrap"><iframe id="lgFrame" src="legion.html" allow="fullscreen" title="블랙 베데타"></iframe></div>`;
-  const b = document.getElementById('lgBack'); if (b) b.onclick = () => { location.hash = '#/game'; };
+  <h1 class="page gm-h1">블랙 벤데타 <button class="bb-rules-btn-top" id="gRulesBtn" type="button">📖 설명서</button><button class="bb-rules-btn-top gm-listbtn" type="button" onclick="gmGoList()">게임 목록</button></h1>
+  <div class="gm-subline">⏰️ 주간 랭킹 리셋까지 <b>${gmResetLeft()}</b></div>
+  <div id="gArea" class="ga-legion"><iframe id="lgFrame" src="legion.html" allow="fullscreen" title="블랙 벤데타"></iframe></div>
+  <div class="card" id="gSubmit" style="display:none;margin-top:14px"></div>
+  <div class="sec-title" style="justify-content:space-between">🏆 이번 주 랭킹
+    <input id="gRankSearch" placeholder="닉네임 검색 (순위 보기)" oninput="filterGameRank(this.value)" style="flex:1;max-width:180px;min-width:120px;box-sizing:border-box;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:6px 10px;color:var(--text);outline:none;font-size:12.5px;font-weight:600">
+  </div>
+  <div class="card" id="gHall" style="display:none;margin-bottom:10px"></div>
+  <div class="card" id="gRank"><div class="empty">불러오는 중…</div></div>`;
+  gmBindRulesBtn();
+  loadGameRank(wk, 'legion');
 }
 function viewGameFort() {
   const __g = __navGen;
@@ -30044,7 +30080,9 @@ function ftNetNoRec(st) {
           box.innerHTML = rows.map((r, i) => {
             const me = gmMyNick && r.nickname === gmMyNick;
             const pct = Math.max(5, Math.round(+r.score / top * 100));
-            const sub2 = game === 'run'
+            const sub2 = game === 'legion'
+              ? `🏰 ${(r.combo || 0).toLocaleString()}스테이지 · 격파 ${r.kos || 0}`
+              : game === 'run'
               ? `🏃 ${(r.combo || 0).toLocaleString()}m · 🪙 ${r.kos || 0}개`
               : game === 'grow'
                 ? `Lv.${r.kos || 0} 달성 · 🔥${r.combo || 0}콤보`
