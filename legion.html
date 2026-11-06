@@ -88,9 +88,9 @@ h1{margin:0 0 4px;font-size:26px;color:#fff;letter-spacing:1px;text-shadow:0 0 1
 #ovQuit{z-index:70}#ovPause{z-index:68}#gbar #gPause{display:none}#gbar.pl #gPause{display:flex}
 #gbar button{width:26px;height:26px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(14,14,19,.6);border:1.5px solid rgba(255,255,255,.45);cursor:pointer;font-size:13px}
 #gbar button:active{transform:translateY(1px);background:rgba(14,14,19,.85)}
-#lgGate{display:none;flex-direction:column;align-items:center;gap:8px;margin:18px 0;text-align:center;color:#fff}
-#lgGate .lgi{font-size:40px;line-height:1}#lgGate b{font-size:19px}#lgGate small{font-size:13px;color:#c9c2c4}
-#lgGate button{margin-top:6px;background:#fee500;color:#191600;border:0;border-radius:14px;padding:14px 34px;font-size:17px;font-weight:900;cursor:pointer;box-shadow:0 6px 18px rgba(254,229,0,.28)}
+#lgGate{display:none;flex-direction:column;align-items:center;gap:10px;margin:22px 0;text-align:center}
+#lgGate small{font-size:13px;font-weight:900;color:#e8362b;text-shadow:0 1px 0 #fff,0 0 6px rgba(255,255,255,.6)}
+#lgGate button{background:linear-gradient(#f9d56a,#e9b03a);color:#fff;border:4px solid #fff;border-radius:999px;padding:16px 64px;font-size:28px;font-weight:900;letter-spacing:6px;text-shadow:0 2px 0 rgba(150,90,0,.55);cursor:pointer;box-shadow:0 8px 0 #c68a1c,0 12px 22px rgba(0,0,0,.35);animation:lgPulse 1.6s ease-in-out infinite}#lgGate button:active{transform:translateY(4px);box-shadow:0 4px 0 #c68a1c}@keyframes lgPulse{50%{transform:scale(1.05)}}
 #ovStart.nologin #fighterList,#ovStart.authwait #fighterList{display:none}
 #ovStart.nologin #lgGate{display:flex}
 #fighterList{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:340px}
@@ -120,7 +120,7 @@ h1{margin:0 0 4px;font-size:26px;color:#fff;letter-spacing:1px;text-shadow:0 0 1
   
   <div class="coin" id="coinBar"></div>
   <div class="cards scroll" id="fighterList"></div>
-  <div id="lgGate"><div class="lgi">🔒</div><b>로그인 후 플레이할 수 있어요</b><small>기록이 주간 랭킹에 등록돼요</small><button type="button" id="lgLoginBtn">카카오 로그인</button></div>
+  <div id="lgGate"><button type="button" id="lgLoginBtn">로그인</button><small>로그인 후 플레이할 수 있어요</small></div>
 </div>
 
 <div id="gbar">
