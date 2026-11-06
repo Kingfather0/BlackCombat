@@ -184,7 +184,7 @@ const FIGHTERS=[
   {id:'kong',art:'kingkong',name:'킹콩',init:'콩',col:'#8a5a2e',proj:'plate',style:'heavy',tag:'헤비 임팩트',desc:'느리지만 거대한 관통 펀치, 맞은 적을 뒤로 밀어냄. 손실 40% 감소',startN:10,mobMul:0.6,dpsMul:1.08,gainMul:1.25,slowBase:0,bonusMul:1},
   {id:'capt',art:'captainkorea',name:'캡틴 코리아',init:'캡',col:'#2f6fe0',proj:'burger',style:'fan',tag:'부채꼴 연사',desc:'3방향 이상 부채꼴로 쏴서 양쪽 게이트를 동시에 공략',startN:10,mobMul:1,dpsMul:1,gainMul:2.0,slowBase:0,bonusMul:1},
   {id:'god',art:'godfather',name:'갓파더',init:'갓',col:'#d4a017',proj:'cash',style:'gold',tag:'황금 관통',desc:'황금 펀치가 게이트를 뚫고 뒤의 적까지 타격. 게이트를 연속으로 강화',startN:10,mobMul:1,dpsMul:1.2,gainMul:1.15,slowBase:0,bonusMul:1},
-  {id:'sira',art:'sirasony',name:'시라소니',init:'시',col:'#7a5bd6',proj:'shuriken',style:'clone',tag:'그림자 분신',desc:'분신 둘이 좌우에서 같이 발사. 적이 15% 느리게 다가옴',startN:12,mobMul:1,dpsMul:1.15,gainMul:1.5,slowBase:1,bonusMul:1},
+  {id:'sira',art:'sirasony',name:'시라소니',init:'시',col:'#7a5bd6',proj:'shuriken',style:'clone',tag:'그림자 분신',desc:'분신 둘이 좌우에서 같이 발사. 적이 15% 느리게 다가옴',startN:15,mobMul:.85,dpsMul:1.2,gainMul:1.55,slowBase:1,bonusMul:1},
   {id:'uma',art:'wumawang',name:'우마왕',init:'우',col:'#2fb36a',proj:'staff',style:'laser',tag:'관통 레이저',desc:'4.5초마다 전방을 쓸어버리는 레이저. 스테이지 보급 2배',startN:10,mobMul:1,dpsMul:1.05,gainMul:1.4,slowBase:0,bonusMul:2}
 ];
 FIGHTERS.forEach(f=>{
@@ -233,9 +233,9 @@ function mkG(kind,N,starF){
   if(kind==='mult'){return{k:'mult',v:2,b0:2};}
   if(kind==='div'){const v=[2,2.5,3,3,4,5][Math.floor(Math.random()*6)];return{k:'div',v,b0:v};}
   if(kind==='minus'){const v=Math.round(N*rand(.12,.25))+4;return{k:'minus',v,b0:v};}
-  if(kind==='bigplus'){const v=Math.round(N*rand(.14,.22))+5;return{k:'plus',v,b0:v};}
+  if(kind==='bigplus'){const v=Math.round(N*rand(.2,.3))+6;return{k:'plus',v,b0:v};}
   if(kind==='rand')return{k:'rand',v:0,b0:0};   // ? 카드: 먹은 뒤에 +−×÷ 중 하나로 정해진다
-  if(kind==='star'){const v=Math.round(N*.07)+4;return{k:'star',v,b0:v,star:starF};}
+  if(kind==='star')return{k:'star',v:0,b0:0,star:starF};   // 동료 카드는 숫자 없음: 동료를 택하면 숫자는 포기
 }
 function applyOpt(n,o,pm,mm){
   const v=Math.round(o.v);
@@ -634,7 +634,7 @@ function takeGate(row){
   g.n=applyOpt(g.n,o,1,1);
   if(o.k==='star'){
     if(!g.stars.includes(o.star))g.stars.push(o.star);
-    pop(g.x,SQ_Y-120,o.star.name+' 합류!','#ffe58a',true);pop(g.x,SQ_Y-80,'+'+fmt(o.v),'#6cf');ring(g.x,SQ_Y,'#ffe58a',true);burst(g.x,SQ_Y,'#ffe58a',30);g.shake=.15;
+    pop(g.x,SQ_Y-120,o.star.name+' 합류!','#ffe58a',true);ring(g.x,SQ_Y,'#ffe58a',true);burst(g.x,SQ_Y,'#ffe58a',30);g.shake=.15;
   }else{
     const d=g.n-before;
     pop(g.x,SQ_Y-90,(d>=0?'+':'-')+fmt(Math.abs(d)),d>=0?'#6cf':'#ff5a3c');
@@ -678,8 +678,10 @@ function gateHit(side,gain,capAdd,x,y,dmg){
     side.hitT=g.t;return;
   }
   const u=pumpUnit(side,gain)*Math.pow(Math.max(1,g.speed*1.15/100),.75);   // 빨라질수록 게이트에 닿는 탄이 줄어드는 만큼 보정
-  if(side.k==='plus'||side.k==='star'){
-    side.v+=(side.k==='star'?u*.5:u);
+  if(side.k==='star'){
+    /* 동료 카드는 쏴도 커지지 않는다 */
+  }else if(side.k==='plus'){
+    side.v+=u;
   }else if(side.k==='minus'){
     side.v-=u*0.25;
     // 0을 넘어서 계속 치면 플러스 게이트로 바뀐다
@@ -1316,8 +1318,8 @@ function drawGate(o,x0,x1,y){
     const fx=ix0+30;
     ctx.fillStyle='rgba(0,0,0,.45)';ctx.beginPath();ctx.arc(fx,y+2,25,0,6.283);ctx.fill();
     face(o.star,fx,y+2,22);
-    T(txt,cx+22,y-10,(txt.length>=5?22:28)*pulse,6);
-    ctx.font='900 15px sans-serif';ctx.strokeStyle='#0b0508';ctx.lineWidth=5;ctx.strokeText(o.star.name+' 합류!',cx+22,y+17);ctx.fillStyle='#ffe58a';ctx.fillText(o.star.name+' 합류!',cx+22,y+17);
+    ctx.font='900 '+Math.round(22*pulse)+'px sans-serif';ctx.strokeStyle='#0b0508';ctx.lineWidth=6;ctx.strokeText(o.star.name,cx+24,y-8);ctx.fillStyle='#fff';ctx.fillText(o.star.name,cx+24,y-8);
+    ctx.font='900 17px sans-serif';ctx.lineWidth=5;ctx.strokeText('합류!',cx+24,y+17);ctx.fillStyle='#ffe58a';ctx.fillText('합류!',cx+24,y+17);
   }else{
     T(txt,cx,y+2,(txt.length>=6?27:txt.length>=5?32:txt.length>=4?36:40)*pulse,8);
   }
@@ -1707,7 +1709,7 @@ function buildMenu(){
   FIGHTERS.forEach(f=>{
     const d=document.createElement('div');d.className='card';
     const ava=f.faceSrc?'<div class="ava">'+avaImg(f)+'</div>':'<div class="ava" style="background:'+f.col+'">'+f.init+'</div>';
-    d.innerHTML=ava+'<div><b>'+f.name+' <button type="button" class="inf" aria-label="선수 설명">ⓘ</button></b><em class="ftag" style="background:'+f.col+'">'+f.tag+'</em><br><span>최고 '+(best[f.id]||0)+' · 🔓 '+unlockCount(f.id).join('/')+'</span></div>';
+    d.innerHTML=ava+'<div><b>'+f.name+' <button type="button" class="inf" aria-label="선수 설명">ⓘ</button></b><em class="ftag" style="background:'+f.col+'">'+f.tag+'</em><br><span>최고 '+(best[f.id]||0)+'</span></div>';
     const openInfo=e=>{if(e)e.stopPropagation();pendingF=f;$('infoPic').src=f.bodySrc||f.faceSrc||'';$('infoName').textContent=f.name;$('infoTag').textContent=f.tag;$('infoTag').style.background=f.col;$('infoDesc').textContent=f.desc;{const cp=META.cp[f.id];$('infoGo').textContent=cp?'📍 '+cp.stage+'스테이지에서 이어하기':'시작';$('infoFresh').style.display=cp?'':'none';}$('ovInfo').classList.add('on');};
     d.querySelector('.inf').onclick=openInfo;
     d.onclick=()=>openInfo();box.appendChild(d);

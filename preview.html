@@ -21888,8 +21888,9 @@ function lgSendHof(all, prev) {
   /* 명예의 전당 1위 = 'hall'(기록을 지키는 동안), 지난 주 TOP3 = 'week'(이번 주 동안) → 게임이 갓파더 세트를 연다 */
   let tier = '';
   if (gmMyNick) {
-    if (all && all.length && all[0].nickname === gmMyNick) tier = 'hall';
-    else if ((prev || []).some(r => r.nickname === gmMyNick)) tier = 'week';
+    const MIN = 20; /* 기록이 이 스테이지 이상일 때만 인정 — 참가자가 적을 때 누구나 1위가 되어 세트를 받는 것을 막는다 */
+    if (all && all.length && all[0].nickname === gmMyNick && (all[0].combo || 0) >= MIN) tier = 'hall';
+    else if ((prev || []).some(r => r.nickname === gmMyNick && (r.combo || 0) >= MIN)) tier = 'week';
   }
   window.__lgHof = tier;
   const fr = document.getElementById('lgFrame');
