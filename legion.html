@@ -234,6 +234,7 @@ function mkG(kind,N,starF){
   if(kind==='div'){const v=[2,2.5,3,3,4,5][Math.floor(Math.random()*6)];return{k:'div',v,b0:v};}
   if(kind==='minus'){const v=Math.round(N*rand(.12,.25))+4;return{k:'minus',v,b0:v};}
   if(kind==='bigplus'){const v=Math.round(N*rand(.14,.22))+5;return{k:'plus',v,b0:v};}
+  if(kind==='rand')return{k:'rand',v:0,b0:0};   // ? 카드: 먹은 뒤에 +−×÷ 중 하나로 정해진다
   if(kind==='star'){const v=Math.round(N*.07)+4;return{k:'star',v,b0:v,star:starF};}
 }
 function applyOpt(n,o,pm,mm){
@@ -244,7 +245,7 @@ function applyOpt(n,o,pm,mm){
   if(o.k==='div')return Math.max(1,Math.round(n/Math.max(1,o.v)));
   if(o.k==='star')return n+v;
   if(o.k==='mob')return n-Math.round(o.hp);
-  return n;
+  return n;   // none / rand 는 계획상 변화 없음으로 본다
 }
 function simFight(n,B){
   let hp=B;const a=B*0.022;let t=0;
@@ -267,16 +268,19 @@ function genStage(stage,idealN,starPool){
       N=Math.max(Math.round(N*.4),clashLeft(N,H),1);
       continue;
     }
-    let a,b;const r=Math.random();
+    let a,b,solo=false;const r=Math.random();
+    const gd=()=>mkG(Math.random()<.5?'plus':'mult',N),bd=()=>mkG(stage>=2&&Math.random()<.5?'div':'minus',N);
     if(gi===starRow){a=mkG('star',N,starPool.shift());b=mkG(Math.random()<.5?'mult':'bigplus',N);}
-    else if(r<.22){a=mkG(Math.random()<.7?'plus':'mult',N);const h=Math.round(N*rand(.7,1.15))+12;b={k:'mob',hp:h,mhp:h,fl:0,seed:Math.floor(Math.random()*997)};}
-    else if(r<.46){a=mkG('plus',N);b=mkG('mult',N);}
-    else if(r<.62){a=mkG('plus',N);b=mkG('plus',N);}
-    else if(r<.92){a=mkG(Math.random()<.5?'plus':'mult',N);b=mkG(stage>=2&&Math.random()<.5?'div':'minus',N);}
-    else{a=mkG('minus',N);b=mkG('plus',N);}
+    else if(r<.12){a=gd();const h=Math.round(N*rand(.7,1.15))+12;b={k:'mob',hp:h,mhp:h,fl:0,seed:Math.floor(Math.random()*997)};}
+    else if(r<.22){a=mkG('plus',N);b=mkG(Math.random()<.5?'mult':'plus',N);}                  // 둘 다 좋음 (드물게)
+    else if(r<.62){a=gd();b=bd();}                                                              // 좋음 vs 나쁨 (가장 흔함)
+    else if(r<.70&&stage>=5){a=mkG('minus',N);b=mkG(Math.random()<.5?'minus':'div',N);}        // 둘 다 나쁨: 덜 나쁜 쪽 고르기
+    else if(r<.82&&stage>=2){a=mkG('rand',N);b=Math.random()<.5?gd():bd();}                    // ? 카드
+    else if(r<.94&&stage>=4){solo=true;a=Math.random()<.5?gd():bd();b={k:'none',v:0,b0:0};}   // 카드 한 장이 좌우로 빠르게 왔다갔다
+    else{a=gd();b=bd();}
     gi++;
-    if(Math.random()<.5){const t=a;a=b;b=t;}
-    ev.push({t:'G',l:a,r:b});
+    if(!solo&&Math.random()<.5){const t=a;a=b;b=t;}
+    ev.push({t:'G',l:a,r:b,solo});
     N=Math.max(1,Math.max(applyOpt(N,a,PM,MM),applyOpt(N,b,PM,MM)));
   }
   const f=Math.min(4.6,2.1+0.07*stage)*FB;
@@ -305,6 +309,8 @@ const META_KEY='gm_meta_v1';
 // 꾸미기는 블랙머니 대신 '이번 주 도달한 스테이지'로 해금된다. 주간 랭킹 리셋(월요일 0시 KST)에 해금/장착이 모두 초기화된다.
 // 명예의 전당·지난주 TOP3 보상(갓파더 세트)만 사이트가 알려주는 값(META.hof)으로 따로 열린다.
 let META={eq:{},prog:{},wk:'',hof:'',cp:{}};
+const GF_N=25;   // 이번 주에 아무 선수로든 이 스테이지를 클리어하면 '갓파더 세트' 획득 (명예의 전당 1위·지난 주 TOP3도 획득)
+function gfOn(){return !!META.hof||Math.max(0,...Object.values(META.prog))>=GF_N;}
 function weekKey(){   // 사이트의 gameWeekKey(KST ISO 주차)와 같은 규칙
   const t=new Date(Date.now()+9*3600*1000),dt=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth(),t.getUTCDate())),day=(dt.getUTCDay()+6)%7;
   dt.setUTCDate(dt.getUTCDate()-day+3);const y=dt.getUTCFullYear(),j4=new Date(Date.UTC(y,0,4)),w=1+Math.round(((dt-j4)/86400000-3+((j4.getUTCDay()+6)%7))/7);
@@ -336,7 +342,7 @@ function cosItems(fid,slot){
   const arr=COS[slot].items.map(it=>[it[0]+'@'+fid,it[1],it[2],0,ICO[it[0]]||'⭐',ust(it[3])]);
   const fo=FIGHTERS.find(x=>x.id===fid);
   if(slot==='mask')arr.push(['xm_'+fid,'전용 가면','xm_'+fid,0,XICO[fid]||'⭐',20]);
-  if(META.hof){const GF={aura:['gf_aura','갓파더 오라','gfgold'],trail:['gf_trail','갓파더 궤적','gfgold'],blast:['gf_blast','갓파더 폭발','gfgold'],mask:['gf_mask','갓파더 가면','gf_mask'],flag:['gf_flag','갓파더 군기','#0a0a0a|#ffd54a|🕴️']}[slot];
+  if(gfOn()){const GF={aura:['gf_aura','갓파더 오라','gfgold'],trail:['gf_trail','갓파더 궤적','gfgold'],blast:['gf_blast','갓파더 폭발','gfgold'],mask:['gf_mask','갓파더 가면','gf_mask'],flag:['gf_flag','갓파더 군기','#0a0a0a|#ffd54a|🕴️']}[slot];
     if(GF)arr.push([GF[0]+'@'+fid,GF[1],GF[2],0,'🕴️',0,true]);}
   return arr;
 }
@@ -390,7 +396,7 @@ function previewDraw(){
   {const fk=eq.flag;if(fk){const it=cosItems(f.id,'flag').find(x=>x[0]===fk);if(it)drawFlagOn(c,176,70,it[2],t,1.2);}}
 }
 setInterval(previewDraw,60);
-function isUnlocked(fid,it){return it[6]?!!META.hof:(META.prog[fid]||0)>=it[5];}
+function isUnlocked(fid,it){return it[6]?gfOn():(META.prog[fid]||0)>=it[5];}
 function unlockCount(fid){let n=0,t=0;for(const sl in COS)for(const it of cosItems(fid,sl)){if(it[6])continue;t++;if(isUnlocked(fid,it))n++;}return [n,t];}
 function buildShop(){
   weekRoll();const cb=$('coinBar');if(cb)cb.style.display='none';
@@ -447,17 +453,21 @@ function newGame(f){
   startStage();
 }
 // 선택 카드 변화구: 자리 바꾸기(깜빡이다 교체) / 나쁜 카드가 좌우로 왔다갔다 / 값을 가렸다가 가까이 오면 공개
+function gside(o,x){if(o.solo)return Math.abs(x-o.cx)<o.cw/2+4?o.card:o.none;return x<W/2?o.l:o.r;}
 function gateTrick(o,stage){
-  if(o.l.k==='star'||o.r.k==='star'||o.l.k==='mob'||o.r.k==='mob'||stage<2)return;
-  const bad=x=>x.k==='minus'||x.k==='div',r=Math.random();
-  const pS=Math.min(.45,.12+.03*stage),pH=stage>=6?Math.min(.3,.08+.02*stage):0;
-  if((bad(o.l)||bad(o.r))&&stage>=3&&r<pS+.1){o.tr='slide';o.iv=Math.max(.7,1.25-.03*stage);}
-  else if(r<pS+.14){o.tr='swap';o.iv=Math.max(.8,1.5-.03*stage);}
-  else if(r<pS+.14+pH){o.tr='hide';}
+  if(o.solo){o.tr='solo';o.ph=Math.random()*6.283;o.sp=6.283/Math.max(.95,1.8-.04*stage);o.cw=W/2-12;o.cx=W/2;return;}
+  if(['star','mob'].includes(o.l.k)||['star','mob'].includes(o.r.k)||stage<2)return;
+  const bad=x=>x.k==='minus'||x.k==='div';
+  if(Math.random()>Math.min(.85,.4+.05*stage))return;
+  const r2=Math.random(),mixed=bad(o.l)!==bad(o.r);
+  if(mixed&&stage>=3&&r2<.35){o.tr='slide';o.iv=Math.max(.55,1.0-.025*stage);}            // 좋은/나쁜 카드가 자리를 빠르게 계속 바꾼다
+  else if(r2<.82||stage<6){o.tr='swap';o.iv=Math.max(.65,1.2-.03*stage);}
+  else o.tr='hide';
   o.tm=o.iv?o.iv*rand(.6,1.1):0;o.ao=0;o.wn=0;
 }
 function gateTrickUpdate(o,dt){
   if(o.done||!o.tr)return;
+  if(o.tr==='solo'){if(o.y>-40&&o.y<SQ_Y-240)o.ph+=dt*o.sp;o.cx=W/2+(W/2-o.cw/2-8)*Math.sin(o.ph);const L=o.cx<W/2;o.l=L?o.card:o.none;o.r=L?o.none:o.card;return;}
   if(o.ao>0)o.ao=Math.max(0,o.ao-dt*4.2);
   if(o.tr==='hide'){o.hide=o.y<SQ_Y-330;return;}
   if(o.y<40||o.y>SQ_Y-200){o.wn=0;return;}     // 화면에 들어온 뒤 ~ 닿기 직전 전까지만 움직인다 (마지막엔 고정)
@@ -472,7 +482,7 @@ function startStage(){
   let y=-70;
   g.objs=st.ev.map(e=>{
     const o={t:e.t,y,done:false};
-    if(e.t==='G'){o.l=e.l;o.r=e.r;y-=210;gateTrick(o,g.stage);}
+    if(e.t==='G'){o.l=e.l;o.r=e.r;y-=210;if(e.solo){o.solo=1;o.card=e.l;o.none=e.r;}gateTrick(o,g.stage);}
     else{o.hp=e.hp;o.mhp=e.hp;o.fl=0;o.seed=Math.floor(Math.random()*997);y-=(e.t==='C'?320:250);}
     return o;
   });
@@ -606,9 +616,15 @@ function snd(k){
     else if(k==='over'){tone(130,45,1.6,'sine',.2);nz(.9,260,.16);}
   }catch(e){}
 }
-function takeGate(row){snd('gate');
-  const g=G,o=g.x<W/2?row.l:row.r;
+function takeGate(row){
+  const g=G;let o=gside(row,g.x);if(o.k==='none')return;snd('gate');
   const before=g.n;
+  if(o.k==='rand'){   // ? 카드: 먹는 순간 +−×÷ 중 하나로 정해지고, 큰 기호로 알려준다
+    const r=Math.random(),id=g.ideal;
+    o=r<.35?{k:'plus',v:Math.round(id*rand(.06,.11))+3}:r<.6?{k:'mult',v:2}:r<.88?{k:'minus',v:Math.round(id*rand(.08,.15))+4}:{k:'div',v:2};   // 좋은 쪽이 6할
+    const good=o.k==='plus'||o.k==='mult',sym={plus:'＋',mult:'×'+o.v,minus:'－',div:'÷'+o.v}[o.k],col=good?'#7dffb0':'#ff4d5a';
+    pop(g.x,SQ_Y-190,sym,col,true);ring(g.x,SQ_Y-60,col,true);ring(g.x,SQ_Y-60,'#fff',true);burst(g.x,SQ_Y-60,col,26);g.hs=Math.max(g.hs||0,.06);
+  }
   if(o.k==='mob'){
     const lose=Math.max(1,Math.round(o.hp*leader.mobMul*(1-0.2*g.sk.wall)));
     g.n-=lose;g.shake=.3;pop(g.x,SQ_Y-90,'-'+fmt(lose),'#ff5a3c');burst(g.x,SQ_Y,'#f33',20);
@@ -655,7 +671,7 @@ function killMob(o){
 const PUMP_R=0.5;   // 계속 쏘고 있을 때 1초에 게이트 처음 크기의 몇 %가 변하는지
 function pumpUnit(side,pw){return Math.max(0.35,(side.b0||10))*PUMP_R*(pw||0)*(1+0.5*G.sk.gate)*leader.gainMul*(G.ultT>0?2:1);}
 function gateHit(side,gain,capAdd,x,y,dmg){
-  const g=G;
+  const g=G;if(side.k==='none'||side.k==='rand')return;
   if(side.k==='mob'){
     side.hp-=(dmg||gain);side.fl=.08;
     if(side.hp<=0){burst(x,y,'#cfa',40);ring(x,y,'#ffe58a',true);ring(x,y,'#fff',true);g.shake=Math.max(g.shake,.25);g.hs=.05;g.kills++;side.k='plus';side.v=Math.round(g.ideal*rand(.03,.07))+3;side.b0=side.v;}
@@ -738,7 +754,7 @@ function laserTick(dt){
   for(const o of g.objs){
     if(o.done||o.y<-20||o.y>SQ_Y-40)continue;
     if(o.t==='M'){o.hp-=dps*dt;o.fl=.05;if(o.hp<=0)killMob(o);}
-    else if(o.t==='G'&&tick){gateHit(g.x<W/2?o.l:o.r,0.24,capAdd,g.x,o.y,dps*0.08);}
+    else if(o.t==='G'&&tick){gateHit(gside(o,g.x),0.24,capAdd,g.x,o.y,dps*0.08);}
   }
 }
 function ftRR(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath();}
@@ -1013,7 +1029,7 @@ function update(dt){
       for(const o of g.objs){
         if(o.done||b.hit.includes(o)||b.vis)continue;
         if(o.t==='G'&&Math.abs(b.y-o.y)<36){
-          gateHit(b.side===0?o.l:o.r,b.pw||0,capAdd,b.x,o.y,b.d);
+          {const sd=o.solo?gside(o,b.x):(b.side===0?o.l:o.r);if(sd.k==='none')continue;gateHit(sd,b.pw||0,capAdd,b.x,o.y,b.d);}
           g.fx.push({x:b.x,y:o.y,vx:rand(-60,60),vy:rand(-90,-20),t:.25,c:b.col});
           if(b.gold){b.hit.push(o);continue;}
           if(b.pi>0){b.pi--;b.hit.push(o);continue;}
@@ -1246,6 +1262,13 @@ function drawMobSide(o,x0,x1,y){
 }
 function drawGate(o,x0,x1,y){
   if(o.k==='mob'){drawMobSide(o,x0,x1,y);return;}
+  if(o.k==='none')return;
+  if(o.k==='rand'){const t=G?G.t:0,a=x0+4,b=x1-4,cx=(x0+x1)/2;ctx.save();
+    const gr=ctx.createLinearGradient(a,y-34,b,y+34);gr.addColorStop(0,'#2a1250');gr.addColorStop(.5,'#5a2a9a');gr.addColorStop(1,'#2a1250');
+    ctx.fillStyle=gr;ctx.strokeStyle='rgba(220,180,255,'+(.6+.4*Math.sin(t*9))+')';ctx.lineWidth=3;ctx.fillRect(a,y-34,b-a,68);ctx.strokeRect(a,y-34,b-a,68);
+    ctx.font='900 44px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#fff';ctx.strokeStyle='#1a0a30';ctx.lineWidth=6;ctx.strokeText('?',cx,y+2);ctx.fillText('?',cx,y+2);
+    ctx.font='900 18px sans-serif';ctx.fillStyle='rgba(255,224,138,.8)';const ops=['＋','－','×','÷'];for(let i=0;i<4;i++){const an=t*3+i*1.5708;ctx.fillText(ops[(i+Math.floor(t*4))%4],cx+Math.cos(an)*((b-a)*.36),y+Math.sin(an)*20);}
+    ctx.restore();return;}
   const w=x1-x0,cx=(x0+x1)/2,h=66,top=y-h/2,bot=y+h/2;
   const star=o.k==='star',dv=o.k==='div',mult=o.k==='mult',bad=o.k==='minus'||dv;
   const zero=o.k==='minus'&&Math.round(o.v)<=0;
@@ -1484,7 +1507,8 @@ function draw(){
     if(o.y<-100||o.y>H+100)continue;
     if(o.t==='G'){
       if(o.done)ctx.globalAlpha=.3;
-      {const ac=g.x<W/2?0:1,pa=ctx.globalAlpha,ao=o.ao||0,offL=ao*(W/2),offR=-ao*(W/2);
+      if(o.solo){const pa=ctx.globalAlpha,cw=o.cw,hit=Math.abs(g.x-o.cx)<cw/2+4;ctx.globalAlpha=pa*(hit?1:.8);drawGate(o.card,o.cx-cw/2,o.cx+cw/2,o.y);ctx.globalAlpha=pa;}
+      else{const ac=g.x<W/2?0:1,pa=ctx.globalAlpha,ao=o.ao||0,offL=ao*(W/2),offR=-ao*(W/2);
         ctx.globalAlpha=pa*(ac===0?1:.6);drawGate(o.l,8+offL,W/2-4+offL,o.y);ctx.globalAlpha=pa*(ac===1?1:.6);drawGate(o.r,W/2+4+offR,W-8+offR,o.y);ctx.globalAlpha=pa;
         if(o.tr&&!o.done){
           if(o.wn){const k=Math.sin(g.t*34)>0?.9:.35;ctx.save();ctx.strokeStyle='rgba(255,255,255,'+k+')';ctx.lineWidth=4;ctx.strokeRect(10,o.y-36,W/2-8,72);ctx.strokeRect(W/2+2,o.y-36,W/2-8,72);ctx.restore();}
