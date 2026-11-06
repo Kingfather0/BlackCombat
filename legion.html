@@ -88,6 +88,11 @@ h1{margin:0 0 4px;font-size:26px;color:#fff;letter-spacing:1px;text-shadow:0 0 1
 #ovQuit{z-index:70}#ovPause{z-index:68}#gbar #gPause{display:none}#gbar.pl #gPause{display:flex}
 #gbar button{width:26px;height:26px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(14,14,19,.6);border:1.5px solid rgba(255,255,255,.45);cursor:pointer;font-size:13px}
 #gbar button:active{transform:translateY(1px);background:rgba(14,14,19,.85)}
+#lgGate{display:none;flex-direction:column;align-items:center;gap:8px;margin:18px 0;text-align:center;color:#fff}
+#lgGate .lgi{font-size:40px;line-height:1}#lgGate b{font-size:19px}#lgGate small{font-size:13px;color:#c9c2c4}
+#lgGate button{margin-top:6px;background:#fee500;color:#191600;border:0;border-radius:14px;padding:14px 34px;font-size:17px;font-weight:900;cursor:pointer;box-shadow:0 6px 18px rgba(254,229,0,.28)}
+#ovStart.nologin #fighterList,#ovStart.authwait #fighterList{display:none}
+#ovStart.nologin #lgGate{display:flex}
 #fighterList{display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:340px}
 @media (max-height:780px){#ovStart{justify-content:flex-start;padding-top:30px}#ovStart .dome{width:auto;max-width:100%;max-height:150px;margin:0 0 0}#ovStart h1{font-size:22px;margin-bottom:6px}#fighterList{max-height:none;overflow:visible;gap:6px}#fighterList .card{padding:6px 6px!important}#bShop{margin-bottom:8px}}
 @media (max-height:700px){#fighterList{grid-template-columns:repeat(3,1fr);max-width:360px;gap:5px}#fighterList .ava{width:38px;height:38px}#fighterList .card b{font-size:12.5px}#fighterList .card span{font-size:10px}#fighterList .ftag{font-size:9.5px;padding:1px 6px}}
@@ -115,6 +120,7 @@ h1{margin:0 0 4px;font-size:26px;color:#fff;letter-spacing:1px;text-shadow:0 0 1
   
   <div class="coin" id="coinBar"></div>
   <div class="cards scroll" id="fighterList"></div>
+  <div id="lgGate"><div class="lgi">🔒</div><b>로그인 후 플레이할 수 있어요</b><small>기록이 주간 랭킹에 등록돼요</small><button type="button" id="lgLoginBtn">카카오 로그인</button></div>
 </div>
 
 <div id="gbar">
@@ -426,7 +432,13 @@ function buildShop(){
 // 스테이지를 깰 때마다 이번 주 도달 스테이지를 저장하고, 새로 열린 꾸미기 개수를 돌려준다
 function progSave(){const id=leader.id,c=G.cleared;weekRoll();const old=META.prog[id]||0;if(c<=old)return 0;META.prog[id]=c;saveMeta();
   let n=0;for(const sl in COS)for(const it of cosItems(id,sl))if(!it[6]&&it[5]>old&&it[5]<=c)n++;return n;}
+// 사이트(부모)가 로그인 여부를 알려준다. 비로그인이면 메인 화면 가운데에 로그인 버튼만 보인다. (단독 실행이거나 부모 응답이 없으면 그냥 플레이 가능)
+const IN_SITE=(window.parent!==window);
+let AUTH={in:true};
+function applyAuth(){const ov=$('ovStart');if(!ov)return;ov.classList.remove('authwait');ov.classList.toggle('nologin',!AUTH.in);}
+if(IN_SITE){setTimeout(()=>{const ov=$('ovStart');if(ov&&ov.classList.contains('authwait'))applyAuth();},1500);}
 window.addEventListener('message',e=>{if(e.source!==window.parent)return;const d=e.data||{};
+  if(d.type==='legion-auth'){AUTH.in=!!d.loggedIn;applyAuth();}
   if(d.type==='legion-hof'){const t=d.tier==='hall'||d.tier==='week'?d.tier:'';if(META.hof!==t){META.hof=t;saveMeta();}buildMenu();}});
 function saveBest(){try{localStorage.setItem(BEST_KEY,JSON.stringify(best))}catch(e){}}
 // 큰 숫자는 만, 억 단위로 줄여서 보여줍니다.
@@ -1675,6 +1687,7 @@ function resumeCP(f,cp){
   newGame(f);const g=G;g.stage=cp.stage;g.n=cp.n;g.ideal=cp.ideal;g.peak=cp.peak;g.cleared=cp.cleared;g.kills=cp.kills;g.sk=Object.assign({dmg:0,rate:0,pierce:0,slow:0,gate:0,wall:0},cp.sk);g.ult=cp.ult||0;
   g.stars=cp.stars.map(id=>FIGHTERS.find(x=>x.id===id)).filter(Boolean);g.pool=FIGHTERS.filter(x=>x!==f&&!g.stars.includes(x));startStage();}
 function startGame(f,fromCP){
+  if(!AUTH.in){applyAuth();$('ovInfo').classList.remove('on');$('ovStart').classList.add('on');return;}
   weekRoll();const cp=META.cp[f.id];
   if(fromCP&&cp)resumeCP(f,cp);else{if(!fromCP)delete META.cp[f.id],saveMeta();newGame(f);}setMuteIco();droneStart();droneMode(false);beatT=0;bellT=5;$('gbar').classList.add('pl');$('ovPause').classList.remove('on');
   ['ovStart','ovOver','ovSkill','ovClear'].forEach(id=>$(id).classList.remove('on'));
@@ -1751,6 +1764,8 @@ $('bCopy').onclick=()=>{
 };
 (function(){const d=VP.dome;if(d)$('domePic').src=d.im.src;})();
 buildMenu();draw();
+$('lgLoginBtn').onclick=()=>{try{window.parent.postMessage({type:'legion-login'},'*');}catch(e){}};
+if(IN_SITE){$('ovStart').classList.add('authwait');try{window.parent.postMessage({type:'legion-ready'},'*');}catch(e){}}
 VMOB.concat(VBOSS.map(b=>b.im),Object.values(VP).map(p=>p.im)).forEach(i=>{i.onload=()=>{if(!running)draw();};});
 </script>
 </body>
