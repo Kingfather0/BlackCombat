@@ -1727,9 +1727,8 @@ function buildMenu(){
   FIGHTERS.forEach(f=>{
     const d=document.createElement('div');d.className='card';
     const ava=f.faceSrc?'<div class="ava">'+avaImg(f)+'</div>':'<div class="ava" style="background:'+f.col+'">'+f.init+'</div>';
-    d.innerHTML=ava+'<div><b>'+f.name+' <button type="button" class="inf" aria-label="선수 설명">ⓘ</button></b><em class="ftag" style="background:'+f.col+'">'+f.tag+'</em><br><span>최고 '+(best[f.id]||0)+'</span></div>';
+    d.innerHTML=ava+'<div><b>'+f.name+'</b><em class="ftag" style="background:'+f.col+'">'+f.tag+'</em><br><span>최고 '+(best[f.id]||0)+'</span></div>';
     const openInfo=e=>{if(e)e.stopPropagation();pendingF=f;$('infoPic').src=f.bodySrc||f.faceSrc||'';$('infoName').textContent=f.name;$('infoTag').textContent=f.tag;$('infoTag').style.background=f.col;$('infoDesc').textContent=f.desc;{const cp=META.cp[f.id];$('infoGo').textContent=cp?'📍 '+cp.stage+'스테이지에서 이어하기':'시작';$('infoFresh').style.display=cp?'':'none';}$('ovInfo').classList.add('on');};
-    d.querySelector('.inf').onclick=openInfo;
     d.onclick=()=>openInfo();box.appendChild(d);
   });
 }
