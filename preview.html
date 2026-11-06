@@ -21880,8 +21880,21 @@ function legionRule() { return `<b style="color:var(--text)">목표</b> 고척�
 <b style="color:var(--text)">게이트</b> ＋·× 는 군단이 늘고, －·÷ 는 줄어요. 쏠수록 숫자가 올라가요. 동료 합류칸은 선수를 합류시켜요.<br>
 <b style="color:var(--text)">군단 충돌 · 보스</b> 스테이지마다 적 군단과 부딪히고 보스와 싸워요. 보스의 탄막은 피하세요!<br>
 <b style="color:var(--text)">강화</b> 보스를 깨면 강화 하나를 골라요. 15스테이지 뒤에는 보스가 더 강해져 돌아옵니다.<br>
-<b style="color:var(--text)">블랙머니</b> 깊이 갈수록 많이 받고, 꾸미기 상점에서 가면·군기·오라 등을 살 수 있어요. 중간에 포기하면 기록과 블랙머니가 저장되지 않아요.<br>
+<b style="color:var(--text)">꾸미기</b> 이번 주에 깊은 스테이지까지 갈수록 가면·군기·오라 등이 자동으로 장착돼요 (상점 없음). 주간 랭킹이 리셋되면 꾸미기도 함께 초기화돼요.<br>
+<b style="color:var(--text)">체크포인트</b> 5스테이지를 깰 때마다 저장돼요. 죽어도 그 지점에서 능력치 그대로 이어할 수 있어요. (주간 리셋 때 초기화)<br>
+<b style="color:var(--text)">갓파더 세트</b> 명예의 전당 1위이거나 지난 주 TOP3면 전용 꾸미기 '갓파더 세트'가 열려요.<br>
 <b style="color:var(--text)">점수</b> 클리어한 스테이지 × 1000 + 격파 수`; }
+function lgSendHof(all, prev) {
+  /* 명예의 전당 1위 = 'hall'(기록을 지키는 동안), 지난 주 TOP3 = 'week'(이번 주 동안) → 게임이 갓파더 세트를 연다 */
+  let tier = '';
+  if (gmMyNick) {
+    if (all && all.length && all[0].nickname === gmMyNick) tier = 'hall';
+    else if ((prev || []).some(r => r.nickname === gmMyNick)) tier = 'week';
+  }
+  window.__lgHof = tier;
+  const fr = document.getElementById('lgFrame');
+  if (fr && fr.contentWindow) fr.contentWindow.postMessage({ type: 'legion-hof', tier }, '*');
+}
 async function lgOnMsg(e) {
   const fr = document.getElementById('lgFrame');
   if (gmCurGame !== 'legion' || !fr || e.source !== fr.contentWindow) return;
@@ -21909,7 +21922,7 @@ function viewGameLegion() {
   $app.innerHTML = `
   <h1 class="page gm-h1">블랙 벤데타 <button class="bb-rules-btn-top" id="gRulesBtn" type="button">📖 설명서</button><button class="bb-rules-btn-top gm-listbtn" type="button" onclick="gmGoList()">게임 목록</button></h1>
   <div class="gm-subline">⏰️ 주간 랭킹 리셋까지 <b>${gmResetLeft()}</b></div>
-  <div id="gArea" class="ga-legion"><iframe id="lgFrame" src="legion.html" allow="fullscreen" title="블랙 벤데타"></iframe></div>
+  <div id="gArea" class="ga-legion"><iframe id="lgFrame" src="legion.html" allow="fullscreen" title="블랙 벤데타" onload="try{this.contentWindow.postMessage({type:'legion-hof',tier:window.__lgHof||''},'*')}catch(e){}"></iframe></div>
   <div class="card" id="gSubmit" style="display:none;margin-top:14px"></div>
   <div class="sec-title" style="justify-content:space-between">🏆 이번 주 랭킹
     <input id="gRankSearch" placeholder="닉네임 검색 (순위 보기)" oninput="filterGameRank(this.value)" style="flex:1;max-width:180px;min-width:120px;box-sizing:border-box;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:6px 10px;color:var(--text);outline:none;font-size:12.5px;font-weight:600">
@@ -30101,6 +30114,7 @@ function ftNetNoRec(st) {
         // 지난 주 TOP3 (히스토리)
         const prevWk = gameWeekKey(new Date(svrNow().getTime() - 7 * 86400000));
         const prev = (all || []).filter(r => r.week === prevWk).slice(0, 3);
+        if (game === 'legion') lgSendHof(all, prev);
         if (prev.length) {
           const pm = ['🥇', '🥈', '🥉'];
           box.innerHTML += `<div class="grk-prev">
