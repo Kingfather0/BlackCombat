@@ -623,7 +623,7 @@ function takeGate(row){
   if(o.k==='rand'){   // ? 카드: 먹는 순간 +−×÷ 중 하나로 정해지고, 큰 기호로 알려준다
     const r=Math.random(),id=g.ideal;
     o=r<.35?{k:'plus',v:Math.round(id*rand(.06,.11))+3}:r<.6?{k:'mult',v:2}:r<.88?{k:'minus',v:Math.round(id*rand(.08,.15))+4}:{k:'div',v:2};   // 좋은 쪽이 6할
-    const good=o.k==='plus'||o.k==='mult',sym={plus:'＋',mult:'×'+o.v,minus:'－',div:'÷'+o.v}[o.k],col=good?'#7dffb0':'#ff4d5a';
+    const good=o.k==='plus'||o.k==='mult',sym={plus:'＋'+fmt(o.v),mult:'×'+o.v,minus:'－'+fmt(o.v),div:'÷'+o.v}[o.k],col=good?'#7dffb0':'#ff4d5a';
     pop(g.x,SQ_Y-190,sym,col,true);ring(g.x,SQ_Y-60,col,true);ring(g.x,SQ_Y-60,'#fff',true);burst(g.x,SQ_Y-60,col,26);g.hs=Math.max(g.hs||0,.06);
   }
   if(o.k==='mob'){
