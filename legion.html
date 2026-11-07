@@ -743,13 +743,13 @@ function fireVolley(){
   }
   // 동료는 옆에서 같이 발사
   g.stars.forEach((st,i)=>{
-    const sx=allyX(i),ka=Math.max(1,Math.round(k/2));
+    const sx=allyX(i),ka=Math.min(2,Math.max(1,Math.round(k/2)));
     for(let j=0;j<ka;j++)add(sx+rand(-6,6),y0+8,0,-560,D*.34/ka,3.8,{col:st.col,ally:true,kind:st.proj});
     g.flash.push({x:sx,y:y0+8,t:.08,col:st.col});
   });
   {const tc=cosCol('trail');if(tc)for(const q of g.bul.slice(bi))if(!q.ally)q.col=tc;}
   {const main=g.bul.slice(bi).filter(q=>!q.ally);const nb=Math.max(1,main.length);for(const q of main)q.pw=(interval/Math.pow(.85,s.rate))/nb;}
-  const xv=Math.min(10,Math.max(0,Math.floor(Math.log2(Math.max(1,g.n/60)))));
+  const xv=Math.min(4,Math.max(0,Math.floor(Math.log2(Math.max(1,g.n/60)))));
   for(let i=0;i<xv;i++)add(g.x+rand(-sp*1.5,sp*1.5),y0,rand(-40,40),-540-rand(0,60),0,3.2,{vis:true});
   g.flash.push({x:g.x,y:y0,t:.07,col:L.col,s:sz});
   {let sd=0;const by=g.boss?g.boss.y+30:100;for(const q of g.bul.slice(bi)){if(!(q.d>0))continue;const tt=Math.max(0,(q.y-by)/Math.max(1,-q.vy)),xl=q.x+q.vx*tt;if(Math.abs(xl-g.x)<95)sd+=q.d;}   // 보스가 바로 위에 있을 때 맞을 탄만 기준으로 삼는다
@@ -811,10 +811,10 @@ function drawWeapon(c,kind,k){
 const W_TRAIL={glove:'255,255,255',staff:'255,210,74',cash:'111,207,127',plate:'180,186,200',shuriken:'170,210,255',burger:'255,190,90'};
 const W_SPIN={glove:0,staff:0,cash:7,plate:6,shuriken:22,burger:6};
 function drawPunch(p){
-  const r=p.r,ang=Math.atan2(p.vy,p.vx),sk=G.sk,kind=p.kind||'glove',tc0=(!p.ally&&cosCol('trail')),tr=tc0?(parseInt(tc0.slice(1,3),16)+','+parseInt(tc0.slice(3,5),16)+','+parseInt(tc0.slice(5,7),16)):(W_TRAIL[kind]||'255,255,255');
-  ctx.save();ctx.translate(p.x,p.y);ctx.rotate(ang+Math.PI/2);
-  const tl=(16+r*3.6)*(1+0.35*sk.pierce)*(tc0?1.5:1);
-  if(r>4.6||sk.dmg>0||tc0){
+  const nB=G.bul.length,r=Math.min(p.r,p.fin?13:p.knock?11:p.ally?4:6.2)*(nB>34?.8:1),ang=Math.atan2(p.vy,p.vx),sk=G.sk,kind=p.kind||'glove',tc0=(!p.ally&&cosCol('trail')),tr=tc0?(parseInt(tc0.slice(1,3),16)+','+parseInt(tc0.slice(3,5),16)+','+parseInt(tc0.slice(5,7),16)):(W_TRAIL[kind]||'255,255,255');
+  ctx.save();ctx.translate(p.x,p.y);ctx.rotate(ang+Math.PI/2);if(p.ally||nB>34)ctx.globalAlpha=p.ally?.55:.75;
+  const tl=Math.min(60,(14+r*3)*(1+0.15*sk.pierce)*(tc0?1.3:1));
+  if(!p.ally&&nB<30&&(r>4.6||sk.dmg>0||tc0)){
     ctx.save();ctx.globalCompositeOperation='lighter';
     const ar=r*(2.1+0.25*sk.dmg);
     const rg=ctx.createRadialGradient(0,0,r*.3,0,0,ar);
@@ -850,8 +850,10 @@ const SCRIPTS=[[0,1,0,1,99],[1,2,1,2,99],[0,2,4,99],[3,0,9,99],[6,1,6,0,99],[2,1
 const LAPX=[4,6,9,14,15,10,12];
 // ===== 보스 탄막 (슈팅 게임처럼 피하기) =====
 function bossShoot(dt){
-  const HS=1+Math.min(1.6,.045*(G.stage-1));   // 스테이지가 오를수록 한 방이 더 아프다 (22스테이지 ≈ ×1.95)
+  const HS=1+Math.min(2.5,.045*(G.stage-1));   // 스테이지가 오를수록 한 방이 더 아프다 (22스테이지 ≈ ×1.95)
   const hitK=((G.state==='fight')?.125:.065)*HS;
+  const DN=1+Math.min(1.3,Math.max(0,G.stage-18)*.022);   // 18스테이지부터 모든 패턴의 탄 수가 계속 늘어난다
+  const SPD=G.stage<=33?165+G.stage*11:528+(G.stage-33)*4.5;
   const g=G,b=g.boss,fight=g.state==='fight';
   g.inv-=dt;if(g.hurt>0)g.hurt-=dt;
   const bx=b.x||W/2;
@@ -860,9 +862,9 @@ function bossShoot(dt){
     g.bcd-=dt;if(g.stun>0)g.stun-=dt;
     if(g.bcd<=0){
       const enr=fight?(g.ph>=2?.62:g.ph>=1?.8:1):1;
-      g.bcd=Math.max(.5,2.0-0.07*g.stage)*Math.pow(.92,lap)*rand(.85,1.15)*enr*(fight?.9:1);
+      g.bcd=Math.max(.42,g.stage<=21?2.0-0.07*g.stage:.53-.0022*(g.stage-21))*Math.pow(.92,lap)*rand(.85,1.15)*enr*(fight?.9:1);
       const sx=bx,sy=b.y+(fight?20:30);
-      const sp=Math.min(520,165+g.stage*11)*(1+.06*lap);
+      const sp=Math.min(720,SPD)*(1+.08*lap);
       const kinds=[0,1];if(g.stage>=3)kinds.push(2);if(g.stage>=6)kinds.push(3);if(g.stage>=8)kinds.push(4);if(g.stage>=12)kinds.push(5);
       const bi=(g.stage-1)%15;
       // 보스전: 보스마다 정해진 패턴 순서가 반복된다 → 외워서 공략. 큰 패턴 뒤에는 보스가 잠깐 멍해져서(딜타임) 공격 기회가 온다.
@@ -872,7 +874,7 @@ function bossShoot(dt){
         const k=sc[(g.si||0)%sc.length];g.si=(g.si||0)+1;return k;};
       const orb=(x,y,vx,vy,c)=>g.eb.push({x,y,vx,vy,r:8,c});
       const fire=k=>{
-        if(k===99){g.stun=2.0;g.spi=null;ring(bx,b.y+40,'#9cf',true);ring(bx,b.y+40,'#fff',true);burst(bx,b.y+40,'#9cf',30);g.shake=.4;tone(70,40,.9,'sine',.25);return;}
+        if(k===99){g.stun=Math.max(1.3,2.0-Math.max(0,g.stage-20)*.014);g.spi=null;ring(bx,b.y+40,'#9cf',true);ring(bx,b.y+40,'#fff',true);burst(bx,b.y+40,'#9cf',30);g.shake=.4;tone(70,40,.9,'sine',.25);return;}
         if(k===9){            // 장판: 바닥에 붉은 원이 차오르다 폭발
           const cn=3+Math.min(3,g.stage>>2);
           for(let i=0;i<cn;i++){const ax=i===0?g.x:Math.max(40,Math.min(W-40,g.x+rand(-190,190))),ay=Math.max(b.y+130,Math.min(SQ_Y+20,SQ_Y+(g.oy||0)+rand(-110,70)));g.aoe.push({x:ax,y:ay,r:62+Math.min(30,g.stage),t:-i*.18,warn:1.1,boom:false});}
@@ -890,18 +892,18 @@ function bossShoot(dt){
           const fromL=Math.random()<.5,top=b.y+110,bot=SQ_Y+40,py=SQ_Y+(g.oy||0),gy=Math.max(top+60,Math.min(bot-60,py+rand(-80,80)));
           for(let y=top;y<=bot;y+=36){if(Math.abs(y-gy)<62)continue;g.eb.push({x:fromL?-12:W+12,y,vx:(fromL?1:-1)*sp*.85,vy:0,r:8,c:'#ff8a3c'});}
         }else if(k===0){            // 조준탄: 붉은 조준선이 먼저 뜨고 잠시 뒤 발사
-          const cnt=g.stage>=20?7:g.stage>=10?5:3,aimX=g.x,aimY=SQ_Y+(g.oy||0),td=Math.max(.32,.55-.012*g.stage);   // 높은 스테이지일수록 조준선이 짧다
+          const cnt=Math.round((g.stage>=20?7:g.stage>=10?5:3)*(g.stage>=20?Math.min(1.4,DN):1)),aimX=g.x,aimY=SQ_Y+(g.oy||0),td=Math.max(.32,.55-.012*g.stage);   // 높은 스테이지일수록 조준선이 짧다
           g.tele.push({sx,sy,tx:aimX,ty:aimY,t:0,dur:td});
           g.pend.push({t:td,fn:()=>{const bb=g.boss;for(let i=0;i<cnt;i++){const tx=aimX+(i-(cnt-1)/2)*34,dy=Math.max(60,aimY-sy),dx=tx-sx,l=Math.hypot(dx,dy);orb(sx,sy,dx/l*sp*1.05,dy/l*sp*1.05,'#ff3b47');}ring(sx,sy,'#ff3b47',true);}});
         }else if(k===1){      // 부채꼴
-          const cnt=5+Math.min(4,Math.floor(g.stage/6))*2/2|0;
-          for(let i=0;i<cnt;i++){const a=(i-(cnt-1)/2)*0.34;orb(sx,sy,Math.sin(a)*sp,Math.cos(a)*sp,'#c06bff');}
+          const cnt0=5+Math.min(4,Math.floor(g.stage/6))*2/2|0,cnt=Math.min(12,Math.round(cnt0*Math.min(1.6,DN)));
+          for(let i=0;i<cnt;i++){const a=(i-(cnt-1)/2)*(cnt>9?.23:.34);orb(sx,sy,Math.sin(a)*sp,Math.cos(a)*sp,'#c06bff');}
         }else if(k===2){      // 하늘에서 쏟아지는 탄
-          for(let i=0;i<5+Math.min(4,g.stage>>2);i++)orb(rand(20,W-20),-12-i*30,0,sp*.9,'#ff8a3c');
+          for(let i=0;i<5+Math.min(4,g.stage>>2)+Math.round((DN-1)*6);i++)orb(rand(20,W-20),-12-i*30,0,sp*.9,'#ff8a3c');
           orb(g.x,-12,0,sp*.9,'#ff8a3c');
         }else if(k===4){      // 틈새 벽: 한 곳만 비어 있다
           const gx=Math.max(50,Math.min(W-50,g.x+rand(-70,70)));
-          for(let x=14;x<W;x+=26){if(Math.abs(x-gx)<46)continue;orb(x,-14,0,sp*.78,'#ffd54a');}
+          for(let x=14;x<W;x+=26){if(Math.abs(x-gx)<46-Math.min(14,Math.max(0,g.stage-20)*.28))continue;orb(x,-14,0,sp*.78,'#ffd54a');}
         }else if(k===5){      // 회전 난사
           g.spi={t:1.9,a:rand(0,6.28),c:0,sx,sy,dbl:false};
         }else if(k===6){      // 레이저 빔: 경고 후 발사
@@ -912,21 +914,22 @@ function bossShoot(dt){
         }else if(k===8){      // 쌍 회전 난사
           g.spi={t:2.2,a:rand(0,6.28),c:0,sx,sy,dbl:true};
         }else{                // 원형 탄
-          const nn=12+Math.min(8,g.stage>>1);
+          const nn=12+Math.min(8,g.stage>>1)+Math.round((DN-1)*8);
           for(let i=0;i<nn;i++){const a=i/nn*6.283+g.t;orb(sx,sy,Math.cos(a)*sp*.8,Math.sin(a)*sp*.8,'#ff3b47');}
         }
       };
       const k0=pick();fire(k0);
       if(fight&&g.ph>=1&&k0<4)fire([0,1,2,3][Math.floor(rand(0,4))]);
-      else if(fight&&k0<4&&g.stage>=10&&Math.random()<Math.min(.7,(g.stage-8)*.045))fire([0,1,2,3][Math.floor(rand(0,4))]);   // 높은 스테이지: 패턴이 겹쳐서 날아온다      // 분노 단계: 가벼운 패턴은 하나 더
+      else if(fight&&k0<4&&g.stage>=10&&Math.random()<Math.min(.9,(g.stage-8)*.05))fire([0,1,2,3][Math.floor(rand(0,4))]);
+      if(fight&&k0<4&&g.stage>=36&&Math.random()<Math.min(.6,(g.stage-34)*.025))fire([0,1,2,3,7][Math.floor(rand(0,5))]);   // 높은 스테이지: 패턴이 겹쳐서 날아온다      // 분노 단계: 가벼운 패턴은 하나 더
       if([6,9,10,12,13,15].includes(k0))g.bcd+=1.1;
-      if(k0===99)g.bcd=2.0;
+      if(k0===99)g.bcd=g.stun;
       b.fl=.1;ring(sx,sy,'#ff3b47',true);g.flash.push({x:sx,y:sy,t:.1,col:'#ff3b47',s:1.6});
     }
   }
   if(g.spi&&g.spi.t>0&&b.y>-30){
     const sp2=g.spi;sp2.t-=dt;sp2.c-=dt;sp2.a+=dt*3.2;
-    if(sp2.c<=0){sp2.c=sp2.dbl?.085:.1;const sp=Math.min(330,150+g.stage*4);
+    if(sp2.c<=0){sp2.c=(sp2.dbl?.085:.1)/Math.min(1.5,DN);const sp=Math.min(400,150+g.stage*4);
       const a=Math.PI/2+Math.sin(sp2.a)*1.25;
       g.eb.push({x:bx,y:b.y+30,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,r:7,c:'#c06bff'});
       if(sp2.dbl){const a2=Math.PI/2+Math.sin(sp2.a+Math.PI)*1.25;g.eb.push({x:bx,y:b.y+30,vx:Math.cos(a2)*sp,vy:Math.sin(a2)*sp,r:7,c:'#ffd54a'});}}
