@@ -135,7 +135,6 @@ h1{margin:0 0 4px;font-size:26px;color:#fff;letter-spacing:1px;text-shadow:0 0 1
   <em class="ftag" id="infoTag"></em>
   <div class="sub" id="infoDesc" style="margin-top:10px"></div>
   <button class="btn" id="infoGo">시작</button>
-  <button class="btn g" id="infoFresh" style="display:none">처음부터</button>
   <button class="btn g" id="infoOk">취소</button>
 </div>
 
@@ -174,9 +173,9 @@ h1{margin:0 0 4px;font-size:26px;color:#fff;letter-spacing:1px;text-shadow:0 0 1
   <div class="big" id="oScore">0</div>
   <div class="stat" id="oStat"></div>
   <button class="btn" id="bRetry">다시 도전</button>
-  <button class="btn g" id="bFresh">처음부터</button>
   <button class="btn g" id="bCopy">결과 복사</button>
   <button class="btn g" id="bMenu">선수 선택</button>
+  <button class="btn g" id="bHome">🏠 홈으로</button>
 </div>
 </div></div>
 
@@ -1711,7 +1710,7 @@ function endGame(champ){
   if(nb){best[id]=sc;saveBest();}
   const nu=progSave();
   $('oTitle').textContent=champ?'챔피언 등극':'군단 해산';
-  {const cp=META.cp[id];$('bRetry').textContent=cp?'📍 '+cp.stage+'스테이지에서 이어하기':'다시 도전';$('bFresh').style.display=cp?'':'none';}
+  {const cp=META.cp[id];$('bRetry').textContent=cp?'📍 '+cp.stage+'스테이지에서 이어하기':'다시 도전';}
   $('overPic').src=leader.bodySrc;
   $('oScore').textContent=sc;
   $('oStat').innerHTML=leader.name+' | 클리어 '+G.cleared+'스테이지 | 최대 군단 '+fmt(G.peak)+'<br>격파 '+G.kills+(nu>0?' | ✨ 새 꾸미기 '+nu+'개 자동 장착':'')+' | '+(nb?'신기록 달성':'최고 기록 '+prev);
@@ -1733,14 +1732,12 @@ function buildMenu(){
     const d=document.createElement('div');d.className='card';
     const ava=f.faceSrc?'<div class="ava">'+avaImg(f)+'</div>':'<div class="ava" style="background:'+f.col+'">'+f.init+'</div>';
     d.innerHTML=ava+'<div><b>'+f.name+'</b><em class="ftag" style="background:'+f.col+'">'+f.tag+'</em><br><span>최고 '+(best[f.id]||0)+'</span></div>';
-    const openInfo=e=>{if(e)e.stopPropagation();pendingF=f;$('infoPic').src=f.bodySrc||f.faceSrc||'';$('infoName').textContent=f.name;$('infoTag').textContent=f.tag;$('infoTag').style.background=f.col;$('infoDesc').textContent=f.desc;{const cp=META.cp[f.id];$('infoGo').textContent=cp?'📍 '+cp.stage+'스테이지에서 이어하기':'시작';$('infoFresh').style.display=cp?'':'none';}$('ovInfo').classList.add('on');};
+    const openInfo=e=>{if(e)e.stopPropagation();pendingF=f;$('infoPic').src=f.bodySrc||f.faceSrc||'';$('infoName').textContent=f.name;$('infoTag').textContent=f.tag;$('infoTag').style.background=f.col;$('infoDesc').textContent=f.desc;{const cp=META.cp[f.id];$('infoGo').textContent=cp?'📍 '+cp.stage+'스테이지에서 이어하기':'시작';}$('ovInfo').classList.add('on');};
     d.onclick=()=>openInfo();box.appendChild(d);
   });
 }
 $('bRetry').onclick=()=>startGame(leader,true);
-$('bFresh').onclick=()=>startGame(leader,false);
 $('infoOk').onclick=()=>{$('ovInfo').classList.remove('on');pendingF=null;};
-$('infoFresh').onclick=()=>{$('ovInfo').classList.remove('on');if(pendingF)startGame(pendingF,false);pendingF=null;};
 $('infoGo').onclick=()=>{$('ovInfo').classList.remove('on');if(pendingF)startGame(pendingF,!!META.cp[pendingF.id]);pendingF=null;};
 function setMuteIco(){$('gMute').textContent=MUTE?'🔇':'🔊';}
 setMuteIco();
@@ -1748,6 +1745,7 @@ $('gMute').onclick=()=>{MUTE=!MUTE;if(MUTE)droneStop();else if(G&&running&&G.sta
 $('gFull').onclick=()=>{const w=$('wrap');try{if(document.fullscreenElement)document.exitFullscreen();else (w.requestFullscreen||w.webkitRequestFullscreen).call(w);}catch(e){}};
 {const de=document.documentElement||{};if(!(de.requestFullscreen||de.webkitRequestFullscreen))$('gFull').style.display='none';}
 const EMBED=(window.parent&&window.parent!==window);
+$('bHome').onclick=()=>{try{window.parent.postMessage({type:'legion-exit'},'*');}catch(e){}};
 function exitToSite(){try{window.parent.postMessage({type:'legion-exit'},'*');}catch(e){}}
 $('gQuit').onclick=()=>{
   if(G&&running&&G.state!=='over'){G.paused=true;$('ovQuit').classList.add('on');return;}   // 플레이 중: 포기 확인
