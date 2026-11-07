@@ -43,6 +43,8 @@ h1{margin:0 0 4px;font-size:26px;color:#fff;letter-spacing:1px;text-shadow:0 0 1
 .card.sk b u{text-decoration:none;font-size:11px;color:var(--c);filter:brightness(1.5);margin-left:4px}
 .pips{margin-top:5px}.pips i{display:inline-block;width:16px;height:5px;margin-right:3px;border-radius:2px;background:#3a3236}.pips i.on{background:var(--c)}.pips i.nx{background:#fff;box-shadow:0 0 6px #fff}
 .pic{width:110px;height:auto;margin-bottom:4px}
+#ovOver{justify-content:flex-start;padding-top:8px;overflow:hidden}#ovOver .pic{width:auto;max-width:70%;height:auto;flex:0 1 auto;min-height:0;max-height:min(300px,34%);object-fit:contain}#ovOver .big{font-size:34px;margin:2px 0}#ovOver h1{font-size:22px;margin:2px 0}#ovOver .btn{flex:0 0 auto;padding:10px 0}
+@media (max-height:560px){#ovOver .pic{max-height:26%}#ovOver .big{font-size:28px}}
 .dome{width:100%;max-width:300px;height:auto;margin:-6px 0 2px;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
 .kick{font-size:11px;letter-spacing:3px;color:#ff6b74;margin-bottom:2px}
 .coin{font-size:13px;color:#ffd54a;margin:4px 0}.coin b{font-size:16px}
@@ -173,9 +175,8 @@ h1{margin:0 0 4px;font-size:26px;color:#fff;letter-spacing:1px;text-shadow:0 0 1
   <div class="big" id="oScore">0</div>
   <div class="stat" id="oStat"></div>
   <button class="btn" id="bRetry">다시 도전</button>
-  <button class="btn g" id="bCopy">결과 복사</button>
   <button class="btn g" id="bMenu">선수 선택</button>
-  <button class="btn g" id="bHome">🏠 홈으로</button>
+  <button class="btn g" id="bHome">홈으로</button>
 </div>
 </div></div>
 
@@ -1760,10 +1761,6 @@ $('qYes').onclick=()=>{droneStop();$('gbar').classList.remove('pl');$('ovQuit').
 $('bMenu').onclick=()=>{running=false;$('ovOver').classList.remove('on');buildMenu();$('ovStart').classList.add('on');};
 $('bEndless').onclick=()=>{G.endless=true;$('ovClear').classList.remove('on');openPick();};
 $('bFinish').onclick=()=>{$('ovClear').classList.remove('on');endGame(true);};
-$('bCopy').onclick=()=>{
-  const done=()=>{$('bCopy').textContent='복사 완료';setTimeout(()=>$('bCopy').textContent='결과 복사',1500);};
-  if(navigator.clipboard)navigator.clipboard.writeText(lastResult).then(done,done);else done();
-};
 (function(){const d=VP.dome;if(d)$('domePic').src=d.im.src;})();
 buildMenu();draw();
 $('lgLoginBtn').onclick=()=>{try{window.parent.postMessage({type:'legion-login'},'*');}catch(e){}};
