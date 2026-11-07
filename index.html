@@ -22038,7 +22038,7 @@ function legionRule() { return `<b style="color:var(--text)">목표</b> 고척�
 <b style="color:var(--text)">꾸미기</b> 이번 주에 깊은 스테이지까지 갈수록 가면·군기·오라 등이 자동으로 장착돼요 (상점 없음). 주간 랭킹이 리셋되면 꾸미기도 함께 초기화돼요.<br>
 <b style="color:var(--text)">체크포인트</b> 5스테이지를 깰 때마다 저장돼요. 죽어도 그 지점에서 능력치 그대로 이어할 수 있어요. (주간 리셋 때 초기화)<br>
 <b style="color:var(--text)">갓파더 세트</b> 이번 주에 25스테이지를 클리어하거나, 명예의 전당 1위·지난 주 TOP3면 전용 꾸미기 '갓파더 세트'가 장착돼요.<br>
-<b style="color:var(--text)">점수</b> 클리어한 스테이지 × 1000 + 격파 수`; }
+<b style="color:var(--text)">점수</b> 클리어한 스테이지 × 100 + 격파 수(최대 99)`; }
 function lgSendAuth() {
   /* 게임(iframe)에 로그인 여부를 알린다 — 비로그인이면 게임 메인 화면에 로그인 버튼이 뜬다 */
   const fr = document.getElementById('lgFrame');
@@ -22072,8 +22072,8 @@ async function lgOnMsg(e) {
   if (!gmMyNick) { sub.innerHTML = '<div class="empty">로그인하면 기록이 랭킹에 등록돼요.</div>'; return; }
   sub.innerHTML = `<div style="font-weight:800">👤 ${esc(gmMyNick)} — 기록 자동 등록 중… ⏳</div>`;
   const { data, error } = await sb.rpc('submit_game_score', { p_nickname: gmMyNick, p_pin: '', p_score: d.score, p_combo: d.stage || 0, p_kos: d.kills || 0, p_game: 'legion' });
-  if (error) { sub.innerHTML = `<div class="msg err" style="display:block">${/function|not find|game/i.test(error.message || '') ? '블랙 벤데타 랭킹은 관리자 SQL 설정이 필요해요.' : cleanErr(error.message)}</div>`; return; }
-  if (!data || data.ok === false) { sub.innerHTML = `<div class="msg err" style="display:block">${(data && data.msg) || '기록 등록에 실패했습니다.'}</div>`; return; }
+  if (error) { console.warn('legion score', error.message); sub.style.display = 'none'; return; }
+  if (!data || data.ok === false) { console.warn('legion score', data && data.msg); sub.style.display = 'none'; return; }
   sub.innerHTML = `<div style="font-weight:800;margin-bottom:6px">${data.improved ? `📣 앤 뉴~!! <span style="color:#c62828">${esc(gmMyNick)}</span> 이번 주 신기록!` : '📣 앤 스틸~ 기존 기록이 방어에 성공했습니다'}</div>
     <div style="font-size:14px">👤 <b>${esc(gmMyNick)}</b> 이번 주 최고 기록: <b style="color:var(--key-deep)">${(+data.score).toLocaleString()}점</b></div>`;
   loadGameRank(gameWeekKey(svrNow()), 'legion');

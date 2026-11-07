@@ -311,6 +311,8 @@ addEventListener('resize',fit);fit();
 const $=id=>document.getElementById(id);
 const BEST_KEY='bc_best_v2';
 let best={};try{best=JSON.parse(localStorage.getItem(BEST_KEY)||'{}')}catch(e){}
+function scoreOf(st,k){return st*100+Math.min(99,k);}   // 스테이지×100 + 격파(최대 99)
+try{if(!localStorage.getItem('bc_best_v3')){for(const k in best)if(best[k]>=1000)best[k]=Math.floor(best[k]/1000)*100+Math.min(99,best[k]%1000);localStorage.setItem(BEST_KEY,JSON.stringify(best));localStorage.setItem('bc_best_v3','1');}}catch(e){}
 const META_KEY='gm_meta_v1';
 // 꾸미기는 블랙머니 대신 '이번 주 도달한 스테이지'로 해금된다. 주간 랭킹 리셋(월요일 0시 KST)에 해금/장착이 모두 초기화된다.
 // 명예의 전당·지난주 TOP3 보상(갓파더 세트)만 사이트가 알려주는 값(META.hof)으로 따로 열린다.
@@ -1076,7 +1078,7 @@ function update(dt){
     }
     g.objs=g.objs.filter(o=>!(o.done&&o.y>H+90)&&!o.dead);
     if(g.boss.y>=190&&!g.objs.some(o=>!o.done&&(o.t==='G'||o.t==='C'||o.t==='M'))){g.boss.y=190;g.state='intro';g.it=0;g.stomp=0;g.bp2=0;g.bsc=2.6;g.fightN=g.n;g.fn0=g.n;g.fs=g.t;g.ph=0;
-    {const fd=Math.min(2.1,1.45+0.025*g.stage),nb=Math.round(g.n*fd);if(nb>g.boss.B){g.boss.B=nb;g.boss.hp=nb;}g.FT=Math.min(40,24+.8*g.stage)*Math.max(.8,Math.min(1.6,Math.sqrt(g.boss.B/(1.8*g.n))));}g.fireT=0;g.bul=[];g.laserT=0;}
+    {const fd=Math.min(2.1,1.45+0.025*g.stage),nb=Math.round(g.n*fd);if(nb>g.boss.B){g.boss.B=nb;g.boss.hp=nb;}g.FT=(Math.min(40,24+.8*g.stage)+Math.min(60,Math.max(0,g.stage-20)*.6))*Math.max(.8,Math.min(1.6,Math.sqrt(g.boss.B/(1.8*g.n))));}g.fireT=0;g.bul=[];g.laserT=0;}
   }else if(g.state==='clash'){
     const o=g.clash;
     g.fireT-=dt;if(g.fireT<=0)fireVolley();
@@ -1150,7 +1152,7 @@ function update(dt){
     const hpr=b.hp/B;
     if(g.ph<1&&hpr<.5){g.ph=1;g.flashR=.5;g.shake=.6;g.hs=.1;roar();ring(b.x,b.y,'#ff3b47',true);snd('clash');}
     if(g.ph<2&&hpr<.22){g.ph=2;g.flashR=.7;g.shake=.8;g.hs=.12;roar();boom();ring(b.x,b.y,'#ffd54a',true);snd('clash');}
-    g.tdps=B/g.FT*(g.fightN/g.fn0*.5+.5)*Math.pow(leader.dpsMul,.6)*(1+.25*g.sk.dmg)*(1+.1*g.sk.rate)*(1+.3*(-g.oy/330))*(g.ultT>0?1.8:1)*(g.stun>0?1.8:1);   // 전부 명중했을 때의 초당 피해(기준)
+    g.tdps=B/g.FT*(g.fightN/g.fn0*.5+.5)*Math.pow(leader.dpsMul,.6)*Math.pow((1+.25*g.sk.dmg)*(1+.1*g.sk.rate),1-.4*Math.min(1,Math.max(0,(g.stage-10)/20)))*(1+.3*(-g.oy/330))*(g.ultT>0?1.8:1)*(g.stun>0?1.8:1);   // 전부 명중했을 때의 초당 피해(기준)
     g.fightN-=g.fn0*FD*dt;
     g.n=Math.max(0,Math.ceil(g.fightN));
     g.fireT-=dt;
@@ -1697,7 +1699,7 @@ function startGame(f,fromCP){
   running=true;last=performance.now();requestAnimationFrame(loop);setTimeout(giftCheck,500);
 }
 function stageSave(){
-  const g=G,id=leader.id,sc=g.cleared*1000+Math.min(999,g.kills);
+  const g=G,id=leader.id,sc=scoreOf(g.cleared,g.kills);
   if(sc>(best[id]||0)){best[id]=sc;saveBest();}
   progSave();giftCheck();
   try{window.parent.postMessage({type:'legion-score',score:sc,stage:g.cleared,kills:g.kills,peak:Math.round(g.peak),fighter:id},'*');}catch(e){}
@@ -1705,7 +1707,7 @@ function stageSave(){
 function endGame(champ){
   snd('over');droneStop();$('gbar').classList.remove('pl');
   G.state='over';
-  const sc=G.cleared*1000+Math.min(999,G.kills),id=leader.id,prev=best[id]||0,nb=sc>prev;
+  const sc=scoreOf(G.cleared,G.kills),id=leader.id,prev=best[id]||0,nb=sc>prev;
   if(nb){best[id]=sc;saveBest();}
   const nu=progSave();
   $('oTitle').textContent=champ?'챔피언 등극':'군단 해산';
