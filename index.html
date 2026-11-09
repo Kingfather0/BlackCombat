@@ -16914,7 +16914,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         // 문제 — 실제 판매 데이터가 아니므로 이 목록에서는 항상 제외한다(DB 데이터는 그대로 둠).
         const TK_PAST_EXCLUDE_EVENT_KEYS = ['test_bokmajeon_preview'];
         const past = events.filter(e => (trackingEnded || e.event_key !== eventKey) && !TK_PAST_EXCLUDE_EVENT_KEYS.includes(e.event_key))
-          .sort((a, b) => new Date(b.first_at) - new Date(a.first_at));
+          .sort((a, b) => new Date(a.first_at) - new Date(b.first_at)); // 2026-11-09: 오름차순(1경기 → 최신 경기)으로 변경
         if (past.length) {
           // 2026-09-21: "기록 N건"은 스냅샷 저장 횟수일 뿐이라 사용자에게 의미가 없어서, 실제
           // 판매 결과(판매 좌석 수 · 매진여부/판매율)로 바꿔 보여준다. 개별 지난 티켓 페이지와
@@ -16925,7 +16925,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
             fetchTicketSnapshots(e.event_key).then(r => tkSummarizePastEvent(e.event_key, r)).catch(() => null)
           ));
           pastHTML = `
-      <div class="sec-title" style="margin-top:24px">🎟️ 지난 티켓 <span style="color:var(--dim);font-size:12.5px;font-weight:700">최신순 · 총 ${past.length}개</span></div>
+      <div class="sec-title" style="margin-top:24px">🎟️ 지난 티켓 <span style="color:var(--dim);font-size:12.5px;font-weight:700">오래된순 · 총 ${past.length}개</span></div>
       ${past.map((e, i) => {
             const s = pastSummaries[i];
             const saleText = s
