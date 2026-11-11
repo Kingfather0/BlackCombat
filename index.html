@@ -12878,7 +12878,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
           alt="블붕이"> <span class="logo-text">블붕이</span> <svg viewBox="0 0 100 100" width="19" height="19" aria-label="카카오톡 오픈채팅 바로가기" style="flex:none;margin-left:-3px"><rect width="100" height="100" rx="24" fill="#FAE100"/><ellipse cx="50" cy="44" rx="33" ry="25" fill="#111"/><path d="M37 63 L29 81 L50 68 Z" fill="#111"/><text x="50" y="51" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="20" fill="#FAE100">TALK</text></svg> <small>승부예측</small></a>
       <nav id="nav">
         <a href="#/" data-nav="home">홈</a>
-        <a href="#/story" data-nav="story">스토리<span class="nav-new">NEW</span></a>
+        <a href="#/story" data-nav="story">세계관<span class="nav-new">NEW</span></a>
         <a href="#/videos" data-nav="videos">영상</a>
         <a href="#/tickets" data-nav="tickets">티켓</a>
         <a href="#/meetup" data-nav="meetup">쉐어</a>
@@ -14021,7 +14021,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       if (r) h += '<div style="color:#9a5f06;font-weight:700;margin:6px 0">' + esc(r.div) + esc(stRank(r)) + ' / ' + esc(r.rec) + '</div>';
       else if (e && e.role) h += '<div style="color:#5f5f66;margin:6px 0">' + esc(e.role) + '</div>';
       if (e) h += '<div style="margin:6px 0">' + stLn(e.bio) + '</div>' + stVids(e.videos);
-      else h += '<p style="color:#5f5f66">아직 정리된 이야기가 없다.</p>';
+      else h += '<p style="color:#5f5f66">아직 정리된 이야기가 없어요.</p>';
       let dlg = document.getElementById('stDlg');
       if (!dlg) {
         dlg = document.createElement('dialog'); dlg.id = 'stDlg'; dlg.className = 'st-dlg';
@@ -14037,28 +14037,28 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         const D = __loreD, R = D.recent, mini = D.courses[0];
         return '<div class="st-blk"><h2 class="st-h2">최근 구도</h2><p class="st-lead">' + esc(R.event) + '</p><div class="st-grid2">' + R.items.filter(i => i.tag !== '직전 구도').map(stRecCard).join('') + '</div></div>' +
           '<div class="st-blk"><h2 class="st-h2">직전 구도</h2><p class="st-lead">넘버링17로 이어진 올해의 흐름.</p><div class="st-grid2">' + R.items.filter(i => i.tag === '직전 구도').map(stRecCard).join('') + '</div></div>' +
-          '<div class="st-blk"><h2 class="st-h2">' + esc(R.card.title) + '</h2><p class="st-lead">노란 줄은 타이틀전. 이름을 누르면 선수 카드가 열린다.</p><div class="st-list">' +
+          '<div class="st-blk"><h2 class="st-h2">' + esc(R.card.title) + '</h2><p class="st-lead">노란 줄은 타이틀전. 이름을 누르면 선수 카드가 열려요.</p><div class="st-list">' +
           R.card.matches.slice().reverse().map(m => '<div class="st-row' + (m.title ? ' tt' : '') + '"><div class="st-no">' + m.n + '</div><div class="st-dv">' + esc(m.div) + (m.title ? ' 타이틀' : '') + '</div><div class="st-vs">' + stSide(m.a) + '<span class="st-x2">VS</span>' + stSide(m.b) + '</div></div>').join('') + '</div></div>' +
           '<div class="st-blk"><h2 class="st-h2">현재 챔피언</h2><p class="st-lead">' + esc(D.champions.snapshot) + ' 기준</p><div class="st-grid">' +
           D.champions.list.map(c => '<div class="st-card st-champ"><div class="dv">' + esc(c.division) + '</div><div class="nm">' + esc(c.name) + '</div><div class="rc">' + esc(c.record || '타이틀 공석') + '</div></div>').join('') + '</div></div>' +
-          '<div class="st-blk"><h2 class="st-h2">처음이라면 이 순서로</h2><p class="st-lead">가장 짧은 코스부터 시작한다.</p><div class="st-card"><b>' + esc(mini.name) + '</b><div class="st-d" style="margin-top:2px">' + esc(mini.desc) + '</div>' + stVids(mini.videos) + '</div></div>';
+          '<div class="st-blk"><h2 class="st-h2">처음이라면 이 순서로</h2><p class="st-lead">가장 짧은 코스부터 시작하세요.</p><div class="st-card"><b>' + esc(mini.name) + '</b><div class="st-d" style="margin-top:2px">' + esc(mini.desc) + '</div>' + stVids(mini.videos) + '</div></div>';
       },
       story() {
-        return '<div class="st-blk"><h2 class="st-h2">연대기</h2><p class="st-lead">검정의 첫 싸움부터 현재까지. 선수 이름을 누르면 상세 카드가 열린다.</p><div class="st-tl">' +
+        return '<div class="st-blk"><h2 class="st-h2">연대기</h2><p class="st-lead">검정의 첫 싸움부터 현재까지. 선수 이름을 누르면 상세 카드가 열려요.</p><div class="st-tl">' +
           __loreD.chapters.map(c => '<div class="st-ch"><div class="st-per">' + esc(c.period) + '</div><h3>' + esc(c.title) + '</h3>' + (c.lines ? '<ul class="st-ln">' + c.lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul>' : stLn(c.summary)) + stBtns(c.fighters) + stVids(c.videos) + '</div>').join('') + '</div></div>';
       },
       fighters() {
         const divs = ['전체'].concat([...new Set(Object.values(__loreD.roster).map(r => r.div))]);
-        return '<div class="st-blk"><h2 class="st-h2">선수 사전</h2><p class="st-lead">선수 ' + Object.keys(__loreD.roster).length + '명. 누르면 상세와 관련 영상이 열린다.</p>' +
+        return '<div class="st-blk"><h2 class="st-h2">선수 사전</h2><p class="st-lead">선수 ' + Object.keys(__loreD.roster).length + '명. 누르면 상세와 관련 영상이 열려요.</p>' +
           '<input type="search" id="stQ" class="st-search" placeholder="별명 또는 이름 검색">' +
           '<div class="st-seg" id="stSeg">' + divs.map(d => '<button type="button" data-std="' + esc(d) + '" class="' + (d === __loreDiv ? 'on' : '') + '">' + esc(d) + '</button>').join('') + '</div>' +
           '<div class="st-grid" id="stFGrid">' + stFGrid() + '</div></div>';
       },
       rivals() {
-        return '<div class="st-blk"><h2 class="st-h2">역대 구도</h2><p class="st-lead">서사를 알고 보면 경기가 두 배로 재밌어진다.</p><div class="st-grid">' + __loreD.rivalries.map(stRiv).join('') + '</div></div>';
+        return '<div class="st-blk"><h2 class="st-h2">역대 구도</h2><p class="st-lead">서사를 알고 보면 경기가 두 배로 재밌어져요.</p><div class="st-grid">' + __loreD.rivalries.map(stRiv).join('') + '</div></div>';
       },
       courses() {
-        return '<div class="st-blk"><h2 class="st-h2">추천 영상 코스</h2><p class="st-lead">목적에 맞는 코스를 고른다.</p>' +
+        return '<div class="st-blk"><h2 class="st-h2">추천 영상 코스</h2><p class="st-lead">목적에 맞는 코스를 골라 보세요.</p>' +
           __loreD.courses.map(c => '<div class="st-card" style="margin-bottom:12px"><b>' + esc(c.name) + '</b><div class="st-d" style="margin-top:2px">' + esc(c.desc) + '</div>' + stVids(c.videos) + '</div>').join('') + '</div>';
       },
       records() {
@@ -14074,10 +14074,10 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     async function viewStory(sub) {
       const __g = __navGen;
       const key = ST_VIEWS[sub] ? sub : 'home';
-      $app.innerHTML = '<div class="st"><div class="st-hero"><div class="st-eyebrow">BLACK COMBAT WORLD</div><h1 class="st-h1">블랙컴뱃 세계관 스토리</h1></div><div class="empty">불러오는 중…</div></div>';
+      $app.innerHTML = '<div class="st"><div class="st-hero"><div class="st-eyebrow">BLACK COMBAT WORLD</div><h1 class="st-h1">블랙컴뱃 세계관</h1></div><div class="empty">불러오는 중…</div></div>';
       try { await stLoad(); } catch (e) {
         if (navStale(__g)) return;
-        $app.innerHTML = '<div class="st"><div class="empty">⚠️ 스토리 데이터를 불러오지 못했다. 잠시 후 다시 시도하면 된다.</div></div>';
+        $app.innerHTML = '<div class="st"><div class="empty">⚠️ 세계관 데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div></div>';
         return;
       }
       if (navStale(__g)) return;
@@ -14086,7 +14086,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         const t = new Date(m.next_event.date).getTime();
         if (t > Date.now()) chips += '<span class="st-chip hot">' + esc(m.next_event.name) + ' D-' + Math.ceil((t - Date.now()) / 864e5) + '</span>';
       }
-      $app.innerHTML = '<div class="st"><div class="st-hero"><div class="st-eyebrow">BLACK COMBAT WORLD</div><h1 class="st-h1">블랙컴뱃 세계관 스토리</h1>' +
+      $app.innerHTML = '<div class="st"><div class="st-hero"><div class="st-eyebrow">BLACK COMBAT WORLD</div><h1 class="st-h1">블랙컴뱃 세계관</h1>' +
         '<p class="st-sub">처음 보는 팬부터 오래된 팬까지. 역사와 구도, 선수를 한곳에서.</p><div class="st-meta">' + chips + '</div></div>' +
         '<div class="st-tabs">' + STORY_TABS.map(t => '<a href="#/story' + (t[0] === 'home' ? '' : '/' + t[0]) + '" class="' + (t[0] === key ? 'on' : '') + '">' + t[1] + '</a>').join('') + '</div>' +
         ST_VIEWS[key]() + '</div>';
