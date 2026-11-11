@@ -14062,11 +14062,30 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
        마찬가지로 site_data(key:'home_images')에 { banner, guide, cmd } 형태로 저장한다. 값이
        비어 있으면(기본 상태) 기존처럼 banner-hero.jpg / chatbot-guide.jpg / chatbot-commands.jpg를
        그대로 쓰고, 관리자 페이지에서 이미지를 올리면 그 자리를 대체한다. */
-    async function applyHomeImageOverrides() {
-      try {
-        const { data } = await sb.from('site_data').select('value').eq('key', 'home_images').single();
-        if (data && data.value) HOME_IMG_OVERRIDE = Object.assign({ banner: '', guide: '', cmd: '' }, data.value);
-      } catch (e) { }
+    // 2026-11-11: Supabase egress(전송량) 한도 초과 대응 — 이 값은 이미지가 통째로(약 500kB) 들어 있어서
+    // 사이트에 들어올 때마다 받으면 방문 한 번에 500kB가 나간다. 브라우저에 30분간 저장해 재사용한다.
+    // force=true(관리자 화면)면 항상 새로 받고, 관리자가 저장/초기화하면 저장본을 지운다.
+    async function applyHomeImageOverrides(force) {
+      const HOME_IMG_CACHE_KEY = 'home_img_v1', HOME_IMG_CACHE_MS = 30 * 60 * 1000; // (부팅 순서와 무관하게 쓰려고 함수 안에 둔다)
+      let usedCache = false;
+      if (!force) {
+        try {
+          const c = JSON.parse(localStorage.getItem(HOME_IMG_CACHE_KEY) || 'null');
+          if (c && c.value && typeof c.t === 'number' && Date.now() - c.t < HOME_IMG_CACHE_MS) {
+            HOME_IMG_OVERRIDE = Object.assign({ banner: '', guide: '', cmd: '' }, c.value);
+            usedCache = true;
+          }
+        } catch (e) { }
+      }
+      if (!usedCache) {
+        try {
+          const { data, error } = await sb.from('site_data').select('value').eq('key', 'home_images').single();
+          if (data && data.value) HOME_IMG_OVERRIDE = Object.assign({ banner: '', guide: '', cmd: '' }, data.value);
+          if (!error || (data && data.value)) {
+            try { localStorage.setItem(HOME_IMG_CACHE_KEY, JSON.stringify({ t: Date.now(), value: (data && data.value) || {} })); } catch (e) { }
+          }
+        } catch (e) { }
+      }
       if (HOME_IMG_OVERRIDE.banner) {
         const img = document.querySelector('.v2-hero-banner img');
         if (img) img.src = HOME_IMG_OVERRIDE.banner;
@@ -14569,25 +14588,71 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     const TK_EXCLUDE_SNAPSHOT_IDS = {
       'yachaclub_bokmajeon002_2026_1011': [3360],
     };
-    async function fetchTicketSnapshots(eventKey) {
-      // Supabase는 요청 1번에 최대 1,000행까지만 주므로, 판매 시작~종료 기간의 기록을
-      // 전부 보여주기 위해 1,000행씩 여러 번 나눠서 다 가져온다.
-      // (안전 상한 10,000행 — 5분 간격 한 달치도 충분히 담고 남는 크기)
-      const PAGE = 1000, MAX_TOTAL = 10000;
+    // Supabase는 요청 1번에 최대 1,000행까지만 주므로, 판매 시작~종료 기간의 기록을
+    // 전부 보여주기 위해 1,000행씩 여러 번 나눠서 다 가져온다.
+    // (안전 상한 10,000행 — 5분 간격 한 달치도 충분히 담고 남는 크기)
+    // afterTs를 주면 그 시각보다 "새로 생긴" 기록만 가져온다(아래 캐시용).
+    const TK_SNAP_MAX_TOTAL = 10000;
+    async function tkFetchSnapPages(eventKey, afterTs) {
+      const PAGE = 1000;
       const all = [];
-      for (let from = 0; from < MAX_TOTAL; from += PAGE) {
-        const { data, error } = await sb.from('ticket_snapshots')
-          .select('*')
-          .eq('event_key', eventKey)
+      for (let from = 0; from < TK_SNAP_MAX_TOTAL; from += PAGE) {
+        let q = sb.from('ticket_snapshots').select('*').eq('event_key', eventKey);
+        if (afterTs) q = q.gt('captured_at', afterTs);
+        const { data, error } = await q
           .order('captured_at', { ascending: false })
           .range(from, from + PAGE - 1);
         if (error) throw error;
         all.push(...(data || []));
         if (!data || data.length < PAGE) break;
       }
-      const excludeIds = TK_EXCLUDE_SNAPSHOT_IDS[eventKey];
-      if (excludeIds && excludeIds.length) return all.filter(r => !excludeIds.includes(r.id));
       return all;
+    }
+    // 2026-11-11: Supabase egress(전송량) 한도 초과 대응 — 티켓 기록 전체(최대 1만 행)를 방문할 때마다
+    // 통째로 받던 것을, 브라우저(IndexedDB)에 저장해 두고 "마지막으로 받은 시각 이후 새 기록"만 받아 합친다.
+    // 화면에 쓰이는 데이터(전체 기록)는 이전과 동일하다. 기록 수정(총원 보정 등)이 반영되도록
+    // 12시간마다 한 번은 전체를 다시 받고, 저장소를 못 쓰는 환경(시크릿 모드 등)이면 예전처럼 전체를 받는다.
+    const TK_SNAP_FULL_REFRESH_MS = 12 * 3600 * 1000;
+    let __tkIdbP = null;
+    function tkIdb() {
+      if (!__tkIdbP) __tkIdbP = new Promise((res, rej) => {
+        try {
+          const rq = indexedDB.open('tk_snap_cache_v1', 1);
+          rq.onupgradeneeded = () => rq.result.createObjectStore('s');
+          rq.onsuccess = () => res(rq.result);
+          rq.onerror = () => rej(rq.error);
+        } catch (e) { rej(e); }
+      });
+      return __tkIdbP;
+    }
+    async function tkIdbGet(k) {
+      const db = await tkIdb();
+      return new Promise((res, rej) => { const r = db.transaction('s').objectStore('s').get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+    }
+    async function tkIdbSet(k, v) {
+      const db = await tkIdb();
+      return new Promise((res, rej) => { const tx = db.transaction('s', 'readwrite'); tx.objectStore('s').put(v, k); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); });
+    }
+    async function fetchTicketSnapshots(eventKey) {
+      let rows = null, cache = null;
+      try { cache = await tkIdbGet(eventKey); } catch (e) { cache = null; }
+      const usable = cache && Array.isArray(cache.rows) && cache.rows.length && cache.rows[0].captured_at
+        && (Date.now() - (cache.full_at || 0)) < TK_SNAP_FULL_REFRESH_MS;
+      let fullAt = Date.now(), changed = true;
+      if (usable) {
+        try {
+          const add = await tkFetchSnapPages(eventKey, cache.rows[0].captured_at);
+          const seen = new Set(cache.rows.map(r => r.id));
+          const fresh = add.filter(r => !seen.has(r.id));
+          rows = fresh.concat(cache.rows).slice(0, TK_SNAP_MAX_TOTAL);
+          fullAt = cache.full_at; changed = fresh.length > 0;
+        } catch (e) { rows = null; } // 증분 조회가 실패하면 아래에서 전체를 다시 받는다
+      }
+      if (!rows) rows = await tkFetchSnapPages(eventKey, null);
+      if (changed) { try { await tkIdbSet(eventKey, { full_at: fullAt, rows }); } catch (e) { } }
+      const excludeIds = TK_EXCLUDE_SNAPSHOT_IDS[eventKey];
+      if (excludeIds && excludeIds.length) return rows.filter(r => !excludeIds.includes(r.id));
+      return rows;
     }
     // 자동 기록 스크립트(ticket-watch.js)가 실행될 때마다 "지금 이 경기를 본다"고 Supabase에
     // 남겨두는 값을 읽어온다. 실패하거나 아직 한 번도 설정된 적 없으면 null — 이 경우 호출부에서
@@ -16154,8 +16219,23 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       Z17.loading = true;
       try {
         if (!Z17.layout) {
-          const { data } = await sb.from('site_data').select('value').eq('key', 'tk_layout_bc17').single();
-          if (data && data.value && Array.isArray(data.value.zones)) Z17.layout = data.value;
+          // 2026-11-11: 좌석 배치는 거의 바뀌지 않는 큰 데이터라 방문할 때마다 받으면 전송량이 크다 —
+          // 브라우저에 저장해 두고, 배치의 생성 시각(at)만 가벼운 요청으로 확인해 같으면 저장본을 쓴다.
+          let cached = null;
+          try { cached = JSON.parse(localStorage.getItem('z17_layout_v1') || 'null'); } catch (e) { cached = null; }
+          if (cached && Array.isArray(cached.zones) && cached.at != null) {
+            try {
+              const { data: lt, error: le } = await sb.from('site_data').select('at:value->>at').eq('key', 'tk_layout_bc17').single();
+              if (le || !lt || lt.at == null || String(lt.at) === String(cached.at)) Z17.layout = cached;
+            } catch (e) { Z17.layout = cached; }
+          }
+          if (!Z17.layout) {
+            const { data } = await sb.from('site_data').select('value').eq('key', 'tk_layout_bc17').single();
+            if (data && data.value && Array.isArray(data.value.zones)) {
+              Z17.layout = data.value;
+              try { localStorage.setItem('z17_layout_v1', JSON.stringify(data.value)); } catch (e) { }
+            }
+          }
         }
         const { data: sd } = await sb.from('site_data').select('value').eq('key', 'tk_state_bc17').single();
         if (sd && sd.value && sd.value.z) Z17.state = sd.value;
@@ -16921,9 +17001,30 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
           // 같은 계산을 하려면 그 행사의 전체 기록이 필요해서, 목록에 있는 행사마다 다시 불러와
           // 계산한다(fetchTicketSnapshots는 이미 개별 페이지에서 쓰던 함수 그대로 재사용).
           // 총원을 하나도 못 찾은 행사만 예전처럼 "기록 N건"으로 대체한다(회귀 없는 안전망).
-          const pastSummaries = await Promise.all(past.map(e =>
-            fetchTicketSnapshots(e.event_key).then(r => tkSummarizePastEvent(e.event_key, r)).catch(() => null)
-          ));
+          // 2026-11-11: Supabase egress(전송량) 한도 초과 대응 — 지난 대회마다 전체 스냅샷(최대 1만 행)을
+          // 티켓 페이지에 들어올 때마다 다시 받던 것을 브라우저에 저장해 재사용한다.
+          // 대회의 마지막 기록 시각(last_at)이 그대로면 판매 결과도 그대로이므로 저장값을 쓰고,
+          // last_at이 바뀌면(아직 기록 중인 대회) 자동으로 다시 계산한다.
+          const tkPastCacheKey = e => 'tk_past_sum_v1:' + e.event_key;
+          const tkPastCacheGet = e => {
+            try {
+              const c = JSON.parse(localStorage.getItem(tkPastCacheKey(e)) || 'null');
+              if (c && c.last_at === e.last_at && 'sum' in c) return c;
+            } catch (x) { }
+            return null;
+          };
+          const tkPastCacheSet = (e, sum) => {
+            try { localStorage.setItem(tkPastCacheKey(e), JSON.stringify({ last_at: e.last_at, sum })); } catch (x) { }
+          };
+          const pastSummaries = await Promise.all(past.map(e => {
+            const hit = tkPastCacheGet(e);
+            if (hit) return hit.sum;
+            return fetchTicketSnapshots(e.event_key).then(r => {
+              const sum = tkSummarizePastEvent(e.event_key, r);
+              tkPastCacheSet(e, sum);
+              return sum;
+            }).catch(() => null);
+          }));
           pastHTML = `
       <div class="sec-title" style="margin-top:24px">🎟️ 지난 티켓 <span style="color:var(--dim);font-size:12.5px;font-weight:700">오래된순 · 총 ${past.length}개</span></div>
       ${past.map((e, i) => {
@@ -34233,7 +34334,7 @@ function ftNetNoRec(st) {
       const annRes = await fetchAnnouncements();
       ANNOUNCEMENTS = annRes.items || [];
       const annNeedPatch = !!annRes.needPatch;
-      await applyHomeImageOverrides(); // 관리자 화면은 항상 최신 저장값을 다시 받아와서 보여준다
+      await applyHomeImageOverrides(true); // 관리자 화면은 항상 최신 저장값을 다시 받아와서 보여준다
       // 방문 통계의 "승부예측 상세" 항목에 대회명을 붙여 보여주기 위한 대회ID→대회명 표
       window.__fpTournamentTitles = {};
       d.list.forEach(t => { window.__fpTournamentTitles[String(t.id)] = t.title || ''; });
@@ -34636,6 +34737,7 @@ function ftNetNoRec(st) {
           return show('err', cleanErr(error.message));
         }
         HOME_IMG_OVERRIDE = next;
+        try { localStorage.removeItem('home_img_v1'); } catch (e) { }
         const prevImg = document.getElementById('hi-prev-' + key);
         if (prevImg) prevImg.src = dataUrl;
         const sub = document.getElementById('hi-sub-' + key);
@@ -34656,6 +34758,7 @@ function ftNetNoRec(st) {
       const { error } = await sb.rpc('admin_save_data', { p_pass: adminPass(), p_key: 'home_images', p_value: next });
       if (error) return show('err', cleanErr(error.message));
       HOME_IMG_OVERRIDE = next;
+      try { localStorage.removeItem('home_img_v1'); } catch (e) { }
       const row = HOME_IMG_ROWS.find(r => r[0] === key);
       const prevImg = document.getElementById('hi-prev-' + key);
       if (prevImg && row) prevImg.src = row[2];
@@ -35630,7 +35733,7 @@ function ftNetNoRec(st) {
       }
       // 투표 화면: 카드 하나씩 보여주고 위의 경기 번호로 넘긴다 — 고르면 다음 미선택 경기로 자동 이동
       var vcIdx = 0, vcBusy = false, vcLiveKey = "";
-      var vcSumDesc = true;
+      var vcSumDesc = false; // 2026-11-11: 전체 경기 표를 1경기부터 위로 (기존 true = 최신 경기 먼저)
       function vcNav(app) {
         if (vcBusy) return; vcBusy = true; setTimeout(function () { vcBusy = false; }, 0);
         var grid = app.querySelector('.vote-grid'); if (!grid) return;
