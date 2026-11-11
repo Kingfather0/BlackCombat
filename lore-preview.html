@@ -3,98 +3,149 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
 <title>블랙컴뱃 세계관 허브 (미리보기)</title>
+<meta name="robots" content="noindex,nofollow">
 <meta name="description" content="블랙컴뱃의 역사, 선수 구도, 챔피언, 추천 영상을 한 곳에서 보는 팬 허브">
 <style>
-:root{--bg:#0d0d0f;--panel:#17171b;--line:#2a2a31;--text:#ececf1;--sub:#9a9aa6;--red:#e5322d;--gold:#f0b429;--ok:#3ecf8e}
+:root{--bg:#f3f3f6;--card:#fff;--paper:#fafafb;--ink:#111;--text:#111;--muted:#5f5f66;--dim:#8e8e93;--hair:#e3e3e8;--hair2:#cfcfd6;--gray:#e9e9ee;--amber:#f2b32a;--amber-text:#9a5f06;--amber-tint:rgba(242,179,42,.16);--red:#d0021b;--green:#1f7a3f;--green-tint:rgba(31,122,63,.1);--max:1180px}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--text);font:15px/1.65 -apple-system,BlinkMacSystemFont,"Pretendard","Noto Sans KR",sans-serif}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 "Pretendard Variable",Pretendard,-apple-system,"system-ui","Apple SD Gothic Neo","Noto Sans KR","Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
-.wrap{max-width:980px;margin:0 auto;padding:0 16px 80px}
-header{padding:28px 0 12px}
-h1{margin:0;font-size:26px;letter-spacing:-.5px}
-h1 b{color:var(--red)}
-.sub{color:var(--sub);font-size:13px;margin-top:4px}
-.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:12px;color:var(--sub)}
-.chip.hot{color:var(--gold);border-color:#5a4513}
-nav{position:sticky;top:0;z-index:5;background:rgba(13,13,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin:0 -16px;padding:0 16px;display:flex;gap:4px;overflow-x:auto}
-nav button{background:none;border:0;color:var(--sub);padding:13px 12px;font:inherit;font-weight:600;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent}
-nav button.on{color:var(--text);border-color:var(--red)}
+button{font:inherit;color:inherit}
+.top{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.96);backdrop-filter:blur(14px);border-bottom:.625px solid var(--hair)}
+.top-in{max-width:var(--max);margin:0 auto;padding:0 16px;height:60px;display:flex;align-items:center;gap:18px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:-.3px;white-space:nowrap}
+.brand i{width:30px;height:30px;border-radius:9px;background:var(--ink);color:var(--amber);display:grid;place-items:center;font-style:normal;font-size:15px;font-weight:800}
+nav{display:flex;gap:2px;overflow-x:auto;flex:1;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{background:none;border:0;padding:0 11px;height:60px;color:var(--muted);font-weight:600;font-size:14.5px;cursor:pointer;white-space:nowrap;position:relative}
+nav button.on{color:var(--ink);font-weight:700}
+nav button.on:after{content:"";position:absolute;left:11px;right:11px;bottom:0;height:3px;background:var(--amber);border-radius:3px 3px 0 0}
+.site-link{font-size:13px;font-weight:700;background:var(--ink);color:#fff;border-radius:8px;padding:7px 12px;white-space:nowrap}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 16px 80px}
+.hero{padding:34px 0 8px}
+.eyebrow{font-size:11.5px;letter-spacing:.14em;font-weight:700;color:var(--dim);text-transform:uppercase}
+h1{margin:6px 0 8px;font-size:34px;line-height:1.2;letter-spacing:-.8px;font-weight:800}
+.hero p{margin:0;color:var(--muted);font-size:15px}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chip{background:var(--card);border:.625px solid var(--hair);border-radius:999px;padding:4px 12px;font-size:12.5px;color:var(--muted);font-weight:600}
+.chip.hot{background:var(--amber-tint);border-color:transparent;color:var(--amber-text);font-weight:800}
 section{display:none;padding-top:22px}
 section.on{display:block}
-h2{font-size:18px;margin:0 0 4px}
-.lead{color:var(--sub);font-size:13px;margin:0 0 16px}
-.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
-.champ{border-color:#4a3a12}
-.champ .div{color:var(--gold);font-size:12px;font-weight:700}
-.champ .nm{font-size:20px;font-weight:800;margin:2px 0}
-.champ .rc{color:var(--sub);font-size:13px}
-.tl{position:relative;margin-left:8px;padding-left:22px;border-left:2px solid var(--line)}
-.ch{position:relative;margin-bottom:18px}
-.ch:before{content:"";position:absolute;left:-29px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--red);border:2px solid var(--bg)}
-.ch .per{color:var(--red);font-size:12px;font-weight:700}
-.ch h3{margin:2px 0 6px;font-size:17px}
-.ch p{margin:0 0 8px;color:#d5d5de}
-.tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;margin-right:4px}
-.tag.ok{background:#12301f;color:var(--ok)}
-.tag.wait{background:#3a2d0e;color:var(--gold)}
-.fl{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-.fl button{background:#1f1f25;border:1px solid var(--line);color:var(--text);border-radius:999px;padding:2px 10px;font-size:12px;cursor:pointer}
-.fl button:hover{border-color:var(--red)}
-.vids{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));margin-top:8px}
-.v{display:block;border-radius:10px;overflow:hidden;background:#101013;border:1px solid var(--line)}
-.v img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#222}
-.v span{display:block;padding:6px 8px;font-size:12px;line-height:1.4}
-.v em{font-style:normal;color:var(--sub)}
-.riv .t{font-weight:700;margin-bottom:2px}
-.riv .d{color:var(--sub);font-size:13px}
-input[type=search]{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text);font:inherit;margin-bottom:10px}
-.seg{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
-.seg button{background:var(--panel);border:1px solid var(--line);color:var(--sub);border-radius:999px;padding:4px 12px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
-.seg button.on{color:#fff;background:var(--red);border-color:var(--red)}
+h2{font-size:19px;margin:0 0 4px;letter-spacing:-.3px;font-weight:800}
+.blk{margin-top:34px}
+.blk:first-child{margin-top:0}
+.lead{color:var(--muted);font-size:13.5px;margin:0 0 14px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}
+.grid2{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+.card{background:var(--paper);border:.625px solid rgba(0,0,0,.05);border-radius:12px;padding:16px}
+.pill{display:inline-block;font-size:11px;font-weight:800;padding:2px 9px;border-radius:999px;background:var(--gray);color:var(--muted);margin-right:6px}
+.pill.amber{background:var(--amber-tint);color:var(--amber-text)}
+.pill.dark{background:var(--ink);color:#fff}
+.pill.green{background:var(--green-tint);color:var(--green)}
+.rc-t{font-weight:800;font-size:17px;letter-spacing:-.3px;margin:8px 0 2px}
+.rc-s{color:var(--amber-text);font-size:12.5px;font-weight:700;margin-bottom:6px}
+.rc-d{color:var(--muted);font-size:13.5px;margin:6px 0 0}
+.main-card{background:var(--ink);color:#fff;border-color:transparent}
+.main-card .rc-s{color:var(--amber)}
+.main-card .rc-d{color:#c9c9d0}
+.main-card .fl button{background:rgba(255,255,255,.1);color:#fff;border-color:transparent}
+.main-card .pill.dark{background:var(--amber);color:#3d2a00}
+.champ .div{color:var(--amber-text);font-size:12px;font-weight:800}
+.champ .nm{font-size:21px;font-weight:800;margin:2px 0;letter-spacing:-.4px}
+.champ .rc{color:var(--muted);font-size:13px}
+.tl{position:relative;margin-left:8px;padding-left:24px;border-left:2px solid var(--hair2)}
+.ch{position:relative;margin-bottom:14px}
+.ch:before{content:"";position:absolute;left:-32px;top:20px;width:12px;height:12px;border-radius:50%;background:var(--amber);border:2px solid var(--bg)}
+.ch .per{color:var(--amber-text);font-size:12px;font-weight:800}
+.ch h3{margin:2px 0 6px;font-size:17px;letter-spacing:-.3px}
+.ch p{margin:0 0 6px;color:#3a3a40;font-size:14px}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;margin-left:4px}
+.tag.ok{background:var(--green-tint);color:var(--green)}
+.tag.wait{background:var(--amber-tint);color:var(--amber-text)}
+.fl{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.fl button{background:var(--card);border:.625px solid var(--hair2);border-radius:999px;padding:2px 11px;font-size:12.5px;font-weight:600;cursor:pointer}
+.fl button:hover{border-color:var(--amber)}
+.vids{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));margin-top:12px}
+.v{display:block;border-radius:10px;overflow:hidden;background:var(--card);border:.625px solid var(--hair)}
+.v img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:var(--gray)}
+.v span{display:block;padding:7px 9px;font-size:12px;line-height:1.4;color:var(--ink)}
+.v em{font-style:normal;color:var(--dim)}
+.riv .t{font-weight:800;margin-bottom:2px}
+.riv .d{color:var(--muted);font-size:13.5px}
+.list{background:var(--paper);border:.625px solid rgba(0,0,0,.05);border-radius:12px;overflow:hidden}
+.mrow{display:grid;grid-template-columns:30px 84px 1fr;align-items:center;gap:8px;padding:11px 14px;border-top:.625px solid var(--hair)}
+.mrow:first-child{border-top:0}
+.mrow .no{font-weight:800;color:var(--dim);font-size:13px}
+.mrow .dv{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+.mrow .vs{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mrow .side{background:none;border:0;padding:0;text-align:left;cursor:pointer;line-height:1.3}
+.mrow .side b{font-size:14.5px;font-weight:800}
+.mrow .side small{display:block;color:var(--dim);font-size:11.5px}
+.mrow .x{color:var(--dim);font-size:11px;font-weight:800}
+.mrow.tt{background:rgba(242,179,42,.08)}
+.mrow.tt .no{color:var(--amber-text)}
+input[type=search]{width:100%;background:var(--card);border:.625px solid var(--hair2);border-radius:10px;padding:11px 13px;font:inherit;margin-bottom:10px}
+input[type=search]:focus{outline:2px solid var(--amber);border-color:transparent}
+.seg{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;scrollbar-width:none}
+.seg button{background:var(--card);border:.625px solid var(--hair2);color:var(--muted);border-radius:999px;padding:5px 13px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.seg button.on{color:#fff;background:var(--ink);border-color:var(--ink)}
+.fc{cursor:pointer}
 .fc .n{font-weight:800;font-size:16px}
-.fc .r{color:var(--sub);font-size:12px}
-.fc .rec{font-size:13px;margin:4px 0;color:var(--gold)}
-.fc p{margin:6px 0 0;font-size:13px;color:#cfcfd8}
-.gl dt{font-weight:700;margin-top:12px}
-.gl dd{margin:2px 0 0;color:var(--sub)}
-.notice{background:#14141a;border:1px dashed var(--line);border-radius:10px;padding:10px 12px;color:var(--sub);font-size:12px;margin-top:18px}
-.err{padding:30px;text-align:center;color:var(--sub)}
-dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:14px;max-width:420px;width:calc(100% - 32px);padding:18px}
-dialog::backdrop{background:rgba(0,0,0,.6)}
-dialog .x{float:right;background:none;border:0;color:var(--sub);font-size:20px;cursor:pointer}
-@media(max-width:520px){h1{font-size:22px}}
+.fc .r{color:var(--muted);font-size:12.5px}
+.fc .rec{font-size:13px;margin:4px 0 0;color:var(--amber-text);font-weight:700}
+.gl dt{font-weight:800;margin-top:14px}
+.gl dd{margin:2px 0 0;color:var(--muted)}
+.err{padding:30px;text-align:center;color:var(--muted)}
+dialog{background:var(--card);color:var(--text);border:.625px solid var(--hair);border-radius:14px;max-width:440px;width:calc(100% - 32px);padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.18)}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog .x{float:right;background:none;border:0;color:var(--dim);font-size:22px;cursor:pointer;line-height:1}
+@media(max-width:640px){h1{font-size:26px}.site-link{display:none}.grid2{grid-template-columns:1fr}.mrow{grid-template-columns:28px 1fr;}.mrow .dv{grid-column:2;margin-bottom:-4px}.mrow .vs{grid-column:2}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>블랙컴뱃 <b>세계관 허브</b></h1>
-    <div class="sub">처음 보는 팬부터 오래된 팬까지, 역사와 구도와 선수를 한 곳에서</div>
-    <div class="meta" id="meta"></div>
-  </header>
+<div class="top"><div class="top-in">
+  <a class="brand" href="https://xn--9r3b3ij2w.com/" aria-label="블붕이 홈"><i>블</i>블붕이</a>
   <nav id="tabs">
     <button data-t="home" class="on">홈</button>
     <button data-t="story">연대기</button>
     <button data-t="fighters">선수 사전</button>
-    <button data-t="rivals">구도와 라이벌</button>
+    <button data-t="rivals">구도</button>
     <button data-t="courses">추천 영상</button>
     <button data-t="gloss">용어</button>
   </nav>
+  <a class="site-link" href="https://xn--9r3b3ij2w.com/">블붕이 홈</a>
+</div></div>
+<div class="wrap">
+  <div class="hero">
+    <div class="eyebrow">BLACK COMBAT WORLD</div>
+    <h1>블랙컴뱃 세계관 허브</h1>
+    <p>처음 보는 팬부터 오래된 팬까지. 역사와 구도, 선수를 한곳에서.</p>
+    <div class="meta" id="meta"></div>
+  </div>
 
   <section id="home" class="on">
-    <h2>현재 챔피언</h2>
-    <p class="lead" id="champSub"></p>
-    <div class="grid" id="champs"></div>
-    <h2 style="margin-top:28px">처음이라면 이 순서로</h2>
-    <p class="lead">가장 짧은 코스부터 시작하세요.</p>
-    <div id="homeCourse"></div>
-    <h2 style="margin-top:28px">최근 구도</h2>
-    <div class="grid" id="homeRiv"></div>
+    <div class="blk">
+      <h2>최근 구도</h2>
+      <p class="lead" id="recSub"></p>
+      <div class="grid2" id="homeRec"></div>
+    </div>
+    <div class="blk">
+      <h2 id="cardTitle">대진표</h2>
+      <p class="lead" id="cardSub"></p>
+      <div class="list" id="homeCard"></div>
+    </div>
+    <div class="blk">
+      <h2>현재 챔피언</h2>
+      <p class="lead" id="champSub"></p>
+      <div class="grid" id="champs"></div>
+    </div>
+    <div class="blk">
+      <h2>처음이라면 이 순서로</h2>
+      <p class="lead">가장 짧은 코스부터 시작하세요.</p>
+      <div id="homeCourse"></div>
+    </div>
   </section>
 
   <section id="story">
@@ -112,7 +163,7 @@ dialog .x{float:right;background:none;border:0;color:var(--sub);font-size:20px;c
   </section>
 
   <section id="rivals">
-    <h2>구도와 라이벌</h2>
+    <h2>역대 구도</h2>
     <p class="lead">서사를 알고 보면 경기가 두 배로 재밌어져요.</p>
     <div class="grid" id="rivgrid"></div>
   </section>
@@ -128,13 +179,12 @@ dialog .x{float:right;background:none;border:0;color:var(--sub);font-size:20px;c
     <dl class="gl" id="gl"></dl>
   </section>
 
-  <div class="notice" id="notice"></div>
 </div>
 
 <dialog id="dlg"><button class="x" id="dx" aria-label="닫기">&times;</button><div id="dbody"></div></dialog>
 
 <script>
-const CONFIG = { DATA_URL: 'lore.json', REPORT_URL: '' };
+const CONFIG = { DATA_URL: 'lore.json' };
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -161,11 +211,11 @@ function fighterButtons(list){
 function openFighter(nick){
   const r = rosterOf(nick), e = fighterEntry(nick);
   const real = (e && e.real) || (r && r.real) || '';
-  let h = '<h3 style="margin:0 0 2px">' + esc(nick) + '</h3><div class="r" style="color:var(--sub);font-size:13px">' + esc(real) + '</div>';
-  if (r) h += '<div class="rec" style="color:var(--gold);margin:6px 0">' + esc(r.div) + (r.rank === 'C' ? ' 챔피언' : (r.rank ? ' ' + r.rank + '위' : '')) + ' / ' + esc(r.rec) + '</div>';
-  else if (e && e.role) h += '<div style="color:var(--sub);margin:6px 0">' + esc(e.role) + '</div>';
+  let h = '<h3 style="margin:0 0 2px">' + esc(nick) + '</h3><div class="r" style="color:var(--muted);font-size:13px">' + esc(real) + '</div>';
+  if (r) h += '<div class="rec" style="color:var(--amber-text);font-weight:700;margin:6px 0">' + esc(r.div) + (r.rank === 'C' ? ' 챔피언' : (r.rank ? ' ' + r.rank + '위' : '')) + ' / ' + esc(r.rec) + '</div>';
+  else if (e && e.role) h += '<div style="color:var(--muted);margin:6px 0">' + esc(e.role) + '</div>';
   if (e) h += '<p style="margin:6px 0">' + esc(e.bio) + '</p>' + videoGrid(e.videos);
-  else h += '<p style="color:var(--sub)">아직 정리된 이야기가 없어요.</p>';
+  else h += '<p style="color:var(--muted)">아직 정리된 이야기가 없어요.</p>';
   $('#dbody').innerHTML = h;
   $('#dlg').showModal();
 }
@@ -181,17 +231,35 @@ function renderMeta(){
     }
   }
   $('#meta').innerHTML = parts.join('');
-  $('#notice').innerHTML = '<b>이 페이지는 자동으로 정리됩니다.</b> ' + esc(m.note) + ' ' + esc(m.name_source || '') +
-    ' 틀린 내용이 있으면 오픈채팅방에 알려주세요.' + (CONFIG.REPORT_URL ? ' <a href="' + CONFIG.REPORT_URL + '" target="_blank" rel="noopener" style="text-decoration:underline">제보하기</a>' : '');
+}
+
+function sideHtml(n){
+  const r = rosterOf(n), ch = D.champions.list.find(c => c.name === n);
+  const rec = r ? String(r.rec).replace(/-0$/, '') : '';
+  const sub = ch ? ('챔피언 ' + (ch.record || rec)).trim() : (r ? ((r.rank && r.rank !== '-' ? r.rank + '위' : '') + ' ' + rec).trim() : '');
+  return '<button class="side" data-f="' + esc(n) + '"><b>' + esc(n) + '</b>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</button>';
+}
+
+function recCard(it, i){
+  const main = it.tag === '메인이벤트';
+  const pill = '<span class="pill ' + (main ? 'dark' : (it.tag === '타이틀전' ? 'amber' : '')) + '">' + esc(it.tag) + '</span>';
+  return '<div class="card' + (main ? ' main-card' : '') + '">' + pill + '<div class="rc-t">' + esc(it.title) + '</div><div class="rc-s">' + esc(it.sub) + '</div>' +
+    (it.desc ? '<div class="rc-d">' + esc(it.desc) + '</div>' : '') + fighterButtons(it.fighters) + videoGrid((it.videos || []).slice(0, 2)) + '</div>';
 }
 
 function renderHome(){
+  const R = D.recent;
+  $('#recSub').textContent = R.event;
+  $('#homeRec').innerHTML = R.items.map(recCard).join('');
+  $('#cardTitle').textContent = R.card.title;
+  $('#cardSub').textContent = '노란 줄은 타이틀전. 이름을 누르면 선수 카드가 열려요. 전적은 선수 DB 기준.';
+  $('#homeCard').innerHTML = R.card.matches.slice().reverse().map(m =>
+    '<div class="mrow' + (m.title ? ' tt' : '') + '"><div class="no">' + m.n + '</div><div class="dv">' + esc(m.div) + (m.title ? ' 타이틀' : '') + '</div><div class="vs">' + sideHtml(m.a) + '<span class="x">VS</span>' + sideHtml(m.b) + '</div></div>').join('');
   $('#champSub').textContent = '선수 DB 기준 ' + D.champions.snapshot;
   $('#champs').innerHTML = D.champions.list.map(c =>
     '<div class="card champ"><div class="div">' + esc(c.division) + '</div><div class="nm">' + esc(c.name) + '</div><div class="rc">' + esc(c.record || '타이틀 공석') + '</div></div>').join('');
   const mini = D.courses[0];
-  $('#homeCourse').innerHTML = '<div class="card"><b>' + esc(mini.name) + '</b><div style="color:var(--sub);font-size:13px">' + esc(mini.desc) + '</div>' + videoGrid(mini.videos) + '</div>';
-  $('#homeRiv').innerHTML = D.rivalries.slice(-4).map(rivCard).join('');
+  $('#homeCourse').innerHTML = '<div class="card"><b>' + esc(mini.name) + '</b><div style="color:var(--muted);font-size:13.5px">' + esc(mini.desc) + '</div>' + videoGrid(mini.videos) + '</div>';
 }
 
 function rivCard(r){
@@ -234,7 +302,7 @@ function renderSeg(){
 
 function renderRivals(){ $('#rivgrid').innerHTML = D.rivalries.map(rivCard).join(''); }
 function renderCourses(){
-  $('#clist').innerHTML = D.courses.map(c => '<div class="card" style="margin-bottom:12px"><b>' + esc(c.name) + '</b><div style="color:var(--sub);font-size:13px">' + esc(c.desc) + '</div>' + videoGrid(c.videos) + '</div>').join('');
+  $('#clist').innerHTML = D.courses.map(c => '<div class="card" style="margin-bottom:12px"><b>' + esc(c.name) + '</b><div style="color:var(--muted);font-size:13px">' + esc(c.desc) + '</div>' + videoGrid(c.videos) + '</div>').join('');
 }
 function renderGloss(){ $('#gl').innerHTML = D.glossary.map(g => '<dt>' + esc(g.term) + '</dt><dd>' + esc(g.desc) + '</dd>').join(''); }
 
