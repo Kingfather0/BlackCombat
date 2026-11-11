@@ -132,6 +132,11 @@ dialog .x{float:right;background:none;border:0;color:var(--dim);font-size:22px;c
       <div class="grid2" id="homeRec"></div>
     </div>
     <div class="blk">
+      <h2>직전 구도</h2>
+      <p class="lead">BC17로 이어진 올해의 흐름.</p>
+      <div class="grid2" id="homeRec2"></div>
+    </div>
+    <div class="blk">
       <h2 id="cardTitle">대진표</h2>
       <p class="lead" id="cardSub"></p>
       <div class="list" id="homeCard"></div>
@@ -250,7 +255,8 @@ function recCard(it, i){
 function renderHome(){
   const R = D.recent;
   $('#recSub').textContent = R.event;
-  $('#homeRec').innerHTML = R.items.map(recCard).join('');
+  $('#homeRec').innerHTML = R.items.filter(i => i.tag !== '직전 구도').map(recCard).join('');
+  $('#homeRec2').innerHTML = R.items.filter(i => i.tag === '직전 구도').map(recCard).join('');
   $('#cardTitle').textContent = R.card.title;
   $('#cardSub').textContent = '노란 줄은 타이틀전. 이름을 누르면 선수 카드가 열려요. 전적은 선수 DB 기준.';
   $('#homeCard').innerHTML = R.card.matches.slice().reverse().map(m =>
