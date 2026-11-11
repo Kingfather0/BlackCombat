@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>블랙컴뱃 세계관 허브 (미리보기)</title>
+<meta name="description" content="블랙컴뱃의 역사, 선수 구도, 챔피언, 추천 영상을 한 곳에서 보는 팬 허브">
+<style>
+:root{--bg:#0d0d0f;--panel:#17171b;--line:#2a2a31;--text:#ececf1;--sub:#9a9aa6;--red:#e5322d;--gold:#f0b429;--ok:#3ecf8e}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.65 -apple-system,BlinkMacSystemFont,"Pretendard","Noto Sans KR",sans-serif}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px 80px}
+header{padding:28px 0 12px}
+h1{margin:0;font-size:26px;letter-spacing:-.5px}
+h1 b{color:var(--red)}
+.sub{color:var(--sub);font-size:13px;margin-top:4px}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:12px;color:var(--sub)}
+.chip.hot{color:var(--gold);border-color:#5a4513}
+nav{position:sticky;top:0;z-index:5;background:rgba(13,13,15,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);margin:0 -16px;padding:0 16px;display:flex;gap:4px;overflow-x:auto}
+nav button{background:none;border:0;color:var(--sub);padding:13px 12px;font:inherit;font-weight:600;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent}
+nav button.on{color:var(--text);border-color:var(--red)}
+section{display:none;padding-top:22px}
+section.on{display:block}
+h2{font-size:18px;margin:0 0 4px}
+.lead{color:var(--sub);font-size:13px;margin:0 0 16px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.champ{border-color:#4a3a12}
+.champ .div{color:var(--gold);font-size:12px;font-weight:700}
+.champ .nm{font-size:20px;font-weight:800;margin:2px 0}
+.champ .rc{color:var(--sub);font-size:13px}
+.tl{position:relative;margin-left:8px;padding-left:22px;border-left:2px solid var(--line)}
+.ch{position:relative;margin-bottom:18px}
+.ch:before{content:"";position:absolute;left:-29px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--red);border:2px solid var(--bg)}
+.ch .per{color:var(--red);font-size:12px;font-weight:700}
+.ch h3{margin:2px 0 6px;font-size:17px}
+.ch p{margin:0 0 8px;color:#d5d5de}
+.tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:999px;margin-right:4px}
+.tag.ok{background:#12301f;color:var(--ok)}
+.tag.wait{background:#3a2d0e;color:var(--gold)}
+.fl{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.fl button{background:#1f1f25;border:1px solid var(--line);color:var(--text);border-radius:999px;padding:2px 10px;font-size:12px;cursor:pointer}
+.fl button:hover{border-color:var(--red)}
+.vids{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));margin-top:8px}
+.v{display:block;border-radius:10px;overflow:hidden;background:#101013;border:1px solid var(--line)}
+.v img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#222}
+.v span{display:block;padding:6px 8px;font-size:12px;line-height:1.4}
+.v em{font-style:normal;color:var(--sub)}
+.riv .t{font-weight:700;margin-bottom:2px}
+.riv .d{color:var(--sub);font-size:13px}
+input[type=search]{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--text);font:inherit;margin-bottom:10px}
+.seg{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px}
+.seg button{background:var(--panel);border:1px solid var(--line);color:var(--sub);border-radius:999px;padding:4px 12px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.seg button.on{color:#fff;background:var(--red);border-color:var(--red)}
+.fc .n{font-weight:800;font-size:16px}
+.fc .r{color:var(--sub);font-size:12px}
+.fc .rec{font-size:13px;margin:4px 0;color:var(--gold)}
+.fc p{margin:6px 0 0;font-size:13px;color:#cfcfd8}
+.gl dt{font-weight:700;margin-top:12px}
+.gl dd{margin:2px 0 0;color:var(--sub)}
+.notice{background:#14141a;border:1px dashed var(--line);border-radius:10px;padding:10px 12px;color:var(--sub);font-size:12px;margin-top:18px}
+.err{padding:30px;text-align:center;color:var(--sub)}
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:14px;max-width:420px;width:calc(100% - 32px);padding:18px}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog .x{float:right;background:none;border:0;color:var(--sub);font-size:20px;cursor:pointer}
+@media(max-width:520px){h1{font-size:22px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>블랙컴뱃 <b>세계관 허브</b></h1>
+    <div class="sub">처음 보는 팬부터 오래된 팬까지, 역사와 구도와 선수를 한 곳에서</div>
+    <div class="meta" id="meta"></div>
+  </header>
+  <nav id="tabs">
+    <button data-t="home" class="on">홈</button>
+    <button data-t="story">연대기</button>
+    <button data-t="fighters">선수 사전</button>
+    <button data-t="rivals">구도와 라이벌</button>
+    <button data-t="courses">추천 영상</button>
+    <button data-t="gloss">용어</button>
+  </nav>
+
+  <section id="home" class="on">
+    <h2>현재 챔피언</h2>
+    <p class="lead" id="champSub"></p>
+    <div class="grid" id="champs"></div>
+    <h2 style="margin-top:28px">처음이라면 이 순서로</h2>
+    <p class="lead">가장 짧은 코스부터 시작하세요.</p>
+    <div id="homeCourse"></div>
+    <h2 style="margin-top:28px">최근 구도</h2>
+    <div class="grid" id="homeRiv"></div>
+  </section>
+
+  <section id="story">
+    <h2>연대기</h2>
+    <p class="lead">검정의 첫 싸움부터 현재까지. 선수 이름을 누르면 상세 카드가 열려요.</p>
+    <div class="tl" id="timeline"></div>
+  </section>
+
+  <section id="fighters">
+    <h2>선수 사전</h2>
+    <p class="lead" id="fSub"></p>
+    <input type="search" id="q" placeholder="별명 또는 이름 검색">
+    <div class="seg" id="seg"></div>
+    <div class="grid" id="fgrid"></div>
+  </section>
+
+  <section id="rivals">
+    <h2>구도와 라이벌</h2>
+    <p class="lead">서사를 알고 보면 경기가 두 배로 재밌어져요.</p>
+    <div class="grid" id="rivgrid"></div>
+  </section>
+
+  <section id="courses">
+    <h2>추천 영상 코스</h2>
+    <p class="lead">목적에 맞게 골라 보세요.</p>
+    <div id="clist"></div>
+  </section>
+
+  <section id="gloss">
+    <h2>용어 정리</h2>
+    <dl class="gl" id="gl"></dl>
+  </section>
+
+  <div class="notice" id="notice"></div>
+</div>
+
+<dialog id="dlg"><button class="x" id="dx" aria-label="닫기">&times;</button><div id="dbody"></div></dialog>
+
+<script>
+const CONFIG = { DATA_URL: 'lore.json', REPORT_URL: '' };
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let D = null;
+
+function ytThumb(id){ return 'https://i.ytimg.com/vi/' + id + '/mqdefault.jpg'; }
+function ytUrl(id){ return 'https://youtu.be/' + id; }
+
+function videoCard(id){
+  const v = D.videos[id] || { t: id, m: 0 };
+  const dur = v.m ? ' <em>' + v.m + '분</em>' : '';
+  return '<a class="v" href="' + ytUrl(id) + '" target="_blank" rel="noopener"><img loading="lazy" src="' + ytThumb(id) + '" alt=""><span>' + esc(v.t) + dur + '</span></a>';
+}
+function videoGrid(ids){ return ids && ids.length ? '<div class="vids">' + ids.map(videoCard).join('') + '</div>' : ''; }
+
+function dbKey(nick){ return (D.aliases && D.aliases[nick]) || nick; }
+function rosterOf(nick){ return D.roster[dbKey(nick)] || null; }
+function fighterEntry(nick){ return D.fighters.find(f => f.nick === nick) || null; }
+
+function fighterButtons(list){
+  return '<div class="fl">' + list.map(n => '<button data-f="' + esc(n) + '">' + esc(n) + '</button>').join('') + '</div>';
+}
+
+function openFighter(nick){
+  const r = rosterOf(nick), e = fighterEntry(nick);
+  const real = (e && e.real) || (r && r.real) || '';
+  let h = '<h3 style="margin:0 0 2px">' + esc(nick) + '</h3><div class="r" style="color:var(--sub);font-size:13px">' + esc(real) + '</div>';
+  if (r) h += '<div class="rec" style="color:var(--gold);margin:6px 0">' + esc(r.div) + (r.rank === 'C' ? ' 챔피언' : (r.rank ? ' ' + r.rank + '위' : '')) + ' / ' + esc(r.rec) + '</div>';
+  else if (e && e.role) h += '<div style="color:var(--sub);margin:6px 0">' + esc(e.role) + '</div>';
+  if (e) h += '<p style="margin:6px 0">' + esc(e.bio) + '</p>' + videoGrid(e.videos);
+  else h += '<p style="color:var(--sub)">아직 정리된 이야기가 없어요.</p>';
+  $('#dbody').innerHTML = h;
+  $('#dlg').showModal();
+}
+
+function renderMeta(){
+  const m = D.meta, parts = [];
+  parts.push('<span class="chip">갱신 ' + esc(m.updated) + '</span>');
+  if (m.next_event){
+    const t = new Date(m.next_event.date).getTime(), now = Date.now();
+    if (t > now){
+      const d = Math.ceil((t - now) / 864e5);
+      parts.push('<span class="chip hot">' + esc(m.next_event.name) + ' D-' + d + '</span>');
+    }
+  }
+  $('#meta').innerHTML = parts.join('');
+  $('#notice').innerHTML = '<b>이 페이지는 자동으로 정리됩니다.</b> ' + esc(m.note) + ' ' + esc(m.name_source || '') +
+    ' 틀린 내용이 있으면 오픈채팅방에 알려주세요.' + (CONFIG.REPORT_URL ? ' <a href="' + CONFIG.REPORT_URL + '" target="_blank" rel="noopener" style="text-decoration:underline">제보하기</a>' : '');
+}
+
+function renderHome(){
+  $('#champSub').textContent = '선수 DB 기준 ' + D.champions.snapshot;
+  $('#champs').innerHTML = D.champions.list.map(c =>
+    '<div class="card champ"><div class="div">' + esc(c.division) + '</div><div class="nm">' + esc(c.name) + '</div><div class="rc">' + esc(c.record || '타이틀 공석') + '</div></div>').join('');
+  const mini = D.courses[0];
+  $('#homeCourse').innerHTML = '<div class="card"><b>' + esc(mini.name) + '</b><div style="color:var(--sub);font-size:13px">' + esc(mini.desc) + '</div>' + videoGrid(mini.videos) + '</div>';
+  $('#homeRiv').innerHTML = D.rivalries.slice(-4).map(rivCard).join('');
+}
+
+function rivCard(r){
+  return '<div class="card riv"><div class="t">' + esc(r.title) + '</div><div class="d">' + esc(r.desc) + '</div>' + videoGrid(r.videos.slice(0, 2)) + '</div>';
+}
+
+function renderStory(){
+  $('#timeline').innerHTML = D.chapters.map(c => {
+    const tag = c.status === 'verified' ? '<span class="tag ok">자막 확인</span>' : '<span class="tag wait">제목 기준</span>';
+    return '<div class="ch"><div class="per">' + esc(c.period) + ' ' + tag + '</div><h3>' + esc(c.title) + '</h3><p>' + esc(c.summary) + '</p>' + fighterButtons(c.fighters) + videoGrid(c.videos) + '</div>';
+  }).join('');
+}
+
+let curDiv = '전체';
+function renderFighters(){
+  const q = $('#q').value.trim().toLowerCase();
+  const list = Object.entries(D.roster).filter(([n, r]) => {
+    if (curDiv !== '전체' && r.div !== curDiv) return false;
+    if (!q) return true;
+    return n.toLowerCase().includes(q) || r.real.toLowerCase().includes(q);
+  });
+  const order = {C: 0};
+  list.sort((a, b) => {
+    const ra = a[1].rank === 'C' ? 0 : (parseInt(a[1].rank) || 999), rb = b[1].rank === 'C' ? 0 : (parseInt(b[1].rank) || 999);
+    return ra - rb;
+  });
+  const extra = D.fighters.filter(f => !f.db && (curDiv === '전체') && (!q || f.nick.includes(q)));
+  $('#fgrid').innerHTML = list.map(([n, r]) => {
+    const e = fighterEntry(Object.keys(D.aliases || {}).find(k => D.aliases[k] === n) || n);
+    return '<div class="card fc" data-f="' + esc(e ? e.nick : n) + '" style="cursor:pointer"><div class="n">' + esc(n) + (e ? ' <span class="tag ok">스토리</span>' : '') + '</div><div class="r">' + esc(r.real) + ' / ' + esc(r.div) + (r.rank === 'C' ? ' 챔피언' : (r.rank ? ' ' + r.rank + '위' : '')) + '</div><div class="rec">' + esc(r.rec) + '</div></div>';
+  }).join('') + extra.map(f =>
+    '<div class="card fc" data-f="' + esc(f.nick) + '" style="cursor:pointer"><div class="n">' + esc(f.nick) + ' <span class="tag ok">스토리</span></div><div class="r">' + esc(f.real || '') + (f.role ? ' / ' + esc(f.role) : '') + '</div></div>').join('');
+}
+
+function renderSeg(){
+  const divs = ['전체'].concat([...new Set(Object.values(D.roster).map(r => r.div))]);
+  $('#seg').innerHTML = divs.map(d => '<button data-d="' + esc(d) + '" class="' + (d === curDiv ? 'on' : '') + '">' + esc(d) + '</button>').join('');
+  $('#fSub').textContent = '선수 ' + Object.keys(D.roster).length + '명. 누르면 상세와 관련 영상이 열려요.';
+}
+
+function renderRivals(){ $('#rivgrid').innerHTML = D.rivalries.map(rivCard).join(''); }
+function renderCourses(){
+  $('#clist').innerHTML = D.courses.map(c => '<div class="card" style="margin-bottom:12px"><b>' + esc(c.name) + '</b><div style="color:var(--sub);font-size:13px">' + esc(c.desc) + '</div>' + videoGrid(c.videos) + '</div>').join('');
+}
+function renderGloss(){ $('#gl').innerHTML = D.glossary.map(g => '<dt>' + esc(g.term) + '</dt><dd>' + esc(g.desc) + '</dd>').join(''); }
+
+function show(tab){
+  document.querySelectorAll('section').forEach(s => s.classList.toggle('on', s.id === tab));
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tab));
+  try { history.replaceState(null, '', '#' + tab); } catch (e) {}
+  window.scrollTo({ top: 0 });
+}
+
+function bind(){
+  $('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) show(b.dataset.t); });
+  document.body.addEventListener('click', e => {
+    const f = e.target.closest('[data-f]'); if (f) openFighter(f.dataset.f);
+    const s = e.target.closest('#seg button'); if (s){ curDiv = s.dataset.d; renderSeg(); renderFighters(); }
+  });
+  $('#q').addEventListener('input', renderFighters);
+  $('#dx').addEventListener('click', () => $('#dlg').close());
+  $('#dlg').addEventListener('click', e => { if (e.target === $('#dlg')) $('#dlg').close(); });
+}
+
+async function boot(){
+  try {
+    const r = await fetch(CONFIG.DATA_URL + '?v=' + Math.floor(Date.now() / 36e5));
+    if (!r.ok) throw new Error(r.status);
+    D = await r.json();
+  } catch (e) {
+    document.querySelector('.wrap').insertAdjacentHTML('beforeend', '<div class="err">데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div>');
+    return;
+  }
+  renderMeta(); renderHome(); renderStory(); renderSeg(); renderFighters(); renderRivals(); renderCourses(); renderGloss(); bind();
+  const h = location.hash.replace('#', '');
+  if (['story', 'fighters', 'rivals', 'courses', 'gloss'].includes(h)) show(h);
+}
+boot();
+</script>
+</body>
+</html>

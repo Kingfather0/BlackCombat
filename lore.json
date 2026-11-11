@@ -1,0 +1,2081 @@
+{
+ "meta": {
+  "schema": 1,
+  "updated": "2026-11-11",
+  "next_event": {
+   "name": "블랙컴뱃 넘버링 17",
+   "date": "2026-11-21T13:00:00+09:00"
+  },
+  "note": "연대기 1~12장은 공식 '세계관 총정리 1·2부' 자막(영어 번역본)을 바탕으로 정리했습니다. 13장 이후는 자막 분석 전 단계라 영상 제목과 날짜만 반영돼 있습니다.",
+  "name_source": "선수 이름, 별명, 체급, 전적은 블붕이 선수 DB 기준입니다. DB에 없는 선수는 영상 제목 기준 이름을 씁니다."
+ },
+ "chapters": [
+  {
+   "id": 1,
+   "period": "2021.12",
+   "title": "발단, 유튜버끼리의 싸움",
+   "summary": "격투 유튜버 검정이 다른 격투 유튜버로부터 콘텐츠 표절 의혹을 받았다. 상대가 복싱 대결을 도발하자 검정은 '싸울 거면 MMA로 하자'고 받아쳤고, 상대가 사과하면서 경기는 불발됐다. 기대하던 팬들을 위해 검정이 직접 상대를 모집했고, 아시안게임 복싱 금메달리스트 신종훈이 지명됐다.",
+   "fighters": [
+    "검정",
+    "신종훈"
+   ],
+   "videos": [],
+   "source": [
+    "EZDp8E6OnPU"
+   ],
+   "status": "verified"
+  },
+  {
+   "id": 2,
+   "period": "2022.02",
+   "title": "BC01, WHO IS THE KING",
+   "summary": "일반인 검정이 복싱 세계 1위급 신종훈을 상대로 3라운드 암바 피니시를 따냈다. 국내 MMA 팬들이 놀란 이 경기로 블랙컴뱃이 본격적으로 주목받기 시작했다.",
+   "fighters": [
+    "검정",
+    "신종훈"
+   ],
+   "videos": [
+    "PMrxDUr2OEE",
+    "Ki7Xg8SnozM"
+   ],
+   "source": [
+    "EZDp8E6OnPU"
+   ],
+   "status": "verified"
+  },
+  {
+   "id": 3,
+   "period": "2022.04~05",
+   "title": "프로오디션 1, 폐교회 서바이벌",
+   "summary": "한국의 맥그리거를 찾는다는 명분으로 프로 파이터들을 폐교회에 모았다. 유짓수, 헌터, 영타이거, 엘로우 몽키, 바이퍼 등 지금 블랙컴뱃을 대표하는 선수들이 이때 등장했다. 3일 2박 동안 미니게임으로 식량과 잠자리를 확보하는 방식이었고, 결승은 검정과 정도한의 난투극으로 끝났다.",
+   "fighters": [
+    "유짓수",
+    "헌터",
+    "영타이거",
+    "엘로우 몽키",
+    "바이퍼",
+    "조커",
+    "검정"
+   ],
+   "videos": [
+    "QaoLnY_hvOc",
+    "qqZPvR5gSeU"
+   ],
+   "source": [
+    "EZDp8E6OnPU"
+   ],
+   "status": "verified"
+  },
+  {
+   "id": 4,
+   "period": "2022.06",
+   "title": "BC02, 유료 관객 2천 명의 시작",
+   "summary": "유료 관객 2천 명 이상이 모여 초대 없이 사람이 차는 격투 대회라는 새 문화를 만들었다. 유짓수가 초대 챔피언에 올랐고, 검정은 정도한을 꺾고 언더그라운드 챔피언이 되면서 블랙컴뱃이 정식 대형 단체로 출범했다.",
+   "fighters": [
+    "유짓수",
+    "검정",
+    "조커",
+    "영타이거",
+    "엘로우 몽키",
+    "바이퍼"
+   ],
+   "videos": [
+    "ii-cLCYlYjg",
+    "UUGbU6m-LSM",
+    "ODG4LMBtxAc"
+   ],
+   "source": [
+    "EZDp8E6OnPU"
+   ],
+   "status": "verified"
+  },
+  {
+   "id": 5,
+   "period": "2022.07~10",
+   "title": "프로오디션 2와 승급 시스템 완성",
+   "summary": "전국 최강 팀을 가린다는 명분으로 8개 팀이 폐교도소에 모였다. 피에로, 빅마우스, 해적왕 팀, 찐홍이 등이 등장했다. 이 오디션 이후 프로오디션, 챔피언스리그, 라이즈, 넘버링 대회로 이어지는 승급 구조가 만들어졌고, 오디션에서 강한 인상을 남기면 넘버링 대회에 바로 설 수도 있다.",
+   "fighters": [
+    "피에로",
+    "빅마우스",
+    "해적왕",
+    "찐홍이"
+   ],
+   "videos": [
+    "uL3LUEiR6K0"
+   ],
+   "source": [
+    "EZDp8E6OnPU"
+   ],
+   "status": "verified"
+  },
+  {
+   "id": 6,
+   "period": "2022.10",
+   "title": "BC03, 스타 파이터의 탄생",
+   "summary": "폐교회 팀과 폐교도소 팀의 선수들이 맞붙었다. 김관장 vs 빅마우스는 지금도 블랙컴뱃 역대 최고의 경기로 꼽힌다. 바이퍼가 스타로 올라섰고, 검정이 직접 출전하지 않아도 대회가 흥행할 수 있음을 증명했다.",
+   "fighters": [
+    "김관장",
+    "빅마우스",
+    "바이퍼",
+    "화이트베어",
+    "곰주먹"
+   ],
+   "videos": [
+    "moHeC4M-u7Y",
+    "MhpoiNGe6Bw",
+    "fl2TrA0l-Xg",
+    "KGgEVOJYPt4"
+   ],
+   "source": [
+    "EZDp8E6OnPU"
+   ],
+   "status": "verified"
+  },
+  {
+   "id": 7,
+   "period": "2022.12~2023.01",
+   "title": "BC04, 연말 파티 대회",
+   "summary": "국내 격투 단체 최초로 DJ 파티를 결합해 대형 클럽에서 개최했다. 빡세의 유짓수 상대 복수전, 곰주먹 vs 피에로 등이 열렸다.",
+   "fighters": [
+    "빡세",
+    "유짓수",
+    "곰주먹",
+    "피에로"
+   ],
+   "videos": [
+    "PinKIM4KbLI",
+    "kFm4EBq9jfY"
+   ],
+   "source": [
+    "EZDp8E6OnPU"
+   ],
+   "status": "verified"
+  },
+  {
+   "id": 8,
+   "period": "2023",
+   "title": "일본 DEEP 선전포고와 격투 한일전",
+   "summary": "일본 단체 DEEP(세계 6위, 20년 역사)의 사에키 대표가 도전장을 내밀었다. 검정은 한국을 무시한 걸 후회하게 만들겠다고 응수했고, 프로오디션 3에서 한국 국가대표를 뽑았다. 수원 1차전은 0:2로 몰렸다가 야차와 코리안 모아이가 연승하고 화이트베어가 체중 20kg 차이를 뒤집어 3:2로 이겼다. 도쿄 2차전은 7전 5승 2패로 한국이 이겼다. 야차는 DEEP 챔피언을 1라운드에 KO했고, 피에로는 오하라 주리를 꺾었다.",
+   "fighters": [
+    "야차",
+    "코리안 모아이",
+    "화이트베어",
+    "피에로",
+    "유짓수",
+    "바이퍼"
+   ],
+   "videos": [
+    "S6tMCjKhNHg",
+    "kOghAHgeqWY",
+    "0ewnlfhehmQ",
+    "gBRSntlMhbA"
+   ],
+   "source": [
+    "bK5rd6VrvK4"
+   ],
+   "status": "verified"
+  },
+  {
+   "id": 9,
+   "period": "2023~2024",
+   "title": "모아이 형제와 유짓수의 악연",
+   "summary": "한일전 직후부터 유짓수와 모아이 형제 사이의 갈등이 시작됐다. 이 구도는 이후 대형 맞대결(코리안 모아이 vs 유짓수, BC10)까지 이어지는 큰 축이 됐다.",
+   "fighters": [
+    "유짓수",
+    "코리안 모아이",
+    "야차"
+   ],
+   "videos": [
+    "xku9o64XRb4",
+    "0AKliZOQ-Gc",
+    "QJ50IKIZP4E"
+   ],
+   "source": [
+    "bK5rd6VrvK4"
+   ],
+   "status": "verified"
+  },
+  {
+   "id": 10,
+   "period": "2024",
+   "title": "한중전, 부산 7:0",
+   "summary": "다음 목표는 중국 무림 계열 단체였다. 검정은 고구려 삼족오 콘셉트의 대표단을 구성했고, 한국이 7:0으로 완승했다.",
+   "fighters": [
+    "킹콩",
+    "직쏘"
+   ],
+   "videos": [
+    "Yy1MNGoXLO4",
+    "EbBxDVyoB3w",
+    "gT7JeflyESI"
+   ],
+   "source": [
+    "bK5rd6VrvK4"
+   ],
+   "status": "verified"
+  },
+  {
+   "id": 11,
+   "period": "2024.09",
+   "title": "야차클럽과의 전면전, 그리고 통합",
+   "summary": "맨주먹 격투 단체 야차클럽이 블랙컴뱃 계약 선수를 무단으로 기용했다. 24시간 안에 사과하라는 요구를 거절하자 3:3 대결이 성사됐고, 블랙컴뱃이 이겼다. 이후 두 단체는 국내 최초로 교류하는 관계가 됐다. 야차클럽 선수들은 참가 기회를, 블랙컴뱃은 언더그라운드 랭킹 자리를 얻었다.",
+   "fighters": [
+    "성명준",
+    "맘모스"
+   ],
+   "videos": [
+    "fFP6MVgDn6w",
+    "n7fUHY1rzcE",
+    "F9iUns8miwg",
+    "qeKbrQmLa6w"
+   ],
+   "source": [
+    "bK5rd6VrvK4"
+   ],
+   "status": "verified"
+  },
+  {
+   "id": 12,
+   "period": "2024.10~2025",
+   "title": "체급 챔피언 체제, 확장기",
+   "summary": "일본 세키가하라 프로오디션, 블랙리스트 제도, 외국인 선수 영입으로 몸집이 커졌다. 원피스 테마 대회에서는 50인 오케스트라 연주와 MMA 치어리더가 처음 등장했다. 코리안 갱스터와 사신의 대결(BC13)이 대형 흥행을 만들었고, 검정은 아시아 첫 상장 격투 단체를 목표로 선언했다.",
+   "fighters": [
+    "코리안 갱스터",
+    "사신",
+    "캡틴 코리아",
+    "투신",
+    "시라소니"
+   ],
+   "videos": [
+    "K9oMGAPnssM",
+    "77oL4fEHNdA",
+    "1wLFnTTYA1U",
+    "qm_IPwBTiT8",
+    "z7csHy0_EAs"
+   ],
+   "source": [
+    "bK5rd6VrvK4"
+   ],
+   "status": "verified"
+  },
+  {
+   "id": 13,
+   "period": "2025.05~2026",
+   "title": "명경기와 국가 대항전 시대",
+   "summary": "광남 vs 야인(BC14)이 역대 최고의 명경기로 회자됐다. 이어 BC15~16에서 투신, 시라소니, 우마왕 등 챔피언 구도가 정리됐고 블랙컵(한국 vs 미국), 격투기 월드컵으로 무대가 커졌다. 이 구간은 자막 분석 전이라 영상 제목과 날짜 기준의 요약입니다.",
+   "fighters": [
+    "광남",
+    "야인",
+    "투신",
+    "시라소니",
+    "우마왕",
+    "락스톤"
+   ],
+   "videos": [
+    "VInTQSb5jic",
+    "Ns8L-2yLdLU",
+    "dAukyNGuj8U",
+    "3VzqH_Ny2W4",
+    "YJphYa_XsHY",
+    "BX-8IgTyt0I",
+    "DQwG2JX-yXs"
+   ],
+   "source": [],
+   "status": "titles_only"
+  }
+ ],
+ "champions": {
+  "snapshot": "2026-11-11",
+  "list": [
+   {
+    "division": "플라이급",
+    "name": "우마왕",
+    "record": "13-4"
+   },
+   {
+    "division": "밴텀급",
+    "name": "투신",
+    "record": "16-8"
+   },
+   {
+    "division": "페더급",
+    "name": "시라소니",
+    "record": "8-0"
+   },
+   {
+    "division": "라이트급",
+    "name": "캡틴 코리아",
+    "record": "14-11-2"
+   },
+   {
+    "division": "웰터급",
+    "name": "공석",
+    "record": ""
+   },
+   {
+    "division": "미들급",
+    "name": "킹콩",
+    "record": "6-4"
+   },
+   {
+    "division": "언더그라운드",
+    "name": "Godfather(검정)",
+    "record": "3-0-0"
+   }
+  ]
+ },
+ "rivalries": [
+  {
+   "title": "검정 vs 신종훈",
+   "desc": "모든 것의 시작. 유튜버와 복싱 금메달리스트의 자존심 싸움.",
+   "videos": [
+    "PMrxDUr2OEE"
+   ]
+  },
+  {
+   "title": "유짓수 vs 모아이 형제",
+   "desc": "한일전 이후 이어진 가장 오래된 악연.",
+   "videos": [
+    "QJ50IKIZP4E"
+   ]
+  },
+  {
+   "title": "유짓수 vs 빅마우스",
+   "desc": "실미도 오디션 결승에서 서로 팀 운영을 탓하다 난투극으로 번진 사이.",
+   "videos": []
+  },
+  {
+   "title": "바이퍼 vs 투견",
+   "desc": "BC07과 BC11에서 두 번 맞붙은 맞수.",
+   "videos": [
+    "t5jhg2GC0_U",
+    "72tILijyU0E"
+   ]
+  },
+  {
+   "title": "코리안 갱스터 vs 사신",
+   "desc": "복싱 챔피언 출신 사신과의 대결. 330만 조회의 흥행작.",
+   "videos": [
+    "K9oMGAPnssM"
+   ]
+  },
+  {
+   "title": "광남 vs 야인",
+   "desc": "BC14의 명경기. 하이라이트 쇼츠가 320만 조회.",
+   "videos": [
+    "VInTQSb5jic",
+    "Ns8L-2yLdLU"
+   ]
+  },
+  {
+   "title": "블랙컴뱃 vs 야차클럽",
+   "desc": "무단 기용 사건에서 시작된 단체 대항전, 이후 교류 관계로.",
+   "videos": [
+    "fFP6MVgDn6w"
+   ]
+  },
+  {
+   "title": "블랙컴뱃 vs DEEP",
+   "desc": "한국과 일본 격투 한일전. 수원 3:2, 도쿄 5:2.",
+   "videos": [
+    "S6tMCjKhNHg"
+   ]
+  }
+ ],
+ "fighters": [
+  {
+   "nick": "검정",
+   "bio": "블랙컴뱃을 만든 격투 유튜버. BC01에서 신종훈을 암바로 꺾었고 언더그라운드 챔피언에 올랐다.",
+   "videos": [
+    "PMrxDUr2OEE",
+    "ii-cLCYlYjg"
+   ],
+   "db": true,
+   "real": "박평화",
+   "role": "대표 겸 파이터"
+  },
+  {
+   "nick": "유짓수",
+   "bio": "BC02 초대 챔피언. 프로오디션 1 출신이며 모아이 형제와의 악연이 유명하다. 한일전 도쿄 5경기 승리.",
+   "videos": [
+    "QJ50IKIZP4E"
+   ],
+   "real": "유수영",
+   "role": "",
+   "db": false
+  },
+  {
+   "nick": "바이퍼",
+   "bio": "영상에 가장 많이 등장하는 선수. BC03에서 정도한을 KO하며 스타가 됐다. 승부욕이 강하고 계체에서 말썽을 일으키는 악동 캐릭터.",
+   "videos": [
+    "MhpoiNGe6Bw",
+    "ODG4LMBtxAc"
+   ],
+   "db": true
+  },
+  {
+   "nick": "야차",
+   "bio": "'1라운드에 유짓수를 끝내겠다'는 발언으로 유명하다. 도쿄에서 DEEP 챔피언을 1라운드에 KO했다.",
+   "videos": [
+    "z7csHy0_EAs"
+   ],
+   "real": "최준서",
+   "role": "",
+   "db": false
+  },
+  {
+   "nick": "코리안 모아이",
+   "bio": "야차와 함께 '모아이 형제'로 불린다. 수원 한일전에서 3라운드 KO승.",
+   "videos": [
+    "QJ50IKIZP4E",
+    "f4v1ivSUlzo"
+   ],
+   "db": true
+  },
+  {
+   "nick": "화이트베어",
+   "bio": "수원 한일전에서 체중 20kg 차이를 뒤집은 역전승으로 팀 승리를 확정했다.",
+   "videos": [
+    "moHeC4M-u7Y"
+   ],
+   "real": "최원준",
+   "role": "",
+   "db": false
+  },
+  {
+   "nick": "빅마우스",
+   "bio": "프로오디션 2에서 입담으로 인기를 얻었다. 김관장과의 BC03 경기가 역대 명경기로 꼽힌다.",
+   "videos": [
+    "C7cq9EKulbM"
+   ],
+   "db": true
+  },
+  {
+   "nick": "김관장",
+   "bio": "BC03 빅마우스와의 경기에서 명경기를 만들었다. 이후 밴텀급 타이틀 결정전에서 판정승.",
+   "videos": [],
+   "db": true
+  },
+  {
+   "nick": "피에로",
+   "bio": "화려한 등장으로 유명하다. 도쿄 한일전에서 오하라 주리를 꺾었다.",
+   "videos": [
+    "kFm4EBq9jfY"
+   ],
+   "db": true
+  },
+  {
+   "nick": "곰주먹",
+   "bio": "데뷔전에서 라이트급 타이틀전 1라운드 KO승. 언더독 서사의 대표.",
+   "videos": [
+    "fl2TrA0l-Xg",
+    "kFm4EBq9jfY"
+   ],
+   "db": true
+  },
+  {
+   "nick": "투견",
+   "bio": "실미도 오디션 우승자. 바이퍼와 두 차례 맞붙었다.",
+   "videos": [
+    "t5jhg2GC0_U",
+    "72tILijyU0E"
+   ],
+   "db": true
+  },
+  {
+   "nick": "영타이거",
+   "bio": "프로오디션 1부터 함께한 초기 세대. 엘로우 몽키, 야인과 인상적인 경기를 치렀다.",
+   "videos": [
+    "UUGbU6m-LSM",
+    "2VOhMGJyLAg"
+   ],
+   "db": true
+  },
+  {
+   "nick": "해적왕",
+   "bio": "프로오디션 2에서 해적 콘셉트 팀을 이끌고 등장했다.",
+   "videos": [
+    "JK9KhAQQT2Q",
+    "KGgEVOJYPt4"
+   ],
+   "db": true
+  },
+  {
+   "nick": "캡틴 코리아",
+   "bio": "체중 감량만 없으면 한 달에 한 번도 싸울 수 있다고 한 파이터. 현재 라이트급 챔피언(14-11-2).",
+   "videos": [],
+   "db": true
+  },
+  {
+   "nick": "코리안 갱스터",
+   "bio": "기자회견에서 뺨을 때리고 드롭킥을 날려 흥행을 만든 인물. 사신, 야차와의 경기가 대표작.",
+   "videos": [
+    "K9oMGAPnssM",
+    "z7csHy0_EAs"
+   ],
+   "db": true
+  },
+  {
+   "nick": "사신",
+   "bio": "BC13에서 코리안 갱스터와 대결.",
+   "videos": [
+    "K9oMGAPnssM",
+    "emQbUgFHYMA"
+   ],
+   "db": true
+  },
+  {
+   "nick": "투신",
+   "bio": "데이트 한 번으로 모든 솔로의 적이 된 캐릭터. 현 밴텀급 챔피언(16-8).",
+   "videos": [
+    "dAukyNGuj8U",
+    "qm_IPwBTiT8"
+   ],
+   "db": true
+  },
+  {
+   "nick": "광남",
+   "bio": "BC14에서 야인과 역대급 명경기를 만들었다.",
+   "videos": [
+    "VInTQSb5jic",
+    "Ns8L-2yLdLU"
+   ],
+   "db": true
+  },
+  {
+   "nick": "야인",
+   "bio": "영타이거, 광남, 사쿠라와 굵직한 경기를 치른 인기 선수.",
+   "videos": [
+    "2VOhMGJyLAg",
+    "KuTzaKv9ev8"
+   ],
+   "db": true
+  },
+  {
+   "nick": "시라소니",
+   "bio": "8전 무패의 현 페더급 챔피언. 한마바키, 락스톤을 상대로 방어.",
+   "videos": [
+    "1wLFnTTYA1U",
+    "3VzqH_Ny2W4"
+   ],
+   "db": true
+  },
+  {
+   "nick": "우마왕",
+   "bio": "현 플라이급 챔피언(13-4). 바이퍼와 BC16에서 맞붙었다.",
+   "videos": [
+    "U5izkE5_wzk"
+   ],
+   "db": true
+  },
+  {
+   "nick": "킹콩",
+   "bio": "한중전에서 활약했고 현재 미들급 챔피언(6-4).",
+   "videos": [],
+   "db": true
+  },
+  {
+   "nick": "펜리르",
+   "bio": "12전 무패. 스컬과 BC15에서 대결.",
+   "videos": [
+    "WEWKvHuO8oI"
+   ],
+   "db": true
+  },
+  {
+   "nick": "락스톤",
+   "bio": "시라소니, 코리안 모아이와 대결한 외국인 강자.",
+   "videos": [
+    "3VzqH_Ny2W4",
+    "f4v1ivSUlzo"
+   ],
+   "db": true
+  }
+ ],
+ "glossary": [
+  {
+   "term": "넘버링 대회",
+   "desc": "BC01, BC02처럼 번호가 붙는 블랙컴뱃의 메인 대회."
+  },
+  {
+   "term": "프로오디션",
+   "desc": "폐교회, 폐교도소, 실미도 등에서 열린 서바이벌 오디션. 강하면 넘버링에 직행할 수 있다."
+  },
+  {
+   "term": "챔피언스리그, 라이즈",
+   "desc": "넘버링에 오르기 전 선수들이 실력을 증명하는 중간 무대."
+  },
+  {
+   "term": "언더그라운드 챔피언",
+   "desc": "체급과 별개로 정식 대회 밖에서 만들어진 타이틀. 검정이 BC02에서 획득."
+  },
+  {
+   "term": "블랙리스트",
+   "desc": "외국인 선수 영입과 함께 자막에 소개된 선수 관리 제도."
+  },
+  {
+   "term": "격투 한일전, 한중전",
+   "desc": "국가대표 선수들이 일본 DEEP, 중국 단체와 맞붙은 국가 대항전."
+  }
+ ],
+ "courses": [
+  {
+   "id": "mini",
+   "name": "10분 코스",
+   "desc": "처음 접하는 팬을 위한 가장 짧은 입문",
+   "videos": [
+    "EZDp8E6OnPU",
+    "bK5rd6VrvK4",
+    "VInTQSb5jic"
+   ]
+  },
+  {
+   "id": "origin",
+   "name": "기원 정주행",
+   "desc": "BC01부터 BC03까지 초기 서사",
+   "videos": [
+    "PMrxDUr2OEE",
+    "ii-cLCYlYjg",
+    "UUGbU6m-LSM",
+    "MhpoiNGe6Bw"
+   ]
+  },
+  {
+   "id": "best",
+   "name": "명경기 모음",
+   "desc": "조회수 높은 경기 중심",
+   "videos": [
+    "K9oMGAPnssM",
+    "Ns8L-2yLdLU",
+    "2VOhMGJyLAg",
+    "QJ50IKIZP4E",
+    "fFP6MVgDn6w"
+   ]
+  },
+  {
+   "id": "now",
+   "name": "현재 구도",
+   "desc": "지금 챔피언과 최근 흐름",
+   "videos": [
+    "3VzqH_Ny2W4",
+    "dAukyNGuj8U",
+    "U5izkE5_wzk",
+    "DQwG2JX-yXs"
+   ]
+  }
+ ],
+ "videos": {
+  "EZDp8E6OnPU": {
+   "t": "블랙컴뱃 세계관 스토리 총정리 1부",
+   "m": 10
+  },
+  "bK5rd6VrvK4": {
+   "t": "블랙컴뱃 세계관 스토리 총정리 2부",
+   "m": 15
+  },
+  "VInTQSb5jic": {
+   "t": "야인 vs 광남 하이라이트",
+   "m": 2
+  },
+  "PMrxDUr2OEE": {
+   "t": "검정 vs 신종훈 BC01",
+   "m": 28
+  },
+  "Ki7Xg8SnozM": {
+   "t": "도장깨기 온 일반인에 빡친 신종훈",
+   "m": 8
+  },
+  "QaoLnY_hvOc": {
+   "t": "프로오디션 1~12화 전체보기",
+   "m": 0
+  },
+  "qqZPvR5gSeU": {
+   "t": "프로오디션 결승 Ep.12",
+   "m": 44
+  },
+  "ii-cLCYlYjg": {
+   "t": "조커 정도한 vs 갓파더 검정 BC02",
+   "m": 30
+  },
+  "UUGbU6m-LSM": {
+   "t": "영타이거 vs 엘로우 몽키 BC02",
+   "m": 24
+  },
+  "ODG4LMBtxAc": {
+   "t": "바이퍼 vs No.7 손지훈 BC02",
+   "m": 0
+  },
+  "uL3LUEiR6K0": {
+   "t": "프로오디션 2 비하인드",
+   "m": 5
+  },
+  "moHeC4M-u7Y": {
+   "t": "빅가이 vs 화이트베어 BC03 D-2",
+   "m": 24
+  },
+  "MhpoiNGe6Bw": {
+   "t": "바이퍼 vs 조커 정도한 BC03",
+   "m": 0
+  },
+  "fl2TrA0l-Xg": {
+   "t": "곰주먹 vs 비밀병희 BC03",
+   "m": 0
+  },
+  "KGgEVOJYPt4": {
+   "t": "해적왕 vs 파이톤 BC03",
+   "m": 0
+  },
+  "PinKIM4KbLI": {
+   "t": "낮도깨비 vs 노잼 BC04",
+   "m": 32
+  },
+  "kFm4EBq9jfY": {
+   "t": "피에로 vs 곰주먹 BC04",
+   "m": 0
+  },
+  "S6tMCjKhNHg": {
+   "t": "격투 한일전을 위해 모인 최고의 주먹들",
+   "m": 0
+  },
+  "kOghAHgeqWY": {
+   "t": "격투 한일전 계체량",
+   "m": 0
+  },
+  "0ewnlfhehmQ": {
+   "t": "검정이 말하는 격투한일전 비하인드",
+   "m": 6
+  },
+  "gBRSntlMhbA": {
+   "t": "일본 선수에게 살인예고하는 무패 파이터",
+   "m": 5
+  },
+  "xku9o64XRb4": {
+   "t": "모아이형제 비하인드",
+   "m": 12
+  },
+  "0AKliZOQ-Gc": {
+   "t": "유짓수가 밝히는 모아이전 비하인드",
+   "m": 7
+  },
+  "QJ50IKIZP4E": {
+   "t": "코리안모아이 vs 유짓수 BC10",
+   "m": 0
+  },
+  "Yy1MNGoXLO4": {
+   "t": "한중 격투 대항전 Ep.0",
+   "m": 1
+  },
+  "EbBxDVyoB3w": {
+   "t": "한중전 국가대표 선발 프로오디션 6",
+   "m": 0
+  },
+  "gT7JeflyESI": {
+   "t": "한중전 대표 결승, 탑컨텐더 4인",
+   "m": 0
+  },
+  "fFP6MVgDn6w": {
+   "t": "야차클럽 vs 블랙컴뱃 Ep.1",
+   "m": 30
+  },
+  "n7fUHY1rzcE": {
+   "t": "야차클럽 vs 블랙컴뱃 Ep.2",
+   "m": 28
+  },
+  "F9iUns8miwg": {
+   "t": "야차클럽 vs 블랙컴뱃 Ep.3",
+   "m": 40
+  },
+  "qeKbrQmLa6w": {
+   "t": "성명준 vs 맘모스 야차클럽 복마전2",
+   "m": 36
+  },
+  "K9oMGAPnssM": {
+   "t": "코리안갱스터 vs 사신 BC13",
+   "m": 39
+  },
+  "77oL4fEHNdA": {
+   "t": "코리안갱스터 vs 브루스 라이즈05",
+   "m": 30
+  },
+  "1wLFnTTYA1U": {
+   "t": "시라소니 vs 한마바키 BC12",
+   "m": 0
+  },
+  "qm_IPwBTiT8": {
+   "t": "투신 vs 언더독 BC12",
+   "m": 0
+  },
+  "z7csHy0_EAs": {
+   "t": "야차 vs 코리안 갱스터 BC14",
+   "m": 29
+  },
+  "Ns8L-2yLdLU": {
+   "t": "광남 vs 야인 BC14",
+   "m": 0
+  },
+  "dAukyNGuj8U": {
+   "t": "투신 vs 울프킹 BC15",
+   "m": 0
+  },
+  "3VzqH_Ny2W4": {
+   "t": "시라소니 vs 락스톤 BC16",
+   "m": 0
+  },
+  "YJphYa_XsHY": {
+   "t": "2026 블랙컵 한국 vs 미국 잭팟 vs 맘모스",
+   "m": 0
+  },
+  "BX-8IgTyt0I": {
+   "t": "격투기 월드컵 4강 한국 vs 몽골",
+   "m": 0
+  },
+  "DQwG2JX-yXs": {
+   "t": "격투기 월드컵 4강 일본 vs 미국",
+   "m": 123
+  },
+  "2VOhMGJyLAg": {
+   "t": "야인 vs 영타이거 BC11",
+   "m": 40
+  },
+  "KuTzaKv9ev8": {
+   "t": "사쿠라 vs 야인 BC13",
+   "m": 0
+  },
+  "t5jhg2GC0_U": {
+   "t": "바이퍼 vs 투견 BC07",
+   "m": 0
+  },
+  "72tILijyU0E": {
+   "t": "투견 vs 바이퍼 BC11",
+   "m": 0
+  },
+  "JK9KhAQQT2Q": {
+   "t": "해적왕 vs 바이퍼",
+   "m": 0
+  },
+  "emQbUgFHYMA": {
+   "t": "복싱 챔피언 사신 vs 전챔피언 광남",
+   "m": 0
+  },
+  "WEWKvHuO8oI": {
+   "t": "펜리르 vs 스컬 BC15",
+   "m": 0
+  },
+  "U5izkE5_wzk": {
+   "t": "우마왕 vs 바이퍼 BC16",
+   "m": 0
+  },
+  "f4v1ivSUlzo": {
+   "t": "코리안모아이 vs 락스톤",
+   "m": 0
+  },
+  "C7cq9EKulbM": {
+   "t": "빅마우스 vs 엘로우 몽키",
+   "m": 0
+  }
+ },
+ "latest": [],
+ "roster": {
+  "우마왕": {
+   "real": "우성훈",
+   "div": "플라이",
+   "rec": "13-4-0",
+   "rank": "C",
+   "flag": "kr"
+  },
+  "탱크": {
+   "real": "코마키네 타카히로",
+   "div": "플라이",
+   "rec": "19-6-0",
+   "rank": "1",
+   "flag": "jp"
+  },
+  "인디언킹": {
+   "real": "Gabriel Rodrigues",
+   "div": "플라이",
+   "rec": "7-1-0",
+   "rank": "2",
+   "flag": "br"
+  },
+  "보로클": {
+   "real": "Bayanduuren",
+   "div": "플라이",
+   "rec": "5-2-0",
+   "rank": "3",
+   "flag": "mn"
+  },
+  "윤방관": {
+   "real": "윤호영",
+   "div": "플라이",
+   "rec": "7-6-1",
+   "rank": "4",
+   "flag": "kr"
+  },
+  "크로커다일": {
+   "real": "Elias Da Cruz",
+   "div": "플라이",
+   "rec": "18-4-1",
+   "rank": "5",
+   "flag": "br"
+  },
+  "김관장": {
+   "real": "김성재",
+   "div": "플라이",
+   "rec": "9-10-1",
+   "rank": "6",
+   "flag": "kr"
+  },
+  "바이퍼": {
+   "real": "김성웅",
+   "div": "플라이",
+   "rec": "8-9-0",
+   "rank": "7",
+   "flag": "kr"
+  },
+  "앤쵸비": {
+   "real": "박태호",
+   "div": "플라이",
+   "rec": "9-7-0",
+   "rank": "8",
+   "flag": "kr"
+  },
+  "아마존 키드": {
+   "real": "Thomas Assis",
+   "div": "플라이",
+   "rec": "12-4-0",
+   "rank": "9",
+   "flag": "br"
+  },
+  "투견": {
+   "real": "정원희",
+   "div": "플라이",
+   "rec": "10-9-0",
+   "rank": "10",
+   "flag": "kr"
+  },
+  "부기맨": {
+   "real": "Rangel dos Santos",
+   "div": "플라이",
+   "rec": "12-6-1",
+   "rank": "11",
+   "flag": "br"
+  },
+  "닌자": {
+   "real": "Yamasaki Sora",
+   "div": "플라이",
+   "rec": "8-2-0",
+   "rank": "12",
+   "flag": "jp"
+  },
+  "스나이퍼": {
+   "real": "Isiah Torres",
+   "div": "플라이",
+   "rec": "9-5-1",
+   "rank": "13",
+   "flag": "us"
+  },
+  "스탄 바키": {
+   "real": "Bagylan Zhakansha",
+   "div": "플라이",
+   "rec": "7-2-0",
+   "rank": "14",
+   "flag": "kz"
+  },
+  "미스터 초크": {
+   "real": "이민주",
+   "div": "플라이",
+   "rec": "5-5-0",
+   "rank": "15",
+   "flag": "kr"
+  },
+  "캡틴 히어로": {
+   "real": "이영웅",
+   "div": "플라이",
+   "rec": "4-1-0",
+   "rank": "16",
+   "flag": "kr"
+  },
+  "핏불": {
+   "real": "Tiago Xavier",
+   "div": "플라이",
+   "rec": "17-12-0",
+   "rank": "17",
+   "flag": "br"
+  },
+  "메탈 리": {
+   "real": "핫토리 슈토",
+   "div": "플라이",
+   "rec": "2-1-0",
+   "rank": "18",
+   "flag": "jp"
+  },
+  "매드독": {
+   "real": "김민우",
+   "div": "플라이",
+   "rec": "2-2-0",
+   "rank": "19",
+   "flag": "kr"
+  },
+  "조커": {
+   "real": "정도한",
+   "div": "플라이",
+   "rec": "2-9-0",
+   "rank": "20",
+   "flag": "kr"
+  },
+  "도깨비발": {
+   "real": "이선하",
+   "div": "플라이",
+   "rec": "2-3-0",
+   "rank": "21",
+   "flag": "kr"
+  },
+  "백구": {
+   "real": "Erkhembayar",
+   "div": "플라이",
+   "rec": "3-1-0",
+   "rank": "22",
+   "flag": "mn"
+  },
+  "투신": {
+   "real": "김재웅",
+   "div": "밴텀",
+   "rec": "16-8-0",
+   "rank": "C",
+   "flag": "kr"
+  },
+  "펜리르": {
+   "real": "Daniiar Toichubek",
+   "div": "밴텀",
+   "rec": "12-0-0",
+   "rank": "1",
+   "flag": "kg"
+  },
+  "무사": {
+   "real": "타케나카 다이치",
+   "div": "밴텀",
+   "rec": "18-4-1",
+   "rank": "2",
+   "flag": "jp"
+  },
+  "빡세": {
+   "real": "이진세",
+   "div": "밴텀",
+   "rec": "7-6-0",
+   "rank": "3",
+   "flag": "kr"
+  },
+  "백사자": {
+   "real": "Aydemir Kazbekov",
+   "div": "밴텀",
+   "rec": "15-2-0",
+   "rank": "4",
+   "flag": "ru"
+  },
+  "언더독": {
+   "real": "박성준",
+   "div": "밴텀",
+   "rec": "7-6-1",
+   "rank": "5",
+   "flag": "kr"
+  },
+  "쿠르드 이글": {
+   "real": "Ruslan Amuyev",
+   "div": "밴텀",
+   "rec": "12-0-0",
+   "rank": "6",
+   "flag": "krd"
+  },
+  "불도저": {
+   "real": "정경열",
+   "div": "밴텀",
+   "rec": "5-4-0",
+   "rank": "7",
+   "flag": "kr"
+  },
+  "골든보이": {
+   "real": "Matheus Correia",
+   "div": "밴텀",
+   "rec": "12-0-0",
+   "rank": "8",
+   "flag": "br"
+  },
+  "보오르추": {
+   "real": "Bat-Itgelt",
+   "div": "밴텀",
+   "rec": "5-1-0",
+   "rank": "9",
+   "flag": "mn"
+  },
+  "빅마우스": {
+   "real": "김동규",
+   "div": "밴텀",
+   "rec": "10-8-0",
+   "rank": "10",
+   "flag": "kr"
+  },
+  "LG": {
+   "real": "Lake Gee",
+   "div": "밴텀",
+   "rec": "10-0-0",
+   "rank": "11",
+   "flag": "us"
+  },
+  "피카츄": {
+   "real": "Mukai Rukiya",
+   "div": "밴텀",
+   "rec": "6-3-0",
+   "rank": "12",
+   "flag": "jp"
+  },
+  "아이언 홀스": {
+   "real": "Felipe Gheno",
+   "div": "밴텀",
+   "rec": "11-5-0",
+   "rank": "13",
+   "flag": "br"
+  },
+  "구아라": {
+   "real": "Marcelo Guarilha",
+   "div": "밴텀",
+   "rec": "25-12-1",
+   "rank": "14",
+   "flag": "br"
+  },
+  "스컬": {
+   "real": "Ruslan Sariyev",
+   "div": "밴텀",
+   "rec": "17-5-0",
+   "rank": "15",
+   "flag": "kz"
+  },
+  "잉카": {
+   "real": "Miguel Meza",
+   "div": "밴텀",
+   "rec": "8-1-0",
+   "rank": "16",
+   "flag": "pe"
+  },
+  "홀리 비스트": {
+   "real": "김대환",
+   "div": "밴텀",
+   "rec": "15-12-1",
+   "rank": "17",
+   "flag": "kr"
+  },
+  "찐홍이": {
+   "real": "홍종태",
+   "div": "밴텀",
+   "rec": "6-6-0",
+   "rank": "18",
+   "flag": "kr"
+  },
+  "해적왕": {
+   "real": "이강남",
+   "div": "밴텀",
+   "rec": "4-3-0",
+   "rank": "19",
+   "flag": "kr"
+  },
+  "티그로": {
+   "real": "신창현",
+   "div": "밴텀",
+   "rec": "4-1-0",
+   "rank": "20",
+   "flag": "kr"
+  },
+  "몽크": {
+   "real": "Maicon Bruno",
+   "div": "밴텀",
+   "rec": "5-7-0",
+   "rank": "21",
+   "flag": "br"
+  },
+  "엘로우 몽키": {
+   "real": "임정민",
+   "div": "밴텀",
+   "rec": "5-5-0",
+   "rank": "22",
+   "flag": "kr"
+  },
+  "도미네이터": {
+   "real": "비탈리 미로뉴크",
+   "div": "밴텀",
+   "rec": "9-4-0",
+   "rank": "23",
+   "flag": "ru"
+  },
+  "프리즌": {
+   "real": "최은빈",
+   "div": "밴텀",
+   "rec": "3-1-0",
+   "rank": "24",
+   "flag": "kr"
+  },
+  "리바이": {
+   "real": "김유찬",
+   "div": "밴텀",
+   "rec": "2-1-0",
+   "rank": "25",
+   "flag": "kr"
+  },
+  "스패로우": {
+   "real": "Paula Cunha",
+   "div": "밴텀",
+   "rec": "3-6-0",
+   "rank": "26",
+   "flag": "br"
+  },
+  "카우보이": {
+   "real": "Diogenes Neto",
+   "div": "밴텀",
+   "rec": "0-2-0",
+   "rank": "27",
+   "flag": "br"
+  },
+  "체크메이트": {
+   "real": "이환현",
+   "div": "밴텀",
+   "rec": "2-4-0",
+   "rank": "28",
+   "flag": "kr"
+  },
+  "매드카우": {
+   "real": "이성원",
+   "div": "밴텀",
+   "rec": "1-3-0",
+   "rank": "29",
+   "flag": "kr"
+  },
+  "미스터 퍼펙트": {
+   "real": "강경호",
+   "div": "밴텀",
+   "rec": "19-11-0",
+   "rank": null,
+   "flag": "kr"
+  },
+  "시라소니": {
+   "real": "방성혁",
+   "div": "페더",
+   "rec": "8-0-0",
+   "rank": "C",
+   "flag": "kr"
+  },
+  "아레스": {
+   "real": "김태균",
+   "div": "페더",
+   "rec": "12-3-0",
+   "rank": "1",
+   "flag": "kr"
+  },
+  "싸이코": {
+   "real": "Victor Hugo",
+   "div": "페더",
+   "rec": "26-8-0",
+   "rank": "2",
+   "flag": "br"
+  },
+  "울프킹": {
+   "real": "Adilet Nurmatov",
+   "div": "페더",
+   "rec": "14-3-0",
+   "rank": "3",
+   "flag": "kg"
+  },
+  "코리안 모아이": {
+   "real": "김민우",
+   "div": "페더",
+   "rec": "13-2-0",
+   "rank": "4",
+   "flag": "kr"
+  },
+  "락스톤": {
+   "real": "Lucas Bento",
+   "div": "페더",
+   "rec": "9-7-0",
+   "rank": "5",
+   "flag": "br"
+  },
+  "데드샷": {
+   "real": "Ortsa Gudaev",
+   "div": "페더",
+   "rec": "15-4-0",
+   "rank": "6",
+   "flag": "ru"
+  },
+  "붉은매": {
+   "real": "지혁민",
+   "div": "페더",
+   "rec": "8-1-0",
+   "rank": "7",
+   "flag": "kr"
+  },
+  "불곰": {
+   "real": "Ismail Kelemetov",
+   "div": "페더",
+   "rec": "11-2-0",
+   "rank": "8",
+   "flag": "ru"
+  },
+  "젤메": {
+   "real": "Sodnomdorj",
+   "div": "페더",
+   "rec": "9-3-0",
+   "rank": "9",
+   "flag": "mn"
+  },
+  "불주먹": {
+   "real": "방재혁",
+   "div": "페더",
+   "rec": "17-10-0",
+   "rank": "10",
+   "flag": "kr"
+  },
+  "TRG": {
+   "real": "Felipe Pereira",
+   "div": "페더",
+   "rec": "10-3-0",
+   "rank": "11",
+   "flag": "br"
+  },
+  "모카": {
+   "real": "Leonardo Diniz",
+   "div": "페더",
+   "rec": "16-4-0",
+   "rank": "12",
+   "flag": "br"
+  },
+  "야인": {
+   "real": "이도겸",
+   "div": "페더",
+   "rec": "11-9-0",
+   "rank": "13",
+   "flag": "kr"
+  },
+  "손오찬": {
+   "real": "손유찬",
+   "div": "페더",
+   "rec": "3-5-0",
+   "rank": "14",
+   "flag": "kr"
+  },
+  "광남": {
+   "real": "신승민",
+   "div": "페더",
+   "rec": "14-8-0",
+   "rank": "15",
+   "flag": "kr"
+  },
+  "머큐리": {
+   "real": "Flavio Santos",
+   "div": "페더",
+   "rec": "14-11-0",
+   "rank": "16",
+   "flag": "br"
+  },
+  "릴슈타": {
+   "real": "임재윤",
+   "div": "페더",
+   "rec": "3-2-0",
+   "rank": "17",
+   "flag": "kr"
+  },
+  "토르": {
+   "real": "Toma Mitsuhiro",
+   "div": "페더",
+   "rec": "17-12-2",
+   "rank": "18",
+   "flag": "jp"
+  },
+  "The Man": {
+   "real": "Daniel McElhaney",
+   "div": "페더",
+   "rec": "9-4-0",
+   "rank": "19",
+   "flag": "us"
+  },
+  "빡상": {
+   "real": "박상현",
+   "div": "페더",
+   "rec": "9-7-1",
+   "rank": "20",
+   "flag": "kr"
+  },
+  "코리안 불도저": {
+   "real": "남의철",
+   "div": "페더",
+   "rec": "21-10-1",
+   "rank": "21",
+   "flag": "kr"
+  },
+  "타우르스": {
+   "real": "박병혁",
+   "div": "페더",
+   "rec": "4-3-0",
+   "rank": "22",
+   "flag": "kr"
+  },
+  "아이언 힙": {
+   "real": "미야히라 슈타로",
+   "div": "페더",
+   "rec": "4-5-0",
+   "rank": "23",
+   "flag": "jp"
+  },
+  "피니셔": {
+   "real": "황준호",
+   "div": "페더",
+   "rec": "5-3-0",
+   "rank": "24",
+   "flag": "kr"
+  },
+  "사이보그": {
+   "real": "허선행",
+   "div": "페더",
+   "rec": "5-5-1",
+   "rank": "25",
+   "flag": "kr"
+  },
+  "히트맨": {
+   "real": "정용수",
+   "div": "페더",
+   "rec": "5-3-1",
+   "rank": "26",
+   "flag": "kr"
+  },
+  "레버넌트": {
+   "real": "이민혁",
+   "div": "페더",
+   "rec": "9-7-0",
+   "rank": "27",
+   "flag": "kr"
+  },
+  "프론트맨": {
+   "real": "문병일",
+   "div": "페더",
+   "rec": "0-6-0",
+   "rank": "29",
+   "flag": "kr"
+  },
+  "캡틴 코리아": {
+   "real": "정한국",
+   "div": "라이트",
+   "rec": "14-11-2",
+   "rank": "C",
+   "flag": "kr"
+  },
+  "수부타이": {
+   "real": "난딘에르덴",
+   "div": "라이트",
+   "rec": "19-11-0",
+   "rank": "1",
+   "flag": "mn"
+  },
+  "영보스": {
+   "real": "박어진",
+   "div": "라이트",
+   "rec": "11-2-1",
+   "rank": "2",
+   "flag": "kr"
+  },
+  "다게르": {
+   "real": "Ali Gadzhiev",
+   "div": "라이트",
+   "rec": "5-0-0",
+   "rank": "3",
+   "flag": "ru"
+  },
+  "직쏘": {
+   "real": "문기범",
+   "div": "라이트",
+   "rec": "14-9-0",
+   "rank": "4",
+   "flag": "kr"
+  },
+  "라이언킹": {
+   "real": "Chuka Willis",
+   "div": "라이트",
+   "rec": "18-7-0",
+   "rank": "5",
+   "flag": "us"
+  },
+  "피에로": {
+   "real": "이송하",
+   "div": "라이트",
+   "rec": "4-5-0",
+   "rank": "6",
+   "flag": "kr"
+  },
+  "사쿠라": {
+   "real": "황도윤",
+   "div": "라이트",
+   "rec": "3-6-0",
+   "rank": "7",
+   "flag": "kr"
+  },
+  "헌터": {
+   "real": "박종헌",
+   "div": "라이트",
+   "rec": "7-6-0",
+   "rank": "8",
+   "flag": "kr"
+  },
+  "곰주먹": {
+   "real": "김정균",
+   "div": "라이트",
+   "rec": "5-4-0",
+   "rank": "9",
+   "flag": "kr"
+  },
+  "영타이거": {
+   "real": "이영훈",
+   "div": "라이트",
+   "rec": "8-5-1",
+   "rank": "10",
+   "flag": "kr"
+  },
+  "그리즐리": {
+   "real": "Yamamoto Takuya",
+   "div": "라이트",
+   "rec": "11-4-1",
+   "rank": "11",
+   "flag": "jp"
+  },
+  "그루트": {
+   "real": "정용완",
+   "div": "라이트",
+   "rec": "5-2-0",
+   "rank": "12",
+   "flag": "kr"
+  },
+  "글래디에이터": {
+   "real": "Bruno Itamar",
+   "div": "라이트",
+   "rec": "5-0-0",
+   "rank": "13",
+   "flag": "br"
+  },
+  "워리어": {
+   "real": "정영제",
+   "div": "라이트",
+   "rec": "6-6-0",
+   "rank": "14",
+   "flag": "kr"
+  },
+  "파라오": {
+   "real": "Youssef Barakat",
+   "div": "라이트",
+   "rec": "9-2-0",
+   "rank": "15",
+   "flag": "eg"
+  },
+  "몬스터": {
+   "real": "오수환",
+   "div": "라이트",
+   "rec": "8-2-1",
+   "rank": "16",
+   "flag": "kr"
+  },
+  "빅프린스": {
+   "real": "Deberson Batista",
+   "div": "라이트",
+   "rec": "14-6-2",
+   "rank": "17",
+   "flag": "br"
+  },
+  "칠라운": {
+   "real": "Gantumur",
+   "div": "라이트",
+   "rec": "4-1-0",
+   "rank": "18",
+   "flag": "mn"
+  },
+  "슬로스": {
+   "real": "장근영",
+   "div": "라이트",
+   "rec": "3-5-0",
+   "rank": "19",
+   "flag": "kr"
+  },
+  "맨티스": {
+   "real": "윤다원",
+   "div": "라이트",
+   "rec": "5-9-1",
+   "rank": "20",
+   "flag": "kr"
+  },
+  "더 마스터": {
+   "real": "전현우",
+   "div": "라이트",
+   "rec": "2-2-0",
+   "rank": "21",
+   "flag": "kr"
+  },
+  "마카최프": {
+   "real": "최지수",
+   "div": "라이트",
+   "rec": "3-3-1",
+   "rank": "22",
+   "flag": "kr"
+  },
+  "레오파파": {
+   "real": "이성은",
+   "div": "라이트",
+   "rec": "2-0-0",
+   "rank": "23",
+   "flag": "kr"
+  },
+  "킹스터": {
+   "real": "김성윤",
+   "div": "라이트",
+   "rec": "3-2-0",
+   "rank": "24",
+   "flag": "kr"
+  },
+  "스톤골렘": {
+   "real": "손민",
+   "div": "라이트",
+   "rec": "5-3-0",
+   "rank": "25",
+   "flag": "kr"
+  },
+  "코만도": {
+   "real": "Azizbek Norov",
+   "div": "라이트",
+   "rec": "7-4-0",
+   "rank": "26",
+   "flag": "uz"
+  },
+  "위버맨쉬": {
+   "real": "이환성",
+   "div": "라이트",
+   "rec": "2-6-0",
+   "rank": "27",
+   "flag": "kr"
+  },
+  "블레스드": {
+   "real": "김상윤",
+   "div": "라이트",
+   "rec": "0-1-0",
+   "rank": "28",
+   "flag": "kr"
+  },
+  "헌츠맨": {
+   "real": "Sultan Omarov",
+   "div": "웰터",
+   "rec": "9-0-0",
+   "rank": "1",
+   "flag": "bh"
+  },
+  "레오파드": {
+   "real": "Luan Santiago",
+   "div": "웰터",
+   "rec": "24-8-0",
+   "rank": "2",
+   "flag": "br"
+  },
+  "킹콩": {
+   "real": "오일학",
+   "div": "웰터",
+   "rec": "6-4-0",
+   "rank": "3",
+   "flag": "kr"
+  },
+  "동백": {
+   "real": "진태호",
+   "div": "웰터",
+   "rec": "13-9-0",
+   "rank": "4",
+   "flag": "kr"
+  },
+  "사무라이": {
+   "real": "Patrick Kelvin",
+   "div": "웰터",
+   "rec": "10-3-0",
+   "rank": "5",
+   "flag": "br"
+  },
+  "코리안 갱스터": {
+   "real": "박원식",
+   "div": "웰터",
+   "rec": "16-9-1",
+   "rank": "6",
+   "flag": "kr"
+  },
+  "바이킹": {
+   "real": "Lucas Marques",
+   "div": "웰터",
+   "rec": "19-6-0",
+   "rank": "7",
+   "flag": "br"
+  },
+  "엄지장군": {
+   "real": "여동주",
+   "div": "웰터",
+   "rec": "5-1-0",
+   "rank": "8",
+   "flag": "kr"
+  },
+  "젠틀맨": {
+   "real": "Fabricio Azevedo",
+   "div": "웰터",
+   "rec": "12-4-0",
+   "rank": "9",
+   "flag": "br"
+  },
+  "블랙맘바": {
+   "real": "김율",
+   "div": "웰터",
+   "rec": "9-9-0",
+   "rank": "10",
+   "flag": "kr"
+  },
+  "너드": {
+   "real": "Sander Silva",
+   "div": "웰터",
+   "rec": "4-0-0",
+   "rank": "11",
+   "flag": "br"
+  },
+  "쿠빌라이": {
+   "real": "뷰렌저릭",
+   "div": "웰터",
+   "rec": "16-20-0",
+   "rank": "12",
+   "flag": "mn"
+  },
+  "블랙리스트": {
+   "real": "박찬솔",
+   "div": "웰터",
+   "rec": "5-2-0",
+   "rank": "13",
+   "flag": "kr"
+  },
+  "박조교": {
+   "real": "박지환",
+   "div": "웰터",
+   "rec": "3-1-0",
+   "rank": "14",
+   "flag": "kr"
+  },
+  "방탄": {
+   "real": "김민석",
+   "div": "웰터",
+   "rec": "6-4-0",
+   "rank": "15",
+   "flag": "kr"
+  },
+  "갓균": {
+   "real": "김연균",
+   "div": "웰터",
+   "rec": "3-3-0",
+   "rank": "16",
+   "flag": "kr"
+  },
+  "니카": {
+   "real": "Gilberto Macedo",
+   "div": "웰터",
+   "rec": "3-2-0",
+   "rank": "17",
+   "flag": "br"
+  },
+  "오니": {
+   "real": "Tanaka Yu",
+   "div": "웰터",
+   "rec": "7-6-0",
+   "rank": "19",
+   "flag": "jp"
+  },
+  "건슬링거": {
+   "real": "Miles Hunsinger",
+   "div": "웰터",
+   "rec": "7-3-0",
+   "rank": "20",
+   "flag": "kr"
+  },
+  "로꼬": {
+   "real": "Otacilio Oliveira",
+   "div": "웰터",
+   "rec": "7-9-0",
+   "rank": "21",
+   "flag": "br"
+  },
+  "그레네이드": {
+   "real": "이설호",
+   "div": "웰터",
+   "rec": "4-9-0",
+   "rank": "22",
+   "flag": "kr"
+  },
+  "청드래곤": {
+   "real": "이청수",
+   "div": "웰터",
+   "rec": "1-1-0",
+   "rank": "23",
+   "flag": "kr"
+  },
+  "플라밍고": {
+   "real": "박정민",
+   "div": "미들",
+   "rec": "9-2-0",
+   "rank": "1",
+   "flag": "kr"
+  },
+  "짱돌": {
+   "real": "차정환",
+   "div": "미들",
+   "rec": "15-5-3",
+   "rank": "2",
+   "flag": "kr"
+  },
+  "타노스": {
+   "real": "Eduardo Garvon",
+   "div": "미들",
+   "rec": "17-6-1",
+   "rank": "3",
+   "flag": "br"
+  },
+  "람로": {
+   "real": "함자트 차파노프",
+   "div": "미들",
+   "rec": "17-5-0",
+   "rank": "4",
+   "flag": "ru"
+  },
+  "디멘터": {
+   "real": "Dylan O'Sullivan",
+   "div": "미들",
+   "rec": "7-3-0",
+   "rank": "5",
+   "flag": "us"
+  },
+  "모모": {
+   "real": "Sato Ryutaro",
+   "div": "미들",
+   "rec": "10-3-0",
+   "rank": "6",
+   "flag": "jp"
+  },
+  "예티": {
+   "real": "Lucas Paredes",
+   "div": "미들",
+   "rec": "5-2-1",
+   "rank": "7",
+   "flag": "br"
+  },
+  "선봉장": {
+   "real": "최순태",
+   "div": "미들",
+   "rec": "4-2-0",
+   "rank": "8",
+   "flag": "kr"
+  },
+  "피닉스": {
+   "real": "Marcos Vinicius",
+   "div": "미들",
+   "rec": "6-2-1",
+   "rank": "9",
+   "flag": "br"
+  },
+  "알라딘": {
+   "real": "Khusan Urakov",
+   "div": "미들",
+   "rec": "6-2-0",
+   "rank": "10",
+   "flag": "uz"
+  },
+  "캡틴 하남": {
+   "real": "최재현",
+   "div": "미들",
+   "rec": "5-6-0",
+   "rank": "11",
+   "flag": "kr"
+  },
+  "세비지": {
+   "real": "홍희원",
+   "div": "미들",
+   "rec": "3-1-0",
+   "rank": "12",
+   "flag": "kr"
+  },
+  "팩맨": {
+   "real": "전호철",
+   "div": "미들",
+   "rec": "3-4-0",
+   "rank": "13",
+   "flag": "kr"
+  },
+  "퉁순이": {
+   "real": "박성운",
+   "div": "미들",
+   "rec": "0-1-0",
+   "rank": "14",
+   "flag": "kr"
+  },
+  "제베": {
+   "real": "Gantulga",
+   "div": "미들",
+   "rec": "0-2-0",
+   "rank": "15",
+   "flag": "mn"
+  },
+  "빅가이": {
+   "real": "양단겸",
+   "div": "헤비",
+   "rec": "16-6-0",
+   "rank": "1",
+   "flag": "kr"
+  },
+  "맘모스": {
+   "real": "김명환",
+   "div": "헤비",
+   "rec": "11-4-0",
+   "rank": "2",
+   "flag": "kr"
+  },
+  "보스베이비": {
+   "real": "Richard Jacobi",
+   "div": "헤비",
+   "rec": "10-3-1",
+   "rank": "3",
+   "flag": "br"
+  },
+  "잭팟": {
+   "real": "O'Shay Jordan",
+   "div": "헤비",
+   "rec": "6-3-0",
+   "rank": "4",
+   "flag": "us"
+  },
+  "무칼리": {
+   "real": "Unenkhuu",
+   "div": "헤비",
+   "rec": "2-0-0",
+   "rank": "5",
+   "flag": "mn"
+  },
+  "나이트": {
+   "real": "정세윤",
+   "div": "헤비",
+   "rec": "5-5-0",
+   "rank": "6",
+   "flag": "kr"
+  },
+  "슬라임": {
+   "real": "정민훈",
+   "div": "헤비",
+   "rec": "3-3-0",
+   "rank": "7",
+   "flag": "kr"
+  },
+  "스콜피온": {
+   "real": "알리조다",
+   "div": "헤비",
+   "rec": "4-2-0",
+   "rank": "9",
+   "flag": "tj"
+  },
+  "마우이": {
+   "real": "김석민",
+   "div": "헤비",
+   "rec": "0-5-0",
+   "rank": "10",
+   "flag": "kr"
+  },
+  "아수라": {
+   "real": "김동환",
+   "div": "헤비",
+   "rec": "0-1-0",
+   "rank": "11",
+   "flag": "kr"
+  },
+  "흑곰": {
+   "real": "김도훈",
+   "div": "헤비",
+   "rec": "0-1-0",
+   "rank": "12",
+   "flag": "kr"
+  },
+  "Godfather": {
+   "real": "검정",
+   "div": "언더그라운드",
+   "rec": "3-0-0",
+   "rank": "C",
+   "flag": "kr"
+  },
+  "KOKO": {
+   "real": "소재호",
+   "div": "언더그라운드",
+   "rec": "1-1-0",
+   "rank": "3",
+   "flag": "kr"
+  },
+  "The Lion": {
+   "real": "오반",
+   "div": "언더그라운드",
+   "rec": "0-1-0",
+   "rank": "4",
+   "flag": "kr"
+  },
+  "사신": {
+   "real": "김남신",
+   "div": "언더그라운드",
+   "rec": "0-1-0",
+   "rank": "5",
+   "flag": "kr"
+  },
+  "뚝배기사범": {
+   "real": "호철",
+   "div": "언더그라운드",
+   "rec": "0-2-0",
+   "rank": "6",
+   "flag": "kr"
+  },
+  "더 크리플러": {
+   "real": "크리스 리벤",
+   "div": "언더그라운드",
+   "rec": "20-12-0",
+   "rank": null,
+   "flag": "us"
+  },
+  "섹시야마": {
+   "real": "추성훈",
+   "div": "언더그라운드",
+   "rec": "16-7-0",
+   "rank": null,
+   "flag": "kr"
+  },
+  "짱구": {
+   "real": "전수민",
+   "div": "여성부",
+   "rec": "2-1-0",
+   "rank": "1",
+   "flag": "kr"
+  },
+  "고스트": {
+   "real": "홍예린",
+   "div": "여성부",
+   "rec": "5-6-0",
+   "rank": "2",
+   "flag": "kr"
+  },
+  "바비": {
+   "real": "히라타 아야네",
+   "div": "여성부",
+   "rec": "4-3-0",
+   "rank": "3",
+   "flag": "jp"
+  },
+  "Libby": {
+   "real": "조은비",
+   "div": "여성부",
+   "rec": "1-7-0",
+   "rank": "4",
+   "flag": "kr"
+  }
+ },
+ "aliases": {
+  "검정": "Godfather",
+  "옐로우몽키": "엘로우 몽키"
+ }
+}
