@@ -12947,6 +12947,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-th { display: block; }
     .st-hot { position: absolute; left: 8px; top: 8px; z-index: 1; font-style: normal; font-size: 10px; font-weight: 700; line-height: 1.4; color: #fff; background: var(--red, #e5484d); border-radius: 4px; padding: 2px 6px; }
         .st .st-ph-h .st-chev { margin-left: auto; }
+    body[data-route] .frow .fnm.st-hastg { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .st .st-hot.st-hot-i { position: static; display: inline-block; margin-left: -4px; align-self: center; }
 .st-step .st-th img { width: 100%; }
     @media (max-width: 640px) { .st-step .st-th { grid-column: 2; width: 100%; max-width: 220px; } }
@@ -14307,7 +14308,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       document.querySelectorAll('#app .frow .fnm').forEach(el => {
         if (el.querySelector('.st-tg')) return;
         const n = Array.from(el.childNodes).filter(x => x.nodeType === 3).map(x => x.textContent).join('').trim();
-        if (has.has(n)) el.insertAdjacentHTML('beforeend', ' <span class="st-tg" title="서사가 있는 선수">서사</span>');
+        if (has.has(n)) { const tn = Array.from(el.childNodes).find(x => x.nodeType === 3 && x.textContent.trim()); const sp = document.createElement('span'); sp.className = 'st-tg'; sp.title = '서사가 있는 선수'; sp.textContent = '서사'; if (tn) tn.after(sp); else el.appendChild(sp); el.classList.add('st-hastg'); }
       });
     }
     const ST_VIEWS = {
