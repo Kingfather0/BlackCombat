@@ -13080,12 +13080,12 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         </a>
         </div>
         <div class="v2-links">
-          <a href="#/story">세계관<small>서사·선수·관계도</small></a>
+          <a href="#/story">세계관<small>서사 추천 영상 선수 정보</small></a>
           <a href="#/matches">경기<small>승부예측 투표·결과</small></a>
           <a href="#/videos">영상<small>업로드 예측 캘린더</small></a>
           <a href="#/tickets">티켓<small>판매 현황·잔여석</small></a>
           <a href="#/meetup">쉐어<small>직관·카풀·티켓 양도</small></a>
-          <a href="#/game">게임<small>미니게임 5종</small></a>
+          <a href="#/game">게임<small>미니게임 7종</small></a>
         </div>
       </div>
     </aside>
@@ -14243,7 +14243,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     }
     /* 선수 메뉴(랭킹·업적·관계도) 화면 위에 세계관 탭 줄을 붙이고, 업적 아래에는 주요 기록을 덧붙인다 */
     const ST_LIVE = { fighters: 'rank', records: 'a', jokbo: 'tree' };
-    const ST_INFO = [['rank', '랭킹'], ['a', '업적'], ['tree', '관계도'], ['r', '역대 기록'], ['t', '타이틀 이력']];
+    const ST_INFO = [['rank', '랭킹'], ['a', '업적'], ['r', '역대 기록'], ['t', '타이틀 이력'], ['tree', '관계도']];
     function stRecShow(k) {
       document.querySelectorAll('#stInfoSeg button').forEach(x => x.classList.toggle('on', x.dataset.stis === k));
       $app.style.display = k === 'a' ? '' : 'none';
