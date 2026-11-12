@@ -10820,9 +10820,18 @@
       display: block; position: relative; width: 100%; height: 260px; overflow: hidden; margin-bottom: 8px;
     }
     .v2-hero-banner img { width: 100%; height: 100%; object-fit: cover; object-position: center 65%; filter: saturate(.82) brightness(.86); }
+    .v2-hero-banner { text-decoration: none; color: #fff; }
+    .v2-hero-banner img { transition: filter .25s ease, transform .4s ease; }
+    .v2-hero-banner:hover img { filter: saturate(.9) brightness(.95); transform: scale(1.015); }
+    .v2-hb-in { position: absolute; z-index: 2; left: 0; right: 0; top: 0; height: 80%; max-width: var(--v2-max); margin: 0 auto; padding: 0 24px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; pointer-events: none; }
+    .v2-hb-t { display: flex; align-items: center; gap: 10px; font-size: clamp(22px, 4.4vw, 38px); font-weight: 800; letter-spacing: -.04em; line-height: 1.15; text-shadow: 0 2px 14px rgba(0, 0, 0, .55); }
+    .v2-hb-t em { font-style: normal; font-size: 12px; font-weight: 800; letter-spacing: 0; padding: 3px 10px; border-radius: 999px; background: var(--amber); color: #2b1d00; text-shadow: none; flex: none; }
+    .v2-hb-s { margin-top: 8px; font-size: 15px; font-weight: 500; color: rgba(255, 255, 255, .88); text-shadow: 0 1px 8px rgba(0, 0, 0, .6); }
+    .v2-hb-p { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+    .v2-hb-p i { font-style: normal; padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 800; white-space: nowrap; color: #fff; background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .34); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
     .v2-hero-banner::after {
       content: ""; position: absolute; inset: 0;
-      background: linear-gradient(180deg, rgba(17,17,17,.55) 0%, rgba(17,17,17,.12) 35%, rgba(17,17,17,.12) 60%, var(--bg) 100%);
+      background: linear-gradient(90deg, rgba(10,10,12,.62) 0%, rgba(10,10,12,.3) 55%, rgba(10,10,12,0) 85%), linear-gradient(180deg, rgba(17,17,17,.55) 0%, rgba(17,17,17,.12) 35%, rgba(17,17,17,.12) 60%, var(--bg) 100%);
     }
 
     /* ── 홈: 히어로(소개 + 챗봇) → 바로가기 한 줄 → 공지 | 진행 중인 승부예측 ── */
@@ -11926,14 +11935,7 @@
     .hm-banners .mt-home { margin: 0; grid-template-columns: 1fr; min-height: 128px; align-content: center; background: linear-gradient(90deg, #0b0c0e calc(100% - 238px), rgba(11, 12, 14, 0) calc(100% - 118px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #0b0c0e; }
     .hm-banners .mt-home:hover { background: linear-gradient(90deg, #0b0c0e calc(100% - 238px), rgba(11, 12, 14, 0) calc(100% - 118px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #15171a; }
     .hm-banners .mt-home-p { grid-column: 1; grid-row: auto; margin-top: 8px; }
-    .hm-banners .mt-home-t em { background: #1f9d4d; color: #fff; }
-    .hm-world { display: block; margin: 4px 0 12px; padding: 18px 20px; border-radius: 10px; color: #fff; text-decoration: none; background: #0b0c0e; transition: background .15s ease; }
-    .hm-world:hover { background: #15171a; }
-    .hm-w-t { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 800; letter-spacing: -.03em; }
-    .hm-w-t em { font-style: normal; font-size: 12px; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: var(--amber); color: #2b1d00; }
-    .hm-w-s { margin-top: 4px; font-size: 13px; color: rgba(255, 255, 255, .8); }
-    .hm-w-p { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
-    .hm-w-p i { font-style: normal; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; background: rgba(255, 255, 255, .14); color: #fff; border: 1px solid rgba(255, 255, 255, .28); }
+    .hm-banners .mt-home-t em { background: #17763a; color: #fff; }
     .hm-finder { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 4px; min-height: 128px; padding: 18px 20px; border-radius: 10px; color: #fff; overflow: hidden; text-decoration: none; background: linear-gradient(90deg, rgba(8, 9, 11, .94) 0%, rgba(8, 9, 11, .72) 50%, rgba(8, 9, 11, .3) 100%), url(finder-hero.jpg) 82% 16px / auto 190% no-repeat, #0b0c0e; transition: transform .15s, box-shadow .15s; }
     .hm-finder:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, .25); }
     .hm-finder:active { transform: translateY(0) scale(.99); }
@@ -11986,7 +11988,12 @@
       nav #headerGameSelectLink { order: 99 !important; margin-left: auto; height: 28px; padding: 0 8px; font-size: 12px; align-self: center; white-space: nowrap; flex: none; }
       h1.page { font-size: 28px; margin-top: 26px; }
       .sec-title, .hm-h, .fdiv-t { font-size: 18px; }
-      body[data-route="home"] .v2-hero-banner { height: 160px; }
+      body[data-route="home"] .v2-hero-banner { height: 215px; }
+      .v2-hb-in { padding: 0 16px; height: 84%; }
+      .v2-hb-t { font-size: 21px; gap: 8px; }
+      .v2-hb-s { font-size: 13px; margin-top: 6px; }
+      .v2-hb-p { gap: 5px; margin-top: 10px; }
+      .v2-hb-p i { font-size: 11.5px; padding: 4px 9px; }
       body[data-route="home"] .v2-side { display: block; }
       .v2-box-intro { padding: 18px 0 14px; }
       .v2-cta { margin-top: 14px; }
@@ -13050,7 +13057,12 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       <a class="gback" href="#/game" id="headerGameSelectLink" style="display:none">🎮 게임 선택</a>
     </div>
   </header>
-  <a class="v2-hero-banner" href="#/matches" aria-label="경기 · 승부예측 보러가기"><img src="banner-hero.jpg" alt=""></a>
+  <a class="v2-hero-banner" href="#/story" aria-label="블랙컴뱃 세계관 알아보기"><img src="banner-hero.jpg" alt="">
+    <span class="v2-hb-in">
+      <span class="v2-hb-t"><em>세계관</em>블랙컴뱃 세계관 알아보기</span>
+      <span class="v2-hb-s">처음 보는 팬부터 오래된 팬까지</span>
+      <span class="v2-hb-p"><i>최신 흐름</i><i>연대기</i><i>추천 영상</i><i>선수 정보</i><i>용어 모음</i></span>
+    </span></a>
   <datalist id="fighters-dl"></datalist>
   <div class="wrap">
     <div id="app">
@@ -13082,11 +13094,6 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       </div>
       <div class="v2-box v2-box-links">
         <h3>바로가기</h3>
-        <a class="hm-world" href="#/story">
-          <span class="hm-w-t"><em>세계관</em>블랙컴뱃 세계관 알아보기</span>
-          <span class="hm-w-s">처음 보는 팬부터 오래된 팬까지</span>
-          <span class="hm-w-p"><i>최신 흐름</i><i>연대기</i><i>추천 영상</i><i>선수 정보</i><i>용어 모음</i></span>
-        </a>
         <div class="hm-banners">
         <a class="hm-finder" id="hm-finder" href="#/tickets" onclick="return hmFinderGo(event)">
           <span class="hm-f-t"><em>티켓</em>실시간 잔여석 바로 찾기</span>
