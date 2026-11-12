@@ -12917,9 +12917,14 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-thn { font-size: 18px; font-weight: 800; letter-spacing: -.3px; margin: 1px 0 4px; }
     .st-rc .st-n { font-size: 18px; margin: 2px 0; }
     .st-gc .st-d { margin-top: 6px; }
-    .st-gcat { display: inline-block; background: #111; color: #fff; font-size: 12.5px; font-weight: 800; padding: 4px 14px; border-radius: 999px; margin-bottom: 12px; }
+    .st-yr { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+    .st-sel { position: relative; display: inline-block; }
+    .st-sel select { appearance: none; -webkit-appearance: none; background: #fff; border: .625px solid var(--st-hair2); border-radius: 999px; padding: 7px 34px 7px 15px; font: inherit; font-size: 13.5px; font-weight: 700; color: #111; cursor: pointer; }
+    .st-sel:after { content: ""; position: absolute; right: 14px; top: 50%; width: 6px; height: 6px; margin-top: -5px; border-right: 2px solid var(--st-dim); border-bottom: 2px solid var(--st-dim); transform: rotate(45deg); pointer-events: none; }
+    .st-yr .st-allb { margin-left: auto; }
+    .st-gcat { display: block; color: var(--st-muted); font-size: 15px; font-weight: 800; letter-spacing: -.2px; margin-bottom: 10px; }
     .st-gts { display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 10px; margin-bottom: 6px; border-bottom: .625px solid var(--st-hair); }
-    .st-gt { display: inline-block; background: #e9e9ee; color: #26262b; font-size: 15px; font-weight: 800; letter-spacing: -.3px; padding: 5px 14px; border-radius: 999px; border: 0; margin: 0; }
+    .st-gt { display: inline-block; background: #e9e9ee; color: #26262b; font-size: 13px; font-weight: 800; letter-spacing: -.2px; padding: 3px 11px; border-radius: 999px; border: 0; margin: 0; }
     .st-ch-t small.pl { display: inline-block; align-self: flex-start; background: var(--st-amber-tint); color: var(--st-amber-text); font-size: 11px; font-weight: 800; padding: 2px 9px; border-radius: 999px; margin-bottom: 3px; }
     .st-cr.main { border-color: transparent; }
     .st-cr.main > .st-ch-h { background: #111; color: #fff; }
@@ -14243,7 +14248,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         const cs = __loreD.chapters, yr = c => (String(c.period).match(/\d{4}/) || ['기타'])[0];
         const ys = ['전체'].concat([...new Set(cs.map(yr))]);
         return '<div class="st-blk"><h2 class="st-h2">연대기</h2><p class="st-lead">검정의 첫 싸움부터 현재까지 ' + cs.length + '개의 장이다. 선수 이름을 누르면 상세 카드가 열려요.</p>' +
-          '<div class="st-seg" id="stYr">' + ys.map(y => '<button type="button" data-sty="' + y + '" class="' + (y === __stYear ? 'on' : '') + '">' + (y === '전체' ? '전체' : y + '년') + '</button>').join('') + '<button type="button" id="stAll" class="st-allb">' + (__stList ? '타임라인으로 보기' : '목록으로 보기') + '</button></div>' +
+          '<div class="st-yr" id="stYr"><label class="st-sel"><select id="stYrSel" aria-label="연도 선택">' + ys.map(y => '<option value="' + y + '"' + (y === __stYear ? ' selected' : '') + '>' + (y === '전체' ? '전체 연도' : y + '년') + '</option>').join('') + '</select></label><button type="button" id="stAll" class="st-allb">' + (__stList ? '타임라인으로 보기' : '목록으로 보기') + '</button></div>' +
           '<div class="st-cl" id="stChL">' + stChList() + '</div></div>';
       },
       fighters() {
@@ -14324,6 +14329,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
           const s = e.target.closest('#stSeg button');
           if (s) { __loreDiv = s.dataset.std; document.querySelectorAll('#stSeg button').forEach(b => b.classList.toggle('on', b === s)); document.getElementById('stFGrid').innerHTML = stFGrid(); }
         });
+        $app.addEventListener('change', e => { if (e.target.id === 'stYrSel') { __stYear = e.target.value; __stOpen = null; document.getElementById('stChL').innerHTML = stChList(); } });
         $app.addEventListener('input', e => { if (e.target.id === 'stQ') document.getElementById('stFGrid').innerHTML = stFGrid(); });
       }
     }
