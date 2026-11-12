@@ -12947,7 +12947,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-th { display: block; }
     .st-hot { position: absolute; left: 8px; top: 8px; z-index: 1; font-style: normal; font-size: 10px; font-weight: 700; line-height: 1.4; color: #fff; background: var(--red, #e5484d); border-radius: 4px; padding: 2px 6px; }
         .st .st-ph-h .st-chev { margin-left: auto; }
-    body[data-route] .frow .frk.st-hasbio { background: rgba(242, 179, 42, .22); color: #9a5f06; border-radius: 999px; min-width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; text-align: center; padding: 0 4px; margin: 0 -3px; }
+    body[data-route] .frow .frk.st-nobio { color: #a3a3aa; }
     .st .st-hot.st-hot-i { position: static; display: inline-block; margin-left: -4px; align-self: center; }
 .st-step .st-th img { width: 100%; }
     @media (max-width: 640px) { .st-step .st-th { grid-column: 2; width: 100%; max-width: 220px; } }
@@ -14307,7 +14307,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       document.querySelectorAll('#app .frow .fnm').forEach(el => {
         const n = Array.from(el.childNodes).filter(x => x.nodeType === 3).map(x => x.textContent).join('').trim();
         const rk = el.closest('.frow') && el.closest('.frow').querySelector('.frk');
-        if (rk && has.has(n)) rk.classList.add('st-hasbio');
+        if (rk && n && !has.has(n) && !rk.classList.contains('c')) rk.classList.add('st-nobio');
       });
     }
     const ST_VIEWS = {
