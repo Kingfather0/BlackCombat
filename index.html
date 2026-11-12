@@ -12796,6 +12796,12 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
     .st-chip { background: #fff; border: .625px solid var(--st-hair); border-radius: 999px; padding: 4px 12px; font-size: 12.5px; color: var(--st-muted); font-weight: 600; }
     .st-chip.hot { background: var(--st-amber-tint); border-color: transparent; color: var(--st-amber-text); font-weight: 800; }
+    .st .st-hrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: nowrap; }
+    .st .st-hrow .st-h1 { margin: 6px 0 8px; white-space: nowrap; flex: none; }
+    .st .st-hrow .st-meta { margin: 0; flex-wrap: nowrap; gap: 6px; min-width: 0; justify-content: flex-end; }
+    .st .st-hrow .st-chip { white-space: nowrap; }
+    @media (max-width: 380px) { .st .st-hrow .st-h1 { font-size: 22px; } }
+    @media (max-width: 640px) { .st .st-hrow { gap: 8px; } .st .st-hrow .st-meta { gap: 4px; } .st .st-hrow .st-chip { font-size: 10px; padding: 3px 7px; } }
     .st-tabs { display: flex; flex-wrap: wrap; gap: 0; margin: 14px 0 0; }
     .st-tabs a { padding: 8px 0; margin-right: 22px; background: transparent; border: 0; color: var(--st-dim); font-size: 15px; font-weight: 600; white-space: nowrap; }
     .st-tabs a.on { color: #111; font-weight: 800; }
@@ -12967,7 +12973,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-cr.main > .st-ch-h small.pl { background: var(--st-amber); color: #3d2a00; }
     .st-cr.main > .st-ch-h .st-chev { border-color: #aaa; }
     .st-cr.main.open { background: #fff; border: .625px solid #111; }
-    .st-tg { display: inline-flex; align-items: center; justify-content: center; width: 19px; height: 19px; margin-left: 6px; vertical-align: middle; background: #111; border-radius: 50%; flex: none; }
+    .st-tg { display: inline-block; margin-left: 6px; padding: 2px 9px; vertical-align: middle; white-space: nowrap; font-size: 11px; font-weight: 800; line-height: 1.4; color: #9a5f06; background: rgba(242, 179, 42, .2); border-radius: 999px; flex: none; }
     .frow .fnm { white-space: nowrap; }
     .st-allb { margin-left: auto; background: #fff; border: .625px solid var(--st-hair2); color: var(--st-muted); border-radius: 999px; padding: 5px 13px; font-size: 13px; font-weight: 700; cursor: pointer; }
     .st-allb.on { background: #111; color: #fff; border-color: #111; }
@@ -14301,7 +14307,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       document.querySelectorAll('#app .frow .fnm').forEach(el => {
         if (el.querySelector('.st-tag')) return;
         const n = Array.from(el.childNodes).filter(x => x.nodeType === 3).map(x => x.textContent).join('').trim();
-        if (has.has(n)) el.insertAdjacentHTML('beforeend', ' <span class="st-tg" title="서사가 있는 선수" aria-label="서사가 있는 선수"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M2 3.5c2-.8 4-.8 6 .6 2-1.4 4-1.4 6-.6v9c-2-.8-4-.8-6 .6-2-1.4-4-1.4-6-.6z"/><path d="M8 4.1v9"/></svg></span>');
+        if (has.has(n)) el.insertAdjacentHTML('beforeend', ' <span class="st-tg" title="서사가 있는 선수">서사</span>');
       });
     }
     const ST_VIEWS = {
@@ -14339,7 +14345,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
             g.filter(x => x.cat === c).map(x => '<div class="st-card st-gc"><div class="st-gts">' + String(x.term).split(/,\s*/).map(t => '<span class="st-gt">' + esc(t) + '</span>').join('') + '</div><div class="st-d">' + stLn(x.desc) + '</div></div>').join('') + '</div></div>').join('');
       }
     };
-    const stHeroHTML = chips => '<div class="st-hero"><div class="st-eyebrow">BLACK COMBAT WORLD</div><h1 class="st-h1">서사의 이해</h1><p class="st-sub">처음 보는 팬부터 오래된 팬까지. 역사와 구도, 선수를 한곳에서.</p><div class="st-meta">' + (chips || '') + '</div></div>';
+    const stHeroHTML = chips => '<div class="st-hero"><div class="st-eyebrow">BLACK COMBAT WORLD</div><div class="st-hrow"><h1 class="st-h1">서사의 이해</h1><div class="st-meta">' + (chips || '') + '</div></div><p class="st-sub">처음 보는 팬부터 오래된 팬까지. 역사와 구도, 선수를 한곳에서.</p></div>';
     function stChips() {
       const m = __loreD.meta; let c = '<span class="st-chip">갱신 ' + esc(m.updated) + '</span>';
       if (m.next_event) { const t = new Date(m.next_event.date).getTime(); if (t > Date.now()) c += '<span class="st-chip hot">' + esc(m.next_event.name) + ' D-' + Math.ceil((t - Date.now()) / 864e5) + '</span>'; }
