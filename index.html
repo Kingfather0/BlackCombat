@@ -12918,6 +12918,9 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-rc .st-n { font-size: 18px; margin: 2px 0; }
     .st-gt { font-size: 17px; font-weight: 800; letter-spacing: -.3px; padding-bottom: 8px; margin-bottom: 4px; border-bottom: .625px solid var(--st-hair); }
     .st-gc .st-d { margin-top: 6px; }
+    .rk-tabs { display: none !important; }
+    #stBar { max-width: 1180px; margin: 0 auto; }
+    #stRecTail { max-width: 1180px; margin: 8px auto 0; }
     .st-h2 { border-left: 0; padding-left: 0; }
     .st-thc, .st-thc.lost { border-left: .625px solid rgba(0, 0, 0, .05); }
     .st-tabs { flex-wrap: wrap; overflow: visible; }
@@ -12937,7 +12940,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-cr.open .st-ph2.open .st-ph-h .st-chev { transform: rotate(-135deg); }
     .st-ph2 .st-steps { margin: 0; padding: 10px; }
     @media (max-width: 900px) { .st-g3 { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 640px) { .st-g3 { grid-template-columns: 1fr; } .st-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; } .st-tabs a { padding: 9px 2px; text-align: center; font-size: 13px; } .st-seg button { padding: 6px 11px; } .st-ch-b { padding: 0 12px 14px; } }
+    @media (max-width: 640px) { .st-g3 { grid-template-columns: 1fr; } .st-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; } .st-tabs a { padding: 9px 2px; text-align: center; font-size: 13px; } .st-seg button { padding: 6px 11px; } .st-ch-b { padding: 0 12px 14px; } }
     @media (max-width: 640px) { .st-ch-b { padding: 0 14px 14px; } .st-step { grid-template-columns: 26px 1fr; } .st-step img { grid-column: 2; width: 100%; max-width: 220px; } .st-sn { grid-row: 1 / span 2; align-self: start; } .st-sb { grid-column: 2; } .st-h2 { font-size: 19px; } }
   </style>
 </head>
@@ -12954,7 +12957,6 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         <a href="#/videos" data-nav="videos">영상</a>
         <a href="#/tickets" data-nav="tickets">티켓</a>
         <a href="#/meetup" data-nav="meetup">쉐어</a>
-        <a href="#/jokbo" data-nav="fighters">선수</a>
         <a href="#/ranking" data-nav="ranking">격잘알</a>
         <a href="#/game" data-nav="game">게임</a>
       </nav>
@@ -14014,11 +14016,12 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       if (navTickets) navTickets.style.display = '';
 
       let p;
+      try { stBarSync(seg[0]); } catch (e) {}
       if (seg[0] === '') { mark('home'); p = viewHome(); }
       else if (seg[0] === 't') { p = viewTournament(decodeURIComponent(seg[1] || '')); }
-      else if (seg[0] === 'fighters') { mark('fighters'); p = viewFighters(); }
-      else if (seg[0] === 'records') { mark('fighters'); p = viewRecordsHall(); }
-      else if (seg[0] === 'jokbo') { mark('fighters'); p = viewJokbo(); }
+      else if (seg[0] === 'fighters') { mark('story'); p = viewFighters(); }
+      else if (seg[0] === 'records') { mark('story'); p = viewRecordsHall(); }
+      else if (seg[0] === 'jokbo') { mark('story'); p = viewJokbo(); }
       else if (seg[0] === 'ranking') { mark('ranking'); p = viewRanking(); }
       else if (seg[0] === 'game') { mark('game'); p = viewGame(seg[1] || ''); }
       else if (seg[0] === 'tickets') { mark('tickets'); p = viewTickets(decodeURIComponent(seg[1] || '')); }
@@ -14038,7 +14041,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 
     /* ---------- 스토리(블랙컴뱃 세계관 스토리) ----------
        lore.json(같은 저장소의 정적 파일)을 읽어 #/story 안에서 그린다. Supabase는 쓰지 않는다. */
-    const STORY_TABS = [['home', '최신 흐름'], ['story', '연대기'], ['fighters', '선수 사전'], ['rivals', '구도'], ['courses', '추천 영상'], ['gloss', '용어'], ['records', '기록']];
+    const STORY_TABS = [['home', '최신 흐름'], ['story', '연대기'], ['fighters', '선수 사전'], ['rivals', '구도'], ['courses', '추천 영상'], ['gloss', '용어'], ['rank', '랭킹', '#/fighters'], ['ach', '업적', '#/records'], ['tree', '족보', '#/jokbo']];
     let __loreD = null, __loreAt = 0, __loreDiv = '전체', __stYear = '전체', __stOpen = null, __stCrs = 'road', __stPh = {};
     async function stLoad() {
       if (__loreD && Date.now() - __loreAt < 6e5) return __loreD;
@@ -14147,6 +14150,22 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       return '<h3 class="st-h3">순서대로 보기</h3><p class="st-lead">번호 순서를 따라가면 이야기가 이어지는 코스예요.</p><div class="st-cl">' + seq.map(row).join('') + '</div>' +
         '<h3 class="st-h3" style="margin-top:28px">골라 보기</h3><p class="st-lead">순서 없이 관심 있는 주제만 골라 보는 코스예요.</p><div class="st-cl">' + pick.map(row).join('') + '</div>';
     }
+    /* 선수 메뉴(랭킹·업적·족보) 화면 위에 세계관 탭 줄을 붙이고, 업적 아래에는 주요 기록을 덧붙인다 */
+    const ST_LIVE = { fighters: 'rank', records: 'ach', jokbo: 'tree' };
+    function stBarSync(route) {
+      try {
+        const act = ST_LIVE[route];
+        let bar = document.getElementById('stBar'), tail = document.getElementById('stRecTail');
+        if (!act) { if (bar) bar.remove(); if (tail) tail.remove(); return; }
+        if (!bar) { bar = document.createElement('div'); bar.id = 'stBar'; bar.className = 'st'; $app.parentNode.insertBefore(bar, $app); }
+        bar.innerHTML = '<div class="st-tabs">' + STORY_TABS.map(t => '<a href="' + (t[2] || '#/story' + (t[0] === 'home' ? '' : '/' + t[0])) + '" class="' + (t[0] === act ? 'on' : '') + '">' + t[1] + '</a>').join('') + '</div>';
+        if (tail) tail.remove();
+        if (route === 'records') {
+          tail = document.createElement('div'); tail.id = 'stRecTail'; tail.className = 'st'; $app.insertAdjacentElement('afterend', tail);
+          stLoad().then(() => { if (document.getElementById('stRecTail') === tail) tail.innerHTML = ST_VIEWS.records(); }).catch(() => {});
+        }
+      } catch (e) {}
+    }
     const ST_VIEWS = {
       home() {
         const D = __loreD, R = D.recent;
@@ -14208,7 +14227,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       }
       $app.innerHTML = '<div class="st"><div class="st-hero"><div class="st-eyebrow">BLACK COMBAT WORLD</div><h1 class="st-h1">서사의 이해</h1>' +
         '<p class="st-sub">처음 보는 팬부터 오래된 팬까지. 역사와 구도, 선수를 한곳에서.</p><div class="st-meta">' + chips + '</div></div>' +
-        '<div class="st-tabs">' + STORY_TABS.map(t => '<a href="#/story' + (t[0] === 'home' ? '' : '/' + t[0]) + '" class="' + (t[0] === key ? 'on' : '') + '">' + t[1] + '</a>').join('') + '</div>' +
+        '<div class="st-tabs">' + STORY_TABS.map(t => '<a href="' + (t[2] || '#/story' + (t[0] === 'home' ? '' : '/' + t[0])) + '" class="' + (t[0] === key ? 'on' : '') + '">' + t[1] + '</a>').join('') + '</div>' +
         ST_VIEWS[key]() + '</div>';
       if (!$app.__stBound) {
         $app.__stBound = true;
@@ -18434,7 +18453,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     const rankTab = (on, href, label) => on
       ? `<a href="${href}" style="padding:5px 15px;background:var(--key);color:#fff;font-weight:800;font-size:13.5px;text-decoration:none">${label}</a>`
       : `<a href="${href}" style="padding:5px 15px;background:#fff;color:var(--muted);font-weight:700;font-size:13.5px;text-decoration:none">${label}</a>`;
-    const rankTabsHTML = act => `<span style="display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;flex-shrink:0">
+    const rankTabsHTML = act => `<span class="rk-tabs" style="display:inline-flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;flex-shrink:0">
       ${rankTab(act === 'jokbo', '#/jokbo', '족보')}
       ${rankTab(act === 'fighters', '#/fighters', '랭킹')}
       ${rankTab(act === 'records', '#/records', '업적')}
