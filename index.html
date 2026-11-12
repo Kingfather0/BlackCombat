@@ -12946,6 +12946,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 
     .st .st-gcat { color: #111; }
     .st .st-sel select { height: 28px; padding: 0 28px 0 12px; font-size: 12.5px; line-height: 28px; }
+    .st .st-yr .st-sortb { width: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
     .st .st-yr .st-sortb { margin-left: auto; }
     .st .st-yr .st-sortb + .st-allb { margin-left: 0; }
     .st .st-yr .st-allb { height: 28px; padding: 0 12px; font-size: 12.5px; line-height: 28px; }
@@ -14186,6 +14187,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       document.getElementById('stDBody').innerHTML = h;
       dlg.showModal();
     }
+    const stSortIco = d => '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="' + (d ? 'M2 4h12M2 8h8M2 12h4' : 'M2 4h4M2 8h8M2 12h12') + '"/></svg>';
     function stChList() {
       const cs = __loreD.chapters, yr = c => (String(c.period).match(/\d{4}/) || ['기타'])[0];
       const vis0 = cs.filter(c => __stYear === '전체' || yr(c) === __stYear), vis = __stDesc ? vis0.slice().reverse() : vis0;
@@ -14204,7 +14206,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     function stStep(s, i) {
       const v = (__loreD.videos || {})[s.v] || { t: s.v, m: 0 }, p = !!s.pl, ttl = p ? s.t : v.t;
       const href = p ? 'https://www.youtube.com/playlist?list=' + s.pl : 'https://youtu.be/' + s.v;
-      return '<a class="st-step" data-stv="' + s.v + '"' + (p ? ' data-pl="' + s.pl + '" data-ptitle="' + esc(s.t) + '"' : '') + ' data-note="' + esc(s.note || '') + '" href="' + href + '" target="_blank" rel="noopener"><span class="st-sn">' + (i + 1) + '</span><span class="st-th">' + ((__loreD.hot || []).indexOf(s.v) >= 0 ? '<i class="st-hot">추천</i>' : '') + '<img loading="lazy" src="https://i.ytimg.com/vi/' + s.v + '/mqdefault.jpg" alt=""></span><span class="st-sb"><b>' + esc(ttl) + '</b>' + (p ? '<em>몰아보기 재생목록</em>' : (v.m ? '<em>' + stMin(v.m) + '</em>' : '')) + '<span>' + esc(s.note) + '</span></span></a>';
+      return '<a class="st-step" data-stv="' + s.v + '"' + (p ? ' data-pl="' + s.pl + '" data-ptitle="' + esc(s.t) + '"' : '') + ' data-note="' + esc(s.note || '') + '" href="' + href + '" target="_blank" rel="noopener"><span class="st-sn">' + (i + 1) + '</span><span class="st-th">' + (!p && (__loreD.hot || []).indexOf(s.v) >= 0 ? '<i class="st-hot">추천</i>' : '') + '<img loading="lazy" src="https://i.ytimg.com/vi/' + s.v + '/mqdefault.jpg" alt=""></span><span class="st-sb"><b>' + esc(ttl) + '</b>' + (p ? '<em>몰아보기 재생목록</em>' : (v.m ? '<em>' + stMin(v.m) + '</em>' : '')) + '<span>' + esc(s.note) + '</span></span></a>';
     }
     function stCourses() {
       const cs = __loreD.courses, V = __loreD.videos || {};
@@ -14312,7 +14314,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         const cs = __loreD.chapters, yr = c => (String(c.period).match(/\d{4}/) || ['기타'])[0];
         const ys = ['전체'].concat([...new Set(cs.map(yr))]);
         return '<div class="st-blk"><h2 class="st-h2">연대기</h2><p class="st-lead">검정의 첫 싸움부터 현재까지 총 ' + cs.length + '개의 장</p>' +
-          '<div class="st-yr" id="stYr"><label class="st-sel"><select id="stYrSel" aria-label="연도 선택">' + ys.map(y => '<option value="' + y + '"' + (y === __stYear ? ' selected' : '') + '>' + (y === '전체' ? '전체 연도' : y + '년') + '</option>').join('') + '</select></label><button type="button" id="stSort" class="st-allb st-sortb">' + (__stDesc ? '최신 순' : '오래된 순') + '</button><button type="button" id="stAll" class="st-allb">' + (__stList ? '타임라인으로 보기' : '목록으로 보기') + '</button></div>' +
+          '<div class="st-yr" id="stYr"><label class="st-sel"><select id="stYrSel" aria-label="연도 선택">' + ys.map(y => '<option value="' + y + '"' + (y === __stYear ? ' selected' : '') + '>' + (y === '전체' ? '전체 연도' : y + '년') + '</option>').join('') + '</select></label><button type="button" id="stSort" class="st-allb st-sortb" aria-label="' + (__stDesc ? '최신 순' : '오래된 순') + '" title="' + (__stDesc ? '최신 순' : '오래된 순') + '">' + stSortIco(__stDesc) + '</button><button type="button" id="stAll" class="st-allb">' + (__stList ? '타임라인으로 보기' : '목록으로 보기') + '</button></div>' +
           '<div class="st-cl" id="stChL">' + stChList() + '</div></div>';
       },
       fighters() {
@@ -14387,7 +14389,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
           if (cs) { __stCrs = cs.getAttribute('aria-expanded') === 'true' ? null : cs.dataset.stcs; document.getElementById('stCrs').innerHTML = stCourses(); const o = document.querySelector('#stCrs .open'); if (o && o.scrollIntoView) o.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
           const ph = e.target.closest('[data-stph]');
           if (ph) { const p = ph.dataset.stph.split(':'); __stPh[p[0]] = ph.getAttribute('aria-expanded') === 'true' ? -1 : +p[1]; document.getElementById('stCrs').innerHTML = stCourses(); return; }
-          if (e.target.closest('#stSort')) { __stDesc = !__stDesc; document.getElementById('stSort').textContent = __stDesc ? '최신 순' : '오래된 순'; document.getElementById('stChL').innerHTML = stChList(); return; }
+          if (e.target.closest('#stSort')) { __stDesc = !__stDesc; { const sb = document.getElementById('stSort'); sb.innerHTML = stSortIco(__stDesc); sb.setAttribute('aria-label', __stDesc ? '최신 순' : '오래된 순'); sb.title = __stDesc ? '최신 순' : '오래된 순'; } document.getElementById('stChL').innerHTML = stChList(); return; }
           if (e.target.closest('#stAll')) { __stList = !__stList; __stOpen = null; const b = document.getElementById('stAll'); b.textContent = __stList ? '타임라인으로 보기' : '목록으로 보기'; document.getElementById('stChL').innerHTML = stChList(); return; }
           const y = e.target.closest('#stYr button:not(#stAll):not(#stSort)');
           if (y) { __stYear = y.dataset.sty; __stOpen = null; document.querySelectorAll('#stYr button').forEach(b => b.classList.toggle('on', b === y)); document.getElementById('stChL').innerHTML = stChList(); return; }
