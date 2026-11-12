@@ -12807,6 +12807,24 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st { max-width: 1180px; margin: 0 auto; color: #111; --st-amber: #f2b32a; --st-amber-text: #9a5f06; --st-amber-tint: rgba(242, 179, 42, .16); --st-hair: #e3e3e8; --st-hair2: #cfcfd6; --st-gray: #e9e9ee; --st-muted: #5f5f66; --st-dim: #8e8e93; --st-green: #1f7a3f; --st-green-tint: rgba(31, 122, 63, .1); }
     .st * { box-sizing: border-box; }
     .st-hero { padding: 24px 0 4px; }
+    .st-eb { display: flex; align-items: center; justify-content: space-between; }
+    .st-bell { position: relative; flex: none; width: 34px; height: 34px; margin: -8px -7px -8px 0; padding: 0; background: none; border: 0; border-radius: 50%; color: #111; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s; }
+    .st-bell:hover { background: rgba(0, 0, 0, .06); }
+    .st-rd { position: absolute; top: 5px; right: 6px; width: 9px; height: 9px; border-radius: 50%; background: #e5262f; box-shadow: 0 0 0 2px var(--bg, #fff); }
+    dialog.st-dlg.st-upd { box-sizing: border-box; margin: auto; max-width: 480px; max-height: 80vh; overflow-y: auto; }
+    .st-ui-title { margin: 0 0 12px; font-size: 18px; font-weight: 800; }
+    .st-ui { padding: 12px 0; border-top: .625px solid var(--st-hair, #e3e3e8); }
+    .st-ui:first-of-type { border-top: 0; padding-top: 0; }
+    .st-ui-h { display: flex; align-items: center; gap: 8px; }
+    .st-ui-d { font-size: 12px; font-weight: 700; color: var(--st-dim, #8e8e93); }
+    .st-ui-t { margin-top: 6px; font-size: 15px; font-weight: 800; }
+    .st-ui-s { margin-top: 3px; font-size: 13.5px; line-height: 1.6; color: var(--st-muted, #5f5f66); }
+    .st-ui-go { display: inline-block; margin-top: 6px; font-size: 13px; font-weight: 700; color: var(--st-amber-text, #9a5f06); text-decoration: none; }
+    .st-ui-sec { margin: 14px 0 2px; padding-top: 14px; border-top: 1px solid #111; font-size: 14px; font-weight: 800; }
+    .st-ui-note { margin: 0 0 6px; font-size: 12.5px; color: var(--st-dim, #8e8e93); }
+    .st-up { display: flex; align-items: center; gap: 8px; padding: 8px 0; color: #111; text-decoration: none; border-top: .625px solid var(--st-hair, #e3e3e8); }
+    .st-up-t { min-width: 0; flex: 1; font-size: 13.5px; font-weight: 600; line-height: 1.4; }
+    .st-up:hover .st-up-t { text-decoration: underline; }
     .st-eyebrow { font-size: 11.5px; letter-spacing: .14em; font-weight: 700; color: var(--st-dim); }
     .st-h1 { margin: 6px 0 8px; font-size: 32px; line-height: 1.2; letter-spacing: -.8px; font-weight: 800; }
     .st-sub { margin: 0; color: var(--st-muted); font-size: 15px; }
@@ -14380,9 +14398,50 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
             g.filter(x => x.cat === c).map(x => '<div class="st-card st-gc"><div class="st-gts">' + String(x.term).split(/,\s*/).map(t => '<span class="st-gt">' + esc(t) + '</span>').join('') + '</div><div class="st-d">' + stLn(x.desc) + '</div></div>').join('') + '</div></div>').join('');
       }
     };
-    const stHeroHTML = chips => '<div class="st-hero"><div class="st-eyebrow">BLACK COMBAT STORY</div><div class="st-hrow"><h1 class="st-h1">서사의 이해</h1><div class="st-meta">' + (chips || '') + '</div></div><p class="st-sub">처음 보는 팬부터 오래된 팬까지</p></div>';
+    /* ---------- 업데이트 알림 (lore-updates.json) ---------- */
+    let __updD = null, __updAt = 0;
+    async function stUpdLoad() {
+      if (__updD && Date.now() - __updAt < 6e5) return __updD;
+      const r = await fetch('lore-updates.json?v=' + Math.floor(Date.now() / 36e5));
+      if (!r.ok) throw new Error(r.status);
+      __updD = await r.json(); __updAt = Date.now();
+      return __updD;
+    }
+    const stSeen = () => { try { return +localStorage.getItem('stUpdSeen') || 0; } catch (e) { return 0; } };
+    const stSetSeen = t => { try { localStorage.setItem('stUpdSeen', String(t)); } catch (e) {} };
+    const stUpdLatest = () => ((__updD && __updD.items) || []).reduce((m, i) => Math.max(m, new Date(i.at).getTime() || 0), 0);
+    function stBellDots(on) { document.querySelectorAll('#stBell .st-rd').forEach(e => { e.style.display = on ? '' : 'none'; }); }
+    function stBellSync() { stUpdLoad().then(() => stBellDots(stUpdLatest() > stSeen())).catch(() => {}); }
+    function stKst(s, withTime) {
+      const d = new Date(s); if (isNaN(d)) return '';
+      const p = {}; new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(d).forEach(x => { p[x.type] = x.value; });
+      return p.year + '.' + p.month + '.' + p.day + (withTime ? ' ' + (p.hour === '24' ? '00' : p.hour) + ':' + p.minute : '');
+    }
+    async function stUpdOpen() {
+      let D; try { D = await stUpdLoad(); } catch (e) { D = { items: [], pending: [] }; }
+      const items = (D.items || []).slice().sort((a, b) => new Date(b.at) - new Date(a.at)).slice(0, 20), pend = (D.pending || []).slice(0, 8);
+      let h = '<h3 class="st-ui-title">업데이트 소식</h3>';
+      h += items.length ? items.map(i => '<div class="st-ui"><div class="st-ui-h"><span class="st-ui-d">' + esc(stKst(i.at)) + '</span><span class="st-pill amber">' + esc(i.tab || '') + '</span></div><div class="st-ui-t">' + esc(i.title) + '</div><div class="st-ui-s">' + esc(i.desc || '') + '</div>' + (i.href ? '<a class="st-ui-go" href="' + esc(i.href) + '">바로 보기</a>' : '') + '</div>').join('') : '<p class="st-ui-s">아직 업데이트 소식이 없습니다.</p>';
+      if (pend.length) h += '<div class="st-ui-sec">새로 올라온 영상</div><p class="st-ui-note">아직 세계관에 반영되지 않은 영상입니다.</p>' + pend.map(p => '<a class="st-up" href="https://www.youtube.com/watch?v=' + encodeURIComponent(p.id) + '" target="_blank" rel="noopener"><span class="st-ui-d">' + esc(stKst(p.published)) + '</span><span class="st-pill">' + esc(p.cat || '영상') + '</span><span class="st-up-t">' + esc(p.title) + '</span></a>').join('');
+      let dlg = document.getElementById('stUpd');
+      if (!dlg) {
+        dlg = document.createElement('dialog'); dlg.id = 'stUpd'; dlg.className = 'st-dlg st-upd st';
+        dlg.innerHTML = '<button type="button" class="st-x" aria-label="닫기">&times;</button><div id="stUBody"></div>';
+        document.body.appendChild(dlg);
+        dlg.addEventListener('click', e => { if (e.target === dlg || e.target.closest('.st-x') || e.target.closest('a.st-ui-go')) dlg.close(); });
+      }
+      document.getElementById('stUBody').innerHTML = h;
+      dlg.showModal();
+      const lt = stUpdLatest(); if (lt) stSetSeen(lt); stBellDots(false);
+    }
+    function stBellBind() {
+      if (window.__stBellBound) return; window.__stBellBound = true;
+      document.addEventListener('click', e => { if (e.target.closest('#stBell')) stUpdOpen(); });
+    }
+    const stBellIco = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 1 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>';
+    const stHeroHTML = chips => { stBellBind(); setTimeout(stBellSync, 0); return '<div class="st-hero"><div class="st-eb"><div class="st-eyebrow">BLACK COMBAT STORY</div><button type="button" class="st-bell" id="stBell" aria-label="업데이트 소식" title="업데이트 소식">' + stBellIco + '<i class="st-rd" style="display:none"></i></button></div><div class="st-hrow"><h1 class="st-h1">서사의 이해</h1><div class="st-meta">' + (chips || '') + '</div></div><p class="st-sub">처음 보는 팬부터 오래된 팬까지</p></div>'; };
     function stChips() {
-      const m = __loreD.meta; let c = '<span class="st-chip">갱신 ' + esc(m.updated) + '</span>';
+      const m = __loreD.meta; let c = '';
       if (m.next_event) { const t = new Date(m.next_event.date).getTime(); if (t > Date.now()) c += '<span class="st-chip hot">' + esc(m.next_event.name) + ' D-' + Math.ceil((t - Date.now()) / 864e5) + '</span>'; }
       return c;
     }
