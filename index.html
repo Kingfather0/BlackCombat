@@ -14173,8 +14173,8 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         return h + '</div>';
       };
       const seq = cs.filter(c => c.steps), pick = cs.filter(c => !c.steps);
-      return '<div class="st-blk"><h2 class="st-h2">순서대로 보기</h2><p class="st-lead">처음이라면 순서대로 보기의 핵심 영상 순서부터 시작하세요.</p><div class="st-cl">' + seq.map(row).join('') +
-        '</div></div><div class="st-blk"><h2 class="st-h2">골라 보기</h2><p class="st-lead">순서 없이 관심 있는 주제만 골라 보세요.</p><div class="st-cl">' + pick.map(row).join('') + '</div></div>';
+      return '<div class="st-blk"><h2 class="st-h2">순서대로 보기</h2><p class="st-lead">처음이라면 순서대로 보기의 핵심 영상 순서부터 시작</p><div class="st-cl">' + seq.map(row).join('') +
+        '</div></div><div class="st-blk"><h2 class="st-h2">골라 보기</h2><p class="st-lead">순서 없이 관심 있는 주제만 골라 보기</p><div class="st-cl">' + pick.map(row).join('') + '</div></div>';
     }
     /* 선수 메뉴(랭킹·업적·족보) 화면 위에 세계관 탭 줄을 붙이고, 업적 아래에는 주요 기록을 덧붙인다 */
     const ST_LIVE = { fighters: 'rank', records: 'a', jokbo: 'tree' };
@@ -14242,8 +14242,8 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       home() {
         const D = __loreD, R = D.recent;
         return '<div class="st-blk"><h2 class="st-h2">최신 흐름</h2><p class="st-lead">' + esc(R.event) + '</p><div class="st-grid2">' + R.items.filter(i => i.tag !== '직전 구도').map(stRecCard).join('') + '</div></div>' +
-          '<div class="st-blk"><h2 class="st-h2">직전 구도</h2><p class="st-lead">이번 대회로 이어진 올해의 흐름이다.</p><div class="st-grid2">' + R.items.filter(i => i.tag === '직전 구도').map(stRecCard).join('') + '</div></div>' +
-          '<div class="st-blk"><h2 class="st-h2">역대 구도</h2><p class="st-lead">오래 이어진 맞대결과 악연이에요. 서사를 알고 보면 경기가 두 배로 재밌어져요.</p><div class="st-grid2">' + D.rivalries.map(stRiv).join('') + '</div></div>';
+          '<div class="st-blk"><h2 class="st-h2">직전 구도</h2><p class="st-lead">이번 대회로 이어진 올해의 흐름</p><div class="st-grid2">' + R.items.filter(i => i.tag === '직전 구도').map(stRecCard).join('') + '</div></div>' +
+          '<div class="st-blk"><h2 class="st-h2">역대 구도</h2><p class="st-lead">오래 이어진 맞대결과 악연</p><div class="st-grid2">' + D.rivalries.map(stRiv).join('') + '</div></div>';
       },
       story() {
         const cs = __loreD.chapters, yr = c => (String(c.period).match(/\d{4}/) || ['기타'])[0];
@@ -14260,7 +14260,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
           '<div class="st-grid" id="stFGrid">' + stFGrid() + '</div></div>';
       },
       rivals() {
-        return '<div class="st-blk"><h2 class="st-h2">역대 구도</h2><p class="st-lead">오래 이어진 맞대결과 악연이에요. 서사를 알고 보면 경기가 두 배로 재밌어져요.</p><div class="st-grid">' + __loreD.rivalries.map(stRiv).join('') + '</div></div>';
+        return '<div class="st-blk"><h2 class="st-h2">역대 구도</h2><p class="st-lead">오래 이어진 맞대결과 악연</p><div class="st-grid">' + __loreD.rivalries.map(stRiv).join('') + '</div></div>';
       },
       courses() {
         return '<div id="stCrs">' + stCourses() + '</div>';
