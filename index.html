@@ -12916,8 +12916,10 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-thb { font-size: 12.5px; font-weight: 700; color: var(--st-amber-text); margin-top: 10px; }
     .st-thn { font-size: 18px; font-weight: 800; letter-spacing: -.3px; margin: 1px 0 4px; }
     .st-rc .st-n { font-size: 18px; margin: 2px 0; }
-    .st-gt { font-size: 17px; font-weight: 800; letter-spacing: -.3px; padding-bottom: 8px; margin-bottom: 4px; border-bottom: .625px solid var(--st-hair); }
     .st-gc .st-d { margin-top: 6px; }
+    .st-gcat { display: inline-block; background: #111; color: #fff; font-size: 12.5px; font-weight: 800; padding: 4px 14px; border-radius: 999px; margin-bottom: 12px; }
+    .st-gts { display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 10px; margin-bottom: 6px; border-bottom: .625px solid var(--st-hair); }
+    .st-gt { display: inline-block; background: var(--st-amber-tint); color: var(--st-amber-text); font-size: 15px; font-weight: 800; letter-spacing: -.3px; padding: 5px 14px; border-radius: 999px; border: 0; margin: 0; }
     .st-ch-t small.pl { display: inline-block; align-self: flex-start; background: var(--st-amber-tint); color: var(--st-amber-text); font-size: 11px; font-weight: 800; padding: 2px 9px; border-radius: 999px; margin-bottom: 3px; }
     .st-cr.main { border-color: transparent; }
     .st-cr.main > .st-ch-h { background: #111; color: #fff; }
@@ -14055,8 +14057,8 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 
     /* ---------- 스토리(블랙컴뱃 세계관 스토리) ----------
        lore.json(같은 저장소의 정적 파일)을 읽어 #/story 안에서 그린다. Supabase는 쓰지 않는다. */
-    const STORY_TABS = [['home', '최신 흐름'], ['story', '연대기'], ['courses', '추천 영상'], ['gloss', '용어'], ['info', '선수 정보', '#/fighters']];
-    let __loreD = null, __loreAt = 0, __loreDiv = '전체', __stYear = '전체', __stOpen = null, __stCrs = null, __stPh = {}, __stAll = false;
+    const STORY_TABS = [['home', '최신 흐름'], ['story', '연대기'], ['courses', '추천 영상'], ['info', '선수 정보', '#/fighters'], ['gloss', '용어 모음']];
+    let __loreD = null, __loreAt = 0, __loreDiv = '전체', __stYear = '전체', __stOpen = null, __stCrs = null, __stPh = {}, __stAll = false, __stList = false;
     async function stLoad() {
       if (__loreD && Date.now() - __loreAt < 6e5) return __loreD;
       const r = await fetch('lore.json?v=' + Math.floor(Date.now() / 36e5));
@@ -14127,6 +14129,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     function stChList() {
       const cs = __loreD.chapters, yr = c => (String(c.period).match(/\d{4}/) || ['기타'])[0];
       const vis = cs.filter(c => __stYear === '전체' || yr(c) === __stYear);
+      if (!__stList) return '<div class="st-tl">' + vis.map(c => '<div class="st-ch"><div class="st-per">' + esc(c.period) + '</div><h3>' + esc(c.title) + '</h3>' + (c.lines ? '<ul class="st-ln">' + c.lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul>' : stLn(c.summary)) + stBtns(c.fighters) + stVids(c.videos) + '</div>').join('') + '</div>';
       return vis.map((c, i) => {
         const on = __stAll || String(c.id) === __stOpen, n = cs.indexOf(c) + 1;
         let h = '<div class="st-cr' + (on ? ' open' : '') + '"><button type="button" class="st-ch-h" data-stc="' + c.id + '" aria-expanded="' + on + '"><span class="st-no2">' + n + '</span><span class="st-ch-t"><small class="pl">' + esc(c.period) + '</small><b>' + esc(c.title) + '</b></span><span class="st-chev"></span></button>';
@@ -14164,7 +14167,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         return h + '</div>';
       };
       const seq = cs.filter(c => c.steps), pick = cs.filter(c => !c.steps);
-      return '<div class="st-blk"><h2 class="st-h2">순서대로 보기</h2><p class="st-lead">처음이라면 순서대로 보기의 핵심 영상 순서부터 시작하세요.</p><div class="st-cl">' + seq.map(row).join('') + '</div>' +
+      return '<div class="st-blk"><h2 class="st-h2">순서대로 보기</h2><p class="st-lead">처음이라면 순서대로 보기의 핵심 영상 순서부터 시작하세요.</p><div class="st-cl">' + seq.map(row).join('') +
         '</div></div><div class="st-blk"><h2 class="st-h2">골라 보기</h2><p class="st-lead">순서 없이 관심 있는 주제만 골라 보세요.</p><div class="st-cl">' + pick.map(row).join('') + '</div></div>';
     }
     /* 선수 메뉴(랭킹·업적·족보) 화면 위에 세계관 탭 줄을 붙이고, 업적 아래에는 주요 기록을 덧붙인다 */
@@ -14175,6 +14178,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       $app.style.display = k === 'a' ? '' : 'none';
       const t = document.getElementById('stRecTail');
       if (t) { t.style.display = k === 'a' ? 'none' : ''; t.querySelectorAll('[data-p]').forEach(x => { x.style.display = x.dataset.p === k ? '' : 'none'; }); }
+      const qi = document.getElementById('stRankQ'); if (qi && qi.value) stFilterRank(qi.value);
     }
     function stBarSync(route) {
       try {
@@ -14200,7 +14204,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         if (!bar) { bar = document.createElement('div'); bar.id = 'stBar'; bar.className = 'st'; $app.parentNode.insertBefore(bar, $app); }
         bar.innerHTML = stHeroHTML('') + stTabsHTML('info') +
           '<div class="st-seg" id="stInfoSeg" style="margin-top:14px">' + ST_INFO.map(x => '<button type="button" data-stis="' + x[0] + '" class="' + (x[0] === cur ? 'on' : '') + '">' + x[1] + '</button>').join('') + '</div>' +
-          (route === 'fighters' ? '<input type="search" id="stRankQ" class="st-search" placeholder="선수 별명 또는 이름 검색">' : '');
+          (route !== 'jokbo' ? '<input type="search" id="stRankQ" class="st-search" placeholder="선수 별명 또는 이름 검색">' : '');
         if (route === 'records') { tail = document.createElement('div'); tail.id = 'stRecTail'; tail.className = 'st'; $app.insertAdjacentElement('afterend', tail); stRecShow(cur); }
         stLoad().then(() => {
           const c = bar.querySelector('.st-meta'); if (c) c.innerHTML = stChips();
@@ -14212,9 +14216,9 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     function stRecParts() {
       const D = __loreD;
       return {
-        r: '<div class="st-blk"><h2 class="st-h2">역대 기록</h2><p class="st-lead">블랙컴뱃 역대 기록이다.</p><div class="st-grid">' +
+        r: '<div style="margin-top:14px"><div class="st-grid">' +
           (D.records || []).map(r => '<div class="st-card st-rc"><div class="st-r">' + esc(r.k) + '</div><div class="st-n">' + esc(r.who) + '</div><div class="st-d">' + esc(r.note) + '</div></div>').join('') + '</div></div>',
-        t: '<div class="st-blk"><h2 class="st-h2">타이틀 이력</h2><p class="st-lead">반납과 박탈로 주인이 바뀐 벨트다.</p><div class="st-th">' +
+        t: '<div style="margin-top:14px"><div class="st-th">' +
           (D.title_history || []).map(t => '<div class="st-thc ' + (t.kind === '박탈' ? 'lost' : 'ret') + '"><div class="st-thh"><span class="st-pill ' + (t.kind === '박탈' ? 'amber' : '') + '">' + esc(t.kind) + '</span>' + (t.when ? '<span class="st-thw">' + esc(t.when) + '</span>' : '') + '</div><div class="st-thb">' + esc(t.belt) + '</div><div class="st-thn">' + esc(t.who) + '</div><div class="st-d">' + esc(t.why) + '</div></div>').join('') + '</div></div>'
       };
     }
@@ -14238,8 +14242,8 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       story() {
         const cs = __loreD.chapters, yr = c => (String(c.period).match(/\d{4}/) || ['기타'])[0];
         const ys = ['전체'].concat([...new Set(cs.map(yr))]);
-        return '<div class="st-blk"><h2 class="st-h2">연대기</h2><p class="st-lead">검정의 첫 싸움부터 현재까지 ' + cs.length + '개의 장이다. 장을 눌러 하나씩 펼쳐 보세요.</p>' +
-          '<div class="st-seg" id="stYr">' + ys.map(y => '<button type="button" data-sty="' + y + '" class="' + (y === __stYear ? 'on' : '') + '">' + (y === '전체' ? '전체' : y + '년') + '</button>').join('') + '<button type="button" id="stAll" class="st-allb' + (__stAll ? ' on' : '') + '">' + (__stAll ? '모두 접기' : '모두 펼치기') + '</button></div>' +
+        return '<div class="st-blk"><h2 class="st-h2">연대기</h2><p class="st-lead">검정의 첫 싸움부터 현재까지 ' + cs.length + '개의 장이다. 선수 이름을 누르면 상세 카드가 열려요.</p>' +
+          '<div class="st-seg" id="stYr">' + ys.map(y => '<button type="button" data-sty="' + y + '" class="' + (y === __stYear ? 'on' : '') + '">' + (y === '전체' ? '전체' : y + '년') + '</button>').join('') + '<button type="button" id="stAll" class="st-allb">' + (__stList ? '타임라인으로 보기' : '목록으로 보기') + '</button></div>' +
           '<div class="st-cl" id="stChL">' + stChList() + '</div></div>';
       },
       fighters() {
@@ -14258,9 +14262,9 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       records() { const p = stRecParts(); return p.r + p.t; },
       gloss() {
         const g = __loreD.glossary, cats = [...new Set(g.map(x => x.cat))];
-        return '<div class="st-blk"><h2 class="st-h2">용어 정리</h2><p class="st-lead">경기를 보다 자주 나오는 말을 묶어 두었다.</p></div>' +
-          cats.map(c => '<div class="st-blk st-gb"><h3 class="st-h3">' + esc(c) + '</h3><div class="st-g3">' +
-            g.filter(x => x.cat === c).map(x => '<div class="st-card st-gc"><div class="st-gt">' + esc(x.term) + '</div><div class="st-d">' + stLn(x.desc) + '</div></div>').join('') + '</div></div>').join('');
+        return '<div class="st-blk"><h2 class="st-h2">용어 모음</h2><p class="st-lead">주요 용어 한눈에 보기</p></div>' +
+          cats.map(c => '<div class="st-blk st-gb"><span class="st-gcat">' + esc(c) + '</span><div class="st-g3">' +
+            g.filter(x => x.cat === c).map(x => '<div class="st-card st-gc"><div class="st-gts">' + String(x.term).split(/,\s*/).map(t => '<span class="st-gt">' + esc(t) + '</span>').join('') + '</div><div class="st-d">' + stLn(x.desc) + '</div></div>').join('') + '</div></div>').join('');
       }
     };
     const stHeroHTML = chips => '<div class="st-hero"><div class="st-eyebrow">BLACK COMBAT WORLD</div><h1 class="st-h1">서사의 이해</h1><p class="st-sub">처음 보는 팬부터 오래된 팬까지. 역사와 구도, 선수를 한곳에서.</p><div class="st-meta">' + (chips || '') + '</div></div>';
@@ -14283,10 +14287,11 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       document.querySelectorAll('#app .fdiv').forEach(dv => {
         let n = 0;
         dv.querySelectorAll('.frow').forEach(r => { const ok = !q || (r.textContent + ' ' + (r.getAttribute('title') || '')).toLowerCase().includes(q); r.style.display = ok ? '' : 'none'; if (ok) n++; });
-        dv.querySelectorAll('[id^="fmore-"]').forEach(m => { m.style.display = q ? 'block' : 'none'; });
+        dv.querySelectorAll('[id^="fmore-"], [id^="rhmore-"]').forEach(m => { m.style.display = q ? 'block' : 'none'; });
         dv.querySelectorAll(':scope > button').forEach(b => { b.style.display = q ? 'none' : ''; if (!q) b.textContent = '더보기'; });
         dv.style.display = n || !q ? '' : 'none';
       });
+      document.querySelectorAll('#stRecTail .st-rc, #stRecTail .st-thc').forEach(c => { c.style.display = !q || c.textContent.toLowerCase().includes(q) ? '' : 'none'; });
     }
     async function viewStory(sub) {
       const __g = __navGen;
@@ -14313,7 +14318,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
           if (cs) { __stCrs = cs.getAttribute('aria-expanded') === 'true' ? null : cs.dataset.stcs; document.getElementById('stCrs').innerHTML = stCourses(); const o = document.querySelector('#stCrs .open'); if (o && o.scrollIntoView) o.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
           const ph = e.target.closest('[data-stph]');
           if (ph) { const p = ph.dataset.stph.split(':'); __stPh[p[0]] = ph.getAttribute('aria-expanded') === 'true' ? -1 : +p[1]; document.getElementById('stCrs').innerHTML = stCourses(); return; }
-          if (e.target.closest('#stAll')) { __stAll = !__stAll; const b = document.getElementById('stAll'); b.classList.toggle('on', __stAll); b.textContent = __stAll ? '모두 접기' : '모두 펼치기'; document.getElementById('stChL').innerHTML = stChList(); return; }
+          if (e.target.closest('#stAll')) { __stList = !__stList; __stOpen = null; const b = document.getElementById('stAll'); b.textContent = __stList ? '타임라인으로 보기' : '목록으로 보기'; document.getElementById('stChL').innerHTML = stChList(); return; }
           const y = e.target.closest('#stYr button:not(#stAll)');
           if (y) { __stYear = y.dataset.sty; __stOpen = null; document.querySelectorAll('#stYr button').forEach(b => b.classList.toggle('on', b === y)); document.getElementById('stChL').innerHTML = stChList(); return; }
           const s = e.target.closest('#stSeg button');
@@ -18553,12 +18558,10 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     <div class="fit-row" style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px">
       ${rankTabsHTML('fighters')}
       <span class="fit-row" style="display:inline-flex;gap:8px;align-items:center;min-width:0">
-        ${fightersUpdatedAt ? `<span style="font-size:11px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 9px;border-radius:99px;white-space:nowrap">🔄 ${fmtDTShort(fightersUpdatedAt)} 갱신</span>` : ''}
         ${adminPass() ? `<button class="btn small v2-petrol" onclick="toggleAddFighterForm()">➕ 선수 추가</button>` : ''}
         ${adminPass() ? `<button class="btn primary small" onclick="refreshFighters(this)">🔄 수동 갱신</button>` : ''}
       </span>
     </div>
-    <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 선수 선택 시 상세 기록 · 매일 새벽 자동 갱신</div>
     <div id="afx"></div>
     <div class="fgrid">
       ${FIGHTERS.map((d, di) => {
@@ -19635,10 +19638,8 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     <div class="fit-row" style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px">
       ${rankTabsHTML('records')}
       <span class="fit-row" style="display:inline-flex;gap:8px;align-items:center;min-width:0">
-        ${updated ? `<span style="font-size:11px;font-weight:800;background:#e3edfd;color:#1d4ed8;padding:4px 9px;border-radius:99px;white-space:nowrap">🔄 ${updated} 갱신</span>` : ''}
       </span>
     </div>
-    <div class="sub" style="font-size:11px;color:var(--dim)">출처: <a href="https://www.blackcombat-official.com/ranking.php?type=fighter" target="_blank" rel="noopener" style="text-decoration:underline">블랙컴뱃 공식 홈페이지</a> · 선수 선택 시 상세 기록 · 매일 새벽 자동 갱신</div>
     <div class="fgrid">
       ${rhCardHTML('🔥 최다 연승 (역대)', '', mk(stats, s => s.maxStreak, '연승'))}
       ${rhCardHTML('📈 현재 연승 중', '', mk(stats, s => s.curStreak, '연승'))}
