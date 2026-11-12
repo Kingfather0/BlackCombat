@@ -12918,6 +12918,14 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-rc .st-n { font-size: 18px; margin: 2px 0; }
     .st-gt { font-size: 17px; font-weight: 800; letter-spacing: -.3px; padding-bottom: 8px; margin-bottom: 4px; border-bottom: .625px solid var(--st-hair); }
     .st-gc .st-d { margin-top: 6px; }
+    .st-ch-t small.pl { display: inline-block; align-self: flex-start; background: var(--st-amber-tint); color: var(--st-amber-text); font-size: 11px; font-weight: 800; padding: 2px 9px; border-radius: 999px; margin-bottom: 3px; }
+    .st-cr.main { border-color: transparent; }
+    .st-cr.main > .st-ch-h { background: #111; color: #fff; }
+    .st-cr.main > .st-ch-h small.pl { background: var(--st-amber); color: #3d2a00; }
+    .st-cr.main > .st-ch-h .st-chev { border-color: #aaa; }
+    .st-cr.main.open { background: #fff; border: .625px solid #111; }
+    .st-tg { font-size: 10px; padding: 0 6px; margin-left: 2px; white-space: nowrap; vertical-align: middle; background: rgba(46, 160, 90, .14); color: #1f7a45; font-weight: 800; border-radius: 999px; }
+    .frow .fnm { white-space: nowrap; }
     .st-allb { margin-left: auto; background: #fff; border: .625px solid var(--st-hair2); color: var(--st-muted); border-radius: 999px; padding: 5px 13px; font-size: 13px; font-weight: 700; cursor: pointer; }
     .st-allb.on { background: #111; color: #fff; border-color: #111; }
     .st-bio { margin: 0 0 14px; padding: 12px 14px; background: #fafafb; border-radius: 10px; }
@@ -14047,7 +14055,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 
     /* ---------- 스토리(블랙컴뱃 세계관 스토리) ----------
        lore.json(같은 저장소의 정적 파일)을 읽어 #/story 안에서 그린다. Supabase는 쓰지 않는다. */
-    const STORY_TABS = [['home', '최신 흐름'], ['story', '연대기'], ['rivals', '구도'], ['courses', '추천 영상'], ['gloss', '용어'], ['records', '타이틀 이력'], ['rank', '랭킹', '#/fighters'], ['ach', '기록', '#/records'], ['tree', '족보', '#/jokbo']];
+    const STORY_TABS = [['home', '최신 흐름'], ['story', '연대기'], ['rivals', '구도'], ['courses', '추천 영상'], ['gloss', '용어'], ['rank', '랭킹', '#/fighters'], ['ach', '기록', '#/records'], ['tree', '족보', '#/jokbo']];
     let __loreD = null, __loreAt = 0, __loreDiv = '전체', __stYear = '전체', __stOpen = null, __stCrs = null, __stPh = {}, __stAll = false;
     async function stLoad() {
       if (__loreD && Date.now() - __loreAt < 6e5) return __loreD;
@@ -14078,7 +14086,10 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       return '<div class="st-card' + (main ? ' st-main' : '') + '"><span class="st-pill ' + (main ? 'dark' : (it.tag === '타이틀전' ? 'amber' : '')) + '">' + esc(it.tag) + '</span><div class="st-t">' + esc(it.title) + '</div><div class="st-s">' + esc(it.sub) + '</div>' +
         (it.desc ? '<div class="st-d">' + stLn(it.desc) + '</div>' : '') + stBtns(it.fighters) + stVids((it.videos || []).slice(0, 2)) + '</div>';
     }
-    const stRiv = r => '<div class="st-card"><div class="st-t" style="margin-top:0">' + esc(r.title) + '</div><div class="st-d">' + stLn(r.desc) + '</div>' + stVids((r.videos || []).slice(0, 2)) + '</div>';
+    const stRiv = r => {
+      const ns = String(r.title).split(/\s+vs\s+/i).map(x => x.trim()).filter(n => stRoster(n) || stEntry(n));
+      return '<div class="st-card"><span class="st-pill">구도</span><div class="st-t">' + esc(r.title) + '</div><div class="st-d">' + stLn(r.desc) + '</div>' + (ns.length ? stBtns(ns) : '') + stVids((r.videos || []).slice(0, 2)) + '</div>';
+    };
     function stFGrid() {
       const D = __loreD, q = ((document.getElementById('stQ') || {}).value || '').trim().toLowerCase();
       const list = Object.entries(D.roster).filter(([n, r]) => {
@@ -14118,7 +14129,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       const vis = cs.filter(c => __stYear === '전체' || yr(c) === __stYear);
       return vis.map((c, i) => {
         const on = __stAll || String(c.id) === __stOpen, n = cs.indexOf(c) + 1;
-        let h = '<div class="st-cr' + (on ? ' open' : '') + '"><button type="button" class="st-ch-h" data-stc="' + c.id + '" aria-expanded="' + on + '"><span class="st-no2">' + n + '</span><span class="st-ch-t"><small>' + esc(c.period) + '</small><b>' + esc(c.title) + '</b></span><span class="st-chev"></span></button>';
+        let h = '<div class="st-cr' + (on ? ' open' : '') + '"><button type="button" class="st-ch-h" data-stc="' + c.id + '" aria-expanded="' + on + '"><span class="st-no2">' + n + '</span><span class="st-ch-t"><small class="pl">' + esc(c.period) + '</small><b>' + esc(c.title) + '</b></span><span class="st-chev"></span></button>';
         if (on) {
           const p = __stAll ? null : vis[i - 1], q = __stAll ? null : vis[i + 1];
           h += '<div class="st-ch-b">' + (c.lines ? '<ul class="st-ln">' + c.lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul>' : stLn(c.summary)) + stBtns(c.fighters) + stVids(c.videos) +
@@ -14135,7 +14146,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       const cs = __loreD.courses, V = __loreD.videos || {};
       const row = c => {
         const on = c.id === __stCrs, ids = c.steps ? c.steps.map(x => x.v) : c.videos, n = ids.length, min = ids.reduce((a, id) => a + ((V[id] || {}).m || 0), 0);
-        let h = '<div class="st-cr' + (on ? ' open' : '') + '"><button type="button" class="st-ch-h" data-stcs="' + c.id + '" aria-expanded="' + on + '"><span class="st-ch-t"><small>' + n + '편' + (min ? ' / 약 ' + (min >= 60 ? Math.floor(min / 60) + '시간 ' + (min % 60 ? min % 60 + '분' : '') : min + '분') : '') + '</small><b>' + esc(c.name) + '</b></span><span class="st-chev"></span></button>';
+        let h = '<div class="st-cr' + (on ? ' open' : '') + (c.id === 'road' ? ' main' : '') + '"><button type="button" class="st-ch-h" data-stcs="' + c.id + '" aria-expanded="' + on + '"><span class="st-ch-t"><small class="pl">' + n + '편' + (min ? ' / 약 ' + (min >= 60 ? Math.floor(min / 60) + '시간 ' + (min % 60 ? min % 60 + '분' : '') : min + '분') : '') + '</small><b>' + esc(c.name) + '</b></span><span class="st-chev"></span></button>';
         if (on) {
           h += '<div class="st-ch-b"><p class="st-p st-cd">' + esc(c.desc) + '</p>';
           if (c.steps) {
@@ -14161,30 +14172,51 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     function stBarSync(route) {
       try {
         const act = ST_LIVE[route];
-        if (!window.__stRankBound) { window.__stRankBound = true; document.addEventListener('input', e => { if (e.target.id === 'stRankQ') stFilterRank(e.target.value); }); }
+        if (!window.__stRankBound) { window.__stRankBound = true; document.addEventListener('click', e => { const b = e.target.closest('#stRecSeg button'); if (!b) return; const k = b.dataset.strs, t = document.getElementById('stRecTail'); document.querySelectorAll('#stRecSeg button').forEach(x => x.classList.toggle('on', x === b)); $app.style.display = k === 'a' ? '' : 'none'; if (t) { t.style.display = k === 'a' ? 'none' : ''; t.querySelectorAll('[data-p]').forEach(x => { x.style.display = x.dataset.p === k ? '' : 'none'; }); } }); document.addEventListener('input', e => { if (e.target.id === 'stRankQ') stFilterRank(e.target.value); }); }
         let bar = document.getElementById('stBar'), tail = document.getElementById('stRecTail');
         if (tail) tail.remove();
+        $app.style.display = '';
         if (!act) { if (bar) bar.remove(); return; }
         if (!bar) { bar = document.createElement('div'); bar.id = 'stBar'; bar.className = 'st'; $app.parentNode.insertBefore(bar, $app); }
-        bar.innerHTML = stHeroHTML('') + stTabsHTML(act) + (route === 'fighters' ? '<input type="search" id="stRankQ" class="st-search" placeholder="선수 별명 또는 이름 검색" style="margin-top:14px">' : '');
-        stLoad().then(() => { const c = bar.querySelector('.st-meta'); if (c) c.innerHTML = stChips(); }).catch(() => {});
+        bar.innerHTML = stHeroHTML('') + stTabsHTML(act) + (route === 'fighters' ? '<input type="search" id="stRankQ" class="st-search" placeholder="선수 별명 또는 이름 검색" style="margin-top:14px">' : '') + (route === 'records' ? '<div class="st-seg" id="stRecSeg" style="margin-top:14px"><button type="button" data-strs="a" class="on">업적</button><button type="button" data-strs="r">역대 기록</button><button type="button" data-strs="t">타이틀 이력</button></div>' : '');
+        if (route === 'records') { tail = document.createElement('div'); tail.id = 'stRecTail'; tail.className = 'st'; tail.style.display = 'none'; $app.insertAdjacentElement('afterend', tail); }
+        stLoad().then(() => {
+          const c = bar.querySelector('.st-meta'); if (c) c.innerHTML = stChips();
+          if (route === 'records' && tail.isConnected) { const p = stRecParts(); tail.innerHTML = '<div data-p="r">' + p.r + '</div><div data-p="t">' + p.t + '</div>'; }
+          if (route === 'fighters') { stTagRank(); setTimeout(stTagRank, 500); setTimeout(stTagRank, 1500); }
+        }).catch(() => {});
       } catch (e) {}
+    }
+    function stRecParts() {
+      const D = __loreD;
+      return {
+        r: '<div class="st-blk"><h2 class="st-h2">역대 기록</h2><p class="st-lead">블랙컴뱃 역대 기록이다.</p><div class="st-grid">' +
+          (D.records || []).map(r => '<div class="st-card st-rc"><div class="st-r">' + esc(r.k) + '</div><div class="st-n">' + esc(r.who) + '</div><div class="st-d">' + esc(r.note) + '</div></div>').join('') + '</div></div>',
+        t: '<div class="st-blk"><h2 class="st-h2">타이틀 이력</h2><p class="st-lead">반납과 박탈로 주인이 바뀐 벨트다.</p><div class="st-th">' +
+          (D.title_history || []).map(t => '<div class="st-thc ' + (t.kind === '박탈' ? 'lost' : 'ret') + '"><div class="st-thh"><span class="st-pill ' + (t.kind === '박탈' ? 'amber' : '') + '">' + esc(t.kind) + '</span>' + (t.when ? '<span class="st-thw">' + esc(t.when) + '</span>' : '') + '</div><div class="st-thb">' + esc(t.belt) + '</div><div class="st-thn">' + esc(t.who) + '</div><div class="st-d">' + esc(t.why) + '</div></div>').join('') + '</div></div>'
+      };
+    }
+    function stTagRank() {
+      if (!__loreD) return;
+      const al = __loreD.aliases || {}, has = new Set();
+      __loreD.fighters.forEach(f => { if (f.bio) { has.add(f.nick); if (al[f.nick]) has.add(al[f.nick]); } });
+      document.querySelectorAll('#app .frow .fnm').forEach(el => {
+        if (el.querySelector('.st-tag')) return;
+        const n = Array.from(el.childNodes).filter(x => x.nodeType === 3).map(x => x.textContent).join('').trim();
+        if (has.has(n)) el.insertAdjacentHTML('beforeend', ' <span class="st-tag ok st-tg">서사</span>');
+      });
     }
     const ST_VIEWS = {
       home() {
         const D = __loreD, R = D.recent;
         return '<div class="st-blk"><h2 class="st-h2">최신 흐름</h2><p class="st-lead">' + esc(R.event) + '</p><div class="st-grid2">' + R.items.filter(i => i.tag !== '직전 구도').map(stRecCard).join('') + '</div></div>' +
-          '<div class="st-blk"><h2 class="st-h2">직전 구도</h2><p class="st-lead">이번 대회로 이어진 올해의 흐름이다.</p><div class="st-grid2">' + R.items.filter(i => i.tag === '직전 구도').map(stRecCard).join('') + '</div></div>' +
-          '<div class="st-blk"><h2 class="st-h2">함께 보기</h2><div class="st-grid">' +
-          '<a class="st-card st-go" href="#/matches"><b>대진표와 승부예측</b><span>' + esc(R.card.title) + ' 전체 대진을 확인해요.</span></a>' +
-          '<a class="st-card st-go" href="#/jokbo"><b>선수 랭킹과 족보</b><span>체급별 랭킹, 업적, 족보를 볼 수 있어요.</span></a>' +
-          '<a class="st-card st-go" href="#/story/courses"><b>핵심 영상 순서</b><span>처음이라면 이 순서대로 보세요.</span></a></div></div>';
+          '<div class="st-blk"><h2 class="st-h2">직전 구도</h2><p class="st-lead">이번 대회로 이어진 올해의 흐름이다.</p><div class="st-grid2">' + R.items.filter(i => i.tag === '직전 구도').map(stRecCard).join('') + '</div></div>';
       },
       story() {
         const cs = __loreD.chapters, yr = c => (String(c.period).match(/\d{4}/) || ['기타'])[0];
         const ys = ['전체'].concat([...new Set(cs.map(yr))]);
         return '<div class="st-blk"><h2 class="st-h2">연대기</h2><p class="st-lead">검정의 첫 싸움부터 현재까지 ' + cs.length + '개의 장이다. 장을 눌러 하나씩 펼쳐 보세요.</p>' +
-          '<div class="st-seg" id="stYr">' + ys.map(y => '<button type="button" data-sty="' + y + '" class="' + (y === __stYear ? 'on' : '') + '">' + (y === '전체' ? '전체' : y + '년') + '</button>').join('') + '<button type="button" id="stAll" class="st-allb' + (__stAll ? ' on' : '') + '">' + (__stAll ? '접어서 보기' : '모두 펼쳐 읽기') + '</button></div>' +
+          '<div class="st-seg" id="stYr">' + ys.map(y => '<button type="button" data-sty="' + y + '" class="' + (y === __stYear ? 'on' : '') + '">' + (y === '전체' ? '전체' : y + '년') + '</button>').join('') + '<button type="button" id="stAll" class="st-allb' + (__stAll ? ' on' : '') + '">' + (__stAll ? '모두 접기' : '모두 펼치기') + '</button></div>' +
           '<div class="st-cl" id="stChL">' + stChList() + '</div></div>';
       },
       fighters() {
@@ -14200,13 +14232,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       courses() {
         return '<div class="st-blk"><h2 class="st-h2">추천 영상</h2><p class="st-lead">처음이라면 순서대로 보기의 핵심 영상 순서부터 시작하세요. 코스를 눌러 펼쳐 보세요.</p><div id="stCrs">' + stCourses() + '</div></div>';
       },
-      records() {
-        const D = __loreD;
-        return '<div class="st-blk"><h2 class="st-h2">주요 기록</h2><p class="st-lead">블랙컴뱃 역대 기록이다.</p><div class="st-grid">' +
-          (D.records || []).map(r => '<div class="st-card st-rc"><div class="st-r">' + esc(r.k) + '</div><div class="st-n">' + esc(r.who) + '</div><div class="st-d">' + esc(r.note) + '</div></div>').join('') + '</div></div>' +
-          '<div class="st-blk"><h2 class="st-h2">타이틀 이력</h2><p class="st-lead">반납과 박탈로 주인이 바뀐 벨트다.</p><div class="st-th">' +
-          (D.title_history || []).map(t => '<div class="st-thc ' + (t.kind === '박탈' ? 'lost' : 'ret') + '"><div class="st-thh"><span class="st-pill ' + (t.kind === '박탈' ? 'amber' : '') + '">' + esc(t.kind) + '</span>' + (t.when ? '<span class="st-thw">' + esc(t.when) + '</span>' : '') + '</div><div class="st-thb">' + esc(t.belt) + '</div><div class="st-thn">' + esc(t.who) + '</div><div class="st-d">' + esc(t.why) + '</div></div>').join('') + '</div></div>';
-      },
+      records() { const p = stRecParts(); return p.r + p.t; },
       gloss() {
         const g = __loreD.glossary, cats = [...new Set(g.map(x => x.cat))];
         return '<div class="st-blk"><h2 class="st-h2">용어 정리</h2><p class="st-lead">경기를 보다 자주 나오는 말을 묶어 두었다.</p></div>' +
@@ -14258,12 +14284,12 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
           if (!e.target.closest('.st')) return;
           const f = e.target.closest('[data-stf]'); if (f) { stOpen(f.dataset.stf); return; }
           const c = e.target.closest('[data-stc]');
-          if (c) { const wasAll = __stAll; __stAll = false; __stOpen = (!wasAll && c.classList.contains('st-ch-h') && c.getAttribute('aria-expanded') === 'true') ? null : c.dataset.stc; if (wasAll) { const b = document.getElementById('stAll'); if (b) { b.classList.remove('on'); b.textContent = '모두 펼쳐 읽기'; } } const L = document.getElementById('stChL'); L.innerHTML = stChList(); const o = L.querySelector('.open'); if (o && o.scrollIntoView) o.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+          if (c) { const wasAll = __stAll; __stAll = false; __stOpen = (!wasAll && c.classList.contains('st-ch-h') && c.getAttribute('aria-expanded') === 'true') ? null : c.dataset.stc; if (wasAll) { const b = document.getElementById('stAll'); if (b) { b.classList.remove('on'); b.textContent = '모두 펼치기'; } } const L = document.getElementById('stChL'); L.innerHTML = stChList(); const o = L.querySelector('.open'); if (o && o.scrollIntoView) o.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
           const cs = e.target.closest('[data-stcs]');
           if (cs) { __stCrs = cs.getAttribute('aria-expanded') === 'true' ? null : cs.dataset.stcs; document.getElementById('stCrs').innerHTML = stCourses(); const o = document.querySelector('#stCrs .open'); if (o && o.scrollIntoView) o.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
           const ph = e.target.closest('[data-stph]');
           if (ph) { const p = ph.dataset.stph.split(':'); __stPh[p[0]] = ph.getAttribute('aria-expanded') === 'true' ? -1 : +p[1]; document.getElementById('stCrs').innerHTML = stCourses(); return; }
-          if (e.target.closest('#stAll')) { __stAll = !__stAll; const b = document.getElementById('stAll'); b.classList.toggle('on', __stAll); b.textContent = __stAll ? '접어서 보기' : '모두 펼쳐 읽기'; document.getElementById('stChL').innerHTML = stChList(); return; }
+          if (e.target.closest('#stAll')) { __stAll = !__stAll; const b = document.getElementById('stAll'); b.classList.toggle('on', __stAll); b.textContent = __stAll ? '모두 접기' : '모두 펼치기'; document.getElementById('stChL').innerHTML = stChList(); return; }
           const y = e.target.closest('#stYr button:not(#stAll)');
           if (y) { __stYear = y.dataset.sty; __stOpen = null; document.querySelectorAll('#stYr button').forEach(b => b.classList.toggle('on', b === y)); document.getElementById('stChL').innerHTML = stChList(); return; }
           const s = e.target.closest('#stSeg button');
