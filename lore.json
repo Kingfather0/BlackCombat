@@ -1471,38 +1471,38 @@
   {
    "id": "best",
    "name": "명경기 모음",
-   "desc": "조회수 높은 경기 중심",
+   "desc": "조회수 TOP5 시합 영상",
    "videos": [
+    "PMrxDUr2OEE",
+    "ii-cLCYlYjg",
+    "iXY0IB5p_Rw",
     "K9oMGAPnssM",
-    "Ns8L-2yLdLU",
-    "2VOhMGJyLAg",
-    "QJ50IKIZP4E",
-    "fFP6MVgDn6w"
+    "qeKbrQmLa6w"
    ]
   },
   {
    "id": "topview",
    "name": "조회수 최다",
-   "desc": "블랙컴뱃 시작 이후 조회수가 가장 높은 영상을 시간순으로 모았다",
+   "desc": "블랙컴뱃 시작 이후 조회수가 가장 높은 영상",
    "videos": [
-    "PMrxDUr2OEE",
+    "KTJLqylgxKk",
     "53L3T9nui0M",
     "vQQ8LH5wZX8",
-    "qqZPvR5gSeU",
-    "ii-cLCYlYjg",
-    "iXY0IB5p_Rw",
+    "fKrtI_H9fRk",
+    "-e_wE1uciOc",
+    "WAbicXdG8sA",
     "fFP6MVgDn6w",
     "n7fUHY1rzcE",
+    "Su3r1g36yhA",
     "F9iUns8miwg",
-    "K9oMGAPnssM",
     "VInTQSb5jic",
-    "qeKbrQmLa6w"
+    "oWU5z4ATStk"
    ]
   },
   {
    "id": "title",
    "name": "타이틀전",
-   "desc": "챔피언 타이틀이 걸린 경기를 시간순으로 모았다",
+   "desc": "챔피언 타이틀 경기",
    "videos": [
     "-sPH0IvB-hM",
     "ii-cLCYlYjg",
@@ -1563,7 +1563,7 @@
    "m": 30
   },
   "UUGbU6m-LSM": {
-   "t": "영타이거 vs 엘로우 몽키 넘버링2",
+   "t": "영타이거 이영훈 vs 옐로우몽키 임정민 [블랙컴뱃02]",
    "m": 24
   },
   "ODG4LMBtxAc": {
@@ -2285,6 +2285,38 @@
   "53L3T9nui0M": {
    "t": "심판 판정논란으로 불거진 살벌한 장외 맞짱 Ep.8",
    "m": 22
+  },
+  "EvmbXwwFn30": {
+   "t": "파이트클럽 우승자를 주먹 한방에 기절시키는 동네 체육관 관장 Ep.2",
+   "m": 32
+  },
+  "KRath9wPml8": {
+   "t": "결국 선을 넘어버린 바이퍼에게 폭발한 옐로우몽키 Ep.9",
+   "m": 22
+  },
+  "Su3r1g36yhA": {
+   "t": "프로MMA선수 vs 마이크 타이슨 따라하는 일반인 #shorts",
+   "m": 1
+  },
+  "WAbicXdG8sA": {
+   "t": "파이터에게 깝치면 안되는 이유ㄷㄷ #shorts",
+   "m": 1
+  },
+  "KTJLqylgxKk": {
+   "t": "파이트클럽 우승자를 5초 만에 보내버리는 동네 관장 #shorts",
+   "m": 1
+  },
+  "-e_wE1uciOc": {
+   "t": "니킥 함부로 쓰면 안되는 이유 #shorts",
+   "m": 1
+  },
+  "fKrtI_H9fRk": {
+   "t": "현 고딩 1짱의 싸움실력ㄷㄷ #highlights",
+   "m": 1
+  },
+  "oWU5z4ATStk": {
+   "t": "손가락 욕에 터진 역대급 벤치 클리어링 #sports",
+   "m": 2
   }
  },
  "latest": [],
@@ -3966,16 +3998,21 @@
  ],
  "hot": [
   "PMrxDUr2OEE",
-  "53L3T9nui0M",
-  "vQQ8LH5wZX8",
-  "qqZPvR5gSeU",
   "ii-cLCYlYjg",
   "iXY0IB5p_Rw",
+  "K9oMGAPnssM",
+  "qeKbrQmLa6w",
+  "KTJLqylgxKk",
+  "53L3T9nui0M",
+  "vQQ8LH5wZX8",
+  "fKrtI_H9fRk",
+  "-e_wE1uciOc",
+  "WAbicXdG8sA",
   "fFP6MVgDn6w",
   "n7fUHY1rzcE",
+  "Su3r1g36yhA",
   "F9iUns8miwg",
-  "K9oMGAPnssM",
   "VInTQSb5jic",
-  "qeKbrQmLa6w"
+  "oWU5z4ATStk"
  ]
 }

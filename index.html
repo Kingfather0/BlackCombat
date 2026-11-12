@@ -12937,11 +12937,17 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .mx-seg { display: flex; gap: 8px; }
     .mx-seg a { height: 32px; padding: 0 16px; border-radius: 999px; background: #e9e9ee; color: #111; font-size: 13.5px; font-weight: 600; display: inline-flex; align-items: center; text-decoration: none; }
     .mx-seg a.on { background: #111; color: #fff; }
-    .st-hot { font-style: normal; font-size: 10.5px; font-weight: 700; color: #111; background: #fff; border: .625px solid #111; border-radius: 999px; padding: 0 6px; margin-right: 6px; vertical-align: 1px; line-height: 16px; display: inline-block; }
+    .st-v, .st-th { position: relative; }
+    .st-th { display: block; }
+    .st-hot { position: absolute; left: 8px; top: 8px; z-index: 1; font-style: normal; font-size: 10px; font-weight: 700; line-height: 1.4; color: #fff; background: var(--red, #e5484d); border-radius: 4px; padding: 2px 6px; }
+    .st-step .st-th img { width: 100%; }
+    @media (max-width: 640px) { .st-step .st-th { grid-column: 2; width: 100%; max-width: 220px; } }
 
 
     .st .st-gcat { color: #111; }
     .st .st-sel select { height: 28px; padding: 0 28px 0 12px; font-size: 12.5px; line-height: 28px; }
+    .st .st-yr .st-sortb { margin-left: auto; }
+    .st .st-yr .st-sortb + .st-allb { margin-left: 0; }
     .st .st-yr .st-allb { height: 28px; padding: 0 12px; font-size: 12.5px; line-height: 28px; }
     .st .st-sel:after { margin-top: -5px; }
     .st-sel select { background: #e9e9ee; border: 0; color: #26262b; font-size: 13px; padding: 6px 30px 6px 13px; }
@@ -14089,7 +14095,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     /* ---------- 스토리(블랙컴뱃 세계관 스토리) ----------
        lore.json(같은 저장소의 정적 파일)을 읽어 #/story 안에서 그린다. Supabase는 쓰지 않는다. */
     const STORY_TABS = [['home', '최신 흐름'], ['story', '연대기'], ['courses', '추천 영상'], ['info', '선수 정보', '#/fighters'], ['gloss', '용어 모음']];
-    let __loreD = null, __loreAt = 0, __loreDiv = '전체', __stYear = '전체', __stOpen = null, __stCrs = null, __stPh = {}, __stAll = false, __stList = false;
+    let __loreD = null, __loreAt = 0, __loreDiv = '전체', __stYear = '전체', __stOpen = null, __stCrs = null, __stPh = {}, __stAll = false, __stList = false, __stDesc = false;
     async function stLoad() {
       if (__loreD && Date.now() - __loreAt < 6e5) return __loreD;
       const r = await fetch('lore.json?v=' + Math.floor(Date.now() / 36e5));
@@ -14103,7 +14109,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     const stMin = m => m >= 60 ? Math.floor(m / 60) + '시간 ' + (m % 60 ? (m % 60) + '분' : '') : m + '분';
     const stVid = id => {
       const v = (__loreD.videos || {})[id] || { t: id, m: 0 };
-      return '<a class="st-v" data-stv="' + id + '" href="https://youtu.be/' + id + '" target="_blank" rel="noopener"><img loading="lazy" src="https://i.ytimg.com/vi/' + id + '/mqdefault.jpg" alt=""><span>' + ((__loreD.hot || []).indexOf(id) >= 0 ? '<i class="st-hot">추천</i>' : '') + esc(v.t) + (v.m ? ' <em>' + stMin(v.m) + '</em>' : '') + '</span></a>';
+      return '<a class="st-v" data-stv="' + id + '" href="https://youtu.be/' + id + '" target="_blank" rel="noopener">' + ((__loreD.hot || []).indexOf(id) >= 0 ? '<i class="st-hot">추천</i>' : '') + '<img loading="lazy" src="https://i.ytimg.com/vi/' + id + '/mqdefault.jpg" alt=""><span>' + esc(v.t) + (v.m ? ' <em>' + stMin(v.m) + '</em>' : '') + '</span></a>';
     };
     /* 영상 카드를 누르면 바로 이동하지 않고 미리보기 창을 먼저 띄운다 */
     function stPreview(a) {
@@ -14182,13 +14188,13 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     }
     function stChList() {
       const cs = __loreD.chapters, yr = c => (String(c.period).match(/\d{4}/) || ['기타'])[0];
-      const vis = cs.filter(c => __stYear === '전체' || yr(c) === __stYear);
+      const vis0 = cs.filter(c => __stYear === '전체' || yr(c) === __stYear), vis = __stDesc ? vis0.slice().reverse() : vis0;
       if (!__stList) return '<div class="st-tl">' + vis.map(c => '<div class="st-ch"><div class="st-per">' + esc(c.period) + '</div><h3>' + esc(c.title) + '</h3>' + (c.lines ? '<ul class="st-ln">' + c.lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul>' : stLn(c.summary)) + stBtns(c.fighters) + stVids(c.videos) + '</div>').join('') + '</div>';
       return vis.map((c, i) => {
         const on = __stAll || String(c.id) === __stOpen, n = cs.indexOf(c) + 1;
         let h = '<div class="st-cr' + (on ? ' open' : '') + '"><button type="button" class="st-ch-h" data-stc="' + c.id + '" aria-expanded="' + on + '"><span class="st-no2">' + n + '</span><span class="st-ch-t"><small class="pl">' + esc(c.period) + '</small><b>' + esc(c.title) + '</b></span><span class="st-chev"></span></button>';
         if (on) {
-          const p = __stAll ? null : vis[i - 1], q = __stAll ? null : vis[i + 1];
+          const k0 = vis0.indexOf(c), p = __stAll ? null : vis0[k0 - 1], q = __stAll ? null : vis0[k0 + 1];
           h += '<div class="st-ch-b">' + (c.lines ? '<ul class="st-ln">' + c.lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul>' : stLn(c.summary)) + stBtns(c.fighters) + stVids(c.videos) +
             (__stAll ? '' : '<div class="st-pn">') + (p ? '<button type="button" data-stc="' + p.id + '">이전 장 ' + esc(p.title) + '</button>' : '<span></span>') + (q ? '<button type="button" data-stc="' + q.id + '">다음 장 ' + esc(q.title) + '</button>' : '') + (__stAll ? '' : '</div>') + '</div>';
         }
@@ -14198,7 +14204,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     function stStep(s, i) {
       const v = (__loreD.videos || {})[s.v] || { t: s.v, m: 0 }, p = !!s.pl, ttl = p ? s.t : v.t;
       const href = p ? 'https://www.youtube.com/playlist?list=' + s.pl : 'https://youtu.be/' + s.v;
-      return '<a class="st-step" data-stv="' + s.v + '"' + (p ? ' data-pl="' + s.pl + '" data-ptitle="' + esc(s.t) + '"' : '') + ' data-note="' + esc(s.note || '') + '" href="' + href + '" target="_blank" rel="noopener"><span class="st-sn">' + (i + 1) + '</span><img loading="lazy" src="https://i.ytimg.com/vi/' + s.v + '/mqdefault.jpg" alt=""><span class="st-sb"><b>' + ((__loreD.hot || []).indexOf(s.v) >= 0 ? '<i class="st-hot">추천</i>' : '') + esc(ttl) + '</b>' + (p ? '<em>몰아보기 재생목록</em>' : (v.m ? '<em>' + stMin(v.m) + '</em>' : '')) + '<span>' + esc(s.note) + '</span></span></a>';
+      return '<a class="st-step" data-stv="' + s.v + '"' + (p ? ' data-pl="' + s.pl + '" data-ptitle="' + esc(s.t) + '"' : '') + ' data-note="' + esc(s.note || '') + '" href="' + href + '" target="_blank" rel="noopener"><span class="st-sn">' + (i + 1) + '</span><span class="st-th">' + ((__loreD.hot || []).indexOf(s.v) >= 0 ? '<i class="st-hot">추천</i>' : '') + '<img loading="lazy" src="https://i.ytimg.com/vi/' + s.v + '/mqdefault.jpg" alt=""></span><span class="st-sb"><b>' + esc(ttl) + '</b>' + (p ? '<em>몰아보기 재생목록</em>' : (v.m ? '<em>' + stMin(v.m) + '</em>' : '')) + '<span>' + esc(s.note) + '</span></span></a>';
     }
     function stCourses() {
       const cs = __loreD.courses, V = __loreD.videos || {};
@@ -14306,7 +14312,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         const cs = __loreD.chapters, yr = c => (String(c.period).match(/\d{4}/) || ['기타'])[0];
         const ys = ['전체'].concat([...new Set(cs.map(yr))]);
         return '<div class="st-blk"><h2 class="st-h2">연대기</h2><p class="st-lead">검정의 첫 싸움부터 현재까지 총 ' + cs.length + '개의 장</p>' +
-          '<div class="st-yr" id="stYr"><label class="st-sel"><select id="stYrSel" aria-label="연도 선택">' + ys.map(y => '<option value="' + y + '"' + (y === __stYear ? ' selected' : '') + '>' + (y === '전체' ? '전체 연도' : y + '년') + '</option>').join('') + '</select></label><button type="button" id="stAll" class="st-allb">' + (__stList ? '타임라인으로 보기' : '목록으로 보기') + '</button></div>' +
+          '<div class="st-yr" id="stYr"><label class="st-sel"><select id="stYrSel" aria-label="연도 선택">' + ys.map(y => '<option value="' + y + '"' + (y === __stYear ? ' selected' : '') + '>' + (y === '전체' ? '전체 연도' : y + '년') + '</option>').join('') + '</select></label><button type="button" id="stSort" class="st-allb st-sortb">' + (__stDesc ? '최신 순' : '오래된 순') + '</button><button type="button" id="stAll" class="st-allb">' + (__stList ? '타임라인으로 보기' : '목록으로 보기') + '</button></div>' +
           '<div class="st-cl" id="stChL">' + stChList() + '</div></div>';
       },
       fighters() {
@@ -14381,8 +14387,9 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
           if (cs) { __stCrs = cs.getAttribute('aria-expanded') === 'true' ? null : cs.dataset.stcs; document.getElementById('stCrs').innerHTML = stCourses(); const o = document.querySelector('#stCrs .open'); if (o && o.scrollIntoView) o.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
           const ph = e.target.closest('[data-stph]');
           if (ph) { const p = ph.dataset.stph.split(':'); __stPh[p[0]] = ph.getAttribute('aria-expanded') === 'true' ? -1 : +p[1]; document.getElementById('stCrs').innerHTML = stCourses(); return; }
+          if (e.target.closest('#stSort')) { __stDesc = !__stDesc; document.getElementById('stSort').textContent = __stDesc ? '최신 순' : '오래된 순'; document.getElementById('stChL').innerHTML = stChList(); return; }
           if (e.target.closest('#stAll')) { __stList = !__stList; __stOpen = null; const b = document.getElementById('stAll'); b.textContent = __stList ? '타임라인으로 보기' : '목록으로 보기'; document.getElementById('stChL').innerHTML = stChList(); return; }
-          const y = e.target.closest('#stYr button:not(#stAll)');
+          const y = e.target.closest('#stYr button:not(#stAll):not(#stSort)');
           if (y) { __stYear = y.dataset.sty; __stOpen = null; document.querySelectorAll('#stYr button').forEach(b => b.classList.toggle('on', b === y)); document.getElementById('stChL').innerHTML = stChList(); return; }
           const s = e.target.closest('#stSeg button');
           if (s) { __loreDiv = s.dataset.std; document.querySelectorAll('#stSeg button').forEach(b => b.classList.toggle('on', b === s)); document.getElementById('stFGrid').innerHTML = stFGrid(); }
