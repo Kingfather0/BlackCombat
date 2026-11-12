@@ -12933,13 +12933,10 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-pv-b button { background: #e9e9ee; color: #111; }
     .st-pv-b a { background: #111; color: #fff; }
     #nav a[data-nav="ranking"] { display: none !important; }
-    .mx-seg { display: flex; gap: 8px; margin: 16px 0 4px; }
-    .mx-seg a { height: 34px; padding: 0 16px; border-radius: 999px; background: #fff; border: .625px solid #d6d6db; color: #111; font-size: 13.5px; font-weight: 600; display: inline-flex; align-items: center; text-decoration: none; }
-    .mx-seg a.on { background: #111; border-color: #111; color: #fff; }
-    .st .st-tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin: 16px 0 0; border-bottom: .625px solid #d6d6db; overflow: visible; }
-    .st .st-tabs a { position: relative; margin: 0; padding: 12px 0; text-align: center; font-size: 15px; }
-    .st .st-tabs a.on::after { content: ''; position: absolute; left: 14%; right: 14%; bottom: -1px; height: 2px; background: #111; }
-    @media (max-width: 640px) { .st .st-tabs a { padding: 11px 0; font-size: 13px; } .st .st-tabs a.on::after { left: 6%; right: 6%; } }
+    .st .st-tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 16px 0 0; border: 0; overflow: visible; }
+    .st .st-tabs a { margin: 0; padding: 11px 0; text-align: center; font-size: 15px; border-radius: 8px; text-decoration: none; }
+    .st .st-tabs a.on { background: #dedee3; color: #111; }
+    @media (max-width: 640px) { .st .st-tabs { gap: 2px; } .st .st-tabs a { padding: 10px 0; font-size: 13px; } }
     .st-v, .st-th { position: relative; }
     .st-th { display: block; }
     .st-hot { position: absolute; left: 8px; top: 8px; z-index: 1; font-style: normal; font-size: 10px; font-weight: 700; line-height: 1.4; color: #fff; background: var(--red, #e5484d); border-radius: 4px; padding: 2px 6px; }
@@ -14246,22 +14243,10 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       if (t) { t.style.display = k === 'a' ? 'none' : ''; t.querySelectorAll('[data-p]').forEach(x => { x.style.display = x.dataset.p === k ? '' : 'none'; }); }
       const qi = document.getElementById('stRankQ'); if (qi && qi.value) stFilterRank(qi.value);
     }
-    function mxPlace() {
-      try {
-        const r = (location.hash || '#/').replace(/^#\//, '').split('/')[0], old = document.getElementById('mxSeg');
-        if (r !== 'matches' && r !== 'ranking') { if (old) old.remove(); return; }
-        const h = $app.querySelector(':scope > h1.page'); if (!h) return;
-        let a = h; if (a.nextElementSibling && a.nextElementSibling.classList.contains('sub')) a = a.nextElementSibling;
-        if (old && old.previousElementSibling === a && old.dataset.r === r) return;
-        if (old) old.remove();
-        a.insertAdjacentHTML('afterend', '<div class="mx-seg" id="mxSeg" data-r="' + r + '"><a href="#/matches" class="' + (r === 'matches' ? 'on' : '') + '">승부예측</a><a href="#/ranking" class="' + (r === 'ranking' ? 'on' : '') + '">격잘알</a></div>');
-      } catch (e) {}
-    }
     function mxBarSync(r) {
       try {
-        const ob = document.getElementById('mxBar'); if (ob) ob.remove();
-        if (!window.__mxObs) { window.__mxObs = new MutationObserver(mxPlace); window.__mxObs.observe($app, { childList: true }); }
-        mxPlace();
+        ['mxBar', 'mxSeg'].forEach(i => { const e = document.getElementById(i); if (e) e.remove(); });
+        if (window.__mxObs) { window.__mxObs.disconnect(); window.__mxObs = null; }
       } catch (e) {}
     }
     function stBarSync(route) {
