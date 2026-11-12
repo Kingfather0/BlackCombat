@@ -11403,7 +11403,7 @@
       body[data-route="videos"] #app > .card:not(.yt-cal-details) > .sec-title { margin-top: 0; }
     }
 
-    /* ── 선수(랭킹·업적·족보): 페이지 제목 + 밑줄 탭, 체급 블록은 3열, 챔피언 행 크게 ── */
+    /* ── 선수(랭킹·업적·관계도): 페이지 제목 + 밑줄 탭, 체급 블록은 3열, 챔피언 행 크게 ── */
     body[data-route="fighters"] h1.page::before { content: "Fighters · Rankings"; }
     body[data-route="records"] h1.page::before { content: "Fighters · Records"; }
     body[data-route="jokbo"] h1.page::before { content: "Fighters · Family tree"; }
@@ -12915,8 +12915,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-sb em { font-style: normal; font-size: 12px; color: var(--st-dim); }
     .st-sb span { font-size: 13px; color: var(--st-muted); line-height: 1.55; }
     .st-th { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
-    .st-thc { background: #fafafb; border: .625px solid rgba(0, 0, 0, .05); border-left: 4px solid var(--st-hair2); border-radius: 12px; padding: 14px 16px; }
-    .st-thc.lost { border-left-color: var(--st-amber); }
+    .st-thc { background: #fafafb; border: .625px solid rgba(0, 0, 0, .05); border-radius: 12px; padding: 16px; }
     .st-thh { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
     .st-thw { font-size: 12px; font-weight: 700; color: var(--st-dim); }
     .st-thb { font-size: 12.5px; font-weight: 700; color: var(--st-amber-text); margin-top: 10px; }
@@ -14242,9 +14241,9 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       return '<div class="st-blk"><h2 class="st-h2">순서대로 보기</h2><p class="st-lead">처음이라면 순서대로 보기의 핵심 영상 순서부터 시작</p><div class="st-cl">' + seq.map(row).join('') +
         '</div></div><div class="st-blk"><h2 class="st-h2">골라 보기</h2><p class="st-lead">순서 없이 관심 있는 주제만 골라 보기</p><div class="st-cl">' + pick.map(row).join('') + '</div></div>';
     }
-    /* 선수 메뉴(랭킹·업적·족보) 화면 위에 세계관 탭 줄을 붙이고, 업적 아래에는 주요 기록을 덧붙인다 */
+    /* 선수 메뉴(랭킹·업적·관계도) 화면 위에 세계관 탭 줄을 붙이고, 업적 아래에는 주요 기록을 덧붙인다 */
     const ST_LIVE = { fighters: 'rank', records: 'a', jokbo: 'tree' };
-    const ST_INFO = [['rank', '랭킹'], ['a', '업적'], ['r', '역대 기록'], ['t', '타이틀 이력'], ['tree', '족보']];
+    const ST_INFO = [['rank', '랭킹'], ['a', '업적'], ['tree', '관계도'], ['r', '역대 기록'], ['t', '타이틀 이력']];
     function stRecShow(k) {
       document.querySelectorAll('#stInfoSeg button').forEach(x => x.classList.toggle('on', x.dataset.stis === k));
       $app.style.display = k === 'a' ? '' : 'none';
@@ -14295,8 +14294,8 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       const D = __loreD;
       return {
         r: '<div style="margin-top:14px"><div class="st-grid">' +
-          (D.records || []).map(r => '<div class="st-card st-rc"><div class="st-r">' + esc(r.k) + '</div><div class="st-n">' + esc(r.who) + '</div><div class="st-d">' + esc(r.note) + '</div></div>').join('') + '</div></div>',
-        t: '<div style="margin-top:14px"><div class="st-th">' +
+          (D.records || []).map(r => '<div class="st-card st-rc"><div class="st-thh"><span class="st-pill amber">' + esc(r.k) + '</span></div><div class="st-thb">' + esc(r.note) + '</div><div class="st-thn">' + esc(r.who) + '</div></div>').join('') + '</div></div>',
+        t: '<div style="margin-top:14px"><div class="st-grid">' +
           (D.title_history || []).map(t => '<div class="st-thc ' + (t.kind === '박탈' ? 'lost' : 'ret') + '"><div class="st-thh"><span class="st-pill ' + (t.kind === '박탈' ? 'amber' : '') + '">' + esc(t.kind) + '</span>' + (t.when ? '<span class="st-thw">' + esc(t.when) + '</span>' : '') + '</div><div class="st-thb">' + esc(t.belt) + '</div><div class="st-thn">' + esc(t.who) + '</div><div class="st-d">' + esc(t.why) + '</div></div>').join('') + '</div></div>'
       };
     }
