@@ -12837,6 +12837,13 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-main { background: #111; color: #fff; border-color: transparent; }
     .st-main .st-s { color: var(--st-amber); }
     .st-main .st-d { color: #c9c9d0; }
+    @media (min-width: 900px) {
+      .st .st-grid2 > .st-card.st-main { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) 300px; column-gap: 32px; align-content: start; }
+      .st .st-grid2 > .st-card.st-main > * { grid-column: 1; }
+      .st .st-grid2 > .st-card.st-main > .st-pill { justify-self: start; }
+      .st .st-grid2 > .st-card.st-main > .st-vids { grid-column: 2; grid-row: 1 / span 6; grid-template-columns: 1fr; align-self: center; margin: 0; }
+      .st .st-grid2 > .st-card.st-main .st-d { max-width: none; }
+    }
     .st-main .st-fl button { background: rgba(255, 255, 255, .1); color: #fff; border-color: transparent; }
     .st-champ .dv { color: var(--st-amber-text); font-size: 12px; font-weight: 800; }
     .st-champ .nm { font-size: 21px; font-weight: 800; margin: 2px 0; letter-spacing: -.4px; }
