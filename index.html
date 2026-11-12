@@ -12819,7 +12819,9 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-champ .nm { font-size: 21px; font-weight: 800; margin: 2px 0; letter-spacing: -.4px; }
     .st-champ .rc { color: var(--st-muted); font-size: 13px; }
     .st-fl { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
-    .st-fl button { background: #fff; color: #111; border: .625px solid var(--st-hair2); border-radius: 999px; padding: 2px 11px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    .st-fl button { background: #e9e9ee; color: #26262b; border: 0; border-radius: 8px; padding: 5px 12px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .15s; }
+    .st-fl button:hover { background: #dcdce3; }
+    .st-fl button:active { background: #cfcfd6; }
     .st-vids { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin-top: 12px; }
     .st-v { display: block; border-radius: 10px; overflow: hidden; background: #fff; border: .625px solid var(--st-hair); color: #111; }
     .st-v img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; background: var(--st-gray); }
@@ -12867,6 +12869,56 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     dialog.st-dlg .st-x { float: right; background: none; border: 0; color: #8e8e93; font-size: 22px; cursor: pointer; line-height: 1; }
     dialog.st-dlg .st-vids { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
     @media (max-width: 640px) { .st-h1 { font-size: 25px; } .st-grid2 { grid-template-columns: 1fr; } .st-row { grid-template-columns: 28px 1fr; } .st-dv { grid-column: 2; margin-bottom: -4px; } .st-vs { grid-column: 2; } .st-ch { padding: 12px 14px; } }
+    .st-p, .st-ln li { font-size: 14.5px; }
+    .st-h2 { font-size: 21px; padding-left: 10px; border-left: 4px solid var(--st-amber); line-height: 1.25; margin-bottom: 6px; }
+    .st-h3 { font-size: 15px; font-weight: 800; margin: 0 0 10px; color: var(--st-muted); letter-spacing: -.2px; }
+    .st-lead { line-height: 1.6; font-size: 14px; }
+    .st-blk { margin-top: 34px; }
+    .st-gb { margin-top: 26px; }
+    .st-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+    .st-tabs::-webkit-scrollbar, .st-seg::-webkit-scrollbar { display: none; }
+    .st-tabs a { padding: 8px 16px; }
+    .st-cl { display: flex; flex-direction: column; gap: 8px; }
+    .st-cr { background: #fafafb; border: .625px solid var(--st-hair); border-radius: 12px; overflow: hidden; }
+    .st-cr.open { border-color: var(--st-amber); background: #fff; }
+    .st-ch-h { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: none; border: 0; text-align: left; cursor: pointer; color: #111; font: inherit; }
+    .st-ch-h:hover { background: rgba(0, 0, 0, .03); }
+    .st-no2 { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 8px; background: #e9e9ee; color: var(--st-muted); font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+    .st-cr.open .st-no2 { background: var(--st-amber); color: #3d2a00; }
+    .st-ch-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+    .st-ch-t small { color: var(--st-amber-text); font-size: 12px; font-weight: 800; }
+    .st-ch-t b { font-size: 16px; font-weight: 800; letter-spacing: -.3px; line-height: 1.35; }
+    .st-chev { flex: 0 0 auto; width: 8px; height: 8px; border-right: 2px solid var(--st-dim); border-bottom: 2px solid var(--st-dim); transform: rotate(45deg); margin-right: 4px; transition: transform .15s; }
+    .st-cr.open .st-chev { transform: rotate(-135deg); }
+    .st-ch-b { padding: 2px 16px 16px 56px; }
+    .st-ch-b .st-ln { margin-top: 4px; }
+    .st-pn { display: flex; justify-content: space-between; gap: 8px; margin-top: 14px; }
+    .st-pn button { background: #f1f1f4; border: 0; border-radius: 8px; padding: 8px 12px; font-size: 12.5px; font-weight: 700; color: var(--st-muted); cursor: pointer; text-align: left; max-width: 48%; }
+    .st-pn button:last-child { margin-left: auto; text-align: right; }
+    .st-course { margin-bottom: 14px; padding: 18px; }
+    .st-course .st-t { font-size: 18px; }
+    .st-steps { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+    .st-ph { margin: 12px 0 2px; font-size: 12.5px; font-weight: 800; color: var(--st-amber-text); }
+    .st-step { display: grid; grid-template-columns: 28px 128px 1fr; gap: 12px; align-items: center; background: #fff; border: .625px solid var(--st-hair); border-radius: 10px; padding: 10px; color: #111; }
+    .st-step, .st-step:hover { text-decoration: none; }
+    .st-step:hover { border-color: var(--st-hair2); }
+    .st-sn { width: 28px; height: 28px; border-radius: 50%; background: var(--st-amber); color: #3d2a00; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+    .st-step img { width: 128px; aspect-ratio: 16/9; object-fit: cover; border-radius: 6px; background: var(--st-gray); display: block; }
+    .st-sb { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .st-sb b { font-size: 14px; line-height: 1.4; }
+    .st-sb em { font-style: normal; font-size: 12px; color: var(--st-dim); }
+    .st-sb span { font-size: 13px; color: var(--st-muted); line-height: 1.55; }
+    .st-th { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+    .st-thc { background: #fafafb; border: .625px solid rgba(0, 0, 0, .05); border-left: 4px solid var(--st-hair2); border-radius: 12px; padding: 14px 16px; }
+    .st-thc.lost { border-left-color: var(--st-amber); }
+    .st-thh { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .st-thw { font-size: 12px; font-weight: 700; color: var(--st-dim); }
+    .st-thb { font-size: 12.5px; font-weight: 700; color: var(--st-amber-text); margin-top: 10px; }
+    .st-thn { font-size: 18px; font-weight: 800; letter-spacing: -.3px; margin: 1px 0 4px; }
+    .st-rc .st-n { font-size: 18px; margin: 2px 0; }
+    .st-gt { font-size: 17px; font-weight: 800; letter-spacing: -.3px; padding-bottom: 8px; margin-bottom: 4px; border-bottom: .625px solid var(--st-hair); }
+    .st-gc .st-d { margin-top: 6px; }
+    @media (max-width: 640px) { .st-ch-b { padding: 0 14px 14px; } .st-step { grid-template-columns: 26px 1fr; } .st-step img { grid-column: 2; width: 100%; max-width: 220px; } .st-sn { grid-row: 1 / span 2; align-self: start; } .st-sb { grid-column: 2; } .st-h2 { font-size: 19px; } }
   </style>
 </head>
 
@@ -13966,8 +14018,8 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 
     /* ---------- 스토리(블랙컴뱃 세계관 스토리) ----------
        lore.json(같은 저장소의 정적 파일)을 읽어 #/story 안에서 그린다. Supabase는 쓰지 않는다. */
-    const STORY_TABS = [['home', '홈'], ['story', '연대기'], ['fighters', '선수 사전'], ['rivals', '구도'], ['courses', '추천 영상'], ['gloss', '용어'], ['records', '기록']];
-    let __loreD = null, __loreAt = 0, __loreDiv = '전체';
+    const STORY_TABS = [['home', '최근 구도'], ['story', '연대기'], ['fighters', '선수 사전'], ['rivals', '구도'], ['courses', '추천 영상'], ['gloss', '용어'], ['records', '기록']];
+    let __loreD = null, __loreAt = 0, __loreDiv = '전체', __stYear = '전체', __stOpen = null;
     async function stLoad() {
       if (__loreD && Date.now() - __loreAt < 6e5) return __loreD;
       const r = await fetch('lore.json?v=' + Math.floor(Date.now() / 36e5));
@@ -14010,9 +14062,9 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       const extra = D.fighters.filter(f => !f.db && __loreDiv === '전체' && (!q || f.nick.includes(q)));
       return list.map(([n, r]) => {
         const e = stEntry(Object.keys(D.aliases || {}).find(k => D.aliases[k] === n) || n);
-        return '<div class="st-card st-fc" data-stf="' + esc(e ? e.nick : n) + '"><div class="st-n">' + esc(n) + (e ? ' <span class="st-tag ok">스토리</span>' : '') + '</div><div class="st-r">' + esc(r.real) + ' / ' + esc(r.div) + esc(stRank(r)) + '</div><div class="st-rec">' + esc(r.rec) + '</div></div>';
+        return '<div class="st-card st-fc" data-stf="' + esc(e ? e.nick : n) + '"><div class="st-n">' + esc(n) + (e ? ' <span class="st-tag ok">서사</span>' : '') + '</div><div class="st-r">' + esc(r.real) + ' / ' + esc(r.div) + esc(stRank(r)) + '</div><div class="st-rec">' + esc(r.rec) + '</div></div>';
       }).join('') + extra.map(f =>
-        '<div class="st-card st-fc" data-stf="' + esc(f.nick) + '"><div class="st-n">' + esc(f.nick) + ' <span class="st-tag ok">스토리</span></div><div class="st-r">' + esc(f.real || '') + (f.role ? ' / ' + esc(f.role) : '') + '</div></div>').join('');
+        '<div class="st-card st-fc" data-stf="' + esc(f.nick) + '"><div class="st-n">' + esc(f.nick) + ' <span class="st-tag ok">서사</span></div><div class="st-r">' + esc(f.real || '') + (f.role ? ' / ' + esc(f.role) : '') + '</div></div>').join('');
     }
     function stOpen(nick) {
       const r = stRoster(nick), e = stEntry(nick);
@@ -14032,9 +14084,27 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       document.getElementById('stDBody').innerHTML = h;
       dlg.showModal();
     }
+    function stChList() {
+      const cs = __loreD.chapters, yr = c => (String(c.period).match(/\d{4}/) || ['기타'])[0];
+      const vis = cs.filter(c => __stYear === '전체' || yr(c) === __stYear);
+      return vis.map((c, i) => {
+        const on = String(c.id) === __stOpen, n = cs.indexOf(c) + 1;
+        let h = '<div class="st-cr' + (on ? ' open' : '') + '"><button type="button" class="st-ch-h" data-stc="' + c.id + '" aria-expanded="' + on + '"><span class="st-no2">' + n + '</span><span class="st-ch-t"><small>' + esc(c.period) + '</small><b>' + esc(c.title) + '</b></span><span class="st-chev"></span></button>';
+        if (on) {
+          const p = vis[i - 1], q = vis[i + 1];
+          h += '<div class="st-ch-b">' + (c.lines ? '<ul class="st-ln">' + c.lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul>' : stLn(c.summary)) + stBtns(c.fighters) + stVids(c.videos) +
+            '<div class="st-pn">' + (p ? '<button type="button" data-stc="' + p.id + '">이전 장 ' + esc(p.title) + '</button>' : '<span></span>') + (q ? '<button type="button" data-stc="' + q.id + '">다음 장 ' + esc(q.title) + '</button>' : '') + '</div></div>';
+        }
+        return h + '</div>';
+      }).join('');
+    }
+    function stStep(s, i) {
+      const v = (__loreD.videos || {})[s.v] || { t: s.v, m: 0 };
+      return (s.ph ? '<div class="st-ph">' + esc(s.ph) + '</div>' : '') + '<a class="st-step" href="https://youtu.be/' + s.v + '" target="_blank" rel="noopener"><span class="st-sn">' + (i + 1) + '</span><img loading="lazy" src="https://i.ytimg.com/vi/' + s.v + '/mqdefault.jpg" alt=""><span class="st-sb"><b>' + esc(v.t) + '</b>' + (v.m ? '<em>' + v.m + '분</em>' : '') + '<span>' + esc(s.note) + '</span></span></a>';
+    }
     const ST_VIEWS = {
       home() {
-        const D = __loreD, R = D.recent, mini = D.courses[0];
+        const D = __loreD, R = D.recent, mini = D.courses.find(c => c.id === 'mini') || D.courses[0];
         return '<div class="st-blk"><h2 class="st-h2">최근 구도</h2><p class="st-lead">' + esc(R.event) + '</p><div class="st-grid2">' + R.items.filter(i => i.tag !== '직전 구도').map(stRecCard).join('') + '</div></div>' +
           '<div class="st-blk"><h2 class="st-h2">직전 구도</h2><p class="st-lead">넘버링17로 이어진 올해의 흐름.</p><div class="st-grid2">' + R.items.filter(i => i.tag === '직전 구도').map(stRecCard).join('') + '</div></div>' +
           '<div class="st-blk"><h2 class="st-h2">' + esc(R.card.title) + '</h2><p class="st-lead">노란 줄은 타이틀전. 이름을 누르면 선수 카드가 열려요.</p><div class="st-list">' +
@@ -14044,8 +14114,11 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
           '<div class="st-blk"><h2 class="st-h2">처음이라면 이 순서로</h2><p class="st-lead">가장 짧은 코스부터 시작하세요.</p><div class="st-card"><b>' + esc(mini.name) + '</b><div class="st-d" style="margin-top:2px">' + esc(mini.desc) + '</div>' + stVids(mini.videos) + '</div></div>';
       },
       story() {
-        return '<div class="st-blk"><h2 class="st-h2">연대기</h2><p class="st-lead">검정의 첫 싸움부터 현재까지. 선수 이름을 누르면 상세 카드가 열려요.</p><div class="st-tl">' +
-          __loreD.chapters.map(c => '<div class="st-ch"><div class="st-per">' + esc(c.period) + '</div><h3>' + esc(c.title) + '</h3>' + (c.lines ? '<ul class="st-ln">' + c.lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul>' : stLn(c.summary)) + stBtns(c.fighters) + stVids(c.videos) + '</div>').join('') + '</div></div>';
+        const cs = __loreD.chapters, yr = c => (String(c.period).match(/\d{4}/) || ['기타'])[0];
+        const ys = ['전체'].concat([...new Set(cs.map(yr))]);
+        return '<div class="st-blk"><h2 class="st-h2">연대기</h2><p class="st-lead">검정의 첫 싸움부터 현재까지 ' + cs.length + '개의 장이다. 장을 눌러 하나씩 펼쳐 보세요.</p>' +
+          '<div class="st-seg" id="stYr">' + ys.map(y => '<button type="button" data-sty="' + y + '" class="' + (y === __stYear ? 'on' : '') + '">' + (y === '전체' ? '전체' : y + '년') + '</button>').join('') + '</div>' +
+          '<div class="st-cl" id="stChL">' + stChList() + '</div></div>';
       },
       fighters() {
         const divs = ['전체'].concat([...new Set(Object.values(__loreD.roster).map(r => r.div))]);
@@ -14058,23 +14131,28 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         return '<div class="st-blk"><h2 class="st-h2">역대 구도</h2><p class="st-lead">서사를 알고 보면 경기가 두 배로 재밌어져요.</p><div class="st-grid">' + __loreD.rivalries.map(stRiv).join('') + '</div></div>';
       },
       courses() {
-        return '<div class="st-blk"><h2 class="st-h2">추천 영상 코스</h2><p class="st-lead">목적에 맞는 코스를 골라 보세요.</p>' +
-          __loreD.courses.map(c => '<div class="st-card" style="margin-bottom:12px"><b>' + esc(c.name) + '</b><div class="st-d" style="margin-top:2px">' + esc(c.desc) + '</div>' + stVids(c.videos) + '</div>').join('') + '</div>';
+        return '<div class="st-blk"><h2 class="st-h2">추천 영상</h2><p class="st-lead">처음이라면 맨 위 핵심 영상 순서부터 시작하세요. 번호 순서대로 보면 됩니다.</p>' +
+          __loreD.courses.map(c => '<div class="st-card st-course"><div class="st-t" style="margin-top:0">' + esc(c.name) + (c.steps ? ' <span class="st-pill amber">' + c.steps.length + '편</span>' : '') + '</div><div class="st-d">' + esc(c.desc) + '</div>' +
+            (c.steps ? '<div class="st-steps">' + c.steps.map(stStep).join('') + '</div>' : stVids(c.videos)) + '</div>').join('') + '</div>';
       },
       records() {
         const D = __loreD;
-        return '<div class="st-blk"><h2 class="st-h2">주요 기록</h2><p class="st-lead">블랙컴뱃 역대 기록.</p><div class="st-grid">' +
-          (D.records || []).map(r => '<div class="st-card"><div class="st-r">' + esc(r.k) + '</div><div class="st-n">' + esc(r.who) + '</div><div class="st-d">' + esc(r.note) + '</div></div>').join('') + '</div></div>' +
-          '<div class="st-blk"><h2 class="st-h2">타이틀 이력</h2><p class="st-lead">반납과 박탈로 주인이 바뀐 벨트.</p><ul class="st-ln">' + (D.titles || []).map(t => '<li>' + esc(t) + '</li>').join('') + '</ul></div>';
+        return '<div class="st-blk"><h2 class="st-h2">주요 기록</h2><p class="st-lead">블랙컴뱃 역대 기록이다.</p><div class="st-grid">' +
+          (D.records || []).map(r => '<div class="st-card st-rc"><div class="st-r">' + esc(r.k) + '</div><div class="st-n">' + esc(r.who) + '</div><div class="st-d">' + esc(r.note) + '</div></div>').join('') + '</div></div>' +
+          '<div class="st-blk"><h2 class="st-h2">타이틀 이력</h2><p class="st-lead">반납과 박탈로 주인이 바뀐 벨트다.</p><div class="st-th">' +
+          (D.title_history || []).map(t => '<div class="st-thc ' + (t.kind === '박탈' ? 'lost' : 'ret') + '"><div class="st-thh"><span class="st-pill ' + (t.kind === '박탈' ? 'amber' : '') + '">' + esc(t.kind) + '</span>' + (t.when ? '<span class="st-thw">' + esc(t.when) + '</span>' : '') + '</div><div class="st-thb">' + esc(t.belt) + '</div><div class="st-thn">' + esc(t.who) + '</div><div class="st-d">' + esc(t.why) + '</div></div>').join('') + '</div></div>';
       },
       gloss() {
-        return '<div class="st-blk"><h2 class="st-h2">용어 정리</h2><dl class="st-gl">' + __loreD.glossary.map(g => '<dt>' + esc(g.term) + '</dt><dd>' + esc(g.desc) + '</dd>').join('') + '</dl></div>';
+        const g = __loreD.glossary, cats = [...new Set(g.map(x => x.cat))];
+        return '<div class="st-blk"><h2 class="st-h2">용어 정리</h2><p class="st-lead">경기를 보다 자주 나오는 말을 묶어 두었다.</p></div>' +
+          cats.map(c => '<div class="st-blk st-gb"><h3 class="st-h3">' + esc(c) + '</h3><div class="st-grid2">' +
+            g.filter(x => x.cat === c).map(x => '<div class="st-card st-gc"><div class="st-gt">' + esc(x.term) + '</div><div class="st-d">' + stLn(x.desc) + '</div></div>').join('') + '</div></div>').join('');
       }
     };
     async function viewStory(sub) {
       const __g = __navGen;
       const key = ST_VIEWS[sub] ? sub : 'home';
-      $app.innerHTML = '<div class="st"><div class="st-hero"><div class="st-eyebrow">BLACK COMBAT WORLD</div><h1 class="st-h1">블랙컴뱃 세계관</h1></div><div class="empty">불러오는 중…</div></div>';
+      $app.innerHTML = '<div class="st"><div class="st-hero"><div class="st-eyebrow">BLACK COMBAT WORLD</div><h1 class="st-h1">서사의 이해</h1></div><div class="empty">불러오는 중…</div></div>';
       try { await stLoad(); } catch (e) {
         if (navStale(__g)) return;
         $app.innerHTML = '<div class="st"><div class="empty">⚠️ 세계관 데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div></div>';
@@ -14086,7 +14164,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         const t = new Date(m.next_event.date).getTime();
         if (t > Date.now()) chips += '<span class="st-chip hot">' + esc(m.next_event.name) + ' D-' + Math.ceil((t - Date.now()) / 864e5) + '</span>';
       }
-      $app.innerHTML = '<div class="st"><div class="st-hero"><div class="st-eyebrow">BLACK COMBAT WORLD</div><h1 class="st-h1">블랙컴뱃 세계관</h1>' +
+      $app.innerHTML = '<div class="st"><div class="st-hero"><div class="st-eyebrow">BLACK COMBAT WORLD</div><h1 class="st-h1">서사의 이해</h1>' +
         '<p class="st-sub">처음 보는 팬부터 오래된 팬까지. 역사와 구도, 선수를 한곳에서.</p><div class="st-meta">' + chips + '</div></div>' +
         '<div class="st-tabs">' + STORY_TABS.map(t => '<a href="#/story' + (t[0] === 'home' ? '' : '/' + t[0]) + '" class="' + (t[0] === key ? 'on' : '') + '">' + t[1] + '</a>').join('') + '</div>' +
         ST_VIEWS[key]() + '</div>';
@@ -14095,6 +14173,10 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         $app.addEventListener('click', e => {
           if (!e.target.closest('.st')) return;
           const f = e.target.closest('[data-stf]'); if (f) { stOpen(f.dataset.stf); return; }
+          const c = e.target.closest('[data-stc]');
+          if (c) { __stOpen = (c.classList.contains('st-ch-h') && c.getAttribute('aria-expanded') === 'true') ? null : c.dataset.stc; const L = document.getElementById('stChL'); L.innerHTML = stChList(); const o = L.querySelector('.open'); if (o && o.scrollIntoView) o.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+          const y = e.target.closest('#stYr button');
+          if (y) { __stYear = y.dataset.sty; __stOpen = null; document.querySelectorAll('#stYr button').forEach(b => b.classList.toggle('on', b === y)); document.getElementById('stChL').innerHTML = stChList(); return; }
           const s = e.target.closest('#stSeg button');
           if (s) { __loreDiv = s.dataset.std; document.querySelectorAll('#stSeg button').forEach(b => b.classList.toggle('on', b === s)); document.getElementById('stFGrid').innerHTML = stFGrid(); }
         });
