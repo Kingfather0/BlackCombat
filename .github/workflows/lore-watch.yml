@@ -1,0 +1,40 @@
+name: 세계관 새 영상 감지
+
+on:
+  schedule:
+    # 정각 부근은 GitHub 서버가 붐비니 17분, 47분에 실행 (30분 간격)
+    - cron: '17,47 * * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: lore-watch
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: 새 영상 감지
+        env:
+          YOUTUBE_API_KEY: ${{ vars.YOUTUBE_API_KEY }}
+        run: node scripts/lore-watch.js
+      - name: 변경 시 커밋
+        run: |
+          if [ -z "$(git status --porcelain lore.json lore-updates.json)" ]; then
+            echo "변경 없음 - 커밋 생략"
+          else
+            git config user.name "lore-watch-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git pull --rebase origin main || true
+            git add lore.json lore-updates.json
+            git commit -m "세계관 새 영상 자동 등록 ($(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M'))"
+            git push
+          fi
