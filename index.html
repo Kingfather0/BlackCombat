@@ -14344,7 +14344,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
             g.filter(x => x.cat === c).map(x => '<div class="st-card st-gc"><div class="st-gts">' + String(x.term).split(/,\s*/).map(t => '<span class="st-gt">' + esc(t) + '</span>').join('') + '</div><div class="st-d">' + stLn(x.desc) + '</div></div>').join('') + '</div></div>').join('');
       }
     };
-    const stHeroHTML = chips => '<div class="st-hero"><div class="st-eyebrow">BLACK COMBAT WORLD</div><div class="st-hrow"><h1 class="st-h1">서사의 이해</h1><div class="st-meta">' + (chips || '') + '</div></div><p class="st-sub">처음 보는 팬부터 오래된 팬까지. 역사와 구도, 선수를 한곳에서.</p></div>';
+    const stHeroHTML = chips => '<div class="st-hero"><div class="st-eyebrow">BLACK COMBAT STORY</div><div class="st-hrow"><h1 class="st-h1">서사의 이해</h1><div class="st-meta">' + (chips || '') + '</div></div><p class="st-sub">처음 보는 팬부터 오래된 팬까지</p></div>';
     function stChips() {
       const m = __loreD.meta; let c = '<span class="st-chip">갱신 ' + esc(m.updated) + '</span>';
       if (m.next_event) { const t = new Date(m.next_event.date).getTime(); if (t > Date.now()) c += '<span class="st-chip hot">' + esc(m.next_event.name) + ' D-' + Math.ceil((t - Date.now()) / 864e5) + '</span>'; }
@@ -14375,7 +14375,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       if (sub === 'fighters') { location.replace('#/fighters'); return; }
       if (sub === 'rivals' || sub === 'records') sub = '';
       const key = ST_VIEWS[sub] ? sub : 'home';
-      $app.innerHTML = '<div class="st"><div class="st-hero"><div class="st-eyebrow">BLACK COMBAT WORLD</div><h1 class="st-h1">서사의 이해</h1></div><div class="empty">불러오는 중…</div></div>';
+      $app.innerHTML = '<div class="st"><div class="st-hero"><div class="st-eyebrow">BLACK COMBAT STORY</div><h1 class="st-h1">서사의 이해</h1></div><div class="empty">불러오는 중…</div></div>';
       try { await stLoad(); } catch (e) {
         if (navStale(__g)) return;
         $app.innerHTML = '<div class="st"><div class="empty">⚠️ 세계관 데이터를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</div></div>';
