@@ -12941,7 +12941,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-th { display: block; }
     .st-hot { position: absolute; left: 8px; top: 8px; z-index: 1; font-style: normal; font-size: 10px; font-weight: 700; line-height: 1.4; color: #fff; background: var(--red, #e5484d); border-radius: 4px; padding: 2px 6px; }
         .st .st-ph-h .st-chev { margin-left: auto; }
-    .st .st-hot.st-hot-i { position: static; display: inline-block; margin-left: 8px; align-self: center; }
+    .st .st-hot.st-hot-i { position: static; display: inline-block; margin-left: -4px; align-self: center; }
 .st-step .st-th img { width: 100%; }
     @media (max-width: 640px) { .st-step .st-th { grid-column: 2; width: 100%; max-width: 220px; } }
 
@@ -12967,7 +12967,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-cr.main > .st-ch-h small.pl { background: var(--st-amber); color: #3d2a00; }
     .st-cr.main > .st-ch-h .st-chev { border-color: #aaa; }
     .st-cr.main.open { background: #fff; border: .625px solid #111; }
-    .st-tg { display: inline-block; font-size: 11px; line-height: 1; padding: 3px 6px; margin-left: 4px; white-space: nowrap; vertical-align: middle; background: #fdf0cf; border-radius: 999px; }
+    .st-tg { display: inline-flex; align-items: center; justify-content: center; width: 19px; height: 19px; margin-left: 6px; vertical-align: middle; background: #111; border-radius: 50%; flex: none; }
     .frow .fnm { white-space: nowrap; }
     .st-allb { margin-left: auto; background: #fff; border: .625px solid var(--st-hair2); color: var(--st-muted); border-radius: 999px; padding: 5px 13px; font-size: 13px; font-weight: 700; cursor: pointer; }
     .st-allb.on { background: #111; color: #fff; border-color: #111; }
@@ -14301,7 +14301,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       document.querySelectorAll('#app .frow .fnm').forEach(el => {
         if (el.querySelector('.st-tag')) return;
         const n = Array.from(el.childNodes).filter(x => x.nodeType === 3).map(x => x.textContent).join('').trim();
-        if (has.has(n)) el.insertAdjacentHTML('beforeend', ' <span class="st-tg" title="서사가 있는 선수">📖</span>');
+        if (has.has(n)) el.insertAdjacentHTML('beforeend', ' <span class="st-tg" title="서사가 있는 선수" aria-label="서사가 있는 선수"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="#fff" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M2 3.5c2-.8 4-.8 6 .6 2-1.4 4-1.4 6-.6v9c-2-.8-4-.8-6 .6-2-1.4-4-1.4-6-.6z"/><path d="M8 4.1v9"/></svg></span>');
       });
     }
     const ST_VIEWS = {
