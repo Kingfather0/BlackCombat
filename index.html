@@ -12940,7 +12940,9 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-v, .st-th { position: relative; }
     .st-th { display: block; }
     .st-hot { position: absolute; left: 8px; top: 8px; z-index: 1; font-style: normal; font-size: 10px; font-weight: 700; line-height: 1.4; color: #fff; background: var(--red, #e5484d); border-radius: 4px; padding: 2px 6px; }
-    .st-step .st-th img { width: 100%; }
+        .st .st-ph-h .st-chev { margin-left: auto; }
+    .st .st-hot.st-hot-i { position: static; display: inline-block; margin-left: 8px; align-self: center; }
+.st-step .st-th img { width: 100%; }
     @media (max-width: 640px) { .st-step .st-th { grid-column: 2; width: 100%; max-width: 220px; } }
 
 
@@ -14213,7 +14215,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       const cs = __loreD.courses, V = __loreD.videos || {};
       const row = c => {
         const on = c.id === __stCrs, ids = c.steps ? c.steps.map(x => x.v) : c.videos, n = ids.length, min = c.steps ? (c.steps.some(x => x.pl) ? 0 : c.steps.reduce((a, x) => a + ((V[x.v] || {}).m || 0), 0)) : ids.reduce((a, id) => a + ((V[id] || {}).m || 0), 0);
-        let h = '<div class="st-cr' + (on ? ' open' : '') + (c.id === 'road' ? ' main' : '') + '"><button type="button" class="st-ch-h" data-stcs="' + c.id + '" aria-expanded="' + on + '"><span class="st-ch-t"><small class="pl">' + n + '편' + (min ? ' / 약 ' + (min >= 60 ? Math.floor(min / 60) + '시간 ' + (min % 60 ? min % 60 + '분' : '') : min + '분') : '') + '</small><b>' + esc(c.name) + '</b></span><span class="st-chev"></span></button>';
+        let h = '<div class="st-cr' + (on ? ' open' : '') + (c.id === 'road' ? ' main' : '') + '"><button type="button" class="st-ch-h" data-stcs="' + c.id + '" aria-expanded="' + on + '"><span class="st-ch-t">' + (c.id === 'road' ? '<small class="pl">' + n + '편' + (min ? ' / 약 ' + (min >= 60 ? Math.floor(min / 60) + '시간 ' + (min % 60 ? min % 60 + '분' : '') : min + '분') : '') + '</small>' : '') + '<b>' + esc(c.name) + '</b></span><span class="st-chev"></span></button>';
         if (on) {
           h += '<div class="st-ch-b"><p class="st-p st-cd">' + esc(c.desc) + '</p>';
           if (c.steps) {
@@ -14222,7 +14224,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
             const po = __stPh[c.id] == null ? -1 : __stPh[c.id];
             h += ph.map((p, pi) => {
               const o = pi === po, pm = p.items.reduce((a, [x]) => a + (x.pl ? 0 : ((V[x.v] || {}).m || 0)), 0);
-              return '<div class="st-ph2' + (o ? ' open' : '') + '"><button type="button" class="st-ph-h" data-stph="' + c.id + ':' + pi + '" aria-expanded="' + o + '"><b>' + esc(p.n) + '</b><small>' + p.items.length + '편' + (pm ? ' / ' + pm + '분' : '') + '</small><span class="st-chev"></span></button>' +
+              return '<div class="st-ph2' + (o ? ' open' : '') + '"><button type="button" class="st-ph-h" data-stph="' + c.id + ':' + pi + '" aria-expanded="' + o + '"><b>' + esc(p.n) + '</b>' + (c.id === 'audition' && p.items.some(([x]) => x.hot === true || (x.hot !== false && !x.pl && (__loreD.hot || []).indexOf(x.v) >= 0)) ? '<i class="st-hot st-hot-i">추천</i>' : '') + '' + (c.id === 'road' ? '<small>' + p.items.length + '편' + (pm ? ' / ' + pm + '분' : '') + '</small>' : '') + '<span class="st-chev"></span></button>' +
                 (o ? '<div class="st-steps">' + p.items.map(([x, i]) => stStep(x, i)).join('') + '</div>' : '') + '</div>';
             }).join('');
           } else h += stVids(c.videos);
