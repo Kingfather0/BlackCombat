@@ -1328,7 +1328,8 @@
     {
      "v": "QaoLnY_hvOc",
      "note": "프로오디션 1~12화를 한 번에 보는 전체보기다. 폐교회에서 벌어진 첫 서바이벌의 전체 흐름이다.",
-     "ph": "폐교회"
+     "ph": "폐교회",
+     "hot": true
     },
     {
      "v": "dV1HbIh3yOA",
@@ -1359,7 +1360,8 @@
      "pl": "PL2nmb04FHLkjh2O6dy5RA6aDh5LvZysq7",
      "t": "프로오디션4 몰아보기",
      "note": "실미도에 끌려간 18명의 격투기 선수들이 벌이는 서바이벌의 전 에피소드를 이어 보는 재생목록이다.",
-     "ph": "실미도"
+     "ph": "실미도",
+     "hot": true
     },
     {
      "v": "5E4_GyNL1_Y",
@@ -1404,12 +1406,14 @@
      "pl": "PL2nmb04FHLkji73ETZpS_kvwSCRaK7pYU",
      "t": "브라질 프로오디션 몰아보기",
      "note": "브라질에서 열린 서바이벌 편의 전 에피소드를 이어 보는 재생목록이다.",
-     "ph": "갓파더게임"
+     "ph": "갓파더게임",
+     "hot": true
     },
     {
      "v": "sdNzVgs18v8",
      "note": "폭력이 허용되는 머니게임 서바이벌의 첫 편이다.",
-     "ph": "머니게임"
+     "ph": "머니게임",
+     "hot": false
     }
    ],
    "videos": [
@@ -4027,7 +4031,6 @@
   "oWU5z4ATStk",
   "qeKbrQmLa6w",
   "qqZPvR5gSeU",
-  "sdNzVgs18v8",
   "vQQ8LH5wZX8"
  ]
 }

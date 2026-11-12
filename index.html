@@ -12946,7 +12946,8 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 
     .st .st-gcat { color: #111; }
     .st .st-sel select { height: 28px; padding: 0 28px 0 12px; font-size: 12.5px; line-height: 28px; }
-    .st .st-yr .st-sortb { width: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+    .st .st-yr .st-allb.st-sortb { width: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; color: #111; }
+    .st .st-sortb svg { flex: none; width: 20px; height: 20px; stroke: #111; stroke-width: 1.9; }
     .st .st-yr .st-sortb { margin-left: auto; }
     .st .st-yr .st-sortb + .st-allb { margin-left: 0; }
     .st .st-yr .st-allb { height: 28px; padding: 0 12px; font-size: 12.5px; line-height: 28px; }
@@ -14206,7 +14207,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     function stStep(s, i) {
       const v = (__loreD.videos || {})[s.v] || { t: s.v, m: 0 }, p = !!s.pl, ttl = p ? s.t : v.t;
       const href = p ? 'https://www.youtube.com/playlist?list=' + s.pl : 'https://youtu.be/' + s.v;
-      return '<a class="st-step" data-stv="' + s.v + '"' + (p ? ' data-pl="' + s.pl + '" data-ptitle="' + esc(s.t) + '"' : '') + ' data-note="' + esc(s.note || '') + '" href="' + href + '" target="_blank" rel="noopener"><span class="st-sn">' + (i + 1) + '</span><span class="st-th">' + (!p && (__loreD.hot || []).indexOf(s.v) >= 0 ? '<i class="st-hot">추천</i>' : '') + '<img loading="lazy" src="https://i.ytimg.com/vi/' + s.v + '/mqdefault.jpg" alt=""></span><span class="st-sb"><b>' + esc(ttl) + '</b>' + (p ? '<em>몰아보기 재생목록</em>' : (v.m ? '<em>' + stMin(v.m) + '</em>' : '')) + '<span>' + esc(s.note) + '</span></span></a>';
+      return '<a class="st-step" data-stv="' + s.v + '"' + (p ? ' data-pl="' + s.pl + '" data-ptitle="' + esc(s.t) + '"' : '') + ' data-note="' + esc(s.note || '') + '" href="' + href + '" target="_blank" rel="noopener"><span class="st-sn">' + (i + 1) + '</span><span class="st-th">' + (s.hot === true || (s.hot !== false && !p && (__loreD.hot || []).indexOf(s.v) >= 0) ? '<i class="st-hot">추천</i>' : '') + '<img loading="lazy" src="https://i.ytimg.com/vi/' + s.v + '/mqdefault.jpg" alt=""></span><span class="st-sb"><b>' + esc(ttl) + '</b>' + (p ? '<em>몰아보기 재생목록</em>' : (v.m ? '<em>' + stMin(v.m) + '</em>' : '')) + '<span>' + esc(s.note) + '</span></span></a>';
     }
     function stCourses() {
       const cs = __loreD.courses, V = __loreD.videos || {};
