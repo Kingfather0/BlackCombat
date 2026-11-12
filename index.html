@@ -12918,6 +12918,26 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-rc .st-n { font-size: 18px; margin: 2px 0; }
     .st-gt { font-size: 17px; font-weight: 800; letter-spacing: -.3px; padding-bottom: 8px; margin-bottom: 4px; border-bottom: .625px solid var(--st-hair); }
     .st-gc .st-d { margin-top: 6px; }
+    .st-h2 { border-left: 0; padding-left: 0; }
+    .st-thc, .st-thc.lost { border-left: .625px solid rgba(0, 0, 0, .05); }
+    .st-tabs { flex-wrap: wrap; overflow: visible; }
+    .st-seg { flex-wrap: wrap; overflow: visible; }
+    .st-g3 { display: grid; gap: 12px; grid-template-columns: repeat(3, 1fr); }
+    .st-go { display: block; color: #111; text-decoration: none; }
+    .st-go b { display: block; font-size: 15px; margin-bottom: 3px; }
+    .st-go span { color: var(--st-muted); font-size: 13px; }
+    .st-lk { color: var(--st-amber-text); font-weight: 700; text-decoration: underline; }
+    .st-cd { color: var(--st-muted); margin: 2px 0 12px; }
+    .st-ph2 { border: .625px solid var(--st-hair); border-radius: 10px; margin-top: 8px; background: #fff; overflow: hidden; }
+    .st-ph2.open { border-color: var(--st-hair2); }
+    .st-ph-h { width: 100%; display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: #f6f6f8; border: 0; font: inherit; cursor: pointer; text-align: left; color: #111; }
+    .st-ph-h b { font-size: 14.5px; font-weight: 800; }
+    .st-ph-h small { margin-left: auto; color: var(--st-dim); font-size: 12px; font-weight: 700; }
+    .st-cr.open .st-ph-h .st-chev { transform: rotate(45deg); }
+    .st-cr.open .st-ph2.open .st-ph-h .st-chev { transform: rotate(-135deg); }
+    .st-ph2 .st-steps { margin: 0; padding: 10px; }
+    @media (max-width: 900px) { .st-g3 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px) { .st-g3 { grid-template-columns: 1fr; } .st-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; } .st-tabs a { padding: 9px 2px; text-align: center; font-size: 13px; } .st-seg button { padding: 6px 11px; } .st-ch-b { padding: 0 12px 14px; } }
     @media (max-width: 640px) { .st-ch-b { padding: 0 14px 14px; } .st-step { grid-template-columns: 26px 1fr; } .st-step img { grid-column: 2; width: 100%; max-width: 220px; } .st-sn { grid-row: 1 / span 2; align-self: start; } .st-sb { grid-column: 2; } .st-h2 { font-size: 19px; } }
   </style>
 </head>
@@ -14018,8 +14038,8 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 
     /* ---------- 스토리(블랙컴뱃 세계관 스토리) ----------
        lore.json(같은 저장소의 정적 파일)을 읽어 #/story 안에서 그린다. Supabase는 쓰지 않는다. */
-    const STORY_TABS = [['home', '최근 구도'], ['story', '연대기'], ['fighters', '선수 사전'], ['rivals', '구도'], ['courses', '추천 영상'], ['gloss', '용어'], ['records', '기록']];
-    let __loreD = null, __loreAt = 0, __loreDiv = '전체', __stYear = '전체', __stOpen = null;
+    const STORY_TABS = [['home', '이번 대회'], ['story', '연대기'], ['fighters', '선수 사전'], ['rivals', '라이벌'], ['courses', '추천 영상'], ['gloss', '용어'], ['records', '기록']];
+    let __loreD = null, __loreAt = 0, __loreDiv = '전체', __stYear = '전체', __stOpen = null, __stCrs = 'road', __stPh = {};
     async function stLoad() {
       if (__loreD && Date.now() - __loreAt < 6e5) return __loreD;
       const r = await fetch('lore.json?v=' + Math.floor(Date.now() / 36e5));
@@ -14053,7 +14073,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     function stFGrid() {
       const D = __loreD, q = ((document.getElementById('stQ') || {}).value || '').trim().toLowerCase();
       const list = Object.entries(D.roster).filter(([n, r]) => {
-        if (__loreDiv !== '전체' && r.div !== __loreDiv) return false;
+        if (__loreDiv === '챔피언' ? r.rank !== 'C' : (__loreDiv !== '전체' && r.div !== __loreDiv)) return false;
         return !q || n.toLowerCase().includes(q) || String(r.real).toLowerCase().includes(q);
       }).sort((a, b) => {
         const f = x => x[1].rank === 'C' ? 0 : (parseInt(x[1].rank) || 999);
@@ -14100,18 +14120,39 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     }
     function stStep(s, i) {
       const v = (__loreD.videos || {})[s.v] || { t: s.v, m: 0 };
-      return (s.ph ? '<div class="st-ph">' + esc(s.ph) + '</div>' : '') + '<a class="st-step" href="https://youtu.be/' + s.v + '" target="_blank" rel="noopener"><span class="st-sn">' + (i + 1) + '</span><img loading="lazy" src="https://i.ytimg.com/vi/' + s.v + '/mqdefault.jpg" alt=""><span class="st-sb"><b>' + esc(v.t) + '</b>' + (v.m ? '<em>' + v.m + '분</em>' : '') + '<span>' + esc(s.note) + '</span></span></a>';
+      return '<a class="st-step" href="https://youtu.be/' + s.v + '" target="_blank" rel="noopener"><span class="st-sn">' + (i + 1) + '</span><img loading="lazy" src="https://i.ytimg.com/vi/' + s.v + '/mqdefault.jpg" alt=""><span class="st-sb"><b>' + esc(v.t) + '</b>' + (v.m ? '<em>' + v.m + '분</em>' : '') + '<span>' + esc(s.note) + '</span></span></a>';
+    }
+    function stCourses() {
+      const cs = __loreD.courses, V = __loreD.videos || {};
+      return cs.map(c => {
+        const on = c.id === __stCrs, ids = c.steps ? c.steps.map(x => x.v) : c.videos, n = ids.length, min = ids.reduce((a, id) => a + ((V[id] || {}).m || 0), 0);
+        let h = '<div class="st-cr' + (on ? ' open' : '') + '"><button type="button" class="st-ch-h" data-stcs="' + c.id + '" aria-expanded="' + on + '"><span class="st-no2">' + (c.steps ? '순' : '목') + '</span><span class="st-ch-t"><small>' + n + '편' + (min ? ' / 약 ' + (min >= 60 ? Math.floor(min / 60) + '시간 ' + (min % 60 ? min % 60 + '분' : '') : min + '분') : '') + '</small><b>' + esc(c.name) + '</b></span><span class="st-chev"></span></button>';
+        if (on) {
+          h += '<div class="st-ch-b"><p class="st-p st-cd">' + esc(c.desc) + '</p>';
+          if (c.steps) {
+            const ph = [];
+            c.steps.forEach((x, i) => { if (x.ph || !ph.length) ph.push({ n: x.ph || '전체', items: [] }); ph[ph.length - 1].items.push([x, i]); });
+            const po = __stPh[c.id] == null ? 0 : __stPh[c.id];
+            h += ph.map((p, pi) => {
+              const o = pi === po, pm = p.items.reduce((a, [x]) => a + ((V[x.v] || {}).m || 0), 0);
+              return '<div class="st-ph2' + (o ? ' open' : '') + '"><button type="button" class="st-ph-h" data-stph="' + c.id + ':' + pi + '" aria-expanded="' + o + '"><b>' + esc(p.n) + '</b><small>' + p.items.length + '편' + (pm ? ' / ' + pm + '분' : '') + '</small><span class="st-chev"></span></button>' +
+                (o ? '<div class="st-steps">' + p.items.map(([x, i]) => stStep(x, i)).join('') + '</div>' : '') + '</div>';
+            }).join('');
+          } else h += stVids(c.videos);
+          h += '</div>';
+        }
+        return h + '</div>';
+      }).join('');
     }
     const ST_VIEWS = {
       home() {
-        const D = __loreD, R = D.recent, mini = D.courses.find(c => c.id === 'mini') || D.courses[0];
-        return '<div class="st-blk"><h2 class="st-h2">최근 구도</h2><p class="st-lead">' + esc(R.event) + '</p><div class="st-grid2">' + R.items.filter(i => i.tag !== '직전 구도').map(stRecCard).join('') + '</div></div>' +
-          '<div class="st-blk"><h2 class="st-h2">직전 구도</h2><p class="st-lead">넘버링17로 이어진 올해의 흐름.</p><div class="st-grid2">' + R.items.filter(i => i.tag === '직전 구도').map(stRecCard).join('') + '</div></div>' +
-          '<div class="st-blk"><h2 class="st-h2">' + esc(R.card.title) + '</h2><p class="st-lead">노란 줄은 타이틀전. 이름을 누르면 선수 카드가 열려요.</p><div class="st-list">' +
-          R.card.matches.slice().reverse().map(m => '<div class="st-row' + (m.title ? ' tt' : '') + '"><div class="st-no">' + m.n + '</div><div class="st-dv">' + esc(m.div) + (m.title ? ' 타이틀' : '') + '</div><div class="st-vs">' + stSide(m.a) + '<span class="st-x2">VS</span>' + stSide(m.b) + '</div></div>').join('') + '</div></div>' +
-          '<div class="st-blk"><h2 class="st-h2">현재 챔피언</h2><p class="st-lead">' + esc(D.champions.snapshot) + ' 기준</p><div class="st-grid">' +
-          D.champions.list.map(c => '<div class="st-card st-champ"><div class="dv">' + esc(c.division) + '</div><div class="nm">' + esc(c.name) + '</div><div class="rc">' + esc(c.record || '타이틀 공석') + '</div></div>').join('') + '</div></div>' +
-          '<div class="st-blk"><h2 class="st-h2">처음이라면 이 순서로</h2><p class="st-lead">가장 짧은 코스부터 시작하세요.</p><div class="st-card"><b>' + esc(mini.name) + '</b><div class="st-d" style="margin-top:2px">' + esc(mini.desc) + '</div>' + stVids(mini.videos) + '</div></div>';
+        const D = __loreD, R = D.recent;
+        return '<div class="st-blk"><h2 class="st-h2">이번 대회 구도</h2><p class="st-lead">' + esc(R.event) + '</p><div class="st-grid2">' + R.items.filter(i => i.tag !== '직전 구도').map(stRecCard).join('') + '</div></div>' +
+          '<div class="st-blk"><h2 class="st-h2">직전 구도</h2><p class="st-lead">이번 대회로 이어진 올해의 흐름이다.</p><div class="st-grid2">' + R.items.filter(i => i.tag === '직전 구도').map(stRecCard).join('') + '</div></div>' +
+          '<div class="st-blk"><h2 class="st-h2">함께 보기</h2><div class="st-grid">' +
+          '<a class="st-card st-go" href="#/matches"><b>대진표와 승부예측</b><span>' + esc(R.card.title) + ' 전체 대진을 확인해요.</span></a>' +
+          '<a class="st-card st-go" href="#/jokbo"><b>선수 랭킹과 족보</b><span>체급별 랭킹, 업적, 족보를 볼 수 있어요.</span></a>' +
+          '<a class="st-card st-go" href="#/story/courses"><b>핵심 영상 순서</b><span>처음이라면 이 순서대로 보세요.</span></a></div></div>';
       },
       story() {
         const cs = __loreD.chapters, yr = c => (String(c.period).match(/\d{4}/) || ['기타'])[0];
@@ -14121,19 +14162,17 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
           '<div class="st-cl" id="stChL">' + stChList() + '</div></div>';
       },
       fighters() {
-        const divs = ['전체'].concat([...new Set(Object.values(__loreD.roster).map(r => r.div))]);
-        return '<div class="st-blk"><h2 class="st-h2">선수 사전</h2><p class="st-lead">선수 ' + Object.keys(__loreD.roster).length + '명. 누르면 상세와 관련 영상이 열려요.</p>' +
+        const divs = ['전체', '챔피언'].concat([...new Set(Object.values(__loreD.roster).map(r => r.div))]);
+        return '<div class="st-blk"><h2 class="st-h2">선수 사전</h2><p class="st-lead">선수 ' + Object.keys(__loreD.roster).length + '명. 누르면 상세와 관련 영상이 열려요. 랭킹과 업적은 <a href="#/jokbo" class="st-lk">선수 메뉴</a>에서 볼 수 있어요.</p>' +
           '<input type="search" id="stQ" class="st-search" placeholder="별명 또는 이름 검색">' +
           '<div class="st-seg" id="stSeg">' + divs.map(d => '<button type="button" data-std="' + esc(d) + '" class="' + (d === __loreDiv ? 'on' : '') + '">' + esc(d) + '</button>').join('') + '</div>' +
           '<div class="st-grid" id="stFGrid">' + stFGrid() + '</div></div>';
       },
       rivals() {
-        return '<div class="st-blk"><h2 class="st-h2">역대 구도</h2><p class="st-lead">서사를 알고 보면 경기가 두 배로 재밌어져요.</p><div class="st-grid">' + __loreD.rivalries.map(stRiv).join('') + '</div></div>';
+        return '<div class="st-blk"><h2 class="st-h2">라이벌 계보</h2><p class="st-lead">오래 이어진 맞대결과 악연이에요. 서사를 알고 보면 경기가 두 배로 재밌어져요.</p><div class="st-grid">' + __loreD.rivalries.map(stRiv).join('') + '</div></div>';
       },
       courses() {
-        return '<div class="st-blk"><h2 class="st-h2">추천 영상</h2><p class="st-lead">처음이라면 맨 위 핵심 영상 순서부터 시작하세요. 번호 순서대로 보면 됩니다.</p>' +
-          __loreD.courses.map(c => '<div class="st-card st-course"><div class="st-t" style="margin-top:0">' + esc(c.name) + (c.steps ? ' <span class="st-pill amber">' + c.steps.length + '편</span>' : '') + '</div><div class="st-d">' + esc(c.desc) + '</div>' +
-            (c.steps ? '<div class="st-steps">' + c.steps.map(stStep).join('') + '</div>' : stVids(c.videos)) + '</div>').join('') + '</div>';
+        return '<div class="st-blk"><h2 class="st-h2">추천 영상</h2><p class="st-lead">처음이라면 맨 위 핵심 영상 순서부터 시작하세요. 코스를 눌러 펼치고, 단계 순서대로 보면 돼요.</p><div class="st-cl" id="stCrs">' + stCourses() + '</div></div>';
       },
       records() {
         const D = __loreD;
@@ -14145,7 +14184,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       gloss() {
         const g = __loreD.glossary, cats = [...new Set(g.map(x => x.cat))];
         return '<div class="st-blk"><h2 class="st-h2">용어 정리</h2><p class="st-lead">경기를 보다 자주 나오는 말을 묶어 두었다.</p></div>' +
-          cats.map(c => '<div class="st-blk st-gb"><h3 class="st-h3">' + esc(c) + '</h3><div class="st-grid2">' +
+          cats.map(c => '<div class="st-blk st-gb"><h3 class="st-h3">' + esc(c) + '</h3><div class="st-g3">' +
             g.filter(x => x.cat === c).map(x => '<div class="st-card st-gc"><div class="st-gt">' + esc(x.term) + '</div><div class="st-d">' + stLn(x.desc) + '</div></div>').join('') + '</div></div>').join('');
       }
     };
@@ -14175,6 +14214,10 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
           const f = e.target.closest('[data-stf]'); if (f) { stOpen(f.dataset.stf); return; }
           const c = e.target.closest('[data-stc]');
           if (c) { __stOpen = (c.classList.contains('st-ch-h') && c.getAttribute('aria-expanded') === 'true') ? null : c.dataset.stc; const L = document.getElementById('stChL'); L.innerHTML = stChList(); const o = L.querySelector('.open'); if (o && o.scrollIntoView) o.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+          const cs = e.target.closest('[data-stcs]');
+          if (cs) { __stCrs = cs.getAttribute('aria-expanded') === 'true' ? null : cs.dataset.stcs; document.getElementById('stCrs').innerHTML = stCourses(); const o = document.querySelector('#stCrs .open'); if (o && o.scrollIntoView) o.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+          const ph = e.target.closest('[data-stph]');
+          if (ph) { const p = ph.dataset.stph.split(':'); __stPh[p[0]] = ph.getAttribute('aria-expanded') === 'true' ? -1 : +p[1]; document.getElementById('stCrs').innerHTML = stCourses(); return; }
           const y = e.target.closest('#stYr button');
           if (y) { __stYear = y.dataset.sty; __stOpen = null; document.querySelectorAll('#stYr button').forEach(b => b.classList.toggle('on', b === y)); document.getElementById('stChL').innerHTML = stChList(); return; }
           const s = e.target.closest('#stSeg button');
