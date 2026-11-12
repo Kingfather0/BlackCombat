@@ -1461,8 +1461,8 @@
   },
   {
    "id": "now",
-   "name": "현재 구도",
-   "desc": "지금 챔피언과 최근 흐름",
+   "name": "최신 흐름",
+   "desc": "지금 챔피언과 최근 경기 흐름",
    "videos": [
     "3VzqH_Ny2W4",
     "dAukyNGuj8U",
