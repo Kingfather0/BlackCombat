@@ -14074,9 +14074,10 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     const stKey = n => (__loreD.aliases && __loreD.aliases[n]) || n;
     const stRoster = n => __loreD.roster[stKey(n)] || null;
     const stEntry = n => __loreD.fighters.find(f => f.nick === n) || null;
+    const stMin = m => m >= 60 ? Math.floor(m / 60) + '시간 ' + (m % 60 ? (m % 60) + '분' : '') : m + '분';
     const stVid = id => {
       const v = (__loreD.videos || {})[id] || { t: id, m: 0 };
-      return '<a class="st-v" href="https://youtu.be/' + id + '" target="_blank" rel="noopener"><img loading="lazy" src="https://i.ytimg.com/vi/' + id + '/mqdefault.jpg" alt=""><span>' + esc(v.t) + (v.m ? ' <em>' + v.m + '분</em>' : '') + '</span></a>';
+      return '<a class="st-v" href="https://youtu.be/' + id + '" target="_blank" rel="noopener"><img loading="lazy" src="https://i.ytimg.com/vi/' + id + '/mqdefault.jpg" alt=""><span>' + esc(v.t) + (v.m ? ' <em>' + stMin(v.m) + '</em>' : '') + '</span></a>';
     };
     const stVids = ids => ids && ids.length ? '<div class="st-vids">' + ids.map(stVid).join('') + '</div>' : '';
     const stLn = t => { const a = String(t || '').replace(/([다요])\.\s+/g, '$1.\n').split('\n').filter(Boolean); return a.length > 2 ? '<ul class="st-ln">' + a.map(s => '<li>' + esc(s) + '</li>').join('') + '</ul>' : '<p class="st-p">' + esc(t) + '</p>'; };
@@ -14148,7 +14149,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     }
     function stStep(s, i) {
       const v = (__loreD.videos || {})[s.v] || { t: s.v, m: 0 };
-      return '<a class="st-step" href="https://youtu.be/' + s.v + '" target="_blank" rel="noopener"><span class="st-sn">' + (i + 1) + '</span><img loading="lazy" src="https://i.ytimg.com/vi/' + s.v + '/mqdefault.jpg" alt=""><span class="st-sb"><b>' + esc(v.t) + '</b>' + (v.m ? '<em>' + v.m + '분</em>' : '') + '<span>' + esc(s.note) + '</span></span></a>';
+      return '<a class="st-step" href="https://youtu.be/' + s.v + '" target="_blank" rel="noopener"><span class="st-sn">' + (i + 1) + '</span><img loading="lazy" src="https://i.ytimg.com/vi/' + s.v + '/mqdefault.jpg" alt=""><span class="st-sb"><b>' + esc(v.t) + '</b>' + (v.m ? '<em>' + stMin(v.m) + '</em>' : '') + '<span>' + esc(s.note) + '</span></span></a>';
     }
     function stCourses() {
       const cs = __loreD.courses, V = __loreD.videos || {};
@@ -14242,12 +14243,12 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         const D = __loreD, R = D.recent;
         return '<div class="st-blk"><h2 class="st-h2">최신 흐름</h2><p class="st-lead">' + esc(R.event) + '</p><div class="st-grid2">' + R.items.filter(i => i.tag !== '직전 구도').map(stRecCard).join('') + '</div></div>' +
           '<div class="st-blk"><h2 class="st-h2">직전 구도</h2><p class="st-lead">이번 대회로 이어진 올해의 흐름이다.</p><div class="st-grid2">' + R.items.filter(i => i.tag === '직전 구도').map(stRecCard).join('') + '</div></div>' +
-          '<div class="st-blk"><h2 class="st-h2">역대 구도</h2><p class="st-lead">오래 이어진 맞대결과 악연이에요. 서사를 알고 보면 경기가 두 배로 재밌어져요.</p><div class="st-grid">' + D.rivalries.map(stRiv).join('') + '</div></div>';
+          '<div class="st-blk"><h2 class="st-h2">역대 구도</h2><p class="st-lead">오래 이어진 맞대결과 악연이에요. 서사를 알고 보면 경기가 두 배로 재밌어져요.</p><div class="st-grid2">' + D.rivalries.map(stRiv).join('') + '</div></div>';
       },
       story() {
         const cs = __loreD.chapters, yr = c => (String(c.period).match(/\d{4}/) || ['기타'])[0];
         const ys = ['전체'].concat([...new Set(cs.map(yr))]);
-        return '<div class="st-blk"><h2 class="st-h2">연대기</h2><p class="st-lead">검정의 첫 싸움부터 현재까지 ' + cs.length + '개의 장이다. 선수 이름을 누르면 상세 카드가 열려요.</p>' +
+        return '<div class="st-blk"><h2 class="st-h2">연대기</h2><p class="st-lead">검정의 첫 싸움부터 현재까지 총 ' + cs.length + '개의 장</p>' +
           '<div class="st-yr" id="stYr"><label class="st-sel"><select id="stYrSel" aria-label="연도 선택">' + ys.map(y => '<option value="' + y + '"' + (y === __stYear ? ' selected' : '') + '>' + (y === '전체' ? '전체 연도' : y + '년') + '</option>').join('') + '</select></label><button type="button" id="stAll" class="st-allb">' + (__stList ? '타임라인으로 보기' : '목록으로 보기') + '</button></div>' +
           '<div class="st-cl" id="stChL">' + stChList() + '</div></div>';
       },
