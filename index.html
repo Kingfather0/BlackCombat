@@ -12923,6 +12923,23 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-sel:after { content: ""; position: absolute; right: 14px; top: 50%; width: 6px; height: 6px; margin-top: -5px; border-right: 2px solid var(--st-dim); border-bottom: 2px solid var(--st-dim); transform: rotate(45deg); pointer-events: none; }
     .st-yr .st-allb { margin-left: auto; }
     #stCrs .st-ch-b { padding: 2px 14px 14px; }
+    dialog.st-prev { max-width: 420px; padding: 14px; }
+    dialog.st-prev img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px; display: block; background: #eee; }
+    .st-pv-t { font-size: 15px; font-weight: 700; margin-top: 12px; line-height: 1.45; }
+    .st-pv-m { font-size: 12.5px; color: #5f5f66; margin-top: 4px; }
+    .st-pv-n { font-size: 13.5px; margin-top: 8px; line-height: 1.55; }
+    .st-pv-b { display: flex; gap: 8px; margin-top: 14px; }
+    .st-pv-b button, .st-pv-b a { flex: 1; height: 40px; border-radius: 10px; border: 0; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+    .st-pv-b button { background: #e9e9ee; color: #111; }
+    .st-pv-b a { background: #111; color: #fff; }
+    #nav a[data-nav="ranking"] { display: none !important; }
+    #mxBar { margin: 0 0 14px; }
+    .mx-seg { display: flex; gap: 8px; }
+    .mx-seg a { height: 32px; padding: 0 16px; border-radius: 999px; background: #e9e9ee; color: #111; font-size: 13.5px; font-weight: 600; display: inline-flex; align-items: center; text-decoration: none; }
+    .mx-seg a.on { background: #111; color: #fff; }
+    .st-hot { font-style: normal; font-size: 10.5px; font-weight: 700; color: #111; background: #fff; border: .625px solid #111; border-radius: 999px; padding: 0 6px; margin-right: 6px; vertical-align: 1px; line-height: 16px; display: inline-block; }
+
+
     .st .st-gcat { color: #111; }
     .st .st-sel select { height: 28px; padding: 0 28px 0 12px; font-size: 12.5px; line-height: 28px; }
     .st .st-yr .st-allb { height: 28px; padding: 0 12px; font-size: 12.5px; line-height: 28px; }
@@ -14046,13 +14063,13 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       if (navTickets) navTickets.style.display = '';
 
       let p;
-      try { stBarSync(seg[0]); } catch (e) {}
+      try { stBarSync(seg[0]); } catch (e) {} try { mxBarSync(seg[0]); } catch (e) {}
       if (seg[0] === '') { mark('home'); p = viewHome(); }
       else if (seg[0] === 't') { p = viewTournament(decodeURIComponent(seg[1] || '')); }
       else if (seg[0] === 'fighters') { mark('story'); p = viewFighters(); }
       else if (seg[0] === 'records') { mark('story'); p = viewRecordsHall(); }
       else if (seg[0] === 'jokbo') { mark('story'); p = viewJokbo(); }
-      else if (seg[0] === 'ranking') { mark('ranking'); p = viewRanking(); }
+      else if (seg[0] === 'ranking') { mark('matches'); p = viewRanking(); }
       else if (seg[0] === 'game') { mark('game'); p = viewGame(seg[1] || ''); }
       else if (seg[0] === 'tickets') { mark('tickets'); p = viewTickets(decodeURIComponent(seg[1] || '')); }
       else if (seg[0] === 'player') { p = viewPlayer(decodeURIComponent(seg[1] || '')); }
@@ -14086,8 +14103,30 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     const stMin = m => m >= 60 ? Math.floor(m / 60) + '시간 ' + (m % 60 ? (m % 60) + '분' : '') : m + '분';
     const stVid = id => {
       const v = (__loreD.videos || {})[id] || { t: id, m: 0 };
-      return '<a class="st-v" href="https://youtu.be/' + id + '" target="_blank" rel="noopener"><img loading="lazy" src="https://i.ytimg.com/vi/' + id + '/mqdefault.jpg" alt=""><span>' + esc(v.t) + (v.m ? ' <em>' + stMin(v.m) + '</em>' : '') + '</span></a>';
+      return '<a class="st-v" data-stv="' + id + '" href="https://youtu.be/' + id + '" target="_blank" rel="noopener"><img loading="lazy" src="https://i.ytimg.com/vi/' + id + '/mqdefault.jpg" alt=""><span>' + ((__loreD.hot || []).indexOf(id) >= 0 ? '<i class="st-hot">추천</i>' : '') + esc(v.t) + (v.m ? ' <em>' + stMin(v.m) + '</em>' : '') + '</span></a>';
     };
+    /* 영상 카드를 누르면 바로 이동하지 않고 미리보기 창을 먼저 띄운다 */
+    function stPreview(a) {
+      const id = a.dataset.stv, pl = a.dataset.pl, v = pl ? { t: a.dataset.ptitle, m: 0 } : ((__loreD.videos || {})[id] || { t: id, m: 0 });
+      let d = document.getElementById('stPrev');
+      if (!d) {
+        d = document.createElement('dialog'); d.id = 'stPrev'; d.className = 'st-dlg st-prev';
+        d.addEventListener('click', e => { if (e.target === d || e.target.closest('[data-stpx]')) d.close(); });
+        document.body.appendChild(d);
+      }
+      d.innerHTML = '<img src="https://i.ytimg.com/vi/' + id + '/hqdefault.jpg" alt=""><div class="st-pv-t">' + esc(v.t) + '</div>' +
+        (pl ? '<div class="st-pv-m">몰아보기 재생목록</div>' : v.m ? '<div class="st-pv-m">영상 시청시간 ' + stMin(v.m) + '</div>' : '') + (a.dataset.note ? '<div class="st-pv-n">' + esc(a.dataset.note) + '</div>' : '') +
+        '<div class="st-pv-b"><button type="button" data-stpx>닫기</button><a href="' + (pl ? 'https://www.youtube.com/playlist?list=' + pl : 'https://youtu.be/' + id) + '" target="_blank" rel="noopener" data-stpx>유튜브에서 보기</a></div>';
+      d.showModal();
+    }
+    if (!window.__stPvBound) {
+      window.__stPvBound = true;
+      document.addEventListener('click', e => {
+        const a = e.target.closest && e.target.closest('a[data-stv]');
+        if (!a || e.ctrlKey || e.metaKey || e.shiftKey) return;
+        e.preventDefault(); stPreview(a);
+      });
+    }
     const stVids = ids => ids && ids.length ? '<div class="st-vids">' + ids.map(stVid).join('') + '</div>' : '';
     const stLn = t => { const a = String(t || '').replace(/([다요])\.\s+/g, '$1.\n').split('\n').filter(Boolean); return a.length > 2 ? '<ul class="st-ln">' + a.map(s => '<li>' + esc(s) + '</li>').join('') + '</ul>' : '<p class="st-p">' + esc(t) + '</p>'; };
     const stBtns = list => '<div class="st-fl">' + list.map(n => '<button type="button" data-stf="' + esc(n) + '">' + esc(n) + '</button>').join('') + '</div>';
@@ -14157,13 +14196,14 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       }).join('');
     }
     function stStep(s, i) {
-      const v = (__loreD.videos || {})[s.v] || { t: s.v, m: 0 };
-      return '<a class="st-step" href="https://youtu.be/' + s.v + '" target="_blank" rel="noopener"><span class="st-sn">' + (i + 1) + '</span><img loading="lazy" src="https://i.ytimg.com/vi/' + s.v + '/mqdefault.jpg" alt=""><span class="st-sb"><b>' + esc(v.t) + '</b>' + (v.m ? '<em>' + stMin(v.m) + '</em>' : '') + '<span>' + esc(s.note) + '</span></span></a>';
+      const v = (__loreD.videos || {})[s.v] || { t: s.v, m: 0 }, p = !!s.pl, ttl = p ? s.t : v.t;
+      const href = p ? 'https://www.youtube.com/playlist?list=' + s.pl : 'https://youtu.be/' + s.v;
+      return '<a class="st-step" data-stv="' + s.v + '"' + (p ? ' data-pl="' + s.pl + '" data-ptitle="' + esc(s.t) + '"' : '') + ' data-note="' + esc(s.note || '') + '" href="' + href + '" target="_blank" rel="noopener"><span class="st-sn">' + (i + 1) + '</span><img loading="lazy" src="https://i.ytimg.com/vi/' + s.v + '/mqdefault.jpg" alt=""><span class="st-sb"><b>' + ((__loreD.hot || []).indexOf(s.v) >= 0 ? '<i class="st-hot">추천</i>' : '') + esc(ttl) + '</b>' + (p ? '<em>몰아보기 재생목록</em>' : (v.m ? '<em>' + stMin(v.m) + '</em>' : '')) + '<span>' + esc(s.note) + '</span></span></a>';
     }
     function stCourses() {
       const cs = __loreD.courses, V = __loreD.videos || {};
       const row = c => {
-        const on = c.id === __stCrs, ids = c.steps ? c.steps.map(x => x.v) : c.videos, n = ids.length, min = ids.reduce((a, id) => a + ((V[id] || {}).m || 0), 0);
+        const on = c.id === __stCrs, ids = c.steps ? c.steps.map(x => x.v) : c.videos, n = ids.length, min = c.steps ? (c.steps.some(x => x.pl) ? 0 : c.steps.reduce((a, x) => a + ((V[x.v] || {}).m || 0), 0)) : ids.reduce((a, id) => a + ((V[id] || {}).m || 0), 0);
         let h = '<div class="st-cr' + (on ? ' open' : '') + (c.id === 'road' ? ' main' : '') + '"><button type="button" class="st-ch-h" data-stcs="' + c.id + '" aria-expanded="' + on + '"><span class="st-ch-t"><small class="pl">' + n + '편' + (min ? ' / 약 ' + (min >= 60 ? Math.floor(min / 60) + '시간 ' + (min % 60 ? min % 60 + '분' : '') : min + '분') : '') + '</small><b>' + esc(c.name) + '</b></span><span class="st-chev"></span></button>';
         if (on) {
           h += '<div class="st-ch-b"><p class="st-p st-cd">' + esc(c.desc) + '</p>';
@@ -14172,7 +14212,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
             c.steps.forEach((x, i) => { if (x.ph || !ph.length) ph.push({ n: x.ph || '전체', items: [] }); ph[ph.length - 1].items.push([x, i]); });
             const po = __stPh[c.id] == null ? -1 : __stPh[c.id];
             h += ph.map((p, pi) => {
-              const o = pi === po, pm = p.items.reduce((a, [x]) => a + ((V[x.v] || {}).m || 0), 0);
+              const o = pi === po, pm = p.items.reduce((a, [x]) => a + (x.pl ? 0 : ((V[x.v] || {}).m || 0)), 0);
               return '<div class="st-ph2' + (o ? ' open' : '') + '"><button type="button" class="st-ph-h" data-stph="' + c.id + ':' + pi + '" aria-expanded="' + o + '"><b>' + esc(p.n) + '</b><small>' + p.items.length + '편' + (pm ? ' / ' + pm + '분' : '') + '</small><span class="st-chev"></span></button>' +
                 (o ? '<div class="st-steps">' + p.items.map(([x, i]) => stStep(x, i)).join('') + '</div>' : '') + '</div>';
             }).join('');
@@ -14194,6 +14234,14 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       const t = document.getElementById('stRecTail');
       if (t) { t.style.display = k === 'a' ? 'none' : ''; t.querySelectorAll('[data-p]').forEach(x => { x.style.display = x.dataset.p === k ? '' : 'none'; }); }
       const qi = document.getElementById('stRankQ'); if (qi && qi.value) stFilterRank(qi.value);
+    }
+    function mxBarSync(r) {
+      try {
+        let b = document.getElementById('mxBar');
+        if (r !== 'matches' && r !== 'ranking') { if (b) b.remove(); return; }
+        if (!b) { b = document.createElement('div'); b.id = 'mxBar'; $app.parentNode.insertBefore(b, $app); }
+        b.innerHTML = '<div class="mx-seg"><a href="#/matches" class="' + (r === 'matches' ? 'on' : '') + '">경기</a><a href="#/ranking" class="' + (r === 'ranking' ? 'on' : '') + '">격잘알</a></div>';
+      } catch (e) {}
     }
     function stBarSync(route) {
       try {
