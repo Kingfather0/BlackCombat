@@ -14038,7 +14038,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
 
     /* ---------- 스토리(블랙컴뱃 세계관 스토리) ----------
        lore.json(같은 저장소의 정적 파일)을 읽어 #/story 안에서 그린다. Supabase는 쓰지 않는다. */
-    const STORY_TABS = [['home', '이번 대회'], ['story', '연대기'], ['fighters', '선수 사전'], ['rivals', '라이벌'], ['courses', '추천 영상'], ['gloss', '용어'], ['records', '기록']];
+    const STORY_TABS = [['home', '최신 흐름'], ['story', '연대기'], ['fighters', '선수 사전'], ['rivals', '구도'], ['courses', '추천 영상'], ['gloss', '용어'], ['records', '기록']];
     let __loreD = null, __loreAt = 0, __loreDiv = '전체', __stYear = '전체', __stOpen = null, __stCrs = 'road', __stPh = {};
     async function stLoad() {
       if (__loreD && Date.now() - __loreAt < 6e5) return __loreD;
@@ -14124,9 +14124,9 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     }
     function stCourses() {
       const cs = __loreD.courses, V = __loreD.videos || {};
-      return cs.map(c => {
+      const row = c => {
         const on = c.id === __stCrs, ids = c.steps ? c.steps.map(x => x.v) : c.videos, n = ids.length, min = ids.reduce((a, id) => a + ((V[id] || {}).m || 0), 0);
-        let h = '<div class="st-cr' + (on ? ' open' : '') + '"><button type="button" class="st-ch-h" data-stcs="' + c.id + '" aria-expanded="' + on + '"><span class="st-no2">' + (c.steps ? '순' : '목') + '</span><span class="st-ch-t"><small>' + n + '편' + (min ? ' / 약 ' + (min >= 60 ? Math.floor(min / 60) + '시간 ' + (min % 60 ? min % 60 + '분' : '') : min + '분') : '') + '</small><b>' + esc(c.name) + '</b></span><span class="st-chev"></span></button>';
+        let h = '<div class="st-cr' + (on ? ' open' : '') + '"><button type="button" class="st-ch-h" data-stcs="' + c.id + '" aria-expanded="' + on + '"><span class="st-ch-t"><small>' + n + '편' + (min ? ' / 약 ' + (min >= 60 ? Math.floor(min / 60) + '시간 ' + (min % 60 ? min % 60 + '분' : '') : min + '분') : '') + '</small><b>' + esc(c.name) + '</b></span><span class="st-chev"></span></button>';
         if (on) {
           h += '<div class="st-ch-b"><p class="st-p st-cd">' + esc(c.desc) + '</p>';
           if (c.steps) {
@@ -14142,12 +14142,15 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
           h += '</div>';
         }
         return h + '</div>';
-      }).join('');
+      };
+      const seq = cs.filter(c => c.steps), pick = cs.filter(c => !c.steps);
+      return '<h3 class="st-h3">순서대로 보기</h3><p class="st-lead">번호 순서를 따라가면 이야기가 이어지는 코스예요.</p><div class="st-cl">' + seq.map(row).join('') + '</div>' +
+        '<h3 class="st-h3" style="margin-top:28px">골라 보기</h3><p class="st-lead">순서 없이 관심 있는 주제만 골라 보는 코스예요.</p><div class="st-cl">' + pick.map(row).join('') + '</div>';
     }
     const ST_VIEWS = {
       home() {
         const D = __loreD, R = D.recent;
-        return '<div class="st-blk"><h2 class="st-h2">이번 대회 구도</h2><p class="st-lead">' + esc(R.event) + '</p><div class="st-grid2">' + R.items.filter(i => i.tag !== '직전 구도').map(stRecCard).join('') + '</div></div>' +
+        return '<div class="st-blk"><h2 class="st-h2">최신 흐름</h2><p class="st-lead">' + esc(R.event) + '</p><div class="st-grid2">' + R.items.filter(i => i.tag !== '직전 구도').map(stRecCard).join('') + '</div></div>' +
           '<div class="st-blk"><h2 class="st-h2">직전 구도</h2><p class="st-lead">이번 대회로 이어진 올해의 흐름이다.</p><div class="st-grid2">' + R.items.filter(i => i.tag === '직전 구도').map(stRecCard).join('') + '</div></div>' +
           '<div class="st-blk"><h2 class="st-h2">함께 보기</h2><div class="st-grid">' +
           '<a class="st-card st-go" href="#/matches"><b>대진표와 승부예측</b><span>' + esc(R.card.title) + ' 전체 대진을 확인해요.</span></a>' +
@@ -14169,10 +14172,10 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
           '<div class="st-grid" id="stFGrid">' + stFGrid() + '</div></div>';
       },
       rivals() {
-        return '<div class="st-blk"><h2 class="st-h2">라이벌 계보</h2><p class="st-lead">오래 이어진 맞대결과 악연이에요. 서사를 알고 보면 경기가 두 배로 재밌어져요.</p><div class="st-grid">' + __loreD.rivalries.map(stRiv).join('') + '</div></div>';
+        return '<div class="st-blk"><h2 class="st-h2">역대 구도</h2><p class="st-lead">오래 이어진 맞대결과 악연이에요. 서사를 알고 보면 경기가 두 배로 재밌어져요.</p><div class="st-grid">' + __loreD.rivalries.map(stRiv).join('') + '</div></div>';
       },
       courses() {
-        return '<div class="st-blk"><h2 class="st-h2">추천 영상</h2><p class="st-lead">처음이라면 맨 위 핵심 영상 순서부터 시작하세요. 코스를 눌러 펼치고, 단계 순서대로 보면 돼요.</p><div class="st-cl" id="stCrs">' + stCourses() + '</div></div>';
+        return '<div class="st-blk"><h2 class="st-h2">추천 영상</h2><p class="st-lead">처음이라면 순서대로 보기의 핵심 영상 순서부터 시작하세요. 코스를 눌러 펼쳐 보세요.</p><div id="stCrs">' + stCourses() + '</div></div>';
       },
       records() {
         const D = __loreD;
