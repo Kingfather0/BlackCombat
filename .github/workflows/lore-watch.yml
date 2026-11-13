@@ -16,25 +16,45 @@ permissions:
 jobs:
   watch:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: 새 영상 감지
         env:
           YOUTUBE_API_KEY: ${{ vars.YOUTUBE_API_KEY }}
         run: node scripts/lore-watch.js
+      - name: 자막 도구 설치 (반영 대기 영상이 있을 때만)
+        id: need
+        run: |
+          if node -e "const u=require('./lore-updates.json');process.exit((u.pending||[]).some(p=>p.cap!=='ok'&&(p.capTry||0)<3)?0:1)"; then
+            echo "run=1" >> "$GITHUB_OUTPUT"
+            pip install --quiet yt-dlp
+          else
+            echo "run=0" >> "$GITHUB_OUTPUT"
+          fi
+      - name: 새 영상 자막 수집
+        if: steps.need.outputs.run == '1'
+        continue-on-error: true
+        run: node scripts/lore-captions.js
+      - name: 반영 끝난 영상의 자막 정리
+        if: steps.need.outputs.run != '1'
+        continue-on-error: true
+        run: node scripts/lore-captions.js
       - name: 변경 시 커밋
         run: |
-          if [ -z "$(git status --porcelain lore.json lore-updates.json)" ]; then
+          git add -A lore.json lore-updates.json captions
+          if git diff --cached --quiet; then
             echo "변경 없음 - 커밋 생략"
           else
             git config user.name "lore-watch-bot"
             git config user.email "actions@users.noreply.github.com"
-            git pull --rebase origin main || true
-            git add lore.json lore-updates.json
             git commit -m "세계관 새 영상 자동 등록 ($(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M'))"
+            git pull --rebase origin main
             git push
           fi
