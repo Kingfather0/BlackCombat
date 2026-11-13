@@ -1618,6 +1618,52 @@
    ]
   },
   {
+   "id": "blackbox",
+   "name": "블랙박스",
+   "desc": "블랙컴뱃 공식 토크 시리즈. 단체 이슈와 선수 이야기를 들을 수 있다",
+   "videos": [
+    "_rCYAQQ_rIM",
+    "2ud8p0_Mg6M",
+    "YwRMVk6SGX0",
+    "Fa1VTk1k1Dg",
+    "6WlGqfB6k3c",
+    "REf9WFKOv7k",
+    "HbubH0yhC44",
+    "TQBpdqvkIdc",
+    "HtwRpbXcu30",
+    "8YzZYStyT0Q",
+    "5I3dulZVgBo",
+    "Sboyxg_v4qc",
+    "ruXX5vbYozc",
+    "6LGtXIer0FQ",
+    "NnY87JdFPns"
+   ]
+  },
+  {
+   "id": "trailer",
+   "name": "트레일러",
+   "desc": "대회와 시리즈마다 올라오는 공식 예고편 모음",
+   "videos": [
+    "csIHyWpl-qw",
+    "1Z4y_dUGO98",
+    "dAzGCh11HBQ",
+    "0A5BFCZ59gI",
+    "evw2fNEWtqc",
+    "Uo215RT3u9A",
+    "-0ujV07iQdE",
+    "UGzHRZGYh00",
+    "Ab9oq0Ms0iQ",
+    "Li7V2myXOVU",
+    "ikkqvcyPOaE",
+    "guUvz44eO8U",
+    "l0-7m0qzJuk",
+    "5cau0v46OBg",
+    "CaGdQ56Hdc4",
+    "MoF8jDpyNBU",
+    "eqESjvnkgJQ"
+   ]
+  },
+  {
    "id": "title",
    "name": "타이틀전",
    "desc": "챔피언 타이틀 경기",
@@ -2450,6 +2496,122 @@
   },
   "boPG2tgq2Qc": {
    "t": "투신 김재웅 vs 록리 야마모토 세이고 [블랙컴뱃13]",
+   "m": 26
+  },
+  "csIHyWpl-qw": {
+   "t": "싸움을 배우는 학교 Ep.0",
+   "m": 2
+  },
+  "0A5BFCZ59gI": {
+   "t": "탱크 vs 김관장 Official Trailer [플라이급 타이틀전]",
+   "m": 1
+  },
+  "evw2fNEWtqc": {
+   "t": "시라소니 vs 손오찬 Official Trailer [페더급 타이틀전]",
+   "m": 2
+  },
+  "Uo215RT3u9A": {
+   "t": "코리안갱스터 vs 야차 Official Trailer [웰터급 타이틀전]",
+   "m": 1
+  },
+  "-0ujV07iQdE": {
+   "t": "블랙컴뱃15 파라벨룸 Official Trailer",
+   "m": 3
+  },
+  "UGzHRZGYh00": {
+   "t": "탱크 vs 아마존키드 Official Trailer [플라이급 타이틀전]",
+   "m": 1
+  },
+  "Ab9oq0Ms0iQ": {
+   "t": "머큐리 vs 직쏘 Official Trailer [라이트급 타이틀전]",
+   "m": 2
+  },
+  "Li7V2myXOVU": {
+   "t": "울프킹 vs 투신 Official Trailer [블랙컴뱃15 메인이벤트]",
+   "m": 2
+  },
+  "ikkqvcyPOaE": {
+   "t": "홀리비스트 vs 스컬 Official Trailer [마지막 챔피언스리그]",
+   "m": 1
+  },
+  "guUvz44eO8U": {
+   "t": "[선공개] 피지컬 최강 몽골 | 최고의 싸움꾼을 찾아서",
+   "m": 1
+  },
+  "l0-7m0qzJuk": {
+   "t": "블랙컴뱃16 엑소더스 Official Trailer",
+   "m": 3
+  },
+  "5cau0v46OBg": {
+   "t": "KOREA OMEGA vs EURASIA [official trailer]",
+   "m": 3
+  },
+  "CaGdQ56Hdc4": {
+   "t": "PSYCHO vs ARES [official trailer]",
+   "m": 2
+  },
+  "MoF8jDpyNBU": {
+   "t": "KOREAN MOAI vs ROCKSTONE [official trailer]",
+   "m": 4
+  },
+  "_rCYAQQ_rIM": {
+   "t": "황인수가 길거리에서 만나면 검정 팬다는데요? [BLACKBOX EP.1]",
+   "m": 15
+  },
+  "2ud8p0_Mg6M": {
+   "t": "타단체가 말도 없이 선수를 빼가니까 화가 나네요? [BLACKBOX EP.4]",
+   "m": 25
+  },
+  "YwRMVk6SGX0": {
+   "t": "야차 선수의 이적이 납득 가나요? [BLACKBOX EP.5]",
+   "m": 23
+  },
+  "Fa1VTk1k1Dg": {
+   "t": "격투계도 적폐 때문에 축구협회 되는건 막아야죠? [BLACKBOX EP.6]",
+   "m": 22
+  },
+  "6WlGqfB6k3c": {
+   "t": "바이퍼 vs 제우스 [BLACKBOX EP.7]",
+   "m": 17
+  },
+  "REf9WFKOv7k": {
+   "t": "야차 선수가 찾아왔는데요? [BLACKBOX EP.8]",
+   "m": 33
+  },
+  "HbubH0yhC44": {
+   "t": "정찬성 대표가 황인수 선수랑 싸우라고 했다고요?",
+   "m": 19
+  },
+  "TQBpdqvkIdc": {
+   "t": "한국 격투계를 다 쓸어버리겠다구요?",
+   "m": 28
+  },
+  "HtwRpbXcu30": {
+   "t": "노블레스가 블랙컴뱃을 저격했네요?",
+   "m": 43
+  },
+  "8YzZYStyT0Q": {
+   "t": "야차 최준서한테 연기를 왜 강요했죠?",
+   "m": 33
+  },
+  "5I3dulZVgBo": {
+   "t": "야차 최준서한테 무슨 협박을 했나요?",
+   "m": 25
+  },
+  "Sboyxg_v4qc": {
+   "t": "검정이 정찬성에게 경고할게 있다는데요?",
+   "m": 28
+  },
+  "ruXX5vbYozc": {
+   "t": "야차 최준서를 왜 착취했나요?",
+   "m": 36
+  },
+  "6LGtXIer0FQ": {
+   "t": "챔피언급 선수가 재계약을 거절했다구요?",
+   "m": 46
+  },
+  "NnY87JdFPns": {
+   "t": "ZFN 정찬성 대표와 왜 손절한 건가요?",
    "m": 26
   }
  },
