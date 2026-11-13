@@ -12810,6 +12810,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-eb { display: flex; align-items: center; justify-content: space-between; }
     .st-bell { position: relative; flex: none; width: 34px; height: 34px; margin: -8px -7px -8px 0; padding: 0; background: none; border: 0; border-radius: 50%; color: #111; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: background .15s; }
     .st-bell:hover { background: rgba(0, 0, 0, .06); }
+    .st-tabs a .st-td { display: inline-block; width: 6px; height: 6px; margin-left: 3px; border-radius: 50%; background: #e5262f; vertical-align: super; }
     .st-rd { position: absolute; top: 5px; right: 6px; width: 9px; height: 9px; border-radius: 50%; background: #e5262f; box-shadow: 0 0 0 2px var(--bg, #fff); }
     dialog.st-dlg.st-upd { box-sizing: border-box; margin: auto; max-width: 480px; max-height: 80vh; overflow-y: auto; }
     .st-ui-title { margin: 0 0 12px; font-size: 18px; font-weight: 800; }
@@ -14423,6 +14424,25 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     const stUpdLatest = () => ((__updD && __updD.items) || []).reduce((m, i) => Math.max(m, new Date(i.at).getTime() || 0), 0);
     function stBellDots(on) { document.querySelectorAll('#stBell .st-rd').forEach(e => { e.style.display = on ? '' : 'none'; }); }
     function stBellSync() { stUpdLoad().then(() => stBellDots(stUpdLatest() > stSeen())).catch(() => {}); }
+    /* 탭별 레드닷: 최근 7일 안에 해당 탭이 갱신됐고 아직 그 탭을 보지 않았을 때만 표시. 탭을 열면 사라진다. */
+    const stTabSeenGet = () => { try { return JSON.parse(localStorage.getItem('stUpdTabSeen') || '{}') || {}; } catch (e) { return {}; } };
+    const stTabSeenSet = o => { try { localStorage.setItem('stUpdTabSeen', JSON.stringify(o)); } catch (e) {} };
+    function stTabSync() {
+      stUpdLoad().then(D => {
+        const tabs = document.querySelectorAll('.st-tabs a'); if (!tabs.length) return;
+        const seen = stTabSeenGet(), now = Date.now(), latest = {};
+        ((D && D.items) || []).forEach(i => { const t = new Date(i.at).getTime() || 0; if (t && now - t < 6048e5 && t > (latest[i.tab] || 0)) latest[i.tab] = t; });
+        let changed = false;
+        tabs.forEach((a, idx) => {
+          const label = STORY_TABS[idx] && STORY_TABS[idx][1], lt = latest[label] || 0, old = a.querySelector('.st-td');
+          if (old) old.remove();
+          if (!label || !lt || lt <= (seen[label] || 0)) return;
+          if (a.classList.contains('on')) { seen[label] = lt; changed = true; return; }
+          const d = document.createElement('span'); d.className = 'st-td'; d.setAttribute('aria-label', '새 소식'); a.appendChild(d);
+        });
+        if (changed) stTabSeenSet(seen);
+      }).catch(() => {});
+    }
     function stKst(s, withTime) {
       const d = new Date(s); if (isNaN(d)) return '';
       const p = {}; new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(d).forEach(x => { p[x.type] = x.value; });
@@ -14450,7 +14470,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       document.addEventListener('click', e => { if (e.target.closest('#stBell')) stUpdOpen(); });
     }
     const stBellIco = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 1 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>';
-    const stHeroHTML = chips => { stBellBind(); setTimeout(stBellSync, 0); return '<div class="st-hero"><div class="st-eb"><div class="st-eyebrow">BLACK COMBAT STORY</div><button type="button" class="st-bell" id="stBell" aria-label="업데이트 소식" title="업데이트 소식">' + stBellIco + '<i class="st-rd" style="display:none"></i></button></div><div class="st-hrow"><h1 class="st-h1">서사의 이해</h1><div class="st-meta">' + (chips || '') + '</div></div><p class="st-sub">처음 보는 팬부터 오래된 팬까지</p></div>'; };
+    const stHeroHTML = chips => { stBellBind(); setTimeout(() => { stBellSync(); stTabSync(); }, 0); return '<div class="st-hero"><div class="st-eb"><div class="st-eyebrow">BLACK COMBAT STORY</div><button type="button" class="st-bell" id="stBell" aria-label="업데이트 소식" title="업데이트 소식">' + stBellIco + '<i class="st-rd" style="display:none"></i></button></div><div class="st-hrow"><h1 class="st-h1">서사의 이해</h1><div class="st-meta">' + (chips || '') + '</div></div><p class="st-sub">처음 보는 팬부터 오래된 팬까지</p></div>'; };
     function stChips() {
       const m = __loreD.meta; let c = '';
       if (m.next_event) { const t = new Date(m.next_event.date).getTime(); if (t > Date.now()) c += '<span class="st-chip hot">' + esc(m.next_event.name) + ' D-' + Math.ceil((t - Date.now()) / 864e5) + '</span>'; }
