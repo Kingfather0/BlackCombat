@@ -13077,7 +13077,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       <nav id="nav">
         <a href="#/" data-nav="home">홈</a>
         <a href="#/story" data-nav="story">세계관<span class="nav-new">NEW</span></a>
-        <a href="#/videos" data-nav="videos">영상</a>
+        <a href="#/videos" data-nav="videos">캘린더</a>
         <a href="#/tickets" data-nav="tickets">티켓</a>
         <a href="#/meetup" data-nav="meetup">쉐어</a>
         <a href="#/ranking" data-nav="ranking">격잘알</a>
@@ -13148,7 +13148,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         <div class="v2-links">
           <a href="#/story">세계관<small>서사·영상·선수</small></a>
           <a href="#/matches">경기<small>승부예측 투표·결과</small></a>
-          <a href="#/videos">영상<small>업로드 예측 캘린더</small></a>
+          <a href="#/videos">캘린더<small>영상 업로드 기록·예측</small></a>
           <a href="#/tickets">티켓<small>판매 현황·잔여석</small></a>
           <a href="#/meetup">쉐어<small>직관·카풀·티켓 양도</small></a>
           <a href="#/game">게임<small>미니게임 7종</small></a>
@@ -13392,9 +13392,9 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         // "관리자 페이지 인기 페이지에서 영상 메뉴가 #/videos로 출력된다"는 지적
         // 반영(2026-08-27) — 상단 메뉴에 새로 추가된 "영상"(#/videos) 항목이 이 표기
         // 맵에 빠져 있어서 map[seg[0]]이 없을 때 쓰는 fallback(path 그대로)이 그대로
-        // 노출됐다. 상단 메뉴 실제 텍스트(<a href="#/videos" data-nav="videos">영상</a>)와
-        // 동일하게 맞춘다.
-        videos: '영상'
+        // 노출됐다. 상단 메뉴 실제 텍스트(<a href="#/videos" data-nav="videos">캘린더</a>)와
+        // 동일하게 맞춘다. (2026-11-13 메뉴명을 영상에서 캘린더로 변경)
+        videos: '캘린더'
       };
       // 승부예측 상세(#/t/대회ID)는 대회마다 주소가 달라 같은 이름이 여러 줄로 나뉘어 보였다.
       // 관리자 화면에서 미리 받아둔 대회 목록으로 대회명을 붙여 서로 구분되게 한다.
