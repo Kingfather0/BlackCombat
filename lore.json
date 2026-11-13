@@ -1363,6 +1363,10 @@
      "note": "브레이킹 다운과 블랙컴뱃이 맞붙은 대항전이다."
     },
     {
+     "v": "GkRg8HdfkD0",
+     "note": "세계 최초 MMA 국가대항 토너먼트 블랙컵을 소개하는 영상이다."
+    },
+    {
      "v": "PZltpDqLZ7k",
      "note": "브라질에서 열린 프로오디션 갓파더게임의 인트로다. 브라질 선수들과의 구도가 이어진다.",
      "ph": "4단계 대형 이벤트 시대"
@@ -1413,6 +1417,7 @@
     "wJm2xK40kjM",
     "fFP6MVgDn6w",
     "ZjeCDXNrcLE",
+    "GkRg8HdfkD0",
     "PZltpDqLZ7k",
     "VInTQSb5jic",
     "boPG2tgq2Qc",
@@ -2622,6 +2627,10 @@
   "_hGydmfTo_k": {
    "t": "블랙컴뱃 추성훈 계약 깜짝 발표 현장",
    "m": 8
+  },
+  "GkRg8HdfkD0": {
+   "t": "세계최초 MMA 국가대항 토너먼트 '블랙컵'",
+   "m": 10
   }
  },
  "latest": [],
