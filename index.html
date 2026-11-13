@@ -12986,6 +12986,13 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     .st-pv-b button { background: #e9e9ee; color: #111; }
     .st-pv-b a { background: #111; color: #fff; }
     #nav a[data-nav="ranking"] { display: none !important; }
+    /* 모바일 상단 메뉴: 좌측 쏠림 없이 화면 폭에 맞춰 고르게 펼치고, 누르는 영역을 키운다 */
+    @media (max-width: 640px) {
+      html body header nav#nav { justify-content: space-between; gap: 0; height: 48px; }
+      header nav a:not(#headerGameSelectLink) { flex: 1 1 auto; justify-content: center; height: 48px; padding: 0 4px; font-size: clamp(14px, 3.9vw, 16px); }
+      header nav a:not(#headerGameSelectLink)::after { left: 8px; right: 8px; width: auto; transform: scaleX(0); transform-origin: left; transition: transform .25s cubic-bezier(.2, .7, .3, 1); }
+      header nav a:not(#headerGameSelectLink):hover::after, header nav a:not(#headerGameSelectLink).on::after { width: auto; transform: scaleX(1); }
+    }
     .st .st-tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin: 16px 0 0; border: 0; overflow: visible; }
     .st .st-tabs a { margin: 0; padding: 11px 0; text-align: center; font-size: 15px; border-radius: 8px; text-decoration: none; }
     .st .st-tabs a.on { background: #dedee3; color: #111; }
@@ -36178,11 +36185,9 @@ function ftNetNoRec(st) {
             sp.appendChild(mid);
             if (no && (d.winA || d.winB) && !no.querySelector('.vc-win')) { var jn = no.querySelector('.match-joined'); if (jn) jn.remove(); no.insertAdjacentHTML('beforeend', '<span class="vc-win">\u{1F3C6} ' + (d.winA ? d.nameA : d.nameB) + ' 승</span>'); }
           }
-          // 득표율에 따라 대진 박스 폭 배분 (30~70%로 제한해 이름이 잘리지 않게)
-          var pa0 = parseInt(d.pctA, 10), pb0 = parseInt(d.pctB, 10), tot0 = (parseInt(String(d.cntA).replace(/,/g, ''), 10) || 0) + (parseInt(String(d.cntB).replace(/,/g, ''), 10) || 0);
-          var paw = tot0 && !isNaN(pa0) ? Math.max(35, Math.min(65, pa0)) : 50, pbw = 100 - paw;
+          // 대진 박스(선수 이름 칸)는 득표율과 무관하게 항상 50:50 고정. 득표 차이는 아래 막대로만 보여준다.
           var rowEl = m.querySelector('.vs-row') || m.querySelector('.vc-top');
-          if (rowEl) { var gtc = 'minmax(0, ' + paw + 'fr) 26px minmax(0, ' + pbw + 'fr)'; if (rowEl.style.gridTemplateColumns !== gtc) rowEl.style.gridTemplateColumns = gtc; }
+          if (rowEl && rowEl.style.gridTemplateColumns) rowEl.style.gridTemplateColumns = '';
           // 결과 멘트(대이변/초박빙 등)와 "이변 적중 N명" 목록은 카드 하단 한 줄로 모아 배치
           var tagDiv = m.querySelector(':scope > div[style*="margin:-4px"]'), hitNote = m.querySelector(':scope > .note');
           if ((tagDiv || hitNote) && !m.querySelector('.vc-extra')) {
