@@ -14174,7 +14174,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     /* ---------- 스토리(블랙컴뱃 세계관 스토리) ----------
        lore.json(같은 저장소의 정적 파일)을 읽어 #/story 안에서 그린다. Supabase는 쓰지 않는다. */
     const STORY_TABS = [['home', '최신 흐름'], ['story', '연대기'], ['courses', '추천 영상'], ['info', '선수 정보', '#/fighters'], ['gloss', '용어 모음']];
-    let __loreD = null, __loreAt = 0, __loreDiv = '전체', __stYear = '전체', __stOpen = null, __stCrs = null, __stPh = {}, __stAll = false, __stList = false, __stDesc = false;
+    let __loreD = null, __loreAt = 0, __loreDiv = '전체', __stYear = '전체', __stOpen = null, __stCrs = "road", __stPh = {}, __stAll = false, __stList = false, __stDesc = false;
     async function stLoad() {
       if (__loreD && Date.now() - __loreAt < 6e5) return __loreD;
       const r = await fetch('lore.json?v=' + Math.floor(Date.now() / 3e5));
