@@ -1,0 +1,47 @@
+name: 자막 수집 방법 시험 (수동 실행 전용)
+
+on:
+  workflow_dispatch:
+    inputs:
+      video:
+        description: '시험할 영상 ID'
+        default: '2GSRW91QUQw'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: 도구 설치
+        run: pip install --quiet yt-dlp youtube-transcript-api
+      - name: yt-dlp 클라이언트별 시험
+        continue-on-error: true
+        run: |
+          V="${{ inputs.video }}"
+          for C in default tv tv_embedded web_embedded web_safari mweb android_vr ios; do
+            rm -rf /tmp/t && mkdir -p /tmp/t
+            if [ "$C" = "default" ]; then ARGS=""; else ARGS="--extractor-args youtube:player_client=$C"; fi
+            yt-dlp --skip-download --write-auto-subs --write-subs --sub-langs "ko.*,ko" --sub-format vtt --no-warnings --socket-timeout 30 $ARGS -o "/tmp/t/%(id)s.%(ext)s" "https://www.youtube.com/watch?v=$V" > /tmp/t.log 2>&1 || true
+            F=$(ls /tmp/t/*.vtt 2>/dev/null | head -1)
+            if [ -n "$F" ]; then echo "RESULT $C: 성공 $(wc -c < "$F") bytes"; else echo "RESULT $C: 실패 - $(tail -1 /tmp/t.log | cut -c1-160)"; fi
+          done
+      - name: youtube-transcript-api 시험
+        continue-on-error: true
+        run: |
+          python - <<'PY'
+          import sys
+          try:
+              from youtube_transcript_api import YouTubeTranscriptApi
+              api = YouTubeTranscriptApi()
+              t = api.fetch("${{ inputs.video }}", languages=["ko"])
+              text = " ".join(s.text for s in t)
+              print("RESULT youtube-transcript-api: 성공", len(text), "자")
+          except Exception as e:
+              print("RESULT youtube-transcript-api: 실패 -", str(e).strip().splitlines()[0][:160] if str(e).strip() else type(e).__name__)
+          PY

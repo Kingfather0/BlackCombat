@@ -48,7 +48,8 @@ jobs:
         run: node scripts/lore-captions.js
       - name: 변경 시 커밋
         run: |
-          git add -A lore.json lore-updates.json captions
+          git add -A lore.json lore-updates.json
+          git add -A captions 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "변경 없음 - 커밋 생략"
           else
