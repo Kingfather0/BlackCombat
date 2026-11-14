@@ -10907,7 +10907,7 @@
     .v2-links a:active small { color: rgba(255, 255, 255, .72); }
     body[data-route="home"] #app { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: 16px; align-items: start; }
     body[data-route="home"] #app > .empty { grid-column: 1 / -1; }
-    .hm-sec { grid-column: span 6; }
+    .hm-sec { grid-column: span 12; }
     .hm-h { display: flex; align-items: baseline; justify-content: space-between; font-size: 20px; font-weight: 800; margin: 30px 0 0; padding-bottom: 10px; border-bottom: 1px solid var(--text); letter-spacing: -.03em; }
     .hm-h a { font-size: 12.5px; font-weight: 500; color: var(--muted); }
     .hm-empty { padding: 22px 0; color: var(--muted); font-size: 14px; border-bottom: 1px solid var(--hair); }
@@ -13145,6 +13145,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         </a>
         </div>
         <div class="v2-links">
+          <a href="#/">홈<small>공지사항</small></a>
           <a href="#/story">세계관<small>서사·영상·선수</small></a>
           <a href="#/matches">경기<small>승부예측 투표·결과</small></a>
           <a href="#/videos">캘린더<small>영상 업로드 기록·예측</small></a>
@@ -36281,27 +36282,20 @@ function ftNetNoRec(st) {
           var m = nav && nav.querySelector('[data-nav="matches"]'); if (m) m.classList.add('on');
         }
       }
-      // 홈: 공지 + 진행 중인 승부예측만 남기고, 나머지(결과 대기·지난 대회)는 "경기" 메뉴로 보낸다
+      // 홈: "공지사항"만 보여준다 (승부예측 진행 중/결과 대기/지난 대회는 모두 "경기" 메뉴에서 본다)
       function tidy() {
         var app = document.getElementById('app'); if (!app) return;
         var route = document.body.dataset.route;
         if (route === 'home') {
           if (app.querySelector(':scope > .hm-sec')) return;
-          var anns = app.querySelectorAll(':scope > .card'), opens = app.querySelectorAll(':scope > .t-card.open');
+          var anns = app.querySelectorAll(':scope > .card');
           var any = app.querySelector(':scope > .t-card, :scope > .card, :scope > .sec-title');
           if (!any) return;                                    // 아직 로딩 중이거나 오류 화면
           var s1 = document.createElement('section'); s1.className = 'hm-sec';
-          s1.innerHTML = '<h2 class="hm-h">공지</h2>';
+          s1.innerHTML = '<h2 class="hm-h">공지사항</h2>';
           if (anns.length) anns.forEach(function (c) { s1.appendChild(c); });
-          else s1.insertAdjacentHTML('beforeend', '<div class="hm-empty">새 공지가 없어요.</div>');
-          var s2 = document.createElement('section'); s2.className = 'hm-sec';
-          s2.innerHTML = '<h2 class="hm-h">승부예측 <a href="#/matches">전체 경기 보기</a></h2>';
-          // 2026-10-08: 진행 중인 투표가 없어도 홈이 비지 않도록, 가장 최신 승부예측(결과 대기 → 결과 확정 순) 1개를 보여준다
-          var latest = app.querySelector(':scope > .t-card:not(.open)');
-          if (opens.length) opens.forEach(function (c) { s2.appendChild(c); });
-          else if (latest) s2.appendChild(latest);
-          else s2.insertAdjacentHTML('beforeend', '<div class="hm-empty">아직 등록된 승부예측이 없어요. 지난 결과는<a href="#/matches" class="v2-chip" style="margin:0 1px 0 0">경기</a>에서 볼 수 있어요.</div>');
-          app.replaceChildren(s1, s2);
+          else s1.insertAdjacentHTML('beforeend', '<div class="hm-empty">새 공지사항이 없어요.</div>');
+          app.replaceChildren(s1);
         } else if (route === 'matches') {
           app.querySelectorAll(':scope > .sec-title:not([data-eyebrow])').forEach(function (t) {
             var x = t.textContent;
