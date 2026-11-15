@@ -14302,7 +14302,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
         }
         return h + '</div>';
       };
-      const seq = cs.filter(c => c.steps && c.id !== 'audition'), pick = cs.filter(c => c.id === 'audition').concat(cs.filter(c => !c.steps && c.id !== 'audition')); // 오디션 콘텐츠는 시리즈를 골라 보는 모음이라 골라 보기 최상단
+      const seq = cs.filter(c => c.steps && c.id !== 'audition'), pick = cs.filter(c => c.id === 'mini').concat(cs.filter(c => c.id === 'audition'), cs.filter(c => !c.steps && c.id !== 'mini' && c.id !== 'audition')); // 골라 보기 맨 위: 10분 코스 → 오디션 콘텐츠 → 나머지
       return '<div class="st-blk"><h2 class="st-h2">순서대로 보기</h2><p class="st-lead">처음이라면 순서대로 보기의 핵심 영상 순서부터 시작</p><div class="st-cl">' + seq.map(row).join('') +
         '</div></div><div class="st-blk"><h2 class="st-h2">골라 보기</h2><p class="st-lead">순서 없이 관심 있는 주제만 골라 보기</p><div class="st-cl">' + pick.map(row).join('') + '</div></div>';
     }
