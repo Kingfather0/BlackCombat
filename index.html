@@ -34636,7 +34636,7 @@ function ftNetNoRec(st) {
         <div class="mt-f"><label>모집 성별</label>${mtChoices('genderpref', ['무관', '남자', '여자'], D.gender_pref === '동성만' ? (D.gender || '무관') : (D.gender_pref || '무관'))}</div>`;
       }
       f += mtContactHTML2('내 연락 수단', '승인한 사람에게만 공개돼요', ck, cv, false);
-      f += `<div class="mt-f"><label>내용 <small>최대 100자</small></label><textarea id="mt-note" maxlength="100" rows="2" placeholder="간단한 추가 내용만 적어주세요 (계좌, 링크, 연락 수단 입력 금지)">${esc(D.note || '')}</textarea><div class="mt-hint"><span id="mt-cnt">${(D.note || '').length}</span>/100</div></div>
+      f += `<div class="mt-f"><label>내용 <small>최대 100자</small></label><textarea id="mt-note" maxlength="100" rows="2" placeholder="간단한 추가 내용만 적어주세요">${esc(D.note || '')}</textarea><div class="mt-hint"><span id="mt-cnt">${(D.note || '').length}</span>/100</div></div>
         ${edit ? '' : `<label class="mt-agree"><input type="checkbox" id="mt-agree"> <span>${esc(MT_DISCLAIMER)} 정가 초과 판매와 외부 결제 유도 금지에 동의합니다.</span></label>`}
         <div class="mt-submit"><div class="mt-msg" style="display:none;margin-bottom:8px"></div><button type="button" class="mt-b pri lg wide" id="mt-submit">${edit ? '수정 저장' : '등록하기'}</button></div>`;
       root.innerHTML = f;
