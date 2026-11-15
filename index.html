@@ -34545,6 +34545,29 @@ function ftNetNoRec(st) {
       mtDrawForm(S);
     }
     /* 연락 수단 입력칸: 종류 선택 + 값 + "열어서 확인". 열어서 확인(또는 카카오ID는 직접 확인 체크)을 해야 등록/신청 가능 */
+    /* 휴대폰 번호(선택): 입력칸 + 자동 하이픈. 서버에는 숫자만 보낸다. 승인된 상대에게만 공개된다. */
+    function mtPhoneHTML(value) {
+      return `<div class="mt-f"><label>휴대폰 번호 <small>선택 · 승인한 사람에게만 공개돼요</small></label>
+        <input id="mt-phone" type="tel" inputmode="numeric" maxlength="13" placeholder="010-0000-0000" autocomplete="off" value="${esc(mtPhoneFmt(value || ''))}">
+        <div class="mt-hint" style="margin-top:6px">입력하지 않아도 돼요. 거절·취소·추방되거나 글을 삭제하면 번호도 함께 지워져요.</div></div>`;
+    }
+    function mtPhoneFmt(v) {
+      const d = String(v || '').replace(/\D/g, '').slice(0, 11);
+      if (d.length < 4) return d;
+      if (d.length < 8) return d.slice(0, 3) + '-' + d.slice(3);
+      return d.slice(0, 3) + '-' + d.slice(3, d.length - 4) + '-' + d.slice(-4);
+    }
+    const mtPhoneValid = v => v === '' || /^01[016789]\d{7,8}$/.test(v);
+    function mtBindPhone(root) {
+      const el = root.querySelector('#mt-phone'); if (!el) return () => '';
+      el.addEventListener('input', () => { el.value = mtPhoneFmt(el.value); });
+      return () => el.value.replace(/\D/g, '');
+    }
+    function mtPhoneRow(phone) {
+      if (!phone) return '';
+      const f = esc(mtPhoneFmt(phone));
+      return `<div class="mt-contact" style="margin-top:6px"><span class="mt-ct"><b>휴대폰</b> ${f}</span> <a href="tel:${esc(phone)}" class="mt-b sm blue">전화</a><button type="button" class="mt-b sm" data-copy="${f}">복사</button></div>`;
+    }
     function mtContactHTML2(label, small, kind, value, allowNone) {
       const opts = Object.entries(MT_CONTACT).map(([k, v]) => ({ v: k, l: v.n })).concat(allowNone ? [{ v: 'none', l: '없음' }] : []);
       return `<div class="mt-f"><label>${label} <small>${small}</small></label>${mtChoices('ckind', opts, kind)}
@@ -34624,6 +34647,7 @@ function ftNetNoRec(st) {
         <div class="mt-f"><label>모집 성별</label>${mtChoices('genderpref', ['무관', '남자', '여자'], D.gender_pref === '동성만' ? (D.gender || '무관') : (D.gender_pref || '무관'))}</div>`;
       }
       f += mtContactHTML2('내 연락 수단', '승인한 사람에게만 공개돼요', ck, cv, false);
+      f += mtPhoneHTML(S.own && S.own.phone);
       f += `<div class="mt-f"><label>내용 <small>최대 100자</small></label><textarea id="mt-note" maxlength="100" rows="2" placeholder="간단한 추가 내용만 적어주세요 (계좌, 링크, 연락 수단 입력 금지)">${esc(D.note || '')}</textarea><div class="mt-hint"><span id="mt-cnt">${(D.note || '').length}</span>/100</div></div>
         ${edit ? '' : `<label class="mt-agree"><input type="checkbox" id="mt-agree"> <span>${esc(MT_DISCLAIMER)} 정가 초과 판매와 외부 결제 유도 금지에 동의합니다.</span></label>`}
         <div class="mt-submit"><div class="mt-msg" style="display:none;margin-bottom:8px"></div><button type="button" class="mt-b pri lg wide" id="mt-submit">${edit ? '수정 저장' : '등록하기'}</button></div>`;
@@ -34640,6 +34664,7 @@ function ftNetNoRec(st) {
         }
       });
       const ct = mtBindContact(root, S.own && S.own.value ? { kind: ck, value: cv } : null);
+      const getPhone = mtBindPhone(root);
       let pct = null;
       const unitNow = () => noPrice ? Number(q('mt-unit') && q('mt-unit').value || 0) : Number((S.prices || {})[q('mt-grade') ? q('mt-grade').value : ''] || 0);
       const qtyNow = () => mtInt(mtVal(root, 'sellq'), 1, 20) || 0;
@@ -34681,7 +34706,9 @@ function ftNetNoRec(st) {
         if (!mtValidContact(ckind, cval)) return mtSetMsg(root, '연락 수단 형식을 확인해주세요. (' + MT_CONTACT[ckind].ph + ')');
         if (!ct.verified()) return mtSetMsg(root, ckind === 'kakaoid' ? '카카오톡에서 내 ID가 검색되는지 확인하고 버튼을 눌러주세요.' : '"열어서 확인"으로 내 연락 수단이 열리는지 확인해주세요.');
         if (!edit && !q('mt-agree').checked) return mtSetMsg(root, '이용 안내와 면책 내용에 동의해주세요.');
-        const p = { event_key: MT.ev, category: cat, note, contact_kind: ckind, contact_value: cval };
+        const phone = getPhone();
+        if (!mtPhoneValid(phone)) return mtSetMsg(root, '휴대폰 번호를 확인해주세요. (예: 010-1234-5678) 남기고 싶지 않다면 비워두세요.');
+        const p = { event_key: MT.ev, category: cat, note, contact_kind: ckind, contact_value: cval, phone };
         let g = '', a = '';
         if (cat !== 'ticket') {
           g = mtVal(root, 'gender'); a = mtVal(root, 'age');
@@ -34736,6 +34763,7 @@ function ftNetNoRec(st) {
       <div id="mt-apwarn"></div>
       <div class="mt-f"><label>한마디 <small>선택 · 최대 50자</small></label><input id="mt-msg" type="text" maxlength="50" placeholder="간단한 인사나 요청 사항"></div>
       ${mtContactHTML2('내 연락 수단', '없음을 고르면 작성자 연락 수단만 받고 내가 먼저 연락해요', 'openkakao', '', true)}
+      ${mtPhoneHTML('')}
       <label class="mt-agree"><input type="checkbox" id="mt-agree"> <span>${esc(MT_DISCLAIMER)} 이에 동의합니다.</span></label>
       <div class="mt-submit"><div class="mt-msg" style="display:none;margin-bottom:8px"></div><button type="button" class="mt-b pri lg wide" id="mt-submit">신청하기</button></div></div>`, 520, true);
       const root = ov.querySelector('#mt-ap');
@@ -34751,6 +34779,7 @@ function ftNetNoRec(st) {
       };
       mtBindChoices(root, warn);
       const ct = mtBindContact(root, null);
+      const getPhone = mtBindPhone(root);
       warn();
       root.querySelector('#mt-submit').onclick = async () => {
         const g = isT ? null : mtVal(root, 'gender'), a = isT ? null : mtVal(root, 'age'), msg = root.querySelector('#mt-msg').value.trim();
@@ -34763,10 +34792,12 @@ function ftNetNoRec(st) {
           if (!mtValidContact(ck, cv)) return mtSetMsg(root, '연락 수단 형식을 확인해주세요. (' + MT_CONTACT[ck].ph + ') 연락 수단을 남기지 않으려면 "없음"을 골라주세요.');
           if (!ct.verified()) return mtSetMsg(root, ck === 'kakaoid' ? '카카오톡에서 내 ID가 검색되는지 확인하고 버튼을 눌러주세요.' : '"열어서 확인"으로 내 연락 수단이 열리는지 확인해주세요.');
         }
+        const phone = getPhone();
+        if (!mtPhoneValid(phone)) return mtSetMsg(root, '휴대폰 번호를 확인해주세요. (예: 010-1234-5678) 남기고 싶지 않다면 비워두세요.');
         if (!root.querySelector('#mt-agree').checked) return mtSetMsg(root, '이용 안내와 면책 내용에 동의해주세요.');
         const btn = root.querySelector('#mt-submit'); btn.disabled = true; btn.textContent = '신청 중…';
         try {
-          await mtRpc('meetup_apply', { p_post_id: id, p_gender: g, p_age_group: a, p_message: msg, p_contact_kind: ck, p_contact_value: cv, p_agreed: true, p_party: party });
+          await mtRpc('meetup_apply', { p_post_id: id, p_gender: g, p_age_group: a, p_message: msg, p_contact_kind: ck, p_contact_value: cv, p_agreed: true, p_party: party, ...(phone ? { p_phone: phone } : {}) });
           if (!isT) mtLS('mt_prof', { gender: g, age: a });
           history.back(); mtToast('신청했어요. 작성자가 승인하면 연락 수단을 볼 수 있어요.'); setTimeout(mtReload, 120);
         } catch (e) { btn.disabled = false; btn.textContent = '신청하기'; mtSetMsg(root, mtErr(e)); }
@@ -34806,7 +34837,7 @@ function ftNetNoRec(st) {
       try {
         const r = await mtRpc('meetup_contacts', { p_post_id: id });
         const ov = mtModal('연락 수단', `<div class="mt-form"><div class="mt-sum">작성자 <b>${esc(r.nick)}</b></div>
-          <div class="mt-contact">${mtContactHTML(r.kind, r.value)}</div>
+          <div class="mt-contact">${mtContactHTML(r.kind, r.value)}</div>${mtPhoneRow(r.phone)}
           <div class="mt-hint" style="margin-top:10px">신청 때 내 연락 수단을 남기지 않았다면 내가 먼저 연락해주세요.</div>
           <div class="mt-warnbox">${esc(MT_DISCLAIMER)} 선입금이나 정가 초과를 요구하면 신고해주세요.</div></div>`, 480);
         mtBindCopy(ov);
@@ -34831,7 +34862,7 @@ function ftNetNoRec(st) {
             const c = cmap[r.nick];
             return `<div class="mt-req ${r.status}"><div class="mt-req-h"><b>${esc(r.nick)}</b>${r.gender ? ` <span class="mt-dim">${esc(r.gender)} · ${esc(r.age_group)}</span>` : ''} <span class="mt-badge ${cls[r.status] || 'closed'}">${lab[r.status] || r.status}</span>${r.party > 1 ? ` <span class="mt-badge cat-watch">${r.party}명 신청</span>` : ''}<span class="mt-ago">${mtAgo(r.created_at)}</span></div>
             ${r.message ? `<div class="mt-note">${esc(r.message)}</div>` : ''}
-            ${r.status === 'approved' ? (c && c.value ? `<div class="mt-contact">${mtContactHTML(c.kind, c.value)}</div>` : `<div class="mt-hint">연락 수단을 남기지 않은 신청자예요. 내 연락 수단이 공개됐으니 신청자가 먼저 연락할 거예요.</div>`) : ''}
+            ${r.status === 'approved' ? ((c && c.value ? `<div class="mt-contact">${mtContactHTML(c.kind, c.value)}</div>` : '') + (c && c.phone ? mtPhoneRow(c.phone) : '') || `<div class="mt-hint">연락 수단을 남기지 않은 신청자예요. 내 연락 수단이 공개됐으니 신청자가 먼저 연락할 거예요.</div>`) : ''}
             <div class="mt-req-b" data-id="${r.id}" data-nick="${esc(r.nick)}">
               ${r.status === 'pending' ? '<button type="button" class="mt-b ok sm" data-a="approve">승인</button><button type="button" class="mt-b no sm" data-a="reject">거절</button>' : ''}
               ${r.status === 'approved' ? '<button type="button" class="mt-b no sm" data-a="kick">추방</button>' : ''}
