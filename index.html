@@ -34106,8 +34106,16 @@ function ftNetNoRec(st) {
     const MT_CONTACT = {
       openkakao: { n: '오픈카톡', ph: 'https://open.kakao.com/o/...' },
       kakaoid: { n: '카카오ID', ph: '카카오톡 ID' },
-      insta: { n: '인스타', ph: '인스타그램 아이디' }
+      insta: { n: '인스타', ph: '인스타그램 아이디' },
+      phone: { n: '휴대폰', ph: '010-0000-0000' }
     };
+    const mtPhoneDigits = v => String(v || '').replace(/\D/g, '').slice(0, 11);
+    function mtPhoneFmt(v) {
+      const d = mtPhoneDigits(v);
+      if (d.length < 4) return d;
+      if (d.length < 8) return d.slice(0, 3) + '-' + d.slice(3);
+      return d.slice(0, 3) + '-' + d.slice(3, d.length - 4) + '-' + d.slice(-4);
+    }
     const MT_REPORT_REASONS = ['외부결제 유도', '사기 의심', '욕설/비하', '부적절한 내용', '기타'];
     const MT_REGIONS = {
       '서울': ['강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구', '노원구', '도봉구', '동대문구', '동작구', '마포구', '서대문구', '서초구', '성동구', '성북구', '송파구', '양천구', '영등포구', '용산구', '은평구', '종로구', '중구', '중랑구'],
@@ -34155,6 +34163,7 @@ function ftNetNoRec(st) {
       if (k === 'openkakao') return /^https:\/\/open\.kakao\.com\/[A-Za-z0-9\/_?=&.\-]{3,120}$/.test(v);
       if (k === 'kakaoid') return /^[A-Za-z0-9._\-]{3,30}$/.test(v);
       if (k === 'insta') return /^@?[A-Za-z0-9._]{1,30}$/.test(v);
+      if (k === 'phone') return /^01[016789]\d{7,8}$/.test(mtPhoneDigits(v));
       return false;
     }
     // 서버(_mt_bad_text)와 같은 기준의 사전 검사 — 서버가 최종 판단하고, 여기는 빠른 안내용
@@ -34548,8 +34557,8 @@ function ftNetNoRec(st) {
     function mtContactHTML2(label, small, kind, value, allowNone) {
       const opts = Object.entries(MT_CONTACT).map(([k, v]) => ({ v: k, l: v.n })).concat(allowNone ? [{ v: 'none', l: '없음' }] : []);
       return `<div class="mt-f"><label>${label} <small>${small}</small></label>${mtChoices('ckind', opts, kind)}
-        <input id="mt-cval" type="text" maxlength="120" style="margin-top:8px" placeholder="${esc(MT_CONTACT[kind] ? MT_CONTACT[kind].ph : '')}" autocomplete="off" value="${esc(value || '')}">
-        <div class="mt-vfy" id="mt-vrow"><button type="button" class="mt-b gray sm" id="mt-vfy">열어서 확인</button><span class="mt-hint" id="mt-vhint" style="margin:0"></span></div></div>`;
+        <input id="mt-cval" type="text" maxlength="120" style="margin-top:8px" placeholder="${esc(MT_CONTACT[kind] ? MT_CONTACT[kind].ph : '')}" autocomplete="off" value="${esc(kind === 'phone' ? mtPhoneFmt(value) : (value || ''))}">
+        <div class="mt-vfy" id="mt-vrow"><button type="button" class="mt-b gray sm" id="mt-vfy">열어서 확인</button><span class="mt-hint" id="mt-vhint" style="margin:0"></span></div><div class="mt-hint" id="mt-phint" style="display:none;margin-top:6px">입력하지 않아도 돼요. 번호는 승인한 사람에게만 공개되고, 거절·취소·추방되거나 글을 삭제하면 지워져요.</div></div>`;
     }
     function mtBindContact(root, init) {
       const q = id => root.querySelector('#' + id);
@@ -34559,8 +34568,11 @@ function ftNetNoRec(st) {
       const paint = () => {
         const k = kind(), none = k === 'none';
         q('mt-cval').style.display = none ? 'none' : '';
-        q('mt-vrow').style.display = none ? 'none' : '';
+        q('mt-vrow').style.display = none || k === 'phone' ? 'none' : '';   // 휴대폰은 열어서 확인할 곳이 없어 확인 단계 없음
+        q('mt-phint').style.display = k === 'phone' ? '' : 'none';
         if (none) return;
+        q('mt-cval').inputMode = k === 'phone' ? 'numeric' : '';
+        if (k === 'phone') { q('mt-cval').value = mtPhoneFmt(q('mt-cval').value); q('mt-cval').placeholder = MT_CONTACT.phone.ph; return; }
         q('mt-cval').placeholder = MT_CONTACT[k].ph;
         const done = ok === key() && q('mt-cval').value.trim() !== '';
         const b = q('mt-vfy');
@@ -34569,7 +34581,7 @@ function ftNetNoRec(st) {
         q('mt-vhint').textContent = done ? '' : (k === 'openkakao' ? '링크가 열리는지 확인해야 진행할 수 있어요' : k === 'insta' ? '내 프로필이 열리는지 확인해야 진행할 수 있어요' : '카카오톡 ID 검색에서 나오는지 확인한 뒤 눌러주세요');
       };
       root.querySelectorAll('.mt-chs[data-g="ckind"] .mt-ch').forEach(b => b.addEventListener('click', paint));
-      q('mt-cval').addEventListener('input', paint);
+      q('mt-cval').addEventListener('input', () => { if (kind() === 'phone') q('mt-cval').value = mtPhoneFmt(q('mt-cval').value); paint(); });
       q('mt-vfy').onclick = () => {
         const k = kind(), v = q('mt-cval').value.trim();
         if (!mtValidContact(k, v)) return mtSetMsg(root, '연락 수단 형식을 먼저 확인해주세요. (' + MT_CONTACT[k].ph + ')');
@@ -34578,7 +34590,7 @@ function ftNetNoRec(st) {
         ok = key(); paint();
       };
       paint();
-      return { kind, value: () => q('mt-cval').value.trim(), none: () => kind() === 'none', verified: () => kind() === 'none' || ok === key() };
+      return { kind, value: () => kind() === 'phone' ? mtPhoneDigits(q('mt-cval').value) : q('mt-cval').value.trim(), none: () => kind() === 'none', verified: () => kind() === 'none' || kind() === 'phone' || ok === key() };
     }
     function mtDrawForm(S) {
       const root = S.root, D = S.edit || {}, cat = S.cat, edit = !!S.edit;
@@ -34792,9 +34804,9 @@ function ftNetNoRec(st) {
     /* ---------- 연락 수단 / 신청자 관리 ---------- */
     function mtContactHTML(kind, value) {
       const k = MT_CONTACT[kind] || { n: kind };
-      const v = esc(value);
-      const url = mtContactUrl(kind, value);
-      const link = url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="mt-b sm blue">열기</a>` : '';
+      const v = esc(kind === 'phone' ? mtPhoneFmt(value) : value);
+      const url = kind === 'phone' ? 'tel:' + mtPhoneDigits(value) : mtContactUrl(kind, value);
+      const link = url ? `<a href="${esc(url)}"${kind === 'phone' ? '' : ' target="_blank" rel="noopener noreferrer"'} class="mt-b sm blue">${kind === 'phone' ? '전화' : '열기'}</a>` : '';
       return `<span class="mt-ct"><b>${esc(k.n)}</b> ${v}</span> ${link}<button type="button" class="mt-b sm" data-copy="${v}">복사</button>`;
     }
     function mtBindCopy(root) {
