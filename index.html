@@ -14472,7 +14472,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
     const stHeroHTML = chips => { stBellBind(); setTimeout(() => { stBellSync(); stTabSync(); }, 0); return '<div class="st-hero"><div class="st-eb"><div class="st-eyebrow">BLACK COMBAT STORY</div><button type="button" class="st-bell" id="stBell" aria-label="업데이트 소식" title="업데이트 소식">' + stBellIco + '<i class="st-rd" style="display:none"></i></button></div><div class="st-hrow"><h1 class="st-h1">서사의 이해</h1><div class="st-meta">' + (chips || '') + '</div></div><p class="st-sub">처음 보는 팬부터 오래된 팬까지</p></div>'; };
     function stChips() {
       const m = __loreD.meta; let c = '';
-      if (m.next_event) { const t = new Date(m.next_event.date).getTime(); if (t > Date.now()) c += '<span class="st-chip hot">' + esc(m.next_event.name) + ' D-' + Math.ceil((t - Date.now()) / 864e5) + '</span>'; }
+      if (m.next_event) { const t = new Date(m.next_event.date).getTime(); if (t > Date.now()) c += '<span class="st-chip hot">' + esc(m.next_event.name) + ' D-' + Math.round((Math.floor((t + 324e5) / 864e5) - Math.floor((Date.now() + 324e5) / 864e5))) + '</span>'; }  /* 2026-11-16: 시각 올림(ceil) 대신 KST 달력 날짜 차이로 계산 (승부예측 D-day와 동일) */
       return c;
     }
     const stTabsHTML = act => '<div class="st-tabs">' + STORY_TABS.map(t => '<a href="' + (t[2] || '#/story' + (t[0] === 'home' ? '' : '/' + t[0])) + '" class="' + (t[0] === act ? 'on' : '') + '">' + t[1] + '</a>').join('') + '</div>';
