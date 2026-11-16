@@ -36453,7 +36453,7 @@ function ftNetNoRec(st) {
             var cA0 = c.querySelector('.corner.red'), cB0 = c.querySelector('.corner.blue');
             var a = tx(cA0 ? cA0.querySelector('.cn-name') : c.querySelector('.vc-f.a .nm')).replace(/\u{1F451}/gu, '').trim(), b = tx(cB0 ? cB0.querySelector('.cn-name') : c.querySelector('.vc-f.b .nm')).replace(/\u{1F451}/gu, '').trim();
             var wa = !!c.querySelector('.vc-bar.win-a'), wb = !!c.querySelector('.vc-bar.win-b');
-            var dec = function (n) { var k = String(n).trim().toLowerCase(), f = (typeof FIGHTER_MAP === 'object' && FIGHTER_MAP) ? FIGHTER_MAP[k] : null; var nm = (typeof esc === 'function') ? esc(n) : n; return (typeof fflagHTML === 'function' ? fflagHTML(n) : '') + nm + (f && f.rank === 'C' ? ' <span class="vc-crown">\u{1F451}</span>' : ''); };
+            var dec = function (n) { var k = String(n).trim().toLowerCase(), f = (typeof FIGHTER_MAP === 'object' && FIGHTER_MAP) ? FIGHTER_MAP[k] : null; var nm = (typeof esc === 'function') ? esc(n) : n; /* 2026-11-16: 같은 이름이 여러 체급에 있을 수 있어(킹콩: 미들 챔피언 / 웰터 3위) 경기 체급 기준으로 왕관 판정 */ var crown = (dv && typeof isChampOfDiv === 'function') ? isChampOfDiv(n, dv.replace(/\u{1F451}/gu, '').replace(/급$/, '').trim()) : !!(f && f.rank === 'C'); return (typeof fflagHTML === 'function' ? fflagHTML(n) : '') + nm + (crown ? ' <span class="vc-crown">\u{1F451}</span>' : ''); };
             var aH = dec(a), bH = dec(b);
             if (isVote) {
               var ps = c.querySelectorAll('.vc-pct'), pa = ps[0] ? tx(ps[0]) : '', pb = ps[1] ? tx(ps[1]) : '';
