@@ -11930,8 +11930,8 @@
     .mt-submit .mt-b.pri:disabled { background: #aaa; border-color: #aaa; }
     .mt-note { white-space: normal; overflow: visible; text-overflow: clip; }
     .mt-note > span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; line-height: 1.45; }
-    /* ===== 홈: 실시간 잔여석 배너(좌) + 쉐어 배너(우) 반반 ===== */
-    .hm-banners { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 4px 0 12px; }
+    /* ===== 홈: 쉐어 배너 (전체 폭 한 줄) ===== */
+    .hm-banners { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin: 4px 0 12px; }
     .hm-banners .mt-home { margin: 0; grid-template-columns: 1fr; min-height: 128px; align-content: center; background: linear-gradient(90deg, #0b0c0e calc(100% - 238px), rgba(11, 12, 14, 0) calc(100% - 118px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #0b0c0e; }
     .hm-banners .mt-home:hover { background: linear-gradient(90deg, #0b0c0e calc(100% - 238px), rgba(11, 12, 14, 0) calc(100% - 118px)), url(meetup-hero.jpg) right center / auto 100% no-repeat, #15171a; }
     .hm-banners .mt-home-p { grid-column: 1; grid-row: auto; margin-top: 8px; }
