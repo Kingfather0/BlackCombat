@@ -14285,7 +14285,7 @@ body[data-route="game"] .gcard-fort .gc-new { background: #2f7fe0; color: #fff; 
       const cs = __loreD.courses, V = __loreD.videos || {};
       const row = c => {
         const on = c.id === __stCrs, ids = c.steps ? c.steps.map(x => x.v) : c.videos, n = ids.length, min = c.steps ? (c.steps.some(x => x.pl) ? 0 : c.steps.reduce((a, x) => a + ((V[x.v] || {}).m || 0), 0)) : ids.reduce((a, id) => a + ((V[id] || {}).m || 0), 0);
-        let h = '<div class="st-cr' + (on ? ' open' : '') + (c.id === 'road' ? ' main' : '') + '"><button type="button" class="st-ch-h" data-stcs="' + c.id + '" aria-expanded="' + on + '"><span class="st-ch-t">' + (c.id === 'road' ? '<small class="pl">' + n + '편' + (min ? ' / 약 ' + (min >= 60 ? Math.floor(min / 60) + '시간 ' + (min % 60 ? min % 60 + '분' : '') : min + '분') : '') + '</small>' : '') + '<b>' + esc(c.name) + '</b></span><span class="st-chev"></span></button>';
+        let h = '<div class="st-cr' + (on ? ' open' : '') + (c.id === 'road' ? ' main' : '') + '"><button type="button" class="st-ch-h" data-stcs="' + c.id + '" aria-expanded="' + on + '"><span class="st-ch-t">' + (c.id === 'road' ? '<small class="pl">' + n + '편</small>' : '') + '<b>' + esc(c.name) + '</b></span><span class="st-chev"></span></button>';
         if (on) {
           h += '<div class="st-ch-b"><p class="st-p st-cd">' + esc(c.desc) + '</p>';
           if (c.steps) {
