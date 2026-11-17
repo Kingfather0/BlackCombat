@@ -20,6 +20,10 @@ concurrency:
   group: yt-sync
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -43,3 +47,11 @@ jobs:
           YOUTUBE_API_KEY: ${{ vars.YOUTUBE_API_KEY }}
           YT_CHANNEL_HANDLE: ${{ vars.YT_CHANNEL_HANDLE }}
         run: node scripts/yt-sync.js
+      # 세계관 새 영상 감지는 자체 스케줄(17,47분)이 GitHub에서 5~11시간씩 밀리는 일이 잦아
+      # (2026-11-17 밤 9시 업로드 영상이 새벽 5시 반에야 감지됨), 이 워크플로우가 도는 김에
+      # 감지 워크플로우도 함께 깨운다. 실패해도 동기화 결과에는 영향이 없다.
+      - name: 세계관 새 영상 감지 깨우기
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run lore-watch.yml --ref main
