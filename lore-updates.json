@@ -67,5 +67,14 @@
    "href": "#/story"
   }
  ],
- "pending": []
+ "pending": [
+  {
+   "id": "-kwjlp_tt_k",
+   "title": "추성훈 vs 크리스 리벤 D-2",
+   "published": "2026-11-19T03:00:09Z",
+   "min": 53,
+   "cat": "경기",
+   "capTry": 1
+  }
+ ]
 }
