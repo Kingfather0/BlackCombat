@@ -36929,11 +36929,9 @@ function ftNetNoRec(st) {
     .n17g-tx small { display: block; font-size: 12.5px; color: var(--muted, #6e6e73); margin-top: 2px; }
     .n17g-sec { margin: 18px 0 22px; }
     .n17g-h { display: flex; align-items: center; justify-content: space-between; font-size: 18px; font-weight: 800; padding-bottom: 10px; border-bottom: 1px solid var(--text, #111); margin-bottom: 12px; }
-    .n17g-h button { font: inherit; font-size: 13px; font-weight: 700; padding: 7px 14px; border: 0; border-radius: 8px; background: #2c2c2e; color: #fff; cursor: pointer; transition: background .15s ease, transform .1s ease; }
-    .n17g-h button:hover { background: #48484a; }
+    .n17g-h button { font: inherit; font-size: 13px; font-weight: 700; padding: 7px 14px; border: 0; border-radius: 8px; background: #8e8e93; color: #fff; cursor: pointer; transition: background .15s ease, transform .1s ease; }
+    .n17g-h button:hover { background: #6e6e73; }
     .n17g-h button:active { transform: scale(.96); }
-    .n17g-h button[data-n17g="fold"] { background: #8e8e93; }
-    .n17g-h button[data-n17g="fold"]:hover { background: #6e6e73; }
     .n17g-img { position: relative; border: 1px solid var(--hair, #e5e5ea); border-radius: 12px; overflow: hidden; background: #f4f1ea; cursor: pointer; max-height: 280px; }
     .n17g-img::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 90px; background: linear-gradient(180deg, rgba(244, 241, 234, 0), #f4f1ea 85%); pointer-events: none; }
     .n17g-sec.is-open .n17g-img { max-height: none; cursor: zoom-in; }
@@ -36988,7 +36986,7 @@ function ftNetNoRec(st) {
           var t = app.querySelector(':scope > h1.page');
           if (t && /17/.test(t.textContent) && !document.getElementById('n17gSec')) {
             var a = app.querySelector(':scope > .sub') || t;
-            a.insertAdjacentHTML('afterend', '<section class="n17g-sec" id="n17gSec"><div class="n17g-h"><span>선수별 관전 포인트</span><span class="n17g-hb"><button type="button" class="n17g-off" data-n17g="open">펼치기</button><button type="button" class="n17g-on" data-n17g="zoom">크게 보기</button><button type="button" class="n17g-on" data-n17g="fold">접기</button></span></div><div class="n17g-img" data-n17g="imgtap"><img src="' + IMG + '" alt="넘버링17 선수별 관전 포인트" loading="lazy"></div><div class="n17g-cap"><span class="n17g-off">펼치면 15경기 선수 특징을 한 번에 볼 수 있어요</span><span class="n17g-on">사진을 누르면 크게 볼 수 있어요</span></div></section>');
+            a.insertAdjacentHTML('afterend', '<section class="n17g-sec" id="n17gSec"><div class="n17g-h"><span>선수별 관전 포인트</span><span class="n17g-hb"><button type="button" class="n17g-off" data-n17g="open">펼치기</button><button type="button" class="n17g-on" data-n17g="fold">접기</button></span></div><div class="n17g-img" data-n17g="imgtap"><img src="' + IMG + '" alt="넘버링17 선수별 관전 포인트" loading="lazy"></div><div class="n17g-cap"><span class="n17g-off">펼치면 15경기 선수 특징을 한 번에 볼 수 있어요</span><span class="n17g-on">사진을 누르면 크게 볼 수 있어요</span></div></section>');
           }
         }
       }
