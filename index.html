@@ -36910,6 +36910,84 @@ function ftNetNoRec(st) {
       tidy();
     })();
   </script>
+  <!-- 넘버링17 선수별 관전 포인트 (경기 페이지 상단 섹션 + 홈 공지 + 경기 메뉴 안내). 대회가 끝나면 이 블록과 n17-guide.webp만 지우면 된다 -->
+  <style>
+    .n17g-note { display: flex; align-items: center; gap: 12px; padding: 14px 2px; border-bottom: 1px solid var(--hair, #e5e5ea); color: var(--text, #111); text-decoration: none; cursor: pointer; }
+    .n17g-pill { flex: none; background: var(--amber, #f2b32a); color: #111; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 4px; letter-spacing: .02em; }
+    .n17g-tx b { display: block; font-size: 15px; font-weight: 800; }
+    .n17g-tx small { display: block; font-size: 12.5px; color: var(--muted, #6e6e73); margin-top: 2px; }
+    .n17g-sec { margin: 18px 0 22px; }
+    .n17g-h { display: flex; align-items: center; justify-content: space-between; font-size: 18px; font-weight: 800; padding-bottom: 10px; border-bottom: 1px solid var(--text, #111); margin-bottom: 12px; }
+    .n17g-h button { font: inherit; font-size: 12.5px; font-weight: 600; padding: 5px 10px; border: 1px solid var(--hair, #d1d1d6); border-radius: 6px; background: #fff; color: var(--text, #111); cursor: pointer; }
+    .n17g-img { border: 1px solid var(--hair, #e5e5ea); border-radius: 12px; overflow: hidden; background: #f4f1ea; cursor: zoom-in; }
+    .n17g-img img { display: block; width: 100%; height: auto; }
+    .n17g-cap { font-size: 12.5px; color: var(--muted, #6e6e73); margin-top: 8px; }
+    dialog.n17g-dlg { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; padding: 0; border: 0; background: #f4f1ea; overflow: hidden; }
+    dialog.n17g-dlg[open] { display: flex; flex-direction: column; }
+    .n17g-bar { flex: none; display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #1d1d1f; color: #fff; font-size: 14px; }
+    .n17g-bar button { font: inherit; font-size: 13px; font-weight: 700; padding: 5px 12px; border: 0; border-radius: 6px; background: #ffb000; color: #111; cursor: pointer; }
+    .n17g-sc { flex: 1; overflow: auto; touch-action: pan-x pan-y pinch-zoom; -webkit-overflow-scrolling: touch; }
+    .n17g-sc img { display: block; width: max(100%, 1400px); height: auto; }
+  </style>
+  <script>
+    (function () {
+      var IMG = 'n17-guide.webp?v=2', END = new Date('2026-11-24T00:00:00+09:00').getTime(), KEY = 'n17g_href';
+      function find17() {
+        var as = document.querySelectorAll('a.t-card[href^="#/t/"]');
+        for (var i = 0; i < as.length; i++) {
+          if (/17/.test(as[i].textContent)) { var h = as[i].getAttribute('href'); try { localStorage.setItem(KEY, h); } catch (e) { } return h; }
+        }
+        try { return localStorage.getItem(KEY); } catch (e) { return null; }
+      }
+      function viewer() {
+        var d = document.getElementById('n17gDlg');
+        if (!d) {
+          d = document.createElement('dialog'); d.id = 'n17gDlg'; d.className = 'n17g-dlg';
+          d.innerHTML = '<div class="n17g-bar"><b>넘버링17 선수별 관전 포인트</b><button type="button" data-n17g="x">닫기</button></div><div class="n17g-sc"><img alt="넘버링17 선수별 관전 포인트" src="' + IMG + '"></div>';
+          d.addEventListener('click', function (e) { if (e.target === d || (e.target.getAttribute && e.target.getAttribute('data-n17g') === 'x')) d.close(); });
+          document.body.appendChild(d);
+        }
+        d.showModal();
+      }
+      function note() {
+        return '<a class="n17g-note" href="#/matches" data-n17g="go"><span class="n17g-pill">NEW</span><span class="n17g-tx"><b>넘버링17 선수별 관전 포인트</b><small>15경기 선수 소개를 한 장으로 모았어요</small></span></a>';
+      }
+      function apply() {
+        var app = document.getElementById('app'); if (!app) return;
+        var r = document.body.dataset.route, live = Date.now() < END;
+        if (r === 'home' && live) {
+          find17();
+          var s = app.querySelector('.hm-sec');
+          if (s && !s.querySelector('.n17g-note')) { var h = s.querySelector('.hm-h'); if (h) h.insertAdjacentHTML('afterend', note()); }
+        } else if (r === 'matches' && live) {
+          find17();
+          var h1 = app.querySelector(':scope > h1.page');
+          if (h1 && !app.querySelector(':scope > .n17g-note')) h1.insertAdjacentHTML('afterend', note());
+        } else if (r === 't') {
+          var t = app.querySelector(':scope > h1.page');
+          if (t && /17/.test(t.textContent) && !document.getElementById('n17gSec')) {
+            var a = app.querySelector(':scope > .sub') || t;
+            a.insertAdjacentHTML('afterend', '<section class="n17g-sec" id="n17gSec"><div class="n17g-h"><span>선수별 관전 포인트</span><button type="button" data-n17g="zoom">크게 보기</button></div><div class="n17g-img" data-n17g="zoom"><img src="' + IMG + '" alt="넘버링17 선수별 관전 포인트" loading="lazy"></div><div class="n17g-cap">사진을 누르면 크게 볼 수 있어요</div></section>');
+          }
+        }
+      }
+      var tm = null; function soon() { clearTimeout(tm); tm = setTimeout(apply, 80); }
+      document.addEventListener('click', function (e) {
+        var el = e.target.closest && e.target.closest('[data-n17g]'); if (!el) return;
+        var k = el.getAttribute('data-n17g');
+        if (k === 'zoom') { e.preventDefault(); viewer(); }
+        else if (k === 'go') {
+          e.preventDefault();
+          var h = find17();
+          if (h && location.hash !== h) location.hash = h; else viewer();
+        }
+      });
+      var app = document.getElementById('app');
+      if (app) new MutationObserver(soon).observe(app, { childList: true });
+      window.addEventListener('hashchange', function () { setTimeout(apply, 300); });
+      setTimeout(apply, 300);
+    })();
+  </script>
 </body>
 
 </html>
