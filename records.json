@@ -1,5 +1,5 @@
 {
- "updated_at": "2026-11-22T00:19:42.228Z",
+ "updated_at": "2026-11-23T00:49:11.418Z",
  "nicks": {
   "11198227": "블랙맘바",
   "11539850": "무칼리",
@@ -82,6 +82,7 @@
   "51611046": "빅가이",
   "51712256": "데드샷",
   "51837721": "도깨비발",
+  "51931259": "Mr. Perfect",
   "51940035": "영타이거",
   "53287506": "모모",
   "53339805": "머큐리",
@@ -253,6 +254,7 @@
   "51611046": "양단겸",
   "51712256": "Ortsa Gudaev",
   "51837721": "이선하",
+  "51931259": "강경호",
   "51940035": "이영훈",
   "53287506": "Sato Ryutaro",
   "53339805": "Flavio Santos",
@@ -4090,6 +4092,21 @@
      "도깨비발"
     ],
     "m": "1R 2:53 TKO"
+   }
+  ],
+  "51931259": [
+   {
+    "ev": "BLACK COMBAT 17",
+    "res": "L",
+    "a": [
+     "98660587",
+     "투신"
+    ],
+    "b": [
+     "51931259",
+     "Mr. Perfect"
+    ],
+    "m": "1R 2:38 Rear Naked Choke"
    }
   ],
   "51940035": [
@@ -8151,6 +8168,19 @@
   ],
   "98660587": [
    {
+    "ev": "BLACK COMBAT 17",
+    "res": "W",
+    "a": [
+     "98660587",
+     "투신"
+    ],
+    "b": [
+     "51931259",
+     "Mr. Perfect"
+    ],
+    "m": "1R 2:38 Rear Naked Choke"
+   },
+   {
     "ev": "블랙컴뱃 16",
     "res": "W",
     "a": [
@@ -8320,6 +8350,7 @@
   "51533588": "https://www.sherdog.com/fighter/Young-Woong-Lee-468616",
   "51611046": "https://www.sherdog.com/fighter/Hae-Jun-Yang-27969",
   "51712256": "https://www.sherdog.com/fighter/Ortca-Gudaev-250705",
+  "51931259": "https://www.sherdog.com/fighter/Kyung-Ho-Kang-24067",
   "51940035": "https://www.sherdog.com/fighter/Young-Hoon-Lee-286127",
   "53287506": "https://www.sherdog.com/fighter/Ryutaro-Sato-390301",
   "53339805": "https://www.sherdog.com/fighter/Flavio-da-Silva-Santos-109807",
