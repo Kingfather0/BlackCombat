@@ -83,5 +83,14 @@
    "href": "#/story"
   }
  ],
- "pending": []
+ "pending": [
+  {
+   "id": "_ILxUGsqGkk",
+   "title": "투신 김재웅 vs Mr.Perfect 강경호 [블랙컴뱃17]",
+   "published": "2026-11-25T12:00:09Z",
+   "min": 24,
+   "cat": "경기",
+   "capTry": 1
+  }
+ ]
 }
