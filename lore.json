@@ -1,7 +1,7 @@
 {
  "meta": {
   "schema": 1,
-  "updated": "2026-11-27",
+  "updated": "2026-11-28",
   "next_event": {
    "name": "블랙컴뱃 넘버링 17",
    "date": "2026-11-21T13:00:00+09:00"
@@ -1743,7 +1743,8 @@
     "3RaSM3KqC_M",
     "3VzqH_Ny2W4",
     "AlzlD7NzV94",
-    "_ILxUGsqGkk"
+    "_ILxUGsqGkk",
+    "4PKbhTQAMgo"
    ]
   },
   {
@@ -1751,10 +1752,10 @@
    "name": "최근 주요 경기",
    "desc": "지금 챔피언과 최근 큰 경기 중심",
    "videos": [
-    "U5izkE5_wzk",
     "DQwG2JX-yXs",
     "_ILxUGsqGkk",
-    "ySG_v7qqpWM"
+    "ySG_v7qqpWM",
+    "4PKbhTQAMgo"
    ]
   }
  ],
