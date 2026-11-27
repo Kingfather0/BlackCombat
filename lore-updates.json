@@ -115,5 +115,14 @@
    "href": "#/story"
   }
  ],
- "pending": []
+ "pending": [
+  {
+   "id": "4PKbhTQAMgo",
+   "title": "시라소니 방성혁 vs 아레스 김태균 [블랙컴뱃17]",
+   "published": "2026-11-27T11:57:08Z",
+   "min": 23,
+   "cat": "경기",
+   "capTry": 1
+  }
+ ]
 }
